@@ -6,6 +6,8 @@
  */
 package javassist.bytecode.annotation;
 
+import javassist.bytecode.ConstPool;
+
 import java.io.DataOutputStream;
 import java.io.IOException;
 
@@ -13,17 +15,23 @@ import java.io.IOException;
  * Comment
  *
  * @author <a href="mailto:bill@jboss.org">Bill Burke</a>
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  *
  **/
 public class ClassMemberValue extends MemberValue
 {
    short class_info_index;
 
-   public ClassMemberValue(short cii)
+   public ClassMemberValue(short cii, ConstPool cp)
    {
-      tag = 'c';
+      super('c', cp);
       this.class_info_index = cii;
+   }
+
+   public ClassMemberValue(ConstPool cp)
+   {
+      super('c', cp);
+      setClassName("java.lang.Class");
    }
 
    public String getClassName()
@@ -44,5 +52,9 @@ public class ClassMemberValue extends MemberValue
    {
       super.write(dos);
       dos.writeShort(class_info_index);
+   }
+   public void accept(MemberValueVisitor visitor)
+   {
+      visitor.visitClassMemberValue(this);
    }
 }

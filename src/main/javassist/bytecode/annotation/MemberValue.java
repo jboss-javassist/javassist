@@ -17,7 +17,7 @@ import java.util.LinkedHashMap;
  * Comment
  *
  * @author <a href="mailto:bill@jboss.org">Bill Burke</a>
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  *
  **/
 public abstract class MemberValue
@@ -25,12 +25,20 @@ public abstract class MemberValue
    ConstPool cp;
    char tag;
 
+   protected MemberValue(char tag, ConstPool cp)
+   {
+      this.cp = cp;
+      this.tag = tag;
+   }
+
+   public abstract void accept(MemberValueVisitor visitor);
 
    public void write(DataOutputStream dos) throws IOException
    {
       byte btag = (byte)tag;
       dos.writeByte(btag);
    }
+
    public static MemberValue readMemberValue(ConstPool cp, DataInput di) throws java.io.IOException
    {
       byte btag = di.readByte();
@@ -39,40 +47,40 @@ public abstract class MemberValue
       switch (tag)
       {
          case 'B':
-            rtn = new ByteMemberValue(di.readShort());
+            rtn = new ByteMemberValue(di.readShort(), cp);
             break;
          case 'C':
-            rtn = new CharMemberValue(di.readShort());
+            rtn = new CharMemberValue(di.readShort(), cp);
             break;
          case 'D':
-            rtn = new DoubleMemberValue(di.readShort());
+            rtn = new DoubleMemberValue(di.readShort(), cp);
             break;
          case 'F':
-            rtn = new FloatMemberValue(di.readShort());
+            rtn = new FloatMemberValue(di.readShort(), cp);
             break;
          case 'I':
-            rtn = new IntegerMemberValue(di.readShort());
+            rtn = new IntegerMemberValue(di.readShort(), cp);
             break;
          case 'J':
-            rtn = new LongMemberValue(di.readShort());
+            rtn = new LongMemberValue(di.readShort(), cp);
             break;
          case 'S':
-            rtn = new ShortMemberValue(di.readShort());
+            rtn = new ShortMemberValue(di.readShort(), cp);
             break;
          case 'Z':
-            rtn = new BooleanMemberValue(di.readShort());
+            rtn = new BooleanMemberValue(di.readShort(), cp);
             break;
          case 's':
-            rtn = new StringMemberValue(di.readShort());
+            rtn = new StringMemberValue(di.readShort(), cp);
             break;
          case 'e':
-            rtn = new EnumMemberValue(di.readShort(), di.readShort());
+            rtn = new EnumMemberValue(di.readShort(), di.readShort(), cp);
             break;
          case 'c':
-            rtn = new ClassMemberValue(di.readShort());
+            rtn = new ClassMemberValue(di.readShort(), cp);
             break;
          case '@':
-            rtn = new AnnotationMemberValue(AnnotationInfo.readAnnotationInfo(cp, di));
+            rtn = new AnnotationMemberValue(AnnotationInfo.readAnnotationInfo(cp, di), cp);
             break;
          case '[':
             rtn = ArrayMemberValue.readArray(cp, di);

@@ -6,6 +6,8 @@
  */
 package javassist.bytecode.annotation;
 
+import javassist.bytecode.ConstPool;
+
 import java.io.DataOutputStream;
 import java.io.IOException;
 
@@ -13,17 +15,23 @@ import java.io.IOException;
  * Comment
  *
  * @author <a href="mailto:bill@jboss.org">Bill Burke</a>
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  *
  **/
 public class BooleanMemberValue extends MemberValue
 {
    short const_value_index;
 
-   public BooleanMemberValue(short cvi)
+   public BooleanMemberValue(short cvi, ConstPool cp)
    {
-      tag = 'Z';
+      super('Z', cp);
       this.const_value_index = cvi;
+   }
+
+   public BooleanMemberValue(ConstPool cp)
+   {
+      super('Z', cp);
+      setValue(false);
    }
 
    public boolean getValue()
@@ -44,5 +52,9 @@ public class BooleanMemberValue extends MemberValue
    {
       super.write(dos);
       dos.writeShort(const_value_index);
+   }
+   public void accept(MemberValueVisitor visitor)
+   {
+      visitor.visitBooleanMemberValue(this);
    }
 }

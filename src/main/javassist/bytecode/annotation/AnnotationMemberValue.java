@@ -6,6 +6,8 @@
  */
 package javassist.bytecode.annotation;
 
+import javassist.bytecode.ConstPool;
+
 import java.io.DataOutputStream;
 import java.io.IOException;
 
@@ -13,16 +15,21 @@ import java.io.IOException;
  * Comment
  *
  * @author <a href="mailto:bill@jboss.org">Bill Burke</a>
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  *
  **/
 public class AnnotationMemberValue extends MemberValue
 {
    AnnotationInfo annotation;
-   public AnnotationMemberValue(AnnotationInfo a)
+   public AnnotationMemberValue(AnnotationInfo a, ConstPool cp)
    {
-      tag = '@';
+      super('@', cp);
       this.annotation = a;
+   }
+
+   public AnnotationMemberValue(ConstPool cp)
+   {
+      super('@', cp);
    }
 
    public AnnotationInfo getNestedAnnotation()
@@ -45,4 +52,10 @@ public class AnnotationMemberValue extends MemberValue
       super.write(dos);
       annotation.write(dos);
    }
+
+   public void accept(MemberValueVisitor visitor)
+   {
+      visitor.visitAnnotationMemberValue(this);
+   }
+
 }

@@ -6,6 +6,8 @@
  */
 package javassist.bytecode.annotation;
 
+import javassist.bytecode.ConstPool;
+
 import java.io.DataOutputStream;
 import java.io.IOException;
 
@@ -13,17 +15,23 @@ import java.io.IOException;
  * Comment
  *
  * @author <a href="mailto:bill@jboss.org">Bill Burke</a>
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  *
  **/
 public class ByteMemberValue extends MemberValue
 {
    short const_value_index;
 
-   public ByteMemberValue(short const_value_index)
+   public ByteMemberValue(short const_value_index, ConstPool cp)
    {
-      tag = 'B';
+      super('B', cp);
       this.const_value_index = const_value_index;
+   }
+
+   public ByteMemberValue(ConstPool cp)
+   {
+      super('B', cp);
+      setValue((byte)0);
    }
 
    public byte getValue()
@@ -44,5 +52,9 @@ public class ByteMemberValue extends MemberValue
    {
       super.write(dos);
       dos.writeShort(const_value_index);
+   }
+   public void accept(MemberValueVisitor visitor)
+   {
+      visitor.visitByteMemberValue(this);
    }
 }

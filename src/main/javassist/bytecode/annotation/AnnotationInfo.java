@@ -24,7 +24,7 @@ import java.util.Iterator;
  * Comment
  *
  * @author <a href="mailto:bill@jboss.org">Bill Burke</a>
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  *
  **/
 public class AnnotationInfo
@@ -37,6 +37,65 @@ public class AnnotationInfo
    private AnnotationInfo()
    {
 
+   }
+
+   private MemberValue createMemberValue(ConstPool cp, CtClass returnType) throws javassist.NotFoundException
+   {
+      if (returnType.equals(CtPrimitiveType.booleanType))
+      {
+         return new BooleanMemberValue(cp);
+      }
+      else if (returnType.equals(CtPrimitiveType.byteType))
+      {
+         return new ByteMemberValue(cp);
+      }
+      else if (returnType.equals(CtPrimitiveType.charType))
+      {
+         return new CharMemberValue(cp);
+      }
+      else if (returnType.equals(CtPrimitiveType.doubleType))
+      {
+         return new DoubleMemberValue(cp);
+      }
+      else if (returnType.equals(CtPrimitiveType.floatType))
+      {
+         return new FloatMemberValue(cp);
+      }
+      else if (returnType.equals(CtPrimitiveType.intType))
+      {
+         return new IntegerMemberValue(cp);
+      }
+      else if (returnType.equals(CtPrimitiveType.longType))
+      {
+         return new LongMemberValue(cp);
+      }
+      else if (returnType.equals(CtPrimitiveType.shortType))
+      {
+         return new ShortMemberValue(cp);
+      }
+      else if (returnType.getName().equals("java.lang.Class"))
+      {
+         return new ClassMemberValue(cp);
+      }
+      else if (returnType.getName().equals("java.lang.String") || returnType.getName().equals("String"))
+      {
+         return new StringMemberValue(cp);
+      }
+      else if (returnType.isArray())
+      {
+         CtClass arrayType = returnType.getComponentType();
+         MemberValue type = createMemberValue(cp, arrayType);
+         return new ArrayMemberValue(type, cp);
+      }
+      else if (returnType.isInterface())
+      {
+         AnnotationInfo info = new AnnotationInfo(cp, returnType);
+         return new AnnotationMemberValue(info, cp);
+      }
+      else
+      {
+         throw new RuntimeException("cannot handle member type: " + returnType.getName());
+      }
    }
 
    /**
@@ -59,58 +118,7 @@ public class AnnotationInfo
       for (int i = 0; i < methods.length; i++)
       {
          CtClass returnType = methods[i].getReturnType();
-         if (returnType.equals(CtPrimitiveType.booleanType))
-         {
-            addMemberValue(methods[i].getName(), new BooleanMemberValue((short) -1));
-         }
-         else if (returnType.equals(CtPrimitiveType.byteType))
-         {
-            addMemberValue(methods[i].getName(), new ByteMemberValue((short) -1));
-         }
-         else if (returnType.equals(CtPrimitiveType.charType))
-         {
-            addMemberValue(methods[i].getName(), new CharMemberValue((short) -1));
-         }
-         else if (returnType.equals(CtPrimitiveType.doubleType))
-         {
-            addMemberValue(methods[i].getName(), new DoubleMemberValue((short) -1));
-         }
-         else if (returnType.equals(CtPrimitiveType.floatType))
-         {
-            addMemberValue(methods[i].getName(), new FloatMemberValue((short) -1));
-         }
-         else if (returnType.equals(CtPrimitiveType.intType))
-         {
-            addMemberValue(methods[i].getName(), new IntegerMemberValue((short) -1));
-         }
-         else if (returnType.equals(CtPrimitiveType.longType))
-         {
-            addMemberValue(methods[i].getName(), new LongMemberValue((short) -1));
-         }
-         else if (returnType.equals(CtPrimitiveType.shortType))
-         {
-            addMemberValue(methods[i].getName(), new ShortMemberValue((short) -1));
-         }
-         else if (returnType.getName().equals("java.lang.Class"))
-         {
-            addMemberValue(methods[i].getName(), new ClassMemberValue((short) -1));
-         }
-         else if (returnType.getName().equals("java.lang.String") || returnType.getName().equals("String"))
-         {
-            addMemberValue(methods[i].getName(), new StringMemberValue((short) -1));
-         }
-         else if (returnType.isArray())
-         {
-            addMemberValue(methods[i].getName(), new ArrayMemberValue());
-         }
-         else if (returnType.isInterface())
-         {
-            addMemberValue(methods[i].getName(), new AnnotationMemberValue(null));
-         }
-         else
-         {
-            throw new RuntimeException("cannot handle member type: " + returnType.getName());
-         }
+         addMemberValue(methods[i].getName(), createMemberValue(cp, returnType));
       }
    }
 
@@ -165,6 +173,11 @@ public class AnnotationInfo
    public void write(DataOutputStream dos) throws IOException
    {
       dos.writeShort(type_index);
+      if (members == null)
+      {
+         dos.writeShort((short)0);
+         return;
+      }
       dos.writeShort(members.size());
       Iterator it = members.keySet().iterator();
       while (it.hasNext())

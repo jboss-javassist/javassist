@@ -6,6 +6,8 @@
  */
 package javassist.bytecode.annotation;
 
+import javassist.bytecode.ConstPool;
+
 import java.io.DataOutputStream;
 import java.io.IOException;
 
@@ -13,7 +15,7 @@ import java.io.IOException;
  * Comment
  *
  * @author <a href="mailto:bill@jboss.org">Bill Burke</a>
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  *
  **/
 public class EnumMemberValue extends MemberValue
@@ -21,9 +23,9 @@ public class EnumMemberValue extends MemberValue
    short type_name_index;
    short const_name_index;
 
-   public EnumMemberValue(short type, short cni)
+   public EnumMemberValue(short type, short cni, ConstPool cp)
    {
-      tag = 'e';
+      super('e', cp);
       this.type_name_index = type;
       this.const_name_index = cni;
    }
@@ -48,5 +50,9 @@ public class EnumMemberValue extends MemberValue
       super.write(dos);
       dos.writeShort(type_name_index);
       dos.writeShort(const_name_index);
+   }
+   public void accept(MemberValueVisitor visitor)
+   {
+      visitor.visitEnumMemberValue(this);
    }
 }
