@@ -72,6 +72,8 @@ public class MemberCodeGen extends CodeGen {
         int start = bytecode.currentPc();
         body.accept(this);
         int end = bytecode.currentPc();
+        if (start == end)
+            throw new CompileError("empty try block");
 
         bytecode.addOpcode(Opcode.GOTO);
         int pc = bytecode.currentPc();
@@ -92,10 +94,10 @@ public class MemberCodeGen extends CodeGen {
             decl.setClassName(javaToJvmName(type.getName()));
             bytecode.addExceptionHandler(start, end, bytecode.currentPc(),
                                          type);
-            if (block != null) {
-                bytecode.addAstore(var);
+            bytecode.growStack(1);
+            bytecode.addAstore(var);
+            if (block != null)
                 block.accept(this);
-            }
 
             bytecode.addOpcode(Opcode.GOTO);
             bytecode.addIndex(pc - bytecode.currentPc());

@@ -372,9 +372,9 @@ public class ClassPool {
 
     /**
      * Returns a <code>java.lang.Class</code> object that has been loaded
-     * by <code>writeAsClass()</code>.  Note that such an object cannot be
+     * by <code>writeAsClass()</code>.  That object cannot be
      * obtained by <code>java.lang.Class.forName()</code> because it has
-     * been loaded by an internal class loader.
+     * been loaded by an internal class loader of Javassist.
      *
      * @see #writeAsClass(String)
      * @see javassist.CtClass#toClass()
