@@ -147,6 +147,8 @@ public abstract class CtBehavior extends CtMember {
      *
      * @param src       the source code representing the member body.
      *                  It must be a single statement or block.
+     *                  If it is <code>null</code>, the substituted member
+     *                  body does nothing except returning zero or null.
      */
     public void setBody(String src) throws CannotCompileException {
         declaringClass.checkModify();

@@ -16,6 +16,7 @@
 package javassist.compiler;
 
 import javassist.CtClass;
+import javassist.CtPrimitiveType;
 import javassist.CtMember;
 import javassist.CtField;
 import javassist.CtBehavior;
@@ -25,6 +26,7 @@ import javassist.CannotCompileException;
 import javassist.ClassPool;
 import javassist.Modifier;
 import javassist.bytecode.Bytecode;
+import javassist.bytecode.Opcode;
 import javassist.NotFoundException;
 
 import javassist.compiler.ast.*;
@@ -172,6 +174,7 @@ public class Javac {
      * Compiles a method (or constructor) body.
      *
      * @src	a single statement or a block.
+     *          If null, this method produces a body returning zero or null.
      */
     public Bytecode compileBody(CtBehavior method, String src)
         throws CompileError
@@ -191,15 +194,48 @@ public class Javac {
             recordReturnType(rtype, false);
             boolean isVoid = rtype == CtClass.voidType;
 
-            Parser p = new Parser(new Lex(src));
-            SymbolTable stb = new SymbolTable(stable);
-            Stmnt s = p.parseStatement(stb);
-            gen.atMethodBody(s, method instanceof CtConstructor, isVoid);
+            if (src == null)
+                makeDefaultBody(bytecode, rtype);
+            else {
+                Parser p = new Parser(new Lex(src));
+                SymbolTable stb = new SymbolTable(stable);
+                Stmnt s = p.parseStatement(stb);
+                gen.atMethodBody(s, method instanceof CtConstructor, isVoid);
+            }
+
             return bytecode;
         }
         catch (NotFoundException e) {
             throw new CompileError(e.toString());
         }
+    }
+
+    private static void makeDefaultBody(Bytecode b, CtClass type) {
+        int op;
+        int value;
+        if (type instanceof CtPrimitiveType) {
+            CtPrimitiveType pt = (CtPrimitiveType)type;
+            op = pt.getReturnOp();
+            if (op == Opcode.DRETURN)
+                value = Opcode.DCONST_0;
+            else if (op == Opcode.FRETURN)
+                value = Opcode.FCONST_0;
+            else if (op == Opcode.LRETURN)
+                value = Opcode.LCONST_0;
+            else if (op == Opcode.RETURN)
+                value = Opcode.NOP;
+            else
+                value = Opcode.ICONST_0;
+        }
+        else {
+            op = Opcode.ARETURN;
+            value = Opcode.ACONST_NULL;
+        }
+
+        if (value != Opcode.NOP)
+            b.addOpcode(value);
+
+        b.addOpcode(op);
     }
 
     /**

@@ -283,8 +283,14 @@ public final class CtConstructor extends CtBehavior {
      *
      * @param src       the source code representing the constructor body.
      *                  It must be a single statement or block.
+     *                  If it is <code>null</code>, the substituted
+     *                  constructor body does nothing except calling
+     *                  <code>super()</code>.
      */
     public void setBody(String src) throws CannotCompileException {
+        if (src == null)
+            src = "super();";
+
         super.setBody(src);
     }
 

@@ -304,6 +304,8 @@ public final class CtMethod extends CtBehavior {
      *
      * @param src       the source code representing the method body.
      *                  It must be a single statement or block.
+     *                  If it is <code>null</code>, the substituted method
+     *                  body does nothing except returning zero or null.
      */
     public void setBody(String src) throws CannotCompileException {
         super.setBody(src);

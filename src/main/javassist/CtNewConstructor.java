@@ -74,12 +74,15 @@ public class CtNewConstructor {
     /**
      * Creates a public constructor.
      *
-     * @param returnType        the type of the returned value
-     * @param mname             the method name
-     * @param parameters        a list of the parameter types
-     * @param exceptions        a list of the exception types
-     * @param src               the source text of the method body.
+     * @param returnType        the type of the returned value.
+     * @param mname             the method name.
+     * @param parameters        a list of the parameter types.
+     * @param exceptions        a list of the exception types.
+     * @param body              the source text of the constructor body.
      *                  It must be a block surrounded by <code>{}</code>.
+     *                  If it is <code>null</code>, the substituted
+     *                  constructor body does nothing except calling
+     *                  <code>super()</code>.
      * @param declaring    the class to which the created method is added.
      */
     public static CtConstructor make(CtClass[] parameters,

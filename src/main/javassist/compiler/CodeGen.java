@@ -1090,7 +1090,13 @@ public abstract class CodeGen extends Visitor implements Opcode, TokenId {
                 bytecode.addOpcode(POP2);
             }
             else if (result_type == P_FLOAT) {
-                bytecode.addOpcode(SWAP);
+                if (type1_p == P_LONG) {
+                    bytecode.addOpcode(DUP_X2);
+                    bytecode.addOpcode(POP);
+                }
+                else
+                    bytecode.addOpcode(SWAP);
+
                 bytecode.addOpcode(op);
                 bytecode.addOpcode(SWAP);
             }

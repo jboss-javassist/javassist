@@ -489,10 +489,13 @@ catch (java.io.IOException e) {
 <p><code>CtMethod</code> and <code>CtConstructor</code> provide
 <code>setBody()</code> for substituting a whole
 method body.  They compile the given source text into Java bytecode
-and substitutes it for the original method body.
+and substitutes it for the original method body.  If the given source
+text is <code>null</code>, the substituted body includes only a
+<code>return</code> statement, which returns zero or null unless the
+result type is <code>void</code>.
 
 <p>In the source text given to <code>setBody()</code>, the identifiers
-starting with $ have special meaning
+starting with <code>$</code> have special meaning
 
 <ul><table border=0>
 <tr>
@@ -1095,7 +1098,10 @@ point.addMethod(m);
 In this example, <code>x</code> is a <code>int</code> field in
 the class <code>Point</code>.
 
-<p>The source text passed to <code>make()</code> can refer to
+<p>The source text passed to <code>make()</code> can include the
+identifiers starting with <code>$</code> except <code>$_</code>
+as in <code>setBody()</code>.
+It can also include
 <code>$proceed</code> if the target object and the target method name
 are also given to <code>make()</code>.  For example,
 
@@ -1207,7 +1213,8 @@ supported.
 
 <p><li>Inner classes or anonymous classes are not supported.
 
-<p><li><code>switch</code> statements are not supported yet.
+<p><li><code>switch</code> or <code>synchronized</code>
+statements are not supported yet.
 
 <p><li>Labeled <code>continue</code> and <code>break</code> statements
 are not supported.

@@ -262,6 +262,8 @@ public final class Parser implements TokenId {
             return parseTry(tbl);
         else if (t == SWITCH)
             return parseSwitch(tbl);
+        else if (t == SYNCHRONIZED)
+            return parseSynchronized(tbl);
         else if (t == RETURN)
             return parseReturn(tbl);
         else if (t == THROW)
@@ -401,6 +403,13 @@ public final class Parser implements TokenId {
      */
     private Stmnt parseSwitch(SymbolTable tbl) throws CompileError {
         throw new CompileError("switch is not supported", lex);
+    }
+
+    /* synchronized.statement :
+     *     SYNCHRONIZED "(" expression ")" block.statement
+     */
+    private Stmnt parseSynchronized(SymbolTable tbl) throws CompileError {
+        throw new CompileError("synchronized is not supported", lex);
     }
 
     /* try.statement
