@@ -525,10 +525,6 @@ public class ClassPool extends AbsClassPool {
     boolean write0(String classname, DataOutputStream out, boolean callback)
         throws NotFoundException, CannotCompileException, IOException
     {
-        // first, delegate to the parent.
-        if (parent != null && parent.write0(classname, out, callback))
-            return true;
-
         CtClass clazz = (CtClass)getCached(classname);
         if (callback && translator != null
                                 && (clazz == null || !clazz.isFrozen())) {
