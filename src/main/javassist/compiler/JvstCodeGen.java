@@ -1,6 +1,6 @@
 /*
  * Javassist, a Java-bytecode translator toolkit.
- * Copyright (C) 1999-2003 Shigeru Chiba. All Rights Reserved.
+ * Copyright (C) 1999-2004 Shigeru Chiba. All Rights Reserved.
  *
  * The contents of this file are subject to the Mozilla Public License Version
  * 1.1 (the "License"); you may not use this file except in compliance with
@@ -187,8 +187,7 @@ public class JvstCodeGen extends MemberCodeGen {
             compileUnwrapValue(returnType, bytecode);
         else if (returnType instanceof CtPrimitiveType) {
             CtPrimitiveType pt = (CtPrimitiveType)returnType;
-            int destType = MemberResolver.jvmTypeNameToExprType(
-                                                    pt.getDescriptor());
+            int destType = MemberResolver.descToType(pt.getDescriptor());
             atNumCastExpr(exprType, destType);
             exprType = destType;
             arrayDim = 0;
@@ -554,6 +553,35 @@ public class JvstCodeGen extends MemberCodeGen {
                              varNo, new Symbol(varName));
         tbl.append(varName, decl);
         return is2word(exprType, arrayDim) ? 2 : 1;
+    }
+
+    /**
+     * Makes the given variable name available.
+     *
+     * @param typeDesc  the type descriptor of the variable
+     * @param varName   variable name
+     * @param varNo     an index into the local variable array
+     */
+    public void recordVariable(String typeDesc, String varName, int varNo,
+                               SymbolTable tbl) throws CompileError
+    {
+        char c;
+        int dim = 0;
+        while ((c = typeDesc.charAt(dim)) == '[')
+            ++dim;
+
+        int type = MemberResolver.descToType(c);
+        String cname = null;
+        if (type == CLASS) {
+            if (dim == 0)
+                cname = typeDesc;
+            else
+                cname = typeDesc.substring(dim);
+        }
+
+        Declarator decl
+            = new Declarator(type, cname, dim, varNo, new Symbol(varName));
+        tbl.append(varName, decl);
     }
 
     /* compileParameterList() returns the stack size used

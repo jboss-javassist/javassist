@@ -1,6 +1,6 @@
 /*
  * Javassist, a Java-bytecode translator toolkit.
- * Copyright (C) 1999-2003 Shigeru Chiba. All Rights Reserved.
+ * Copyright (C) 1999-2004 Shigeru Chiba. All Rights Reserved.
  *
  * The contents of this file are subject to the Mozilla Public License Version
  * 1.1 (the "License"); you may not use this file except in compliance with
@@ -430,31 +430,6 @@ public class MemberResolver implements TokenId {
         return classname.replace('/', '.');
     }
 
-    public static int jvmTypeNameToExprType(char type) {
-        switch(type) {
-        case 'Z' :
-            return BOOLEAN;
-        case 'B' :
-            return BYTE;
-        case 'C' :
-            return CHAR;
-        case 'S' :
-            return SHORT;
-        case 'I' :
-            return INT;
-        case 'J' :
-            return LONG;
-        case 'F' :
-            return FLOAT;
-        case 'D' :
-            return DOUBLE;
-        case 'V' :
-            return VOID;
-        default :
-            return CLASS;
-        }
-    }
-
     public static int descToType(char c) throws CompileError {
         switch (c) {
         case 'Z' :
@@ -480,7 +455,7 @@ public class MemberResolver implements TokenId {
             return CLASS;
         default :
             fatal();
-            return VOID;
+            return VOID;    // never reach here
         }
     }
 

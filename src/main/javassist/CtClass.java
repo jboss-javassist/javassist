@@ -1,6 +1,6 @@
 /*
  * Javassist, a Java-bytecode translator toolkit.
- * Copyright (C) 1999-2003 Shigeru Chiba. All Rights Reserved.
+ * Copyright (C) 1999-2004 Shigeru Chiba. All Rights Reserved.
  *
  * The contents of this file are subject to the Mozilla Public License Version
  * 1.1 (the "License"); you may not use this file except in compliance with
@@ -36,14 +36,14 @@ public abstract class CtClass {
     /**
      * The version number of this release.
      */
-    public static final String version = "2.7 beta 2";
+    public static final String version = "2.7 alpha 7";
 
     /**
      * Prints the version number and the copyright notice.
      */
     public static void main(String[] args) {
         System.out.println("Javassist version " + CtClass.version);
-        System.out.println("Copyright (C) 1999-2003 Shigeru Chiba."
+        System.out.println("Copyright (C) 1999-2004 Shigeru Chiba."
                            + " All Rights Reserved.");
     }
 

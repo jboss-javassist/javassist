@@ -1,6 +1,6 @@
 /*
  * Javassist, a Java-bytecode translator toolkit.
- * Copyright (C) 1999-2003 Shigeru Chiba. All Rights Reserved.
+ * Copyright (C) 1999-2004 Shigeru Chiba. All Rights Reserved.
  *
  * The contents of this file are subject to the Mozilla Public License Version
  * 1.1 (the "License"); you may not use this file except in compliance with
@@ -114,8 +114,7 @@ public class JvstTypeChecker extends TypeChecker {
             compileUnwrapValue(returnType);
         else if (returnType instanceof CtPrimitiveType) {
             CtPrimitiveType pt = (CtPrimitiveType)returnType;
-            int destType = MemberResolver.jvmTypeNameToExprType(
-                                                        pt.getDescriptor());
+            int destType = MemberResolver.descToType(pt.getDescriptor());
             exprType = destType;
             arrayDim = 0;
             className = null;
