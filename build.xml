@@ -1,0 +1,85 @@
+<?xml version="1.0"?>
+
+<!-- ======================================================================= -->
+<!-- JBoss build file                                                       -->
+<!-- ======================================================================= -->
+
+<project name="javassist" default="jar" basedir=".">
+
+    <property environment="env"/>
+    <property name="src.dir" value="${basedir}/src/main"/>
+    <property name="build.dir" value="${basedir}/build"/>
+    <property name="build.classes.dir" value="${build.dir}/classes"/>
+
+  <!-- Build classpath -->
+  <path id="classpath">
+	<pathelement location="${build.classes.dir}"/>
+  </path>
+
+  <property name="build.classpath" refid="classpath"/>
+
+  <!-- =================================================================== -->
+  <!-- Prepares the build directory                                        -->
+  <!-- =================================================================== -->
+  <target name="prepare" >
+    <mkdir dir="${build.dir}"/>
+    <mkdir dir="${build.classes.dir}"/>
+  </target>
+
+  <!-- =================================================================== -->
+  <!-- Compiles the source code                                            -->
+  <!-- =================================================================== -->
+  <target name="compile" depends="prepare">
+    <javac srcdir="${src.dir}"
+           destdir="${build.classes.dir}"
+           debug="on"
+           deprecation="on"
+           optimize="off"
+           includes="**">
+            <classpath refid="classpath"/>
+    </javac>
+  </target>
+
+  <target name="jar" depends="compile">
+    <jar jarfile="javassist.jar">
+      <fileset dir="${build.classes.dir}">
+      	  <include name="**/*.class"/>
+      </fileset>
+     </jar>
+  </target>
+
+  <target name="javadocs">
+    <javadoc packagenames="javassist.*"
+           sourcepath="src/main"
+           defaultexcludes="yes"
+           destdir="html"
+           author="true"
+           version="true"
+           use="true"
+           windowtitle="Javassist API">
+      <doctitle><![CDATA[<h1>Javassist</h1>]]></doctitle>
+      <bottom><![CDATA[<i>Javassist, a Java-bytecode translator toolkit. 
+Copyright (C) 1999-2003 Shigeru Chiba. All Rights Reserved.</i>]]></bottom>
+    </javadoc>
+  </target>
+
+
+  <target name="dist" depends="jar,javadocs">
+    <delete file="javassist-dist.zip"/>
+    <zip zipfile="javassist-dist.zip">
+       <fileset dir="${basedir}">
+          <include name="**"/>
+          <exclude name="build/**"/>
+          <exclude name="javassist-dist.zip"/>
+       </fileset>
+    </zip>
+  </target>
+
+  <target name="clean">
+    <delete dir="build"/>
+    <delete dir="html"/>
+    <delete file="javassist.jar"/>
+    <delete file="javassist-dist.zip"/>
+  </target>
+</project>
+

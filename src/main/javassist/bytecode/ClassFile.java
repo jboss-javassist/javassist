@@ -1,0 +1,543 @@
+/*
+ * This file is part of the Javassist toolkit.
+ *
+ * The contents of this file are subject to the Mozilla Public License
+ * Version 1.1 (the "License"); you may not use this file except in
+ * compliance with the License.  You may obtain a copy of the License at
+ * either http://www.mozilla.org/MPL/.
+ *
+ * Software distributed under the License is distributed on an "AS IS"
+ * basis, WITHOUT WARRANTY OF ANY KIND, either express or implied.  See
+ * the License for the specific language governing rights and limitations
+ * under the License.
+ *
+ * The Original Code is Javassist.
+ *
+ * The Initial Developer of the Original Code is Shigeru Chiba.  Portions
+ * created by Shigeru Chiba are Copyright (C) 1999-2003 Shigeru Chiba.
+ * All Rights Reserved.
+ *
+ * Contributor(s):
+ *
+ * The development of this software is supported in part by the PRESTO
+ * program (Sakigake Kenkyu 21) of Japan Science and Technology Corporation.
+ */
+
+package javassist.bytecode;
+
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.util.Map;
+import java.util.LinkedList;
+import java.util.List;
+import javassist.CannotCompileException;
+
+/**
+ * <code>ClassFile</code> represents a Java <code>.class</code> file,
+ * which consists of a constant pool, methods, fields, and attributes.
+ *
+ * @see javassist.CtClass#getClassFile()
+ */
+public final class ClassFile {
+    ConstPool constPool;
+    int thisClass;
+    int accessFlags;
+    int superClass;
+    int[] interfaces;
+    LinkedList fields;
+    LinkedList methods;
+    LinkedList attributes;
+
+    String thisclassname;	// not JVM-internal name
+
+    /**
+     * Constructs a class file from a byte stream.
+     */
+    public ClassFile(DataInputStream in) throws IOException {
+	read(in);
+    }
+
+    /**
+     * Constructs a class file including no members.
+     *
+     * @param isInterface	true if this is an interface.
+     *				false if this is a class.
+     * @param classname		a fully-qualified class name
+     * @param superclass	a fully-qualified super class name
+     */
+    public ClassFile(boolean isInterface,
+		     String classname, String superclass) {
+	constPool = new ConstPool(classname);
+	thisClass = constPool.getThisClassInfo();
+	if (isInterface)
+	    accessFlags = AccessFlag.SUPER | AccessFlag.INTERFACE
+		| AccessFlag.ABSTRACT;
+	else
+	    accessFlags = AccessFlag.SUPER;
+
+	initSuperclass(superclass);
+	interfaces = null;
+	fields = new LinkedList();
+	methods = new LinkedList();
+	thisclassname = classname;
+
+	attributes = new LinkedList();
+	attributes.add(new SourceFileAttribute(constPool,
+					getSourcefileName(thisclassname)));
+    }
+
+    private void initSuperclass(String superclass) {
+	if (superclass != null)
+	    superClass = constPool.addClassInfo(superclass);
+	else
+	    superClass = constPool.addClassInfo("java.lang.Object");
+    }
+
+    private static String getSourcefileName(String qname) {
+	int index = qname.lastIndexOf('.');
+	if (index >= 0)
+	    qname = qname.substring(index + 1);
+
+	return qname + ".java";
+    }
+
+    /**
+     * Returns a constant pool table.
+     */
+    public ConstPool getConstPool() {
+	return constPool;
+    }
+
+    /**
+     * Returns true if this is an interface.
+     */
+    public boolean isInterface() {
+	return (accessFlags & AccessFlag.INTERFACE) != 0;
+    }
+
+    /**
+     * Returns true if this is a final class or interface.
+     */
+    public boolean isFinal() {
+	return (accessFlags & AccessFlag.FINAL) != 0;
+    }
+
+    /**
+     * Returns true if this is an abstract class or an interface.
+     */
+    public boolean isAbstract() {
+	return (accessFlags & AccessFlag.ABSTRACT) != 0;
+    }
+
+    /**
+     * Returns access flags.
+     *
+     * @see javassist.bytecode.AccessFlag
+     */
+    public int getAccessFlags() {
+	return accessFlags;
+    }
+
+    /**
+     * Changes access flags.
+     *
+     * @see javassist.bytecode.AccessFlag
+     */
+    public void setAccessFlags(int acc) {
+	accessFlags = acc | AccessFlag.SUPER;
+    }
+
+    /**
+     * Returns the class name.
+     */
+    public String getName() {
+	return thisclassname;
+    }
+
+    /**
+     * Sets the class name.  This method substitutes the new name
+     * for all occurrences of the old class name in the class file.
+     */
+    public void setName(String name) {
+	renameClass(thisclassname, name);
+    }
+
+    /**
+     * Returns the super class name.
+     */
+    public String getSuperclass() {
+	return constPool.getClassInfo(superClass);
+    }
+
+    /**
+     * Returns the index of the constant pool entry representing
+     * the super class.
+     */
+    public int getSuperclassId() {
+	return superClass;
+    }
+
+    /**
+     * Sets the super class.
+     *
+     * <p>Unless the old super class is
+     * <code>java.lang.Object</code>, this method substitutes the new name
+     * for all occurrences of the old class name in the class file.
+     * If the old super class is <code>java.lang.Object</code>,
+     * only the calls to a super constructor are modified.
+     */
+    public void setSuperclass(String superclass)
+	throws CannotCompileException
+    {
+	if (constPool.getClassInfo(superClass).equals("java.lang.Object")) {
+	    if (superclass != null)
+		try {
+		    superClass = constPool.addClassInfo(superclass);
+		    setSuperclass2(superclass);
+		}
+		catch (BadBytecode e) {
+		    throw new CannotCompileException(e);
+		}
+	}
+	else {
+	    if (superclass == null)
+		superclass = "java.lang.Object";
+
+	    renameClass(constPool.getClassInfo(superClass), superclass);
+	}
+    }
+
+    /* If the original super class is java.lang.Object, a special
+     * treatment is needed.  Some occurrences of java.lang.Object
+     * in the class file should not be changed into the new super
+     * class name.  For example, the call of Vector.addElement(Object)
+     * should not be changed into the call of Vector.addElement(X),
+     * where X is the new super class.
+     */
+    private void setSuperclass2(String superclass) throws BadBytecode {
+	LinkedList list = methods;
+	int n = list.size();
+	for (int i = 0; i < n; ++i) {
+	    MethodInfo minfo = (MethodInfo)list.get(i);
+	    minfo.setSuperclass(superclass);
+	}
+    }
+
+    /**
+     * Replaces all occurrences of a class name in the class file.
+     *
+     * <p>If class X is substituted for class Y in the class file,
+     * X and Y must have the same signature.  If Y provides a method
+     * m(), X must provide it even if X inherits m() from the super class.
+     * If this fact is not guaranteed, the bytecode verifier may cause
+     * an error.
+     *
+     * @param oldname		the replaced class name
+     * @param newname		the substituted class name
+     */
+    public final void renameClass(String oldname, String newname) {
+	LinkedList list;
+	int n;
+
+	if (oldname.equals(newname))
+	    return;
+
+	if (oldname.equals(thisclassname))
+	    thisclassname = newname;
+
+	oldname = Descriptor.toJvmName(oldname);
+	newname = Descriptor.toJvmName(newname);
+	constPool.renameClass(oldname, newname);
+
+	list = methods;
+	n = list.size();
+	for (int i = 0; i < n; ++i) {
+	    MethodInfo minfo = (MethodInfo)list.get(i);
+	    String desc = minfo.getDescriptor();
+	    minfo.setDescriptor(Descriptor.rename(desc, oldname, newname));
+	}
+
+	list = fields;
+	n = list.size();
+	for (int i = 0; i < n; ++i) {
+	    FieldInfo finfo = (FieldInfo)list.get(i);
+	    String desc = finfo.getDescriptor();
+	    finfo.setDescriptor(Descriptor.rename(desc, oldname, newname));
+	}
+    }
+
+    /**
+     * Replaces all occurrences of several class names in the class file.
+     *
+     * @param classnames	specifies which class name is replaced
+     *				with which new name.  Class names must
+     *				be described with the JVM-internal
+     *				representation like
+     *				<code>java/lang/Object</code>.
+     *
+     * @see #renameClass(String,String)
+     */
+    public final void renameClass(Map classnames) {
+	String jvmNewThisName
+	    = (String)classnames.get(Descriptor.toJvmName(thisclassname));
+	if (jvmNewThisName != null)
+	    thisclassname = Descriptor.toJavaName(jvmNewThisName);
+
+	constPool.renameClass(classnames);
+
+	LinkedList list = methods;
+	int n = list.size();
+	for (int i = 0; i < n; ++i) {
+	    MethodInfo minfo = (MethodInfo)list.get(i);
+	    String desc = minfo.getDescriptor();
+	    minfo.setDescriptor(Descriptor.rename(desc, classnames));
+	}
+
+	list = fields;
+	n = list.size();
+	for (int i = 0; i < n; ++i) {
+	    FieldInfo finfo = (FieldInfo)list.get(i);
+	    String desc = finfo.getDescriptor();
+	    finfo.setDescriptor(Descriptor.rename(desc, classnames));
+	}
+    }
+
+    /**
+     * Returns the names of the interfaces implemented by the class.
+     */
+    public String[] getInterfaces() {
+	if (interfaces == null)
+	    return new String[0];
+	else {
+	    int n = interfaces.length;
+	    String[] list = new String[n];
+	    for (int i = 0; i < n; ++i)
+		list[i] = constPool.getClassInfo(interfaces[i]);
+
+	    return list;
+	}
+    }
+
+    /**
+     * Sets the interfaces.
+     *
+     * @param nameList		the names of the interfaces.
+     */
+    public void setInterfaces(String[] nameList) {
+	if (nameList != null) {
+	    int n = nameList.length;
+	    interfaces = new int[n];
+	    for (int i = 0; i < n; ++i)
+		interfaces[i] = constPool.addClassInfo(nameList[i]);
+	}
+    }
+
+    /**
+     * Appends an interface to the
+     * interfaces implemented by the class.
+     */
+    public void addInterface(String name) {
+	int info = constPool.addClassInfo(name);
+	if (interfaces == null) {
+	    interfaces = new int[1];
+	    interfaces[0] = info;
+	}
+	else {
+	    int n = interfaces.length;
+	    int[] newarray = new int[n + 1];
+	    System.arraycopy(interfaces, 0, newarray, 0, n);
+	    newarray[n] = info;
+	    interfaces = newarray;
+	}
+    }
+
+    /**
+     * Returns all the fields declared in the class.
+     *
+     * @return a list of <code>FieldInfo</code>.
+     * @see FieldInfo
+     */
+    public List getFields() { return fields; }
+
+    /**
+     * Appends a field to the class.
+     */
+    public void addField(FieldInfo finfo) {
+	fields.add(finfo);
+    }
+
+    /**
+     * Returns all the methods declared in the class.
+     *
+     * @return a list of <code>MethodInfo</code>.
+     * @see MethodInfo
+     */
+    public List getMethods() { return methods; }
+
+    /**
+     * Returns the method with the specified name.  If there are multiple
+     * methods with that name, this method returns one of them.
+     *
+     * @return null		if no such a method is found.
+     */
+    public MethodInfo getMethod(String name) {
+	LinkedList list = methods;
+	int n = list.size();
+	for (int i = 0; i < n; ++i) {
+	    MethodInfo minfo = (MethodInfo)list.get(i);
+	    if (minfo.getName().equals(name))
+		return minfo;
+	}
+
+	return null;
+    }
+
+    /**
+     * Returns a static initializer (class initializer), or null if
+     * it does not exist.
+     */
+    public MethodInfo getStaticInitializer() {
+	return getMethod(MethodInfo.nameClinit);
+    }
+
+    /**
+     * Appends a method to the class.
+     */
+    public void addMethod(MethodInfo minfo) {
+	methods.add(minfo);
+    }
+
+    /**
+     * Returns all the attributes.
+     *
+     * @return a list of <code>AttributeInfo</code> objects.
+     * @see AttributeInfo
+     */
+    public List getAttributes() { return attributes; }
+
+    /**
+     * Returns the attribute with the specified name.
+     *
+     * @param name	attribute name
+     */
+    public AttributeInfo getAttribute(String name) {
+	LinkedList list = attributes;
+	int n = list.size();
+	for (int i = 0; i < n; ++i) {
+	    AttributeInfo ai = (AttributeInfo)list.get(i);
+	    if (ai.getName().equals(name))
+		return ai;
+	}
+
+	return null;
+    }
+
+    /**
+     * Appends an attribute.  If there is already an attribute with
+     * the same name, the new one substitutes for it.
+     */
+    public void addAttribute(AttributeInfo info) {
+	AttributeInfo.remove(attributes, info.getName());
+	attributes.add(info);
+    }
+
+    /**
+     * Returns the source file containing this class.
+     *
+     * @return null	if this information is not available.
+     */
+    public String getSourceFile() {
+	SourceFileAttribute sf
+	    = (SourceFileAttribute)getAttribute(SourceFileAttribute.tag);
+	if (sf == null)
+	    return null;
+	else
+	    return sf.getFileName();
+    }
+
+    private void read(DataInputStream in) throws IOException {
+	int i, n;
+	int magic = in.readInt();
+	if (magic != 0xCAFEBABE)
+	    throw new IOException("non class file");
+
+	int major = in.readUnsignedShort();
+	int minor = in.readUnsignedShort();
+	constPool = new ConstPool(in);
+	accessFlags = in.readUnsignedShort();
+	thisClass = in.readUnsignedShort();
+	constPool.setThisClassInfo(thisClass);
+	superClass = in.readUnsignedShort();
+	n = in.readUnsignedShort();
+	if (n == 0)
+	    interfaces = null;
+	else {
+	    interfaces = new int[n];
+	    for (i = 0; i < n; ++i)
+		interfaces[i] = in.readUnsignedShort();
+	}
+
+	ConstPool cp = constPool;
+	n = in.readUnsignedShort();
+	fields = new LinkedList();
+	for (i = 0; i < n; ++i)
+	    addField(new FieldInfo(cp, in));
+
+	n = in.readUnsignedShort();
+	methods = new LinkedList();
+	for (i = 0; i < n; ++i)
+	    addMethod(new MethodInfo(cp, in));
+
+	attributes = new LinkedList();
+	n = in.readUnsignedShort();
+	for (i = 0; i < n; ++i)
+	    addAttribute(AttributeInfo.read(cp, in));
+
+	thisclassname = constPool.getClassInfo(thisClass);
+    }
+
+    /**
+     * Writes a class file represened by this object
+     * into an output stream.
+     */
+    public void write(DataOutputStream out) throws IOException {
+	int i, n;
+
+	out.writeInt(0xCAFEBABE);	// magic
+	out.writeShort(3);		// major version
+	out.writeShort(45);		// minor version
+	constPool.write(out);		// constant pool
+	out.writeShort(accessFlags);
+	out.writeShort(thisClass);
+	out.writeShort(superClass);
+
+	if (interfaces == null)
+	    n = 0;
+	else
+	    n = interfaces.length;
+
+	out.writeShort(n);
+	for (i = 0; i < n; ++i)
+	    out.writeShort(interfaces[i]);
+
+	LinkedList list = fields;
+	n = list.size();
+	out.writeShort(n);
+	for (i = 0; i < n; ++i) {
+	    FieldInfo finfo = (FieldInfo)list.get(i);
+	    finfo.write(out);
+	}
+
+	list = methods;
+	n = list.size();
+	out.writeShort(n);
+	for (i = 0; i < n; ++i) {
+	    MethodInfo minfo = (MethodInfo)list.get(i);
+	    minfo.write(out);
+	}
+
+	out.writeShort(attributes.size());
+	AttributeInfo.writeAll(attributes, out);
+    }
+}

@@ -1,0 +1,453 @@
+<html>
+<HEAD>
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+   <TITLE>Read Me First</TITLE>
+</HEAD>
+<body>
+
+<h1>Javassist version 2</h1>
+
+<h3>in February, 2003.
+<br>Copyright (C) 2000-2003 by Shigeru Chiba, All rights reserved.</h3>
+
+<p><br></p>
+
+<p>Javassist (JAVA programming ASSISTant) is yet another reflective
+system for Java.  It is a class library for editing bytecodes in Java;
+it enables Java programs to define a new class at runtime and to
+modify a class file when the JVM loads it.  Unlike other
+similar bytecode editors, Javassist provides two levels of API:
+source level and bytecode level.  If the users use the source-level
+API, they can edit a class file without knowledge of the specifications
+of the Java bytecode.  The whole API is designed with only the vocabulary
+of the Java language.  On the other hand, the bytecode-level API allows
+the users to directly edit a class file.
+
+<p><br>
+
+<h2>Files</h2>
+
+<ul>
+<table>
+<tr>
+<td><li><tt><a href="License.html">License.html</a></tt></td>
+<td>License file</td>
+</tr>
+
+<tr>
+<td><li><tt><a href="tutorial/tutorial.html">tutorial/tutorial.html</a></tt></td>
+<td>Tutorial</td>
+</tr>
+
+<tr>
+<td><li><tt>./javassist.jar</tt></td>
+<td>The Javassist jar file (class files)</td>
+</tr>
+
+<tr>
+<td><li><tt>./javassist-src.zip</tt></td>
+<td>The source archive</td>
+</tr>
+
+<tr>
+<td><li><tt><a href="html/index.html">html/index.html</a></tt></tr>
+<td>The top page of the Javassist API document.</td>
+</tr>
+
+<tr>
+<td><li><tt>./sample/</tt></td>
+<td>Sample programs</td>
+</tr>
+</table>
+</ul>
+
+<p>To extract source files from the archive, use the jar command:<br>
+
+<ul><pre>% jar xvf javassist-src.zip</pre></ul>
+
+
+<p><br>
+
+<h2>How to run sample programs</h2>
+
+<p>JDK 1.2.2 or later is needed.
+
+<h3>1. Move to the directory where this Readme.html file is located.</h3>
+
+<p>In the description below, we assume that the platform is JDK 1.2
+(or later) for Solaris.  If the platform is JDK 1.2 (or later) for
+Windows, the class-path option is:
+
+<ul><pre>
+-classpath ".;javassist.jar"
+</pre></ul>
+
+<p>If you don't want to put the class-path option, copy
+<tt>./javassist.jar</tt> to
+
+<ul>&lt;<i>java-home</i>&gt;<tt>/jre/lib/ext/</tt>.</ul>
+
+<p>&lt;<i>java-home</i>&gt; depends on the system.  It is usually
+<tt>/usr/local/java</tt>, <tt>c:\jdk1.2\</tt>, etc.
+
+<p>If you don't use javassist.jar, first compile Javassist:
+<ul><pre>
+% cd src
+% javac -d .. javassist/*.java javassist/*/*.java
+% cd ..
+</pre></ul>
+
+<p>Then you can compile and run the sample programs without the class-path
+option.
+
+<h3>2. sample/Test.java</h3>
+
+<p>   This is a very simple program using Javassist.
+
+<p>   To run, type the commands:
+
+<ul><pre>
+% javac -classpath ".:javassist.jar" sample/Test.java
+% java -cp ".:javassist.jar" sample.Test
+</pre></ul>
+
+<p>   For more details, see <a type="text/plain" href="sample/Test.java">sample/Test.java</a>
+
+<h3>3. sample/reflect/*.java</h3>
+
+<p>   This is the "verbose metaobject" example well known in reflective
+   programming.  This program dynamically attaches a metaobject to
+   a Person object.  The metaobject prints a message if a method
+   is called on the Person object.
+
+<p>   To run, type the commands:
+
+<ul><pre>
+% javac -classpath ".:javassist.jar" sample/reflect/*.java
+% java -cp ".:javassist.jar" javassist.reflect.Loader sample.reflect.Main Joe
+</pre></ul>
+
+<p>Compare this result with that of the regular execution without reflection:
+
+<ul><pre>% java -cp ".:javassist.jar" sample.reflect.Person Joe</pre></ul>
+
+<p>   For more details, see <a type="text/plain" href="sample/reflect/Main.java">sample/reflect/Main.java</a>
+
+<p>   Furthermore, the Person class can be statically modified so that
+   all the Person objects become reflective without sample.reflect.Main.
+   To do this, type the commands:
+
+<ul><pre>
+% java -cp ".:javassist.jar" javassist.reflect.Compiler sample.reflect.Person -m sample.reflect.VerboseMetaobj
+</pre></ul>
+
+<p>   Then,
+<ul><pre>
+% java -cp ".:javassist.jar" sample.reflect.Person Joe
+</pre></ul>
+
+<h3>4. sample/duplicate/*.java</h3>
+
+<p>   This is another example of reflective programming.
+
+<p>   To run, type the commands:
+
+<ul><pre>
+% javac -classpath ".:javassist.jar" sample/duplicate/*.java
+% java -cp ".:javassist.jar" sample.duplicate.Main
+</pre></ul>
+
+<p>Compare this result with that of the regular execution without reflection:
+
+<ul><pre>% java sample.duplicate.Viewer</pre></ul>
+
+<p>For more details, see
+<a type="text/plain" href="sample/duplicate/Main.java">sample/duplicate/Main.java</a>
+
+<h3>5. sample/vector/*.java</h3>
+
+<p>This example shows the use of Javassit for producing a class representing
+a vector of a given type at compile time.
+This is a demonstration of the use of <tt>javassist.preproc</tt> package.
+
+<p>   To run, type the commands:
+<ul><pre>
+% javac -classpath ".:javassist.jar" sample/vector/*.java
+% java -cp ".:javassist.jar" javassist.preproc.Compiler sample/vector/Test.j
+% javac sample/vector/Test.java
+% java sample.vector.Test
+</pre></ul>
+
+<p>For more details, see
+<a type="text/plain" href="sample/vector/Test.j">sample/vector/Test.j</a>
+and <a type="text/plain" href="sample/vector/VectorAssistant.java">sample/vector/VectorAssistant.java</a>
+
+<h3>6. sample/rmi/*.java</h3>
+
+<p>   This demonstrates the javassist.rmi package.
+
+<p>   To run, type the commands:
+<ul><pre>
+% javac -classpath ".:javassist.jar" sample/rmi/*.java
+% java -cp ".:javassist.jar" sample.rmi.Counter 5001
+</pre></ul>
+
+<p>   The second line starts a web server listening to port 5001.
+
+<p>   Then, open <a href="sample/rmi/webdemo.html">sample/rmi/webdemo.html</a>
+with a web browser running
+   on the local host.  (<tt>webdemo.html</tt> trys to fetch an applet from
+   <tt>http://localhost:5001/</tt>, which is the web server we started above.)
+
+<p>   Otherwise, run sample.rmi.CountApplet as an application:
+
+<ul><pre>
+% java -cp ".:javassist.jar" javassist.web.Viewer localhost 5001 sample.rmi.CountApplet
+</pre></ul>
+
+<h3>7. sample/evolve/*.java</h3>
+
+<p>   This is a demonstration of the class evolution mechanism implemented
+   with Javassist.  This mechanism enables a Java program to reload an
+   existing class file under some restriction.
+
+<p>   To run, type the commands:
+<ul><pre>
+% javac -classpath ".:javassist.jar" sample/evolve/*.java
+% java -cp ".:javassist.jar" sample.evolve.DemoLoader 5003
+</pre></ul>
+
+<p>   The second line starts a class loader DemoLoader, which runs a web
+   server DemoServer listening to port 5003.
+
+<p>   Then, open <a href="http://localhost:5003/demo.html">http://localhost:5003/demo.html</a> with a web browser running
+   on the local host.
+(Or, see <a href="sample/evolve/start.html">sample/evolve/start.html</a>.)
+
+<h3>8. Hints</h3>
+
+<p>Javassist provides a class file viewer for debugging.  For more details,
+see javassist.Dump.
+
+<p><br>
+
+<h2>Changes</h2>
+
+<p>- version 2.4 in February, 2003.
+<ul>
+  <li>The compiler included in Javassist did not correctly work with
+	interface methods.  This bug was fixed.
+  <li>Now javassist.bytecode.Bytecode allows more than 255 local
+	variables in the same method.
+  <li>javassist.expr.Instanceof and Cast have been added.
+  <li>javassist.expr.{MethodCall,NewExpr,FieldAccess,Instanceof,Cast}.where()
+        have been added.  They return the caller-side method surrounding the
+	expression.
+  <li>javassist.expr.{MethodCall,NewExpr,FieldAccess,Instanceof,Cast}.mayThrow()
+        have been added.
+  <li>$class has been introduced.
+  <li>The parameters to replaceFieldRead(), replaceFieldWrite(),
+      and redirectFieldAccess() in javassist.CodeConverter are changed.
+  <li>The compiler could not correctly handle a try-catch statement.
+      This bug has been fixed.
+</ul>
+
+<p>- version 2.3 in December, 2002.
+<ul>
+  <li>The tutorial has been revised a bit.
+  <li>SerialVersionUID class was donated by Bob Lee.  Thanks.
+  <li>CtMethod.setBody() and CtConstructor.setBody() have been added.
+  <li>javassist.reflect.ClassMetaobject.useContextClassLoader has been added.
+  If true, the reflection package does not use Class.forName() but uses
+  a context class loader specified by the user.
+  <li>$sig and $type are now available.
+  <li>Bugs in Bytecode.write() and read() have been fixed.
+</ul>
+
+<p>- version 2.2 in October, 2002.
+<ul>
+  <li>The tutorial has been revised.
+  <li>A new package <code>javassist.expr</code> has been added.
+        This is replacement of classic <code>CodeConverter</code>.
+  <li>javassist.ConstParameter was changed into
+	javassist.CtMethod.ConstParameter.
+  <li>javassist.FieldInitializer was renamed into
+	javassist.CtField.Initializer.
+  <li>A bug in javassist.bytecode.Bytecode.addInvokeinterface() has been
+	fixed.
+  <li>In javassist.bytecode.Bytecode, addGetfield(), addGetstatic(),
+	addInvokespecial(), addInvokestatic(), addInvokevirtual(),
+	and addInvokeinterface()
+	have been modified to update the current statck depth.
+</ul>
+
+<p>- version 2.1 in July, 2002.
+<ul>
+  <li>javassist.CtMember and javassist.CtBehavior have been added.
+  <li>javassist.CtClass.toBytecode() has been added.
+  <li>javassist.CtClass.toClass() and javassist.ClassPool.writeAsClass()
+	has been added.
+  <li>javassist.ByteArrayClassPath has been added.
+  <li>javassist.bytecode.Mnemonic has been added.
+  <li>Several bugs have been fixed.
+</ul>
+
+<p>- version 2.0 (major update) in November, 2001.
+<ul>
+  <li>The javassist.bytecode package has been provided.  It is a
+    lower-level API for directly modifying a class file although
+    the users must have detailed knowledge of the Java bytecode.
+
+  <li>The mechanism for creating CtClass objects have been changed.
+
+  <li>javassist.tool.Dump moves to the javassist package.
+</ul>
+
+<p>version 1.0 in July, 2001.
+<ul>
+  <li>javassist.reflect.Metaobject and ClassMetaobject was changed.
+    Now they throw the same exception that they receive from a
+    base-level object.
+</ul>
+
+<p>- version 0.8
+<ul>
+  <li>javassist.tool.Dump was added.  It is a class file viewer.
+
+  <li>javassist.FiledInitializer.byNewArray() was added.  It is for
+    initializing a field with an array object.
+
+  <li>javassist.CodeConverter.redirectMethodCall() was added.
+
+  <li>javassist.Run was added.
+</ul>
+
+<p>- version 0.7
+<ul>
+  <li>javassit.Loader was largely modified.  javassist.UserLoader was
+    deleted.  Instead, Codebase was renamed to ClassPath
+    and UserClassPath was added.  Now programmers who want to
+    customize Loader must write a class implementing UserClassPath
+    instead of UserLoader.  This change is for sharing class search paths
+    between Loader and CtClass.CtClass(String).
+
+  <li>CtClass.addField(), addMethod(), addConstructor(), addWrapper() were
+    also largely modified so that it receives CtNewMethod, CtNewConstructor,
+    or CtNewField.  The static methods for creating these objects were
+    added to the API.
+
+  <li>Constructors are now represented by CtConstructor objects.
+    CtConstructor is a subclass of CtMethod.
+
+  <li>CtClass.getUserAttribute() was removed.  Use CtClass.getAttribute().
+
+  <li>javassist.rmi.RmiLoader was added.
+
+  <li>javassist.reflect.Metalevel._setMetaobject() was added.  Now
+    metaobjects can be replaced at runtime.
+</ul>
+
+<p>- version 0.6
+<ul>
+  <li>Javassist was modified to correctly deal with array types appearing
+    in signatures.
+
+  <li>A bug crashed resulting bytecode if a class includes a private static
+    filed.  It has been fixed.
+
+  <li>javassist.CtNewInterface was added.
+
+  <li>javassist.Loader.recordClass() was renamed into makeClass().
+
+  <li>javassist.UserLoader.loadClass() was changed to take the second
+    parameter.
+</ul>
+
+<p>- version 0.5
+<ul>
+  <li>a bug-fix version.
+</ul>
+
+<p>- version 0.4
+<ul>
+  <li>Major update again.  Many classes and methods were changed.
+    Most of methods taking java.lang.Class have been changed to
+    take javassist.CtClass.
+</ul>
+
+<p>- version 0.3
+<ul>
+  <li>Major update.  Many classes and methods were changed.
+</ul>
+
+<p>- version 0.2
+<ul>
+  <li>Jar/zip files are supported.
+</ul>
+
+<p>-version 0.1 in April, 1999.
+<ul>
+  <li>The first release.
+</ul>
+
+<p><br>
+
+<h2>Bug reports etc.</h2>
+
+<dl>
+<dt>Bug reports:
+<dd><tt><a href="mailto:chiba@acm.org">chiba@acm.org</a></tt>
+<br>or
+<tt><a href="mailto:chiba@is.titech.ac.jp">chiba@is.titech.ac.jp</a></tt>
+<br>
+
+<p><dt>The home page of Javassist:
+<dd><tt><a href="http://www.csg.is.titech.ac.jp/~chiba/javassist">http://www.csg.is.titech.ac.jp/~chiba/javassist</a></tt>
+
+<p><dt>The Javassist mailing list:
+<dd><tt><a href="javassist@csg.is.titech.ac.jp">javassist@csg.is.titech.ac.jp</a></tt>
+</dl>
+
+<p><br>
+
+<h2>Copyright notices</h2>
+
+<p>This software is subject to the <a href="license.html">Mozilla Public
+License Version 1.1</a>.
+
+<p>Software distributed under the License is distributed on an "AS IS"
+basis, WITHOUT WARRANTY OF ANY KIND, either express or implied.  See
+the License for the specific language governing rights and limitations
+under the License.
+
+<p>The Original Code is Javassist.
+
+<p>The Initial Developer of the Original Code is Shigeru Chiba.
+<br>Portions
+created by Shigeru Chiba are Copyright (C) 1999-2003 Shigeru Chiba.
+All Rights Reserved.
+
+<p><br>
+
+<h2>Acknowledgments</h2>
+
+<p>The development of this software is sponsored in part by the PRESTO
+program (Sakigake Kenkyu 21) of <a href="http://www.jst.go.jp/">Japan
+Science and Technology Corporation</a>.
+
+<p>I'd like to thank Michiaki Tatsubori, Johan Cloetens,
+Philip Tomlinson, Alex Villazon, Pascal Rapicault, Dan HE, Eric Tanter,
+Michael Haupt, Toshiyuki Sasaki, Renaud Pawlak, Luc Bourlier,
+Eric Bui, Lewis Stiller, Susumu Yamazaki, Rodrigo Teruo Tomita,
+Marc Segura-Devillechaise, Jan Baudisch, Julien Blass, Yoshiki Sato,
+Fabian Crabus, Bo Norregaard Jorgensen, Bob Lee, Bill Burke,
+Remy Sanlaville, Muga Nishizawa, Alexey Loubyansky, Saori Oki,
+Andreas Salathe, and Dante Torres estrada for their contributions.
+
+<p><br>
+
+<hr>
+<a href="http://www.is.titech.ac.jp/~chiba">Shigeru Chiba</a>
+(Email: <tt>chiba@is.titech.ac.jp</tt>)
+<br>Dept. of Math. and Computing Sciences,
+<a href="http://www.titech.ac.jp">Tokyo Institute of Technology</a>
