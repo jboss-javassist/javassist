@@ -285,6 +285,10 @@ public class ClassPool {
     public Class toClass(CtClass cc)
         throws NotFoundException, CannotCompileException, IOException
     {
+        if (cc.getClassPool() != this)
+           throw new CannotCompileException(
+                 "not contained in this class pool: " + cc.getName());
+
         try {
             if (classLoader == null)
                 classLoader = new SimpleLoader();
