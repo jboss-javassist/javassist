@@ -33,7 +33,7 @@ import java.util.Iterator;
  * Comment
  *
  * @author <a href="mailto:bill@jboss.org">Bill Burke</a>
- * @version $Revision: 1.4 $
+ * @version $Revision: 1.5 $
  *
  **/
 public class AnnotationInfo
@@ -120,7 +120,7 @@ public class AnnotationInfo
       if (!clazz.isInterface()) throw new RuntimeException("Only interfaces are allowed for AnnotationInfo creation.");
       this.cp = cp;
       // beta1 type_index = (short) cp.addClassInfo(clazz);
-      type_index = (short)cp.addUtf8Info(Descriptor.toDescriptor(clazz.getName()));
+      type_index = (short)cp.addUtf8Info(Descriptor.of(clazz.getName()));
       CtMethod methods[] = clazz.getDeclaredMethods();
       if (methods.length > 0)
       {
@@ -144,7 +144,7 @@ public class AnnotationInfo
 
    public String getAnnotationType()
    {
-      String name = Descriptor.fromDescriptor(cp.getUtf8Info(type_index));
+      String name = Descriptor.toClassName(cp.getUtf8Info(type_index));
       return name;
    }
 

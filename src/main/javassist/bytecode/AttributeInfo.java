@@ -89,6 +89,12 @@ public class AttributeInfo {
             return new DeprecatedAttribute(cp, name, in);
         else if (nameStr.equals(InnerClassesAttribute.tag))
             return new InnerClassesAttribute(cp, name, in);
+        else if (nameStr.equals(AnnotationsAttribute.visibleTag)
+                 || nameStr.equals(AnnotationsAttribute.invisibleTag))
+            return new AnnotationsAttribute(cp, name, in);
+        else if (nameStr.equals(ParameterAnnotationsAttribute.visibleTag)
+                 || nameStr.equals(ParameterAnnotationsAttribute.invisibleTag))
+            return new ParameterAnnotationsAttribute(cp, name, in);
         else
             return new AttributeInfo(cp, name, in);
     }

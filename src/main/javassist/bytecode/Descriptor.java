@@ -47,21 +47,6 @@ public class Descriptor {
     }
 
     /**
-     *  Converts to a classname from a descriptor
-     */
-    public static String fromDescriptor(String descriptor) {
-        String newname = toJavaName(descriptor).substring(1);
-        return newname.substring(0, newname.length() - 1);
-    }
-
-    /**
-     *  Converts to a descriptor from a classname
-     */
-    public static String toDescriptor(String classname) {
-        return "L" + toJvmName(classname) + ";";
-    }
-
-    /**
      * Returns the internal representation of the class name in the
      * JVM.
      */
@@ -70,6 +55,21 @@ public class Descriptor {
             return of(clazz);
         else
             return toJvmName(clazz.getName());
+    }
+
+    /**
+     *  Converts to a Java class name from a descriptor
+     */
+    public static String toClassName(String descriptor) {
+        String newname = toJavaName(descriptor);
+        return newname.substring(1, newname.length() - 1);
+    }
+
+    /**
+     *  Converts to a descriptor from a Java class name
+     */
+    public static String of(String classname) {
+        return "L" + toJvmName(classname) + ";";
     }
 
     /**

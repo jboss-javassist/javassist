@@ -578,6 +578,7 @@ public final class ConstPool {
      * @param n                 the <i>n</i>-th item
      * @param dest              destination constant pool table
      * @param classnames        the map or null.
+     * @return the index of the copied item into the destination ClassPool.
      */
     public int copy(int n, ConstPool dest, Map classnames) {
         if (n == 0)

@@ -25,7 +25,7 @@ import java.io.IOException;
  * Comment
  *
  * @author <a href="mailto:bill@jboss.org">Bill Burke</a>
- * @version $Revision: 1.4 $
+ * @version $Revision: 1.5 $
  *
  **/
 public class EnumMemberValue extends MemberValue
@@ -56,7 +56,7 @@ public class EnumMemberValue extends MemberValue
     */
    public String getEnumType()
    {
-      return Descriptor.fromDescriptor(cp.getUtf8Info(type_name_index));
+      return Descriptor.toClassName(cp.getUtf8Info(type_name_index));
    }
 
    /**
@@ -65,7 +65,7 @@ public class EnumMemberValue extends MemberValue
     */
    public void setEnumType(String classname)
    {
-      type_name_index = (short)cp.addUtf8Info(Descriptor.toDescriptor(classname));
+      type_name_index = (short)cp.addUtf8Info(Descriptor.of(classname));
    }
 
    public String getEnumVal()
