@@ -660,13 +660,14 @@ public class ClassPool extends AbsClassPool {
         throws NotFoundException
     {
         CtClass clazz;
+        clazz = getCached(classname);
+        if (clazz != null) return clazz;
         if (parent != null) {
             clazz = parent.get0(classname);
             if (clazz != null)
                 return clazz;
         }
 
-        clazz = getCached(classname);
         if (clazz == null) {
             clazz = get1(classname);
             if (clazz != null)
