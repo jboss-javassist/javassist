@@ -390,7 +390,8 @@ public abstract class CtClass {
     }
 
     /**
-     * Changes a super class.
+     * Changes a super class.  The new super class must be compatible
+     * with the old one.
      */
     public void setSuperclass(CtClass clazz) throws CannotCompileException {
         checkModify();

@@ -265,10 +265,13 @@ public abstract class CodeGen extends Visitor implements Opcode, TokenId {
 
         hasReturned = false;
         s.accept(this);
-        if (isVoid && !hasReturned) {
-            bytecode.addOpcode(Opcode.RETURN);
-            hasReturned = true;
-        }
+        if (!hasReturned)
+            if (isVoid) {
+                bytecode.addOpcode(Opcode.RETURN);
+                hasReturned = true;
+            }
+            else
+                throw new CompileError("no return statement");
     }
 
     private boolean needsSuperCall(Stmnt body) throws CompileError {
@@ -401,14 +404,14 @@ public abstract class CodeGen extends Visitor implements Opcode, TokenId {
         if (notDo)
             bytecode.write16bit(pc, pc3 - pc + 1);
 
-        booleanExpr(true, expr);
+        boolean alwaysBranch = booleanExpr(true, expr);
         bytecode.addIndex(pc2 - bytecode.currentPc() + 1);
 
         patchGoto(breakList, bytecode.currentPc());
         patchGoto(continueList, pc3);
         continueList = prevContList;
         breakList = prevBreakList;
-        hasReturned = false;
+        hasReturned = alwaysBranch;
     }
 
     private void patchGoto(ArrayList list, int targetPc) {
@@ -879,10 +882,9 @@ public abstract class CodeGen extends Visitor implements Opcode, TokenId {
     /* Produces the opcode to branch if the condition is true.
      * The oprand is not produced.
      *
-     * If false is returned, the branch occurs if the condition is
-     * false.
+     * @return	true if the compiled code is GOTO (always branch).
      */
-    private void booleanExpr(boolean branchIf, ASTree expr)
+    private boolean booleanExpr(boolean branchIf, ASTree expr)
         throws CompileError
     {
         boolean isAndAnd;
@@ -907,6 +909,10 @@ public abstract class CodeGen extends Visitor implements Opcode, TokenId {
                 bytecode.addOpcode(Opcode.GOTO);
             }
         }
+        else if (isAlwaysBranch(expr, branchIf)) {
+            bytecode.addOpcode(Opcode.GOTO);
+            return true;	// always branch
+        }
         else {                          // others
             expr.accept(this);
             bytecode.addOpcode(branchIf ? IFNE : IFEQ);
@@ -914,6 +920,17 @@ public abstract class CodeGen extends Visitor implements Opcode, TokenId {
 
         exprType = BOOLEAN;
         arrayDim = 0;
+        return false;
+    }
+
+
+    private static boolean isAlwaysBranch(ASTree expr, boolean branchIf) {
+        if (expr instanceof Keyword) {
+            int t = ((Keyword)expr).get();
+            return branchIf ? t == TRUE : t == FALSE;
+        }
+
+        return false;
     }
 
     private static int getCompOperator(ASTree expr) throws CompileError {
