@@ -35,7 +35,7 @@ public abstract class CtClass {
     /**
      * The version number of this release.
      */
-    public static final String version = "3.0 beta 3";
+    public static final String version = "3.0 RC1";
 
     /**
      * Prints the version number and the copyright notice.
@@ -820,7 +820,17 @@ public abstract class CtClass {
      * If that attribute is not found in the class file, this
      * method returns null.
      *
+     * <p>This is a convenient method mainly for obtaining
+     * a user-defined attribute.  For dealing with attributes, see the
+     * <code>javassist.bytecode</code> package.  For example, the following
+     * expression returns all the attributes of a class file.
+     *
+     * <ul><pre>
+     * getClassFile().getAttributes()
+     * </pre></ul>
+     *
      * @param name              attribute name
+     * @see javassist.bytecode.AttributeInfo
      */
     public byte[] getAttribute(String name) {
         return null;
@@ -835,8 +845,18 @@ public abstract class CtClass {
      * If there is already an attribute with
      * the same name, this method substitutes the new one for it.
      *
+     * <p>This is a convenient method mainly for adding
+     * a user-defined attribute.  For dealing with attributes, see the
+     * <code>javassist.bytecode</code> package.  For example, the following
+     * expression adds an attribute of a class file.
+     *
+     * <ul><pre>
+     * getClassFile().addAttribute(info)
+     * </pre></ul>
+     *
      * @param name      attribute name
      * @param data      attribute value
+     * @see javassist.bytecode.AttributeInfo
      */
     public void setAttribute(String name, byte[] data) {
         checkModify();
