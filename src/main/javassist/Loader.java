@@ -358,7 +358,7 @@ public class Loader extends ClassLoader {
         return defineClass(name, classfile, 0, classfile.length);
     }
 
-    private Class loadClassByDelegation(String name)
+    protected Class loadClassByDelegation(String name)
         throws ClassNotFoundException
     {
         /* The swing components must be loaded by a system
@@ -395,7 +395,7 @@ public class Loader extends ClassLoader {
         return false;
     }
 
-    private Class delegateToParent(String classname)
+    protected Class delegateToParent(String classname)
         throws ClassNotFoundException
     {
         ClassLoader cl = getParent();
