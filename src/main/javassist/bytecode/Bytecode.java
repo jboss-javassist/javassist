@@ -299,6 +299,16 @@ public class Bytecode implements Opcode {
     }
 
     /**
+     * Reads a signed 32bit value at the offset from the beginning of the
+     * bytecode sequence.
+     */
+    public int read32bit(int offset) {
+        int v1 = read16bit(offset);
+        int v2 = read16bit(offset + 2);
+        return (v1 << 16) + (v2 & 0xffff);
+    }
+
+    /**
      * Writes an 8bit value at the offset from the beginning of the
      * bytecode sequence.
      *
@@ -321,8 +331,17 @@ public class Bytecode implements Opcode {
      * bytecode sequence.
      */
     public void write16bit(int offset, int value) {
-        write(offset, value >>> 8);
+        write(offset, value >> 8);
         write(offset + 1, value);
+    }
+
+    /**
+     * Writes an 32bit value at the offset from the beginning of the
+     * bytecode sequence.
+     */
+    public void write32bit(int offset, int value) {
+        write16bit(offset, value >> 16);
+        write16bit(offset + 2, value);
     }
 
     /**
@@ -337,6 +356,38 @@ public class Bytecode implements Opcode {
 
             next.add(code);
         }
+    }
+
+    /**
+     * Appends a 32bit value to the end of the bytecode sequence.
+     */
+    public void add32bit(int value) {
+        add(value >> 24);
+        add(value >> 16);
+        add(value >> 8);
+        add(value);
+    }
+
+    /**
+     * Appends the length-byte gap to the end of the bytecode sequence.
+     *
+     * @param length    the gap length in byte.
+     */
+    public void addGap(int length) {
+        if (num < bufsize) {
+            num += length;
+            if (num <= bufsize)
+                return;
+            else {
+                length = num - bufsize;
+                num = bufsize;
+            }
+        }
+
+        if (next == null)
+            next = new Bytecode();
+
+        next.addGap(length);
     }
 
     /**

@@ -16,6 +16,7 @@
 package javassist.compiler;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import javassist.compiler.ast.*;
 import javassist.bytecode.*;
 
@@ -338,13 +339,11 @@ public abstract class CodeGen extends Visitor implements Opcode, TokenId {
             atThrowStmnt(st);
         else if (op == TRY)
             atTryStmnt(st);
+        else if (op == SWITCH)
+            atSwitchStmnt(st);
         else if (op == SYNCHRONIZED) {
             hasReturned = false;
             throw new CompileError("sorry, synchronized is not supported");
-        }
-        else if (op == SWITCH) {
-            hasReturned = false;
-            throw new CompileError("sorry, switch is not supported");
         }
         else {
             // LABEL, SWITCH label stament might be null?.
@@ -472,6 +471,79 @@ public abstract class CodeGen extends Visitor implements Opcode, TokenId {
         continueList = prevContList;
         breakList = prevBreakList;
         hasReturned = false;
+    }
+
+    private void atSwitchStmnt(Stmnt st) throws CompileError {
+        compileExpr(st.head());
+
+        ArrayList prevBreakList = breakList;
+        breakList = new ArrayList();
+        int opcodePc = bytecode.currentPc();
+        bytecode.addOpcode(LOOKUPSWITCH);
+        int npads = 3 - (opcodePc & 3);
+        while (npads-- > 0)
+            bytecode.add(0);
+
+        Stmnt body = (Stmnt)st.tail();
+        int npairs = 0;
+        for (ASTList list = body; list != null; list = list.tail())
+            if (((Stmnt)list.head()).getOperator() == CASE)
+                ++npairs;
+
+        // opcodePc2 is the position at which the default jump offset is.
+        int opcodePc2 = bytecode.currentPc();
+        bytecode.addGap(4);
+        bytecode.add32bit(npairs);
+        bytecode.addGap(npairs * 8);
+
+        long[] pairs = new long[npairs];
+        int ipairs = 0;
+        int defaultPc = -1;
+        for (ASTList list = body; list != null; list = list.tail()) {
+            Stmnt label = (Stmnt)list.head();
+            int op = label.getOperator();
+            if (op == DEFAULT)
+                defaultPc = bytecode.currentPc();
+            else if (op != CASE)
+                fatal();
+            else {
+                pairs[ipairs++]
+                    = ((long)computeLabel(label.head()) << 32) + 
+                      ((long)(bytecode.currentPc() - opcodePc) & 0xffffffff);
+            }
+
+            hasReturned = false;
+            ((Stmnt)label.tail()).accept(this);
+        }
+
+        Arrays.sort(pairs);
+        int pc = opcodePc2 + 8;
+        for (int i = 0; i < npairs; ++i) {
+            bytecode.write32bit(pc, (int)(pairs[i] >>> 32));
+            bytecode.write32bit(pc + 4, (int)pairs[i]);
+            pc += 8;
+        } 
+
+        if (defaultPc < 0 || breakList.size() > 0)
+            hasReturned = false;
+
+        int endPc = bytecode.currentPc();
+        if (defaultPc < 0)
+            defaultPc = endPc;
+
+        bytecode.write32bit(opcodePc2, defaultPc - opcodePc);
+
+        patchGoto(breakList, endPc);
+        breakList = prevBreakList;
+    }
+
+    private int computeLabel(ASTree expr) throws CompileError {
+        doTypeCheck(expr);
+        expr = TypeChecker.stripPlusExpr(expr);
+        if (expr instanceof IntConst)
+            return (int)((IntConst)expr).get();
+        else
+            throw new CompileError("bad case label");
     }
 
     private void atBreakStmnt(Stmnt st, boolean notCont)

@@ -347,7 +347,9 @@ public class TypeChecker extends Visitor implements Opcode, TokenId {
         }
     }
 
-    private static ASTree stripPlusExpr(ASTree expr) {
+    /* CodeGen.atSwitchStmnt() also calls stripPlusExpr().
+     */
+    static ASTree stripPlusExpr(ASTree expr) {
         if (expr instanceof BinExpr) {
             BinExpr e = (BinExpr)expr;
             if (e.getOperator() == '+' && e.oprand2() == null)
