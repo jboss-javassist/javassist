@@ -20,6 +20,7 @@ import javassist.compiler.Javac;
 import javassist.compiler.CompileError;
 import javassist.expr.ExprEditor;
 import java.io.InputStream;
+import java.io.BufferedInputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -113,6 +114,7 @@ class CtClassType extends CtClass {
             if (fin == null)
                 throw new NotFoundException(getName());
 
+            fin = new BufferedInputStream(fin);
             classfile = new ClassFile(new DataInputStream(fin));
             return classfile;
         }

@@ -20,6 +20,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.Map;
 import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.ListIterator;
 import java.util.List;
 
@@ -38,8 +39,8 @@ public final class ClassFile {
     int accessFlags;
     int superClass;
     int[] interfaces;
-    LinkedList fields;
-    LinkedList methods;
+    ArrayList fields;
+    ArrayList methods;
     LinkedList attributes;
     AnnotationGroup runtimeInvisible;
     AnnotationGroup runtimeVisible;
@@ -73,8 +74,8 @@ public final class ClassFile {
 
         initSuperclass(superclass);
         interfaces = null;
-        fields = new LinkedList();
-        methods = new LinkedList();
+        fields = new ArrayList();
+        methods = new ArrayList();
         thisclassname = classname;
 
         attributes = new LinkedList();
@@ -187,7 +188,7 @@ public final class ClassFile {
 
         try {
             superClass = constPool.addClassInfo(superclass);
-            LinkedList list = methods;
+            ArrayList list = methods;
             int n = list.size();
             for (int i = 0; i < n; ++i) {
                 MethodInfo minfo = (MethodInfo)list.get(i);
@@ -212,7 +213,7 @@ public final class ClassFile {
      * @param newname           the substituted class name
      */
     public final void renameClass(String oldname, String newname) {
-        LinkedList list;
+        ArrayList list;
         int n;
 
         if (oldname.equals(newname))
@@ -261,7 +262,7 @@ public final class ClassFile {
 
         constPool.renameClass(classnames);
 
-        LinkedList list = methods;
+        ArrayList list = methods;
         int n = list.size();
         for (int i = 0; i < n; ++i) {
             MethodInfo minfo = (MethodInfo)list.get(i);
@@ -377,7 +378,7 @@ public final class ClassFile {
      * @return null             if no such a method is found.
      */
     public MethodInfo getMethod(String name) {
-        LinkedList list = methods;
+        ArrayList list = methods;
         int n = list.size();
         for (int i = 0; i < n; ++i) {
             MethodInfo minfo = (MethodInfo)list.get(i);
@@ -552,12 +553,12 @@ public final class ClassFile {
 
         ConstPool cp = constPool;
         n = in.readUnsignedShort();
-        fields = new LinkedList();
+        fields = new ArrayList();
         for (i = 0; i < n; ++i)
             addField0(new FieldInfo(cp, in));
 
         n = in.readUnsignedShort();
-        methods = new LinkedList();
+        methods = new ArrayList();
         for (i = 0; i < n; ++i)
             addMethod0(new MethodInfo(cp, in));
 
@@ -593,7 +594,7 @@ public final class ClassFile {
         for (i = 0; i < n; ++i)
             out.writeShort(interfaces[i]);
 
-        LinkedList list = fields;
+        ArrayList list = fields;
         n = list.size();
         out.writeShort(n);
         for (i = 0; i < n; ++i) {

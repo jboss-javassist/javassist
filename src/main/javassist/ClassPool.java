@@ -507,6 +507,7 @@ public class ClassPool {
     public CtClass makeClass(InputStream classfile)
         throws IOException, RuntimeException
     {
+        classfile = new BufferedInputStream(classfile);
         CtClass clazz = new CtClassType(classfile, this);
         clazz.checkModify();
         String classname = clazz.getName();
