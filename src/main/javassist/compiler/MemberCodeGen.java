@@ -107,6 +107,7 @@ public class MemberCodeGen extends CodeGen {
                         "sorry, finally has not been supported yet");
 
         bytecode.write16bit(pc, bytecode.currentPc() - pc + 1);
+        hasReturned = false;
     }
 
     public void atNewExpr(NewExpr expr) throws CompileError {
@@ -228,13 +229,20 @@ public class MemberCodeGen extends CodeGen {
         if (method instanceof Member) {
             mname = ((Member)method).get();
             targetClass = thisClass;
-            bytecode.addAload(0);       // this
+            if (inStaticMethod)
+                isStatic = true;            // should be static
+            else
+                bytecode.addAload(0);       // this
         }
         else if (method instanceof Keyword) {   // constructor
             isSpecial = true;
             mname = MethodInfo.nameInit;        // <init>
             targetClass = thisClass;
-            bytecode.addAload(0);               // this
+            if (inStaticMethod)
+                throw new CompileError("a constructor cannot be static");
+            else
+                bytecode.addAload(0);   // this
+
             if (((Keyword)method).get() == SUPER)
                 targetClass = getSuperclass(targetClass);
         }
@@ -358,7 +366,10 @@ public class MemberCodeGen extends CodeGen {
         else if (declClass.isInterface())
             bytecode.addInvokeinterface(declClass, mname, desc, count);
         else
-            bytecode.addInvokevirtual(declClass, mname, desc);
+            if (isStatic)
+                throw new CompileError(mname + " is not static");
+            else
+                bytecode.addInvokevirtual(declClass, mname, desc);
 
         setReturnType(desc, isStatic, popTarget);
     }

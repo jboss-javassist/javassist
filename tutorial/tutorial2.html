@@ -74,8 +74,8 @@ into the body of an existing method.  The users can specify those code
 fragments with <em>source text</em> written in Java.
 Javassist includes a simple Java compiler for processing source
 text.  It receives source text
-written in Java and compiles it into Java bytecode, which will be inserted
-into a method body.
+written in Java and compiles it into Java bytecode, which will be
+<em>inlined</em> into a method body.
 
 <p>The methods <code>insertBefore()</code>, <code>insertAfter()</code>, and
 <code>addCatch()</code> receives a <code>String</code> object representing
@@ -989,6 +989,8 @@ exception.
 
 <h3>5.3 Adding a new method or field</h3>
 
+<h4>Adding a method</h4>
+
 <p>Javassist allows the users to create a new method and constructor
 from scratch.  <code>CtNewMethod</code>
 and <code>CtNewConstructor</code> provide several factory methods,
@@ -1031,6 +1033,34 @@ public int ymove(int dy) { this.move(0, dy); }
 
 <p>Note that <code>$proceed</code> has been replaced with
 <code>this.move</code>.
+
+<h4>Mutual recursive methods</h4>
+
+<p>Javassist cannot compile a method if it calls another method that
+has not been added to a class.  (Javassist can compile a method that
+calls itself recursively.)  To add mutual recursive methods to a class,
+you need a trick shown below.  Suppose that you want to add methods
+<code>m()</code> and <code>n()</code> to a class represented
+by <code>cc</code>:
+
+<ul><pre>
+CtClass cc = ... ;
+CtMethod m = CtNewMethod.make("public abstract int m(int i);", cc);
+CtMethod n = CtNewMethod.make("public abstract int n(int i);", cc);
+cc.addMethod(m);
+cc.addMethod(n);
+m.setBody("{ return ($1 <= 0) ? 1 : (n($1 - 1) * $1); }");
+n.setBody("{ return m($1); }");
+cc.setModifiers(cc.getModifiers() & ~Modifier.ABSTRACT);
+</pre></ul>
+
+<p>You must first make two abstract methods and add them to the class.
+Then you can give the method bodies to these methods even if the method
+bodies include method calls to each other.  Finally you must change the
+class to a not-abstract class since <code>addMethod()</code> automatically
+changes a class into an abstract one if an abstract method is added.
+
+<h4>Adding a field</h4>
 
 <p>Javassist also allows the users to create a new field.
 

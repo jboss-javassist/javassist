@@ -449,15 +449,9 @@ class CtClassType extends CtClass {
 
     public CtConstructor getClassInitializer() {
         if (classInitializerCache == null) {
-            List list = getClassFile2().getMethods();
-            int n = list.size();
-            for (int i = 0; i < n; ++i) {
-                MethodInfo minfo = (MethodInfo)list.get(i);
-                if (minfo.isStaticInitializer()) {
-                    classInitializerCache = new CtConstructor(minfo, this);
-                    break;
-                }
-            }
+            MethodInfo minfo = getClassFile2().getStaticInitializer();
+            if (minfo != null)
+                classInitializerCache = new CtConstructor(minfo, this);
         }
 
         return classInitializerCache;
@@ -635,6 +629,26 @@ class CtClassType extends CtClass {
         }
     }
 
+    public CtConstructor makeClassInitializer()
+        throws CannotCompileException
+    {
+        CtConstructor clinit = getClassInitializer();
+        if (clinit != null)
+            return clinit;
+
+        checkModify();
+        ClassFile cf = getClassFile2();
+        Bytecode code = new Bytecode(cf.getConstPool(), 0, 0);
+        try {
+            modifyClassConstructor(cf, b, 0, 0);
+        }
+        catch (CompileError e) {
+            throw new CannotCompileException(e);
+        }
+
+        return getClassInitializer();
+    }
+
     public void addConstructor(CtConstructor c)
         throws CannotCompileException
     {
@@ -728,11 +742,11 @@ class CtClassType extends CtClass {
         Bytecode code = new Bytecode(cf.getConstPool(), 0, 0);
         Javac jv = new Javac(code, this);
         int stacksize = 0;
-        boolean none = true;
+        boolean doInit = false;
         for (FieldInitLink fi = fieldInitializers; fi != null; fi = fi.next) {
             CtField f = fi.field;
             if (Modifier.isStatic(f.getModifiers())) {
-                none = false;
+                doInit = true;
                 int s = fi.init.compileIfStatic(f.getType(), f.getName(),
                                                 code, jv);
                 if (stacksize < s)
@@ -740,15 +754,20 @@ class CtClassType extends CtClass {
             }
         }
 
-        if (none)
-            return;     // no initializer for static fileds.
+        if (doInit)    // need an initializer for static fileds.
+            modifyClassConstructor(cf, code, stacksize, 0);
+    }
 
+    private void modifyClassConstructor(ClassFile cf, Bytecode code,
+                                        int stacksize, int localsize)
+        throws CannotCompileException
+    {
         MethodInfo m = cf.getStaticInitializer();
         if (m == null) {
             code.add(Bytecode.RETURN);
             code.setMaxStack(stacksize);
-            m = new MethodInfo(cf.getConstPool(),
-                               "<clinit>", "()V");
+            code.setMaxLocals(localsize);
+            m = new MethodInfo(cf.getConstPool(), "<clinit>", "()V");
             m.setAccessFlags(AccessFlag.STATIC);
             m.setCodeAttribute(code.toCodeAttribute());
             cf.addMethod(m);
@@ -765,6 +784,10 @@ class CtClassType extends CtClass {
                 int maxstack = codeAttr.getMaxStack();
                 if (maxstack < stacksize)
                     codeAttr.setMaxStack(stacksize);
+
+                int maxlocals = codeAttr.getMaxLocals();
+                if (maxlocals < localsize)
+                    codeAttr.setMaxLocals(localsize);
             }
             catch (BadBytecode e) {
                 throw new CannotCompileException(e);

@@ -35,6 +35,11 @@ public abstract class CodeGen extends Visitor implements Opcode, TokenId {
     private int tempVar;
 
     /**
+     * true if the last visited node is a return statement.
+     */
+    protected boolean hasReturned;
+
+    /**
      * Must be true if compilation is for a static method.
      */
     public boolean inStaticMethod;
@@ -51,6 +56,7 @@ public abstract class CodeGen extends Visitor implements Opcode, TokenId {
     public CodeGen(Bytecode b) {
         bytecode = b;
         tempVar = -1;
+        hasReturned = false;
         inStaticMethod = false;
         breakList = null;
         continueList = null;
@@ -229,11 +235,11 @@ public abstract class CodeGen extends Visitor implements Opcode, TokenId {
         if (isCons && needsSuperCall(s))
             insertDefaultSuperCall();
 
+        hasReturned = false;
         s.accept(this);
-        if (isVoid
-            && (bytecode.read(bytecode.currentPc() - 1) & 0xff)
-                != Opcode.RETURN) {
+        if (isVoid && !hasReturned) {
             bytecode.addOpcode(Opcode.RETURN);
+            hasReturned = true;
         }
     }
 
@@ -302,9 +308,12 @@ public abstract class CodeGen extends Visitor implements Opcode, TokenId {
             atThrowStmnt(st);
         else if (op == TRY)
             atTryStmnt(st);
-        else // LABEL, SWITCH   label stament might be null?.
+        else {
+            // LABEL, SWITCH label stament might be null?.
+            hasReturned = false;
             throw new CompileError(
                 "sorry, not supported statement: TokenId " + op);
+        }
     }
 
     private void atIfStmnt(Stmnt st) throws CompileError {
@@ -316,10 +325,14 @@ public abstract class CodeGen extends Visitor implements Opcode, TokenId {
         int pc2 = 0;
         bytecode.addIndex(0);   // correct later
 
+        hasReturned = false;
         if (thenp != null)
             thenp.accept(this);
 
-        if (elsep != null) {
+        boolean thenHasReturned = hasReturned;
+        hasReturned = false;
+
+        if (elsep != null && !thenHasReturned) {
             bytecode.addOpcode(Opcode.GOTO);
             pc2 = bytecode.currentPc();
             bytecode.addIndex(0);
@@ -329,7 +342,10 @@ public abstract class CodeGen extends Visitor implements Opcode, TokenId {
 
         if (elsep != null) {
             elsep.accept(this);
-            bytecode.write16bit(pc2, bytecode.currentPc() - pc2 + 1);
+            if (!thenHasReturned)
+                bytecode.write16bit(pc2, bytecode.currentPc() - pc2 + 1);
+
+            hasReturned = thenHasReturned && hasReturned;
         }
     }
 
@@ -364,6 +380,7 @@ public abstract class CodeGen extends Visitor implements Opcode, TokenId {
         patchGoto(continueList, pc3);
         continueList = prevContList;
         breakList = prevBreakList;
+        hasReturned = false;
     }
 
     private void patchGoto(ArrayList list, int targetPc) {
@@ -416,6 +433,7 @@ public abstract class CodeGen extends Visitor implements Opcode, TokenId {
         patchGoto(continueList, pc3);
         continueList = prevContList;
         breakList = prevBreakList;
+        hasReturned = false;
     }
 
     private void atBreakStmnt(Stmnt st, boolean notCont)
@@ -462,6 +480,7 @@ public abstract class CodeGen extends Visitor implements Opcode, TokenId {
         }
 
         bytecode.addOpcode(op);
+        hasReturned = true;
     }
 
     private void atThrowStmnt(Stmnt st) throws CompileError {
@@ -471,9 +490,12 @@ public abstract class CodeGen extends Visitor implements Opcode, TokenId {
             throw new CompileError("bad throw statement");
 
         bytecode.addOpcode(ATHROW);
+        hasReturned = true;
     }
 
-    protected abstract void atTryStmnt(Stmnt st) throws CompileError;
+    protected void atTryStmnt(Stmnt st) throws CompileError {
+        hasReturned = false;
+    }
 
     private static boolean isPlusPlusExpr(ASTree expr) {
         if (expr instanceof Expr) {

@@ -390,12 +390,16 @@ public final class CtConstructor extends CtBehavior {
     /**
      * Inserts bytecode just after another constructor in the super class
      * or this class is called.
+     * It does not work if this object represents a class initializer.
      *
      * @param src       the source code representing the inserted bytecode.
      *                  It must be a single statement or block.
      */
     public void insertBeforeBody(String src) throws CannotCompileException {
         declaringClass.checkModify();
+        if (isClassInitializer())
+            throw new CannotCompileException("class initializer");
+
         CodeAttribute ca = methodInfo.getCodeAttribute();
         CodeIterator iterator = ca.iterator();
         Bytecode b = new Bytecode(methodInfo.getConstPool(),

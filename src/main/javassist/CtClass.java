@@ -512,6 +512,7 @@ public abstract class CtClass {
      * This method returns <code>null</code> if
      * no class initializer is not declared.
      *
+     * @see #makeClassInitializer()
      * @see javassist.CtConstructor
      */
     public CtConstructor getClassInitializer() {
@@ -582,6 +583,19 @@ public abstract class CtClass {
      */
     public CtMethod getDeclaredMethod(String name) throws NotFoundException {
         throw new NotFoundException(name);
+    }
+
+    /**
+     * Makes a class initializer (static constructor).
+     * If the class already includes a class initializer,
+     * this method returns it.
+     *
+     * @see #getClassInitializer()
+     */
+    public CtConstructor makeClassInitializer()
+        throws CannotCompileException
+    {
+        throw new CannotCompileException("not a class");
     }
 
     /**

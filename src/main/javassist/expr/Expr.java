@@ -22,9 +22,9 @@ import java.util.LinkedList;
 import java.util.Iterator;
 
 /**
- * Caller-side expression.
+ * Expression.
  */
-abstract class Expr implements Opcode {
+public abstract class Expr implements Opcode {
     int currentPos;
     CodeIterator iterator;
     CtClass thisClass;
