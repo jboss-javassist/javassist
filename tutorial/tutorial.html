@@ -20,7 +20,7 @@ Shigeru Chiba
 
 <ul>1. <a href="#read">Reading bytecode</a>
 <br>2. <a href="#def">Defining a new class</a>
-<br>3. <a href="#mod">Modifying a class at load time</a>
+<br>3. <a href="#pool">ClassPool</a>
 <br>4. <a href="#load">Class loader</a>
 <br>5. <a href="tutorial2.html#intro">Introspection and customization</a>
 </ul>
@@ -43,7 +43,7 @@ following program is a very simple example:
 ClassPool pool = ClassPool.getDefault();
 CtClass cc = pool.get("test.Rectangle");
 cc.setSuperclass(pool.get("test.Point"));
-pool.writeFile("test.Rectangle");          // or simply, cc.writeFile()
+cc.writeFile("test.Rectangle");
 </pre></ul>
 
 <p>This program first obtains a <code>ClassPool</code> object,
@@ -57,65 +57,53 @@ to a file or an output stream.
 <p>The <code>ClassPool</code> object is used to maintain one-to-one
 mapping between classes and <code>CtClass</code> objects.  Javassist
 never allows two distinct <code>CtClass</code> objects to represent
-the same class.  This is a crucial feature to consistent program
-transformaiton.  If you need, however, you can deal with multiple
-instances of <code>ClassPool</code> at the same time.  To create a new
-instance of <code>ClassPool</code>, write the following code:
+the same class unless two independent <code>ClassPool</code> are created.
+This is a significant feature for consistent program
+transformaiton.  To create multiple
+instances of <code>ClassPool</code>, write the following code:
 
 <ul><pre>
-ClassPool cp = new ClassPool(null);
-cp.appendSystemPath();
-cp.insertClassPath(".");    // or something appropriate
+ClassPool cp = new ClassPool();
+cp.appendSystemPath();	// or append another path by appendClassPath()
 </pre></ul>
 
-<p><code>ClassPool.getDefault()</code> is just a singleton factory
-method provided for convenience.
+<p>This creates a <code>ClassPool</code> object that behaves as the
+default <code>ClassPool</code> returned by
+<code>ClassPool.getDefault()</code> does.
+<code>ClassPool.getDefault()</code> is a singleton factory method
+provided for convenience.
+
+<p>If you have two <code>ClassPool</code> objects, then you can
+obtain, from each <code>ClassPool</code>, a distinct
+<code>CtClass</code> object representing the same class file.  You can
+differently modify these <code>CtClass</code> objects to generate
+different versions of the class.
 
 <p>To modify the definition of a class, the users must first obtain a
 reference to the <code>CtClass</code> object representing that class.
-<code>ClassPool.get()</code> is used for this purpose.
-In the case of the program above, the <code>CtClass</code> object
-representing a class <code>test.Rectangle</code> is obtained from
-the <code>ClassPool</code> object
-and it is assigned
-to a variable <code>cc</code>.  Then it is modified so that
-the superclass of <code>test.Rectangle</code> is changed into
-a class <code>test.Point</code>.
-This change is reflected on the original class file when
-<code>ClassPool.writeFile()</code> is finally called.
+<code>get()</code> in <code>ClassPool</code> is used for this purpose.
+In the case of the program shown at the beginning, the
+<code>CtClass</code> object representing a class
+<code>test.Rectangle</code> is obtained from the
+<code>ClassPool</code> object and it is assigned to a variable
+<code>cc</code>.  Then it is modified so that the superclass of
+<code>test.Rectangle</code> is changed into a class
+<code>test.Point</code>.  This change is reflected on the original
+class file when <code>writeFile()</code> in <code>CtClass()</code> is
+finally called.
 
-<p>Note that <code>writeFile()</code> is a method declared in not
-<code>CtClass</code> but <code>ClassPool</code>.
-If this method is called, the <code>ClassPool</code>
-finds a <code>CtClass</code> object specified with a class name
-among the objects that the <code>ClassPool</code> contains.
-Then it translates that <code>CtClass</code> object into a class file
-and writes it on a local disk.
-
-<p>There is also <code>writeFile()</code> defined in <code>CtClass</code>.
-Thus, the last line in the program above can be rewritten into:
-
-<ul><pre>cc.writeFile();</pre></ul>
-
-<p>This method is a convenient method for invoking <code>writeFile()</code>
-in <code>ClassPool</code> with the name of the class represented by
-<code>cc</code>.
-
-<p>Javassist also provides a method for directly obtaining the
-modified bytecode.  To do this, call <code>write()</code>:
+<p><code>writeFile()</code> translates the <code>CtClass</code> object
+into a class file and writes it on a local disk.
+Javassist also provides a method for directly obtaining the
+modified bytecode.  To obtain the bytecode, call <code>toBytecode()</code>:
 
 <ul><pre>
-byte[] b = pool.write("test.Rectangle");
+byte[] b = cc.toBytecode();
 </pre></ul>
-
-<p>The contents of the class file for <code>test.Rectangle</code> are
-assigned to a variable <code>b</code> in the form of byte array.
-<code>writeFile()</code> also internally calls <code>write()</code>
-to obtain the byte array written in a class file.
 
 <p>The default <code>ClassPool</code> returned
 by a static method <code>ClassPool.getDefault()</code>
-searches the same path as the underlying JVM (Java virtual machine).
+searches the same path that the underlying JVM (Java virtual machine) has.
 The users can expand this class search path if needed.
 For example, the following code adds a directory
 <code>/usr/local/javalib</code>
@@ -131,15 +119,16 @@ a URL:
 
 <ul><pre>
 ClassPool pool = ClassPool.getDefault();
-ClassPath cp = new URLClassPath("www.foo.com", 80, "/java/", "com.foo.");
+ClassPath cp = new URLClassPath("www.javassist.org", 80, "/java/", "org.javassist.");
 pool.insertClassPath(cp);
 </pre></ul>
 
-<p>This program adds "http://www.foo.com:80/java/" to the class search
+<p>This program adds "http://www.javassist.org:80/java/" to the class search
 path.  This URL is used only for searching classes belonging to a
-package <code>com.foo</code>.
+package <code>org.javassist</code>.
 
-<p>You can directly give a byte array to a <code>ClassPool</code> object
+<p>Furthermore, you can directly give a byte array
+to a <code>ClassPool</code> object
 and construct a <code>CtClass</code> object from that array.  To do this,
 use <code>ByteArrayClassPath</code>.  For example,
 
@@ -153,15 +142,13 @@ CtClass cc = cp.get(name);
 
 <p>The obtained <code>CtClass</code> object represents
 a class defined by the class file specified by <code>b</code>.
+The <code>ClassPool</code> reads a class file from the given
+<code>ByteArrayClassPath</code> if <code>get()</code> is called
+and the class name given to <code>get()</code> is equal to
+one specified by <code>name</code>.
 
-<p>Since <code>ClassPath</code> is an interface, the users can define
-a new class implementing this interface and they can add an instance
-of that class so that a class file is obtained from a non-standard resource.
-
-<p>If you want to directly construct a <code>CtClass</code> object
-from a class file but you do not know the fully-qualified name
-of the class, then
-you can use <code>makeClass()</code> in <code>CtClass</code>:
+<p>If you do not know the fully-qualified name of the class, then you
+can use <code>makeClass()</code> in <code>ClassPool</code>:
 
 <ul><pre>
 ClassPool cp = ClassPool.getDefault();
@@ -174,12 +161,18 @@ constructed from the given input stream.  You can use
 <code>makeClass()</code> for eagerly feeding class files to 
 the <code>ClassPool</code> object.  This might improve performance
 if the search path includes a large jar file.  Since 
-the <code>ClassPool</code> object reads a class file on demand,
+a <code>ClassPool</code> object reads a class file on demand,
 it might repeatedly search the whole jar file for every class file.
 <code>makeClass()</code> can be used for optimizing this search.
 The <code>CtClass</code> constructed by <code>makeClass()</code>
 is kept in the <code>ClassPool</code> object and the class file is never
 read again.
+
+<p>The users can extend the class search path.  They can define a new
+class implementing <code>ClassPath</code> interface and give an
+instance of that class to <code>insertClassPath()</code> in
+<code>ClassPool</code>.  This allows a non-standard resource to be
+included in the search path.
 
 <p><br>
 
@@ -202,139 +195,135 @@ The program below does that:
 
 <ul><pre>
 ClassPool pool = ClassPool.getDefault();
-CtClass cc = pool.makeClass("Point");
+CtClass cc = pool.get("Point");
 cc.setName("Pair");
 </pre></ul>
 
 <p>This program first obtains the <code>CtClass</code> object
 for class <code>Point</code>.  Then it gives a new name <code>Pair</code>
 to that <code>CtClass</code> object.
-If <code>get("Point")</code> is called on the <code>ClassPool</code>
-object, then a class file <code>Point.class</code> is read again and
+If <code>get("Point")</code> is later called on the <code>ClassPool</code>
+object again, then a class file <code>Point.class</code> is read again and
 a new <code>CtClass</code> object for class <code>Point</code> is constructed
-again.
+again.  See the followings:
 
 <ul><pre>
 ClassPool pool = ClassPool.getDefault();
-CtClass cc = pool.makeClass("Point");
+CtClass cc = pool.get("Point");
 CtClass cc1 = pool.get("Point");   // cc1 is identical to cc.
 cc.setName("Pair");
 CtClass cc2 = pool.get("Pair");    // cc2 is identical to cc.
 CtClass cc3 = pool.get("Point");   // cc3 is not identical to cc.
 </pre></ul>
 
+<p>Once a <code>CtClass</code> object is converted into a class file
+by <code>writeFile()</code> or <code>toBytecode()</code>, Javassist
+rejects further modifications of that <code>CtClass</code> object.
+Hence, after the <code>CtClass</code> object representing <code>Point</code>
+class is converted into a class file, you cannot define <code>Pair</code>
+class as a copy of <code>Point</code> since executing <code>setName()</code>
+on <code>Point</code> is rejected.
+
+<p>To avoid this restriction, you should call <code>getAndRename()</code>
+in <code>ClassPool</code>.  For example,
+
+<ul><pre>
+ClassPool pool = ClassPool.getDefault();
+CtClass cc = pool.getAndRename("Point", "Pair");
+</pre></ul>
+
+<p>If <code>getAndRename()</code> is called, the <code>ClassPool</code>
+reads <code>Point.class</code> for creating a new <code>CtClass</code>
+object representing <code>Pair</code> class.  <code>getAndRename()</code>
+can be executed after <code>writeFile()</code> or <code>toBytecode()</code>
+is called on the the <code>ClassPool</code> representing <code>Point</code>
+class.
+
+
 <p><br>
 
-<a name="mod">
-<h2>3. Modifying a class at load time</h2>
+<a name="pool">
+<h2>3. ClassPool</h2>
 
-<p>If what classes are modified is known in advance,
-the easiest way for modifying the classes is as follows:
+<p>
+A <code>ClassPool</code> object is a container of <code>CtClass</code>
+objects.  Once a <code>CtClass</code> object is created, it is
+recorded in a <code>ClassPool</code> for ever.  This is because a
+compiler may need to access the <code>CtClass</code> object later when
+it compiles source code that refers to the class represented by that
+<code>CtClass</code>.  If the class definition represented by that
+<code>CtClass</code> object is different from that of the original class
+file, the compiler cannot correctly compile the source code without
+the <code>CtClass</code> object.
 
-<ul><li>1. Get a <code>CtClass</code> object by calling
-        <code>ClassPool.get()</code>,
-    <li>2. Modify it, and
-    <li>3. Call <code>ClassPool.write()</code> or <code>writeFile()</code>.
-</ul>
+<p>
+This specification of <code>ClassPool</code> may cause huge memory
+consumption if the number of <code>CtClass</code> objects becomes large.
+To avoid this problem, you can explicitly remove an unnecessary
+<code>CtClass</code> object from the <code>ClassPool</code>.  If you
+call <code>detach()</code> on a <code>CtClass</code> object, then that
+<code>CtClass</code> object is removed from the <code>ClassPool</code>.
+For example,
 
-<p>If whether a class is modified or not is determined at load time,
-the users can write an event listener so that it is notified
-when a class is loaded into the JVM.
-A class loader (<code>java.lang.ClassLoader</code>) working with
-Javassist must call <code>ClassPool.write()</code> for obtaining
-a class file.  The users can write an event listener so that it is
-notified when the class loader calls <code>ClassPool.write()</code>.
-The event-listener class must implement the following interface:
+<ul><pre>
+CtClass cc = ... ;
+cc.writeFile();
+cc.detach();
+</pre></ul>
 
-<ul><pre>public interface Translator {
-    public void start(ClassPool pool)
-        throws NotFoundException, CannotCompileException;
-    public void onWrite(ClassPool pool, String classname)
-        throws NotFoundException, CannotCompileException;
-}</pre></ul>
+<p>You must not call any method on that
+<code>CtClass</code> object after <code>detach()</code> is called.
 
-<p>The method <code>start()</code> is called when this event listener
-is registered to a <code>ClassPool</code> object.
-The method <code>onWrite()</code> is called when <code>write()</code>
-(or similar methods) is called on the <code>ClassPool</code> object.
-The second parameter of <code>onWrite()</code> is the name of the class
-to be written out.
+<p><code>ClassPool</code> objects can be cascaded like
+<code>java.lang.ClassLoader</code>.  For example,
 
-<p>Note that <code>start()</code> or <code>onWrite()</code> do not have
-to call <code>write()</code> or <code>writeFile()</code>.  For example,
+<ul><pre>
+ClassPool parent = ClassPool.getDefault();
+ClassPool child = new ClassPool(parent);
+</pre></ul>
 
-<ul><pre>public class MyAnotherTranslator implements Translator {
-    public void start(ClassPool pool)
-        throws NotFoundException, CannotCompileException {}
-    public void onWrite(ClassPool pool, String classname)
-        throws NotFoundException, CannotCompileException
-    {
-        CtClass cc = pool.get(classname);
-        cc.setModifiers(Modifier.PUBLIC);
-    }
-}</pre></ul>
+<p>If <code>child.get()</code> is called, the child <code>ClassPool</code>
+first delegates to the parent <code>ClassPool</code>.  If the parent
+<code>ClassPool</code> fails to find a class file, then the child
+<code>ClassPool</code> attempts to find a class file.
+If <code>child.childFirstLookup</code> is true, the child
+<code>ClassPool</code> attempts to find a class file before delegating
+to the parent <code>ClassPool</code>.  For example,
 
-<p>All the classes written out by <code>write()</code> are made public
-just before their definitions are translated into an byte array.
-
-<p><center><img src="overview.gif" alt="overview"></center>
-
-<p>The two methods <code>start()</code> and <code>onWrite()</code>
-can modify not only a <code>CtClass</code> object specified by
-the given <code>classname</code> but also
-<em>any</em> <code>CtClass</code> objects contained
-in the given <code>ClassPool</code>.  
-They can call <code>ClassPool.get()</code> for obtaining any
-<code>CtClass</code> object.
-If a modified <code>CtClass</code> object is not written out immediately,
-the modification is recorded until that object is written out.
-
-<p><center><img src="sequence.gif" alt="sequence diagram"></center>
-
-<p>To register an event listener to a <code>ClassPool</code>,
-it must be passed to a constructor of <code>ClassPool</code>.  
-Only a single event listener can be registered.
-If more than one event listeners are needed, multiple
-<code>ClassPool</code>s should be connected to be a single
-stream.  For example,
-
-<ul><pre>Translator t1 = new MyTranslator();
-ClassPool c1 = new ClassPool(t1);
-Translator t2 = new MyAnotherTranslator();
-ClassPool c2 = new ClassPool(c1, t2);</pre></ul>
-
-<p>This program connects two <code>ClassPool</code>s.
-If a class loader calls <code>write()</code> on <code>c2</code>,
-the specified class file is first modified by <code>t1</code> and
-then by <code>t2</code>.  <code>write()</code> returns the resulting
-class file.
-
-First, <code>onWrite()</code> on <code>t1</code> is called since
-<code>c2</code> obtains a class file by calling <code>write()</code>
-on <code>c1</code>.  Then <code>onWrite()</code> on <code>t2</code>
-is called.  If <code>onWrite()</code> called on <code>t2</code>
-obtains a <code>CtClass</code> object from <code>c2</code>, that
-<code>CtClass</code> object represents the class file that
-<code>t1</code> has modified.
-
-<p><center><img src="two.gif" alt="two translators"></center>
+<ul><pre>
+ClassPool parent = ClassPool.getDefault();
+ClassPool child = new ClassPool(parent);
+child.childFirstLookup = true;    // changes the behavior of the child.
+</pre></ul>
 
 <p><br>
 
 <a name="load">
 <h2>4. Class loader</h2>
 
-<p>Javassist can be used with a class loader so that bytecode can be
+<p>If what classes must be modified is known in advance,
+the easiest way for modifying the classes is as follows:
+
+<ul><li>1. Get a <code>CtClass</code> object by calling
+        <code>ClassPool.get()</code>,
+    <li>2. Modify it, and
+    <li>3. Call <code>writeFile()</code> or <code>toBytecode()</code>
+           on that <code>CtClass</code> object.
+</ul>
+
+<p>If whether a class is modified or not is determined at load time,
+the users must make Javassist collaborate with a class loader.
+Javassist can be used with a class loader so that bytecode can be
 modified at load time.  The users of Javassist can define their own
 version of class loader but they can also use a class loader provided
 by Javassist.
 
-<p>Using a class loader is not easy.  Especially if you are a beginner,
-you should separate your program into an application program and an
-instrumentation program and each of the two programs should be loaded
-by a single class loader.  You should
-avoid loading part of the application program with the default class loader
-and the rest of the program with a user-defined class loader.
+<p>Using a class loader is not easy.  In particular, if you are a
+beginner, you should separate your program into an application program
+and an instrumentation program.  Then you should load only the former
+program by a user-defined class loader.  The latter one, as well as
+the program of the user-defined class loader, should be loaded by the
+system class loader.
 
 <p><br>
 
@@ -516,13 +505,47 @@ superclass of <code>test.Rectangle</code> is set to a
 class, and creates a new instance of the
 <code>test.Rectangle</code> class.
 
-<p>The users can use a <code>javassist.Translator</code> object
-for modifying class files.
-Suppose that an instance of a class <code>MyTranslator</code>,
-which implements
-<code>javassist.Translator</code>, performs modification of class files.
-To run an application class <code>MyApp</code> with the
-<code>MyTranslator</code> object, write a main class:
+<p>If the users want to modify a class on demand when it is loaded,
+the users can add an event listener to a <code>javassist.Loader</code>.
+The added event listener is
+notified when the class loader loads a class.
+The event-listener class must implement the following interface:
+
+<ul><pre>public interface Translator {
+    public void start(ClassPool pool)
+        throws NotFoundException, CannotCompileException;
+    public void onWrite(ClassPool pool, String classname)
+        throws NotFoundException, CannotCompileException;
+}</pre></ul>
+
+<p>The method <code>start()</code> is called when this event listener
+is added to a <code>javassist.Loader</code> object by
+<code>addTranslator()</code> in <code>javassist.Loader</code>.  The
+method <code>onWrite()</code> is called before
+<code>javassist.Loader</code> loads a class.  <code>onWrite()</code>
+can modify the definition of the loaded class.
+
+<p>For example, the following event listener changes all classes
+to public classes just before they are loaded.
+
+<ul><pre>public class MyTranslator implements Translator {
+    void start(ClassPool pool)
+        throws NotFoundException, CannotCompileException {}
+    void onWrite(ClassPool pool, String classname)
+        throws NotFoundException, CannotCompileException
+    {
+        CtClass cc = pool.get(classname);
+        cc.setModifiers(Modifier.PUBLIC);
+    }
+}</pre></ul>
+
+<p>Note that <code>onWrite()</code> does not have to call
+<code>toBytecode()</code> or <code>writeFile()</code> since
+<code>javassist.Loader</code> calls these methods to obtain a class
+file.
+
+<p>To run an application class <code>MyApp</code> with a
+<code>MyTranslator</code> object, write a main class as following:
 
 <ul><pre>
 import javassist.*;
@@ -530,8 +553,9 @@ import javassist.*;
 public class Main2 {
   public static void main(String[] args) throws Throwable {
      Translator t = new MyTranslator();
-     ClassPool pool = ClassPool.getDefault(t);
-     Loader cl = new Loader(pool);
+     ClassPool pool = ClassPool.getDefault();
+     Loader cl = new Loader();
+     cl.addTranslator(pool, t);
      cl.run("MyApp", args);
   }
 }
@@ -547,7 +571,7 @@ public class Main2 {
 are translated by <code>MyTranslator</code>.
 
 <p>Note that <em>application</em> classes like <code>MyApp</code> cannot
-access the <em>loader</em> classes such as <code>Main</code>,
+access the <em>loader</em> classes such as <code>Main2</code>,
 <code>MyTranslator</code> and <code>ClassPool</code> because they
 are loaded by different loaders.  The application classes are loaded
 by <code>javassist.Loader</code> whereas the loader classes such as
@@ -563,19 +587,19 @@ On the other hand,
 to load the classes before delegating to the parent class loader.
 It delegates only if:
 
-<ul><li>the classes are not found by using the <code>ClassPool</code>
-object, or
+<ul><li>the classes are not found by calling <code>get()</code> on
+a <code>ClassPool</code> object, or
 
 <p><li>the classes have been specified by using
 <code>delegateLoadingOf()</code>
 to be loaded by the parent class loader.
 </ul>
 
-<p>This search order allows loading modified classes by Javassist into
-the JVM.  However, it delegates to the parent class loader if it fails
+<p>This search order allows loading modified classes by Javassist.
+However, it delegates to the parent class loader if it fails
 to find modified classes for some reason.  Once a class is loaded by
 the parent class loader, the other classes referred to in that class will be
-also loaded without modification by the parent class loader.  
+also loaded by the parent class loader and thus they are never modified.
 Recall that all the classes referred to in a class C are loaded by the
 real loader of C.
 <em>If your program fails to load a modified class,</em> you should
@@ -603,7 +627,7 @@ public class SampleLoader extends ClassLoader {
     private ClassPool pool;
 
     public SampleLoader() throws NotFoundException {
-        pool = ClassPool.getDefault();
+        pool = new ClassPool();
         pool.insertClassPath("./class"); // <em>MyApp.class must be there.</em>
     }
 
@@ -614,7 +638,7 @@ public class SampleLoader extends ClassLoader {
         try {
             CtClass cc = pool.get(name);
             // <em>modify the CtClass object here</em>
-            byte[] b = pool.write(name);
+            byte[] b = cc.toBytecode();
             return defineClass(name, b, 0, b.length);
         } catch (NotFoundException e) {
             throw new ClassNotFoundException();
@@ -629,7 +653,10 @@ public class SampleLoader extends ClassLoader {
 <p>The class <code>MyApp</code> is an application program.
 To execute this program, first put the class file under the
 <code>./class</code> directory, which must <em>not</em> be included
-in the class search path.  The directory name is specified by
+in the class search path.  Otherwise, <code>MyApp.class</code> would
+be loaded by the default system class loader, which is the parent
+loader of <code>SampleLoader</code>.
+The directory name <code>./class</code> is specified by
 <code>insertClassPath()</code> in the constructor.
 You can choose a different name instead of <code>./class</code> if you want.
 Then do as follows:
@@ -639,10 +666,6 @@ Then do as follows:
 <p>The class loader loads the class <code>MyApp</code>
 (<code>./class/MyApp.class</code>) and calls
 <code>MyApp.main()</code> with the command line parameters.
-Note that <code>MyApp.class</code> must not be under the directory
-that the system class loader searches.  Otherwise, the system class
-loader, which is the parent loader of <code>SampleLoader</code>,
-loads the class <code>MyApp</code>.
 
 <p>This is the simplest way of using Javassist.  However, if you write
 a more complex class loader, you may need detailed knowledge of
@@ -689,10 +712,12 @@ Class c = cl.loadClass(cc.getName(), cc.toBytecode());
 
 <p>Note that this class loader might be too simple for realistic use.
 It delegates to the parent class loader unless the class is explicitly
-loaded by <code>loadClass()</code>.  If you encounter an unexpected
-<code>ClassCastException</code>, you should check the class loader
-of the class by calling <code>getClassLoader()</code>
-in <code>java.lang.Class</code>.
+loaded by <code>loadClass()</code> (or <code>toClass()</code> in
+<code>CtClass</code>).  If you encounter an unexpected
+<code>ClassCastException</code>, you should check the class loader of
+the object.  Call <code>getClass().getClassLoader()</code> on the
+object and make sure that the destination class and the source class
+of the cast operation have been loaded by the same class loader.
 
 <p><br>
 
