@@ -90,7 +90,7 @@ public class MemberCodeGen extends CodeGen {
 
             decl.setLocalVar(var);
 
-            CtClass type = lookupClass(decl.getClassName());
+            CtClass type = lookupJvmClass(decl.getClassName());
             decl.setClassName(javaToJvmName(type.getName()));
             bytecode.addExceptionHandler(start, end, bytecode.currentPc(),
                                          type);
@@ -253,7 +253,7 @@ public class MemberCodeGen extends CodeGen {
             mname = ((Symbol)e.oprand2()).get();
             int op = e.getOperator();
             if (op == MEMBER) {                 // static method
-                targetClass = lookupClass((ASTList)e.oprand1());
+                targetClass = lookupJavaClass(((Symbol)e.oprand1()).get());
                 isStatic = true;
             }
             else if (op == '.') {
@@ -277,9 +277,9 @@ public class MemberCodeGen extends CodeGen {
                 }
 
                 if (arrayDim > 0)
-                    targetClass = lookupClass2(javaLangObject);
+                    targetClass = lookupJavaClass(javaLangObject);
                 else if (exprType == CLASS /* && arrayDim == 0 */)
-                    targetClass = lookupClass(className);
+                    targetClass = lookupJvmClass(className);
                 else
                     badMethod();
             }
@@ -565,9 +565,9 @@ public class MemberCodeGen extends CodeGen {
 
                 String cname = desc.substring(i, j);
                 if (!cname.equals(argClassNames[n])) {
-                    CtClass clazz = lookupClass(argClassNames[n]);
+                    CtClass clazz = lookupJvmClass(argClassNames[n]);
                     try {
-                        if (clazz.subtypeOf(lookupClass(cname)))
+                        if (clazz.subtypeOf(lookupJvmClass(cname)))
                             result = MAYBE;
                         else
                             return NO;
@@ -786,14 +786,15 @@ public class MemberCodeGen extends CodeGen {
             Expr e = (Expr)expr;
             int op = e.getOperator();
             if (op == MEMBER) {
-                f = lookupField((ASTList)e.oprand1(), (Symbol)e.oprand2());
+                f = lookupJavaField(((Symbol)e.oprand1()).get(),
+                                    (Symbol)e.oprand2());
                 is_static = true;
             }
             else if (op == '.') {
                 try {
                     e.oprand1().accept(this);
                     if (exprType == CLASS && arrayDim == 0)
-                        f = lookupField(className, (Symbol)e.oprand2());
+                        f = lookupJvmField(className, (Symbol)e.oprand2());
                     else
                         badLvalue();
 
@@ -808,7 +809,7 @@ public class MemberCodeGen extends CodeGen {
                     Symbol fname = (Symbol)e.oprand2();
                     // it should be a static field.
                     try {
-                        f = lookupField(nfe.getField(), fname);
+                        f = lookupJvmField(nfe.getField(), fname);
                         is_static = true;
                     }
                     catch (CompileError ce) {
@@ -927,7 +928,7 @@ public class MemberCodeGen extends CodeGen {
         if (jvmName == null)
             return null;
         else
-            return javaToJvmName(lookupClass(jvmName).getName());
+            return javaToJvmName(lookupJvmClass(jvmName).getName());
     }
 
     protected CtClass lookupClass(Declarator decl) throws CompileError {
@@ -942,7 +943,7 @@ public class MemberCodeGen extends CodeGen {
         CtClass clazz;
         switch (type) {
         case CLASS :
-            clazz = lookupClass(classname);
+            clazz = lookupJvmClass(classname);
             if (dim > 0)
                 cname = clazz.getName();
             else
@@ -983,21 +984,21 @@ public class MemberCodeGen extends CodeGen {
         while (dim-- > 0)
             cname += "[]";
 
-        return lookupClass2(cname);
+        return lookupJavaClass(cname);
     }
 
     protected CtClass lookupClass(ASTList name) throws CompileError {
-        return lookupClass2(Declarator.astToClassName(name, '.'));
+        return lookupJavaClass(Declarator.astToClassName(name, '.'));
     }
 
-    protected CtClass lookupClass(String jvmName) throws CompileError {
-        return lookupClass2(jvmToJavaName(jvmName));
+    protected CtClass lookupJvmClass(String jvmName) throws CompileError {
+        return lookupJavaClass(jvmToJavaName(jvmName));
     }
 
     /**
      * @param name      a qualified class name. e.g. java.lang.String
      */
-    private CtClass lookupClass2(String name) throws CompileError {
+    private CtClass lookupJavaClass(String name) throws CompileError {
         try {
             return classPool.get(name);
         }
@@ -1015,23 +1016,23 @@ public class MemberCodeGen extends CodeGen {
     public CtField lookupField(ASTList className, Symbol fieldName)
         throws CompileError
     {
-        return lookupField2(Declarator.astToClassName(className, '.'),
+        return lookupJavaField(Declarator.astToClassName(className, '.'),
                             fieldName);
     }
 
-    public CtField lookupField(String className, Symbol fieldName)
+    public CtField lookupJvmField(String className, Symbol fieldName)
         throws CompileError
     {
-        return lookupField2(jvmToJavaName(className), fieldName);
+        return lookupJavaField(jvmToJavaName(className), fieldName);
     }
 
     /**
      * @param name      a qualified class name. e.g. java.lang.String
      */
-    private CtField lookupField2(String className, Symbol fieldName)
+    private CtField lookupJavaField(String className, Symbol fieldName)
         throws CompileError
     {
-        CtClass cc = lookupClass(className);
+        CtClass cc = lookupJavaClass(className);
         try {
             return cc.getField(fieldName.get());
         }

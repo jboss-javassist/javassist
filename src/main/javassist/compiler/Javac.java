@@ -354,6 +354,36 @@ public class Javac {
     }
 
     /**
+     * Prepares to use $proceed() representing a static method.
+     * If the return type of $proceed() is void, null is pushed on the
+     * stack.
+     *
+     * @param targetClass    the fully-qualified dot-separated name
+     *				of the class declaring the method.
+     * @param method         the method name.
+     */
+    public void recordStaticProceed(String targetClass, String method)
+        throws CompileError
+    {
+        final String c = targetClass;
+        final String m = method;
+
+        ProceedHandler h = new ProceedHandler() {
+                public void doit(JvstCodeGen gen, Bytecode b, ASTList args)
+                    throws CompileError
+                {
+                    Expr expr = Expr.make(TokenId.MEMBER,
+                                          new Symbol(c), new Member(m));
+                    expr = Expr.make(TokenId.CALL, expr, args);
+                    expr.accept(gen);
+                    gen.addNullIfVoid();
+                }
+            };
+
+        gen.setProceedHandler(h, proceedName);
+    }
+
+    /**
      * Prepares to use $proceed().
      */
     public void recordProceed(ProceedHandler h) {

@@ -196,7 +196,10 @@ public class MethodCall extends Expr {
             jc.recordParams(classname, params,
                             true, paramVar, withinStatic());
             int retVar = jc.recordReturnType(retType, true);
-            jc.recordProceed(Javac.param0Name, methodname);
+            if (c == INVOKESTATIC)
+                jc.recordStaticProceed(classname, methodname);
+            else
+                jc.recordProceed(Javac.param0Name, methodname);
 
             /* Is $_ included in the source code?
              */

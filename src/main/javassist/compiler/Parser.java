@@ -958,7 +958,7 @@ public final class Parser implements TokenId {
                 else
                     throw new CompileError("missing static member name", lex);
 
-                expr = Expr.make(MEMBER, toClassName(expr, null),
+                expr = Expr.make(MEMBER, new Symbol(toClassName(expr)),
                                  new Member(str));
                 break;
             default :
@@ -991,17 +991,29 @@ public final class Parser implements TokenId {
         return Expr.make(CALL, expr, parseArgumentList(tbl));
     }
 
-
-    private ASTList toClassName(ASTree name, ASTList tail)
+    private String toClassName(ASTree name)
         throws CompileError
     {
-        if (name instanceof Symbol)
-            return new ASTList(name, tail);
+        StringBuffer sbuf = new StringBuffer();
+        toClassName(name, sbuf);
+        return sbuf.toString();
+    }
+
+    private void toClassName(ASTree name, StringBuffer sbuf)
+        throws CompileError
+    {
+        if (name instanceof Symbol) {
+            sbuf.append(((Symbol)name).get());
+            return;
+        }
         else if (name instanceof Expr) {
             Expr expr = (Expr)name;
-            if (expr.getOperator() == '.')
-                return toClassName(expr.oprand1(),
-                                   new ASTList(expr.oprand2(), tail));
+            if (expr.getOperator() == '.') {
+                toClassName(expr.oprand1(), sbuf);
+                sbuf.append('.');
+                toClassName(expr.oprand2(), sbuf);
+                return;
+            }
         }
 
         throw new CompileError("bad static member access", lex);
