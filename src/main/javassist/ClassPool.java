@@ -680,7 +680,7 @@ public class ClassPool extends AbsClassPool {
         return clazz;
     }
 
-    private CtClass get1(String classname) throws NotFoundException {
+    protected CtClass get1(String classname) throws NotFoundException {
         if (classname.endsWith("[]")) {
             String base = classname.substring(0, classname.indexOf('['));
             if (getCached(base) == null && find(base) == null)

@@ -139,7 +139,6 @@ class CtNewWrappedMethod {
             do {
                 bodyname = addedWrappedMethod + clazz.getUniqueNumber();
             } while (classfile.getMethod(bodyname) != null);
-
             ClassMap map = new ClassMap();
             map.put(src.getDeclaringClass().getName(), clazz.getName());
             MethodInfo body = new MethodInfo(classfile.getConstPool(),
