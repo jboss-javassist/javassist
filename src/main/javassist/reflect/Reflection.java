@@ -66,6 +66,10 @@ public class Reflection implements Translator {
     static final String readPrefix = "_r_";
     static final String writePrefix = "_w_";
 
+    static final String metaobjectClassName = "javassist.reflect.Metaobject";
+    static final String classMetaobjectClassName
+        = "javassist.reflect.ClassMetaobject";
+
     protected CtMethod trapMethod, trapStaticMethod;
     protected CtMethod trapRead, trapWrite;
     protected CtClass[] readParam;
@@ -189,8 +193,23 @@ public class Reflection implements Translator {
      */
     public boolean makeReflective(CtClass clazz,
                                   CtClass metaobject, CtClass metaclass)
-        throws CannotCompileException, NotFoundException
+        throws CannotCompileException, CannotReflectException,
+               NotFoundException
     {
+        if (clazz.isInterface())
+            throw new CannotReflectException(
+                    "Cannot reflect an interface: " + clazz.getName());
+
+        if (clazz.subclassOf(classPool.get(classMetaobjectClassName)))
+            throw new CannotReflectException(
+                "Cannot reflect a subclass of ClassMetaobject: "
+                + clazz.getName());
+
+        if (clazz.subclassOf(classPool.get(metaobjectClassName)))
+            throw new CannotReflectException(
+                "Cannot reflect a subclass of Metaobject: "
+                + clazz.getName());
+
         registerReflectiveClass(clazz);
         return modifyClassfile(clazz, metaobject, metaclass);
     }

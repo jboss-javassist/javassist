@@ -41,7 +41,7 @@ public class CannotCompileException extends Exception {
     /**
      * Constructs a CannotCompileException with an <code>Exception</code>.
      */
-    public CannotCompileException(Exception e) {
+    public CannotCompileException(Throwable e) {
         super("by " + e.toString());
         message = null;
     }

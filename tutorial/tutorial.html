@@ -393,12 +393,97 @@ modified at load time.  The users of Javassist can define their own
 version of class loader but they can also use a class loader provided
 by Javassist.
 
-<p>Using a class loader is not easy.  In particular, if you are a
-beginner, you should separate your program into an application program
-and an instrumentation program.  Then you should load only the former
-program by a user-defined class loader.  The latter one, as well as
-the program of the user-defined class loader, should be loaded by the
-system class loader.
+
+<p><br>
+
+<h3>4.1 The <code>toClass</code> method in <code>CtClass</code></h3>
+
+<p>The <code>CtClass</code> provides a convenience method
+<code>toClass()</code>, which requests the context class loader for
+the current thread to load the class represented by the <code>CtClass</code>
+object.  To call this method, the caller must have appropriate permission;
+otherwise, a <code>SecurityException</code> may be thrown.
+
+<p>The following program shows how to use <code>toClass()</code>:
+
+<ul><pre>
+public class Hello {
+    public void say() {
+        System.out.println("Hello");
+    }
+}
+
+public class Test {
+    public static void main(String[] args) throws Exception {
+        ClassPool cp = ClassPool.getDefault();
+        CtClass cc = cp.get("Hello");
+        CtMethod m = cc.getDeclaredMethod("say");
+        m.insertBefore("{ System.out.println(\"Hello.say():\"); }");
+        Class c = cc.toClass();
+        Hello h = (Hello)c.newInstance();
+        h.say();
+    }
+}
+</pre></ul>
+
+<p><code>Test.main()</code> inserts a call to <code>println()</code>
+in the method body of <code>say()</code> in <code>Hello</code>.  Then
+it constructs an instance of the modified <code>Hello</code> class
+and calls <code>say()</code> on that instance.
+
+<p>Note that the program above depends on the fact that the
+<code>Hello</code> class is never loaded before <code>toClass()</code>
+is invoked.  If not, the JVM would load the original
+<code>Hello</code> class before <code>toClass()</code> request to load
+the modified <code>Hello</code> class.  Hence loading the modified
+<code>Hello</code> class would be failed.
+For example, if
+<code>main()</code> in <code>Test</code> is something like this:
+
+<ul><pre>
+public static void main(String[] args) throws Exception {
+    Hello orig = new Hello();
+    ClassPool cp = ClassPool.getDefault();
+    CtClass cc = cp.get("Hello");
+        :
+}
+</pre></ul>
+
+<p>then the original <code>Hello</code> class is loaded at the first
+line of <code>main</code> and the call to <code>toClass()</code>
+throws an exception since the class loader cannot load two different
+versions of the <code>Hello</code> class at the same time.
+
+<p><em>If the program is running on some application server such as
+JBoss,</em> the context class loader used by <code>toClass()</code>
+might be inappropriate.  In this case, you would see an unexpected
+<code>ClassCastException</code>.  To avoid this exception, you must
+explicitly give an appropriate class loader to <code>toClass()</code>.
+For example, if <code>bean</code> is your session bean object, then the
+following code:
+
+<ul><pre>CtClass cc = ...;
+Class c = cc.toClass(bean.getClass().getClassLoader());
+</pre></ul>
+
+<p>would work.  You should give <code>toClass()</code> the class loader
+that has loaded your program (in the above example, the class of
+the <code>bean</code> object).
+
+<p><code>toClass()</code> is provided for convenience.  If you need
+more complex functionality, you should write your own class loader.
+
+<p><br>
+
+<h3>4.2 Class loading in Java</h3>
+
+<p>In Java, multiple class loaders can coexist and
+each class loader creates its own name space.
+Different class loaders can load different class files with the
+same class name.  The loaded two classes are regarded as different
+ones.  This feature enables us to run multiple application programs
+on a single JVM even if these programs include different classes
+with the same name.
 
 <ul>
 <b>Note:</b> The JVM does not allow dynamically reloading a class.
@@ -409,23 +494,38 @@ However, the JPDA (Java Platform Debugger Architecture) provides
 limited ability for reloading a class.  See "HotSwap" of JPDA for details.
 </ul>
 
-<p><br>
-
-<h3>4.1 Class loading in Java</h3>
-
-<p>In Java, multiple class loaders can coexist and
-each class loader creates its own name space.
-Different class loaders can load different class files with the
-same class name.  The loaded two classes are regarded as different
-ones.  This feature enables us to run multiple application programs
-on a single JVM.
-
 <p>If the same class file is loaded by two distinct class loaders,
 the JVM makes two distinct classes with the same name and definition.
 The two classes are regarded as different ones.
 Since the two classes are not identical, an instance of one class is
 not assignable to a variable of the other class.  The cast operation
-between the two classes fails and throws a <code>ClassCastException</code>.
+between the two classes fails
+and throws a <em><code>ClassCastException</code></em>.
+
+<p>For example, the following code snippet throws an exception:
+
+<ul><pre>
+MyClassLoader myLoader = new MyClassLoader();
+Class clazz = myLoader.loadClass("Box");
+Object obj = clazz.newInstance();
+Box b = (Box)obj;    // this always throws ClassCastException.
+</pre></ul>
+
+<p>
+The <code>Box</code> class is loaded by two class loaders.
+Suppose that a class loader CL loads a class including this code snippet.
+Since this code snippet refers to <code>MyClassLoader</code>,
+<code>Class</code>, <code>Object</code>, and <code>Box</code>,
+CL also loads these classes (unless it delegates to another class loader).
+Hence the type of the variable <code>b</code> is the <code>Box</code>
+class loaded by CL.
+On the other hand, <code>myLoader</code> also loads the <code>Box</code>
+class.  The object <code>obj</code> is an instance of
+the <code>Box</code> class loaded by <code>myLoader</code>.
+Therefore, the last statement always throws a
+<code>ClassCastException</code> since the class of <code>obj</code> is
+a different verison of the <code>Box</code> class from one used as the
+type of the variable <code>b</code>.
 
 <p>Multiple class loaders form a tree structure.
 Each class loader except the bootstrap loader has a
@@ -555,7 +655,7 @@ be helpful:
 
 <p><br>
 
-<h3>4.2 Using <code>javassist.Loader</code></h3>
+<h3>4.3 Using <code>javassist.Loader</code></h3>
 
 <p>Javassist provides a class loader
 <code>javassist.Loader</code>.  This class loader uses a
@@ -648,7 +748,7 @@ public class Main2 {
 <p>To run this program, do:
 
 <ul><pre>
-% java Main <i>arg1</i> <i>arg2</i>...
+% java Main2 <i>arg1</i> <i>arg2</i>...
 </pre></ul>
 
 <p>The class <code>MyApp</code> and the other application classes
@@ -656,10 +756,10 @@ are translated by <code>MyTranslator</code>.
 
 <p>Note that <em>application</em> classes like <code>MyApp</code> cannot
 access the <em>loader</em> classes such as <code>Main2</code>,
-<code>MyTranslator</code> and <code>ClassPool</code> because they
+<code>MyTranslator</code>, and <code>ClassPool</code> because they
 are loaded by different loaders.  The application classes are loaded
 by <code>javassist.Loader</code> whereas the loader classes such as
-<code>Main</code> are by the default Java class loader.
+<code>Main2</code> are by the default Java class loader.
 
 <p><code>javassist.Loader</code> searches for classes in a different
 order from <code>java.lang.ClassLoader</code>.
@@ -692,7 +792,7 @@ make sure whether all the classes using that class have been loaded by
 
 <p><br>
 
-<h3>4.3 Writing a class loader</h3>
+<h3>4.4 Writing a class loader</h3>
 
 <p>A simple class loader using Javassist is as follows:
 
@@ -760,48 +860,6 @@ classes are loaded by different class loaders.
 Hence, the
 <code>MyApp</code> class cannot directly access the class
 <code>SampleLoader</code>.
-
-<p><br>
-
-<h3>4.4 The <code>toClass</code> method in <code>CtClass</code></h3>
-
-<p>The <code>CtClass</code> provides a convenience method
-<code>toClass</code>, which loads the class by an internal class
-loader of Javassist.  This method first obtains the class file
-representing the modified class and loads it by an instance of
-<code>javassist.ClassPool.SimpleLoader</code>.
-The following code is the definition of this class loader:
-
-<ul><pre>
-public class SimpleLoader extends ClassLoader {
-    public Class loadClass(String classname, byte[] classfile)
-        throws ClassFormatError
-    {
-        Class c = defineClass(classname, classfile, 0, classfile.length);
-        resolveClass(c);
-        return c;
-    }
-};
-</pre></ul>
-
-<p><code>loadClass()</code> loads the class specified by
-<code>classfile</code>.
-Thus, <code>toClass()</code> is equivalent to the following code:
-
-<ul><pre>
-CtClass cc = ... ;
-ClassPool.SimpleLoader cl = new ClassPool.SimpleLoader();
-Class c = cl.loadClass(cc.getName(), cc.toBytecode());
-</pre></ul>
-
-<p>Note that this class loader might be too simple for realistic use.
-It delegates to the parent class loader unless the class is explicitly
-loaded by <code>loadClass()</code> (or <code>toClass()</code> in
-<code>CtClass</code>).  If you encounter an unexpected
-<code>ClassCastException</code>, you should check the class loader of
-the object.  Call <code>getClass().getClassLoader()</code> on the
-object and make sure that the destination class and the source class
-of the cast operation have been loaded by the same class loader.
 
 <p><br>
 

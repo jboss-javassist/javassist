@@ -843,57 +843,65 @@ public abstract class CtClass {
     /**
      * Converts this class to a <code>java.lang.Class</code> object.
      * Once this method is called, further modifications are not
-     * possible any more.
+     * allowed any more.
+     * To load the class, this method uses the context class loader
+     * of the current thread.  If the program is running on some application
+     * server, the context class loader might be inappropriate to load the
+     * class.
      *
      * <p>This method is provided for convenience.  If you need more
      * complex functionality, you should write your own class loader.
      *
-     * <p>To load a class file, this method uses an internal class loader,
-     * which is an instance of <code>ClassPool.SimpleLoader</code>.
-     * Thus, that class file is not loaded by the system class loader,
-     * which should have loaded this <code>CtClass</code> class.
-     * The internal class loader
-     * loads only the classes explicitly specified by this method
-     * <code>toClass()</code>.  The other classes are loaded
-     * by the parent class loader (usually the sytem class loader)
-     * by delegation.
-     *
-     * <p>For example,
-     *
-     * <ul><pre>class Line { Point p1, p2; }</pre></ul>
-     *
-     * <p>If the class <code>Line</code> is loaded by the internal class
-     * loader and the class <code>Point</code> has not been loaded yet,
-     * then the class <code>Point</code> that the class <code>Line</code>
-     * refers to is loaded by the parent class loader.  There is no
-     * chance of modifying the definition of <code>Point</code> with
-     * Javassist.
-     *
-     * <p>The internal class loader is shared among all the instances
-     * of <code>ClassPool</code>.
-     *
-     * @return the <code>Class</code> object representing the loaded class.  
-     * @see CtClass#forName(String)
-     * @see ClassPool.SimpleLoader
-     * @see Loader
+     * @see #toClass(java.lang.ClassLoader)
      */
     public Class toClass()
-        throws NotFoundException, IOException, CannotCompileException
+        throws CannotCompileException
     {
-        return getClassPool().toClass(this);
+        return toClass(Thread.currentThread().getContextClassLoader());
     }
 
     /**
-     * Returns a <code>java.lang.Class</code> object that has been loaded
-     * by <code>toClass()</code>.  Such an object cannot be
-     * obtained by <code>java.lang.Class.forName()</code> because it has
-     * been loaded by an internal class loader of Javassist.
+     * Converts this class to a <code>java.lang.Class</code> object.
+     * Once this method is called, further modifications are not allowed
+     * any more.
      *
-     * @see CtClass#toClass()
-     * @see ClassPool.SimpleLoader
+     * <p>The class file represented by this <code>CtClass</code> is
+     * loaded by the given class loader to construct a
+     * <code>java.lang.Class</code> object.  Since a private method
+     * on the class loader is invoked through the reflection API,
+     * the caller must have permissions to do that. 
+     *
+     * <p>This method is provided for convenience.  If you need more
+     * complex functionality, you should write your own class loader.
+     *
+     * @param loader        the class loader used to load this class.
      */
-    public Class forName(String name) throws ClassNotFoundException {
-        return getClassPool().forName(name);
+    public Class toClass(ClassLoader loader)
+        throws CannotCompileException
+    {
+        try {
+            byte[] b = toBytecode();
+            Class cl = Class.forName("java.lang.ClassLoader");
+            java.lang.reflect.Method method
+                = cl.getDeclaredMethod("defineClass",
+                                new Class[] { String.class, byte[].class,
+                                              int.class, int.class });
+            method.setAccessible(true);
+            Object[] args = new Object[] { getName(), b, new Integer(0),
+                                           new Integer(b.length)};
+            Class clazz = (Class)method.invoke(loader, args);
+            method.setAccessible(false);
+            return clazz;
+        }
+        catch (RuntimeException e) {
+            throw e;
+        }
+        catch (java.lang.reflect.InvocationTargetException e) {
+            throw new CannotCompileException(e.getTargetException());
+        }
+        catch (Exception e) {
+            throw new CannotCompileException(e);
+        }
     }
 
     /**
@@ -921,7 +929,7 @@ public abstract class CtClass {
      * @return the contents of the class file.
      */
     public byte[] toBytecode()
-        throws NotFoundException, IOException, CannotCompileException
+        throws IOException, CannotCompileException
     {
         ByteArrayOutputStream barray = new ByteArrayOutputStream();
         DataOutputStream out = new DataOutputStream(barray);
