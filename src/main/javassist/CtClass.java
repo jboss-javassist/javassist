@@ -35,7 +35,7 @@ public abstract class CtClass {
     /**
      * The version number of this release.
      */
-    public static final String version = "2.5";
+    public static final String version = "2.5.1";
 
     static final String javaLangObject = "java.lang.Object";
 
