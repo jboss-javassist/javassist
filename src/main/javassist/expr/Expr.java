@@ -69,8 +69,12 @@ public abstract class Expr implements Opcode {
         MethodInfo mi = thisMethod;
         CtBehavior[] cb = thisClass.getDeclaredBehaviors();
         for (int i = cb.length - 1; i >= 0; --i)
-            if (cb[i].getMethodInfo() == mi)
+            if (cb[i].getMethodInfo2() == mi)
                 return cb[i];
+
+        CtConstructor init = thisClass.getClassInitializer();
+        if (init.getMethodInfo2() == mi)
+            return init;
 
         throw new RuntimeException("fatal: not found");
     }
