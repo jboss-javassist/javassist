@@ -103,6 +103,17 @@ CtClass cc = pool.makeClass("Point");
 
 <p>This program defines a class <code>Point</code>
 including no members.
+Member methods of <code>Point</code> can be created with
+factory methods declared in <code>CtNewMethod</code> and
+appended to <code>Point</code> with <code>addMethod()</code>
+in <code>CtClass</code>.
+
+<p><code>makeClass()</code> cannot create a new interface;
+<code>makeInterface()</code> in <code>ClassPool</code> can do.
+Member methods in an interface can be created with
+<code>abstractMethod()</code> in <code>CtNewMethod</code>.
+Note that an interface method is an abstract method.
+
 
 <h4>Frozen classes</h4>
 
