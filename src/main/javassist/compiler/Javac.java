@@ -201,6 +201,10 @@ public class Javac {
                 Parser p = new Parser(new Lex(src));
                 SymbolTable stb = new SymbolTable(stable);
                 Stmnt s = p.parseStatement(stb);
+                if (p.hasMore())
+                    throw new CompileError(
+                        "the method/constructor body must be surrounded by {}");
+
                 boolean callSuper = false;
                 if (method instanceof CtConstructor)
                     callSuper = !((CtConstructor)method).isClassInitializer();
@@ -311,6 +315,7 @@ public class Javac {
      * <p>This must be called before calling <code>compileStmnt()</code> and
      * <code>compileExpr()</code>.  The correct value of
      * <code>isStatic</code> must be recorded before compilation.
+     * <code>maxLocals</code> is updated to include $0,...
      */
     public int recordParams(CtClass[] params, boolean isStatic)
         throws CompileError
@@ -328,6 +333,7 @@ public class Javac {
      * <p>This must be called before calling <code>compileStmnt()</code> and
      * <code>compileExpr()</code>.  The correct value of
      * <code>isStatic</code> must be recorded before compilation.
+     * <code>maxLocals</code> is updated to include $0,...
      *
      * @paaram use0     true if $0 is used.
      * @param varNo     the register number of $0 (use0 is true)
@@ -344,6 +350,19 @@ public class Javac {
     {
         return gen.recordParams(params, isStatic, "$", "$args", "$$",
                                 use0, varNo, target, stable);
+    }
+
+    /**
+     * Sets <code>maxLocals</code> to <code>max</code>.
+     * This method tells the compiler the local variables that have been
+     * allocated for the rest of the code.  When the compiler needs
+     * new local variables, the local variables at the index <code>max</code>,
+     * <code>max + 1</code>, ... are assigned.
+     *
+     * <p>This method is indirectly called by <code>recordParams</code>.
+     */
+    public void setMaxLocals(int max) {
+        gen.setMaxLocals(max);
     }
 
     /**

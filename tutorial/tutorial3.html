@@ -18,6 +18,7 @@
 <br><li><a href="#member">Adding and removing a member</a>
 <br><li><a href="#traverse">Traversing a method body</a>
 <br><li><a href="#bytecode">Producing a bytecode sequence</a>
+<br><li><a href="#annotation">Annotations (Meta tags)</a>
 
 </ul>
 
@@ -192,10 +193,25 @@ call <code>computeMaxStack()</code> in <code>CodeAttribute</code>.
 
 <p><br>
 
+<a name="annotation">
+<h3>5.5 Annotations (Meta tags)</h3>
+
+<p>Annotations are stored in a class file
+as runtime invisible (or visible) annotations attribute.
+These attributes can be obtained from <code>ClassFile</code>,
+<code>MethodInfo</code>, or <code>FieldInfo</code> objects.
+Call <code>getAttribute(AnnotationsAttribute.invisibleTag)</code>
+on those objects.  For more details, see the javadoc manual
+of <code>javassist.bytecode.AnnotationsAttribute</code> class
+and the <code>javassist.bytecode.annotation</code> package.
+
+
+<p><br>
+
 <a href="tutorial2.html">Previous page</a>
 
 <hr>
 Java(TM) is a trademark of Sun Microsystems, Inc.<br>
-Copyright (C) 2000-2004 by Shigeru Chiba, All rights reserved.
+Copyright (C) 2000-2005 by Shigeru Chiba, All rights reserved.
 </body>
 </html>

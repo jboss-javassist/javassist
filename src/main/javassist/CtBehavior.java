@@ -799,19 +799,18 @@ public abstract class CtBehavior extends CtMember {
             jv.recordLocalVariables(ca, index);
             jv.recordParams(getParameterTypes(),
                             Modifier.isStatic(getModifiers()));
+            jv.setMaxLocals(ca.getMaxLocals());
             jv.compileStmnt(src);
             Bytecode b = jv.getBytecode();
-            int stack = b.getMaxStack();
             int locals = b.getMaxLocals();
+            int stack = b.getMaxStack();
+            ca.setMaxLocals(locals);
 
             /* We assume that there is no values in the operand stack
              * at the position where the bytecode is inserted.
              */
             if (stack > ca.getMaxStack())
                 ca.setMaxStack(stack);
-
-            if (locals > ca.getMaxLocals())
-                ca.setMaxLocals(locals);
 
             iterator.insert(index, b.get());
             iterator.insert(b.getExceptionTable(), index);
