@@ -45,50 +45,38 @@ following program is a very simple example:
 ClassPool pool = ClassPool.getDefault();
 CtClass cc = pool.get("test.Rectangle");
 cc.setSuperclass(pool.get("test.Point"));
-cc.writeFile("test.Rectangle");
+cc.writeFile();
 </pre></ul>
 
-<p>This program first obtains a <code>ClassPool</code> object,
-which controls bytecode modification with Javassist.
-The <code>ClassPool</code> object is a container of <code>CtClass</code>
-object representing a class file.
-It reads a class file on demand for constructing a <code>CtClass</code>
-object and contains the constructed object until it is written out
-to a file or an output stream.
+<p>This program first obtains a <code>ClassPool</code> object, which
+controls bytecode modification with Javassist.  The
+<code>ClassPool</code> object is a container of <code>CtClass</code>
+object representing a class file.  It reads a class file on demand for
+constructing a <code>CtClass</code> object and records the
+constructed object for responding later accesses.
 
-<p>The <code>ClassPool</code> object is used to maintain one-to-one
-mapping between classes and <code>CtClass</code> objects.  Javassist
-never allows two distinct <code>CtClass</code> objects to represent
-the same class unless two independent <code>ClassPool</code> are created.
-This is a significant feature for consistent program
-transformation.  To create multiple
-instances of <code>ClassPool</code>, write the following code:
-
-<ul><pre>
-ClassPool cp = new ClassPool();
-cp.appendSystemPath();	// or append another path by appendClassPath()
-</pre></ul>
-
-<p>This creates a <code>ClassPool</code> object that behaves as the
-default <code>ClassPool</code> returned by
-<code>ClassPool.getDefault()</code> does.
-<code>ClassPool.getDefault()</code> is a singleton factory method
-provided for convenience.
-
-<p>If you have two <code>ClassPool</code> objects, then you can
-obtain, from each <code>ClassPool</code>, a distinct
-<code>CtClass</code> object representing the same class file.  You can
-differently modify these <code>CtClass</code> objects to generate
-different versions of the class.
-
-<p>To modify the definition of a class, the users must first obtain a
-reference to the <code>CtClass</code> object representing that class.
+To modify the definition of a class, the users must first obtain
+from a <code>ClassPool</code> object
+a reference to a <code>CtClass</code> object representing that class.
 <code>get()</code> in <code>ClassPool</code> is used for this purpose.
-In the case of the program shown at the beginning, the
+In the case of the program shown above, the
 <code>CtClass</code> object representing a class
 <code>test.Rectangle</code> is obtained from the
 <code>ClassPool</code> object and it is assigned to a variable
-<code>cc</code>.  Then it is modified so that the superclass of
+<code>cc</code>.
+
+<p>From the implementation viewpoint, <code>ClassPool</code> is a hash
+table of <code>CtClass</code> objects, which uses the class names as
+keys.  <code>get()</code> in <code>ClassPool</code> searches this hash
+table to find a <code>CtClass</code> object associated with the
+specified key.  If such a <code>CtClass</code> object is not found,
+<code>get()</code> reads a class file to construct a new
+<code>CtClass</code> object, which is recorded in the hash table and
+then returned as the resulting value of <code>get()</code>.
+
+<p>The <code>CtClass</code> object obtained from a <code>ClassPool</code>
+object can be modified.
+In the example above, it is modified so that the superclass of
 <code>test.Rectangle</code> is changed into a class
 <code>test.Point</code>.  This change is reflected on the original
 class file when <code>writeFile()</code> in <code>CtClass()</code> is
@@ -102,6 +90,8 @@ modified bytecode.  To obtain the bytecode, call <code>toBytecode()</code>:
 <ul><pre>
 byte[] b = cc.toBytecode();
 </pre></ul>
+
+<h4>Class search path</h4>
 
 <p>The default <code>ClassPool</code> returned
 by a static method <code>ClassPool.getDefault()</code>
@@ -123,7 +113,6 @@ the class of the object that <code>this</code> refers to.
 You can use any <code>Class</code> object as an argument instead of
 <code>this.getClass()</code>.  The class path used for loading the
 class represented by that <code>Class</code> object is registered.
-
 
 <p>
 You can register a directory name as the class search path.
@@ -221,13 +210,32 @@ CtClass cc = pool.get("Point");
 cc.setName("Pair");
 </pre></ul>
 
-<p>This program first obtains the <code>CtClass</code> object
-for class <code>Point</code>.  Then it gives a new name <code>Pair</code>
-to that <code>CtClass</code> object.
-If <code>get("Point")</code> is later called on the <code>ClassPool</code>
-object again, then a class file <code>Point.class</code> is read again and
-a new <code>CtClass</code> object for class <code>Point</code> is constructed
-again.  See the followings:
+<p>This program first obtains the <code>CtClass</code> object for
+class <code>Point</code>.  Then it calls <code>setName()</code> to
+give a new name <code>Pair</code> to that <code>CtClass</code> object.
+After this call, all occurrences of the class name in the class
+definition represented by that <code>CtClass</code> object are changed
+from <code>Point</code> to <code>Pair</code>.  The other part of the
+class definition does not change.
+
+<p>Note that <code>setName()</code> in <code>CtClass</code> changes a
+record in the <code>ClassPool</code> object.  From the implementation
+viewpoint, a <code>ClassPool</code> object is a hash table of
+<code>CtClass</code> objects.  <code>setName()</code> changes
+the key associated to the <code>CtClass</code> object in the hash
+table.  The key is changed from the original class name to the new
+class name.
+
+<p>Therefore, if <code>get("Point")</code> is later called on the
+<code>ClassPool</code> object again, then it never returns the
+<code>CtClass</code> object that the variable <code>cc</code> refers to.
+The <code>ClassPool</code> object reads
+a class file
+<code>Point.class</code> again and it constructs a new <code>CtClass</code>
+object for class <code>Point</code>.
+This is because the <code>CtClass</code> object associated with the name
+<code>Point</code> does not exist any more.
+See the followings:
 
 <ul><pre>
 ClassPool pool = ClassPool.getDefault();
@@ -238,6 +246,38 @@ CtClass cc2 = pool.get("Pair");    // cc2 is identical to cc.
 CtClass cc3 = pool.get("Point");   // cc3 is not identical to cc.
 </pre></ul>
 
+<p><code>cc1</code> and <code>cc2</code> refer to the same instance of
+<code>CtClass</code> that <code>cc</code> does whereas
+<code>cc3</code> does not.  Note that, after
+<code>cc.setName("Pair")</code> is executed, the <code>CtClass</code>
+object that <code>cc</code> and <code>cc1</code> refer to represents
+the <code>Pair</code> class.
+
+<p>The <code>ClassPool</code> object is used to maintain one-to-one
+mapping between classes and <code>CtClass</code> objects.  Javassist
+never allows two distinct <code>CtClass</code> objects to represent
+the same class unless two independent <code>ClassPool</code> are created.
+This is a significant feature for consistent program
+transformation.  To create multiple
+instances of <code>ClassPool</code>, write the following code:
+
+<ul><pre>
+ClassPool cp = new ClassPool();
+cp.appendSystemPath();	// or append another path by appendClassPath()
+</pre></ul>
+
+<p>This creates a <code>ClassPool</code> object that behaves as the
+default <code>ClassPool</code> returned by
+<code>ClassPool.getDefault()</code> does.
+<code>ClassPool.getDefault()</code> is a singleton factory method
+provided for convenience.
+
+<p>If you have two <code>ClassPool</code> objects, then you can
+obtain, from each <code>ClassPool</code>, a distinct
+<code>CtClass</code> object representing the same class file.  You can
+differently modify these <code>CtClass</code> objects to generate
+different versions of the class.
+
 <p>Once a <code>CtClass</code> object is converted into a class file
 by <code>writeFile()</code> or <code>toBytecode()</code>, Javassist
 rejects further modifications of that <code>CtClass</code> object.
@@ -245,20 +285,33 @@ Hence, after the <code>CtClass</code> object representing <code>Point</code>
 class is converted into a class file, you cannot define <code>Pair</code>
 class as a copy of <code>Point</code> since executing <code>setName()</code>
 on <code>Point</code> is rejected.
+The following code snippet is wrong:
+
+<ul><pre>
+ClassPool pool = ClassPool.getDefault();
+CtClass cc = pool.get("Point");
+cc.writeFile();
+cc.setName("Pair");    // wrong since writeFile() has been called.
+</pre></ul>
 
 <p>To avoid this restriction, you should call <code>getAndRename()</code>
 in <code>ClassPool</code>.  For example,
 
 <ul><pre>
 ClassPool pool = ClassPool.getDefault();
-CtClass cc = pool.getAndRename("Point", "Pair");
+CtClass cc = pool.get("Point");
+cc.writeFile();
+CtClass cc2 = pool.getAndRename("Point", "Pair");
 </pre></ul>
 
 <p>If <code>getAndRename()</code> is called, the <code>ClassPool</code>
-reads <code>Point.class</code> for creating a new <code>CtClass</code>
-object representing <code>Pair</code> class.  <code>getAndRename()</code>
+first reads <code>Point.class</code> for creating a new <code>CtClass</code>
+object representing <code>Point</code> class.  However, it renames that
+<code>CtClass</code> object from <code>Point</code> to <code>Pair</code> before
+it records that <code>CtClass</code> object in a hash table.
+Thus <code>getAndRename()</code>
 can be executed after <code>writeFile()</code> or <code>toBytecode()</code>
-is called on the the <code>ClassPool</code> representing <code>Point</code>
+is called on the the <code>CtClass</code> object representing <code>Point</code>
 class.
 
 
