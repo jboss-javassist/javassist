@@ -260,21 +260,30 @@ public class ClassPool {
         return classLoader.loadClass(name);
     }
 
-    static Class loadClass(String classname, byte[] classfile)
-        throws NotFoundException, IOException, CannotCompileException
-    {
-        if (classLoader == null)
-            classLoader = new SimpleLoader();
+   /**
+    * Callback to write the class and create a Class object
+    * ClassPool can be extended to override this behavior
+    * @param classname
+    * @param classfile
+    * @return
+    * @throws NotFoundException
+    * @throws IOException
+    * @throws CannotCompileException
+    */
+   public Class writeAsClass(String classname, byte[] classfile)
+       throws CannotCompileException
+   {
+       try {
+          if (classLoader == null)
+              classLoader = new SimpleLoader();
+           return classLoader.loadClass(classname, classfile);
+       }
+       catch (ClassFormatError e) {
+           throw new CannotCompileException(e, classname);
+       }
+   }
 
-        try {
-            return classLoader.loadClass(classname, classfile);
-        }
-        catch (ClassFormatError e) {
-            throw new CannotCompileException(e, classname);
-        }
-    }
-
-    /**
+   /**
      * Reads a class file and constructs a <code>CtClass</code>
      * object with a new name.
      * This method is useful if you want to generate a new class as a copy

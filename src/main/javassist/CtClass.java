@@ -849,7 +849,7 @@ public abstract class CtClass {
     public Class toClass()
         throws NotFoundException, IOException, CannotCompileException
     {
-        return ClassPool.loadClass(getName(), toBytecode());
+        return getClassPool().writeAsClass(getName(), toBytecode());
     }
 
     /**
