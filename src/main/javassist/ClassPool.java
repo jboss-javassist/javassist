@@ -70,6 +70,17 @@ import java.util.Hashtable;
  *
  * <p>The implementation of this class is thread-safe.
  *
+ * <p><b>Memory consumption memo:</b>
+ *
+ * <p><code>ClassPool</code> objects hold all the <code>CtClass</code>es
+ * that have been created so that the consistency among modified classes
+ * can be guaranteed.  Thus if a large number of <code>CtClass</code>es
+ * are processed, the <code>ClassPool</code> will consume a huge amount
+ * of memory.  To avoid this, multiple <code>ClassPool</code> objects
+ * must be used.  Note that <code>getDefault()</code> is a singleton
+ * factory.
+ *
+ *
  * @see javassist.CtClass
  * @see javassist.ClassPath
  * @see javassist.Translator
@@ -159,13 +170,21 @@ public class ClassPool {
 
     /**
      * Returns the default class pool.
-     * The returned object is always identical.
+     * The returned object is always identical since this method is
+     * a singleton factory.
      *
      * <p>The default class pool searches the system search path,
      * which usually includes the platform library, extension
      * libraries, and the search path specified by the
      * <code>-classpath</code> option or the <code>CLASSPATH</code>
      * environment variable.
+     *
+     * <p>When this method is called for the first time, the default
+     * class pool is created with the following code snippet:
+     *
+     * <ul><code>ClassPool cp = new ClassPool(null);
+     * cp.appendSystemPath();
+     * </code></ul>
      *
      * @param t         null or the translator linked to the class pool.
      */

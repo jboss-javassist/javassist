@@ -336,29 +336,153 @@ by a single class loader.  You should
 avoid loading part of the application program with the default class loader
 and the rest of the program with a user-defined class loader.
 
-<p>In Java, multiple class loaders can coexist in Java and they form a
-tree structure.  Each class loader except the bootstrap loader has a
-parent class loader, which normally loaded the class of that child
-class loader.  Since the request to load a class can be delegated along this
-hierarchy of class loaders, a class may be loaded by a class loader that
-you do not request the class loading.
+<p><br>
 
-Furthermore, if a class loader CL requested to load a class C delegates
-to the parenet class loader, then the class loader CL is never requested
-to load any classes included in the definition of the class C.
-Instead, the parent class loader of CL is requested to load them.
+<h3>4.1 Class loading in Java</h3>
 
-<p>Different class loaders can load different class files with the
+<p>In Java, multiple class loaders can coexist and
+each class loader creates its own name space.
+Different class loaders can load different class files with the
 same class name.  The loaded two classes are regarded as different
-ones.  If the same class file is loaded by two distinct class loaders,
+ones.  This feature enables us to run multiple application programs
+on a single JVM.
+
+<p>If the same class file is loaded by two distinct class loaders,
 the JVM makes two distinct classes with the same name and definition.
+The two classes are regarded as different ones.
 Since the two classes are not identical, an instance of one class is
 not assignable to a variable of the other class.  The cast operation
 between the two classes fails and throws a <code>ClassCastException</code>.
 
+<p>Multiple class loaders form a tree structure.
+Each class loader except the bootstrap loader has a
+parent class loader, which has normally loaded the class of that child
+class loader.  Since the request to load a class can be delegated along this
+hierarchy of class loaders, a class may be loaded by a class loader that
+you do not request the class loading.
+Therefore, the class loader that has been requested to load a class C
+may be different from the loader that actually loads the class C.
+For distinction, we call the former loader <em>the initiator of C</em>
+and we call the latter loader <em>the real loader of C</em>.
+
+<p>
+Furthermore, if a class loader CL requested to load a class C
+(the initiator of C) delegates
+to the parent class loader PL, then the class loader CL is never requested
+to load any classes referred to in the definition of the class C.
+CL is not the initiator of those classes.
+Instead, the parent class loader PL becomes their initiators
+and it is requested to load them.
+<em>The classes that the definition of a class C referes to are loaded by
+the real loader of C.</em>
+
+<p>To understand this behavior, let's consider the following example.
+
+<ul><pre>
+public class Point {    // loaded by PL
+    private int x, y;
+    public int getX() { return x; }
+        :
+}
+
+public class Box {      // the initiator is L but the real loader is PL
+    private Point upperLeft, size;
+    public int getBaseX() { return upperLeft.x; }
+        :
+}
+
+public class Window {    // loaded by a class loader L
+    private Box box;
+    public int getBaseX() { return box.getBaseX(); }
+}</pre></ul>
+
+<p>Suppose that a class <code>Window</code> is loaded by a class loader L.
+Both the initiator and the real loader of <code>Window</code> are L.
+Since the definition of <code>Window</code> refers to <code>Box</code>,
+the JVM will request L to load <code>Box</code>.
+Here, suppose that L delegates this task to the parent class loader PL.
+The initiator of <code>Box</code> is L but the real loader is PL.
+In this case, the initiator of <code>Point</code> is not L but PL
+since it is the same as the real loader of <code>Box</code>.
+Thus L is never requested to load <code>Point</code>.
+
+<p>Next, let's consider a slightly modified example.
+
+<ul><pre>
+public class Point {
+    private int x, y;
+    public int getX() { return x; }
+        :
+}
+
+public class Box {      // the initiator is L but the real loader is PL
+    private Point upperLeft, size;
+    public Point getSize() { return size; }
+        :
+}
+
+public class Window {    // loaded by a class loader L
+    private Box box;
+    public boolean widthIs(int w) {
+        Point p = box.getSize();
+        return w == p.getX();
+    }
+}</pre></ul>
+
+<p>Now, the definition of <code>Window</code> also refers to
+<code>Point</code>.  In this case, the class loader L must
+also delegate to PL if it is requested to load <code>Point</code>.
+<em>You must avoid having two class loaders doubly load the same
+class.</em>  One of the two loaders must delegate to
+the other.
+
+<p>
+If L does not delegate to PL when <code>Point</code>
+is loaded, <code>widthIs()</code> would throw a ClassCastException.
+Since the real loader of <code>Box</code> is PL,
+<code>Point</code> referred to in <code>Box</code> is also loaded by PL.
+Therefore, the resulting value of <code>getSize()</code>
+is an instance of <code>Point</code> loaded by PL
+whereas the type of the variable <code>p</code> in <code>widthIs()</code>
+is <code>Point</code> loaded by L.
+The JVM regards them as distinct types and thus it throws an exception
+because of type mismatch.
+
+<p>This behavior is somewhat inconvenient but necessary.
+If the following statement:
+
+<ul><pre>
+Point p = box.getSize();
+</pre></ul>
+
+<p>did not throw an exception,
+then the programmer of <code>Window</code> could break the encapsulation
+of <code>Point</code> objects.
+For example, the field <code>x</code>
+is private in <code>Point</code> loaded by PL.
+However, the <code>Window</code> class could
+directly access the value of <code>x</code>
+if L loads <code>Point</code> with the following definition:
+
+<ul><pre>
+public class Point {
+    public int x, y;    // not private
+    public int getX() { return x; }
+        :
+}
+</pre></ul>
+
+<p>
+For more details of class loaders in Java, the following paper would
+be helpful:
+
+<ul>Sheng Liang and Gilad Bracha,
+"Dynamic Class Loading in the Java Virtual Machine",
+<br><i>ACM OOPSLA'98</i>, pp.36-44, 1998.</ul>
+
 <p><br>
 
-<h3>4.1 Using <code>javassist.Loader</code></h3>
+<h3>4.2 Using <code>javassist.Loader</code></h3>
 
 <p>Javassist provides a class loader
 <code>javassist.Loader</code>.  This class loader uses a
@@ -429,78 +553,6 @@ are loaded by different loaders.  The application classes are loaded
 by <code>javassist.Loader</code> whereas the loader classes such as
 <code>Main</code> are by the default Java class loader.
 
-<p>In Java, for security reasons, the same class file may be loaded
-by two distinct class loaders so that two different
-classes would be created.  For example,
-
-<ul><pre>class Point {
-    int x, y;
-}
-
-class Box {
-    Point base;
-    Point getBase() { return base; }
-}
-
-class Window {
-    Point size;
-    Point getSize() { return size; }
-}</pre></ul>
-
-<p>Suppose that a class <code>Box</code> is loaded by a class loader
-<code>L1</code> while a class <code>Window</code> is loaded by a class
-loader <code>L2</code>.  Then, the obejcts returned by
-<code>getBase()</code> and <code>getSize()</code> are not instances of
-the same class <code>Point</code>.
-<code>getBase()</code> returns an instance of the class <code>Point</code>
-loaded by <code>L1</code> whereas <code>getSize()</code> returns an
-instance of <code>Point</code> loaded by <code>L2</code>.  The two versions
-of the class <code>Point</code> are distinct.  They belong to different
-name spaces.  For more details, see the following paper:
-
-<ul>Sheng Liang and Gilad Bracha,
-"Dynamic Class Loading in the Java Virtual Machine",
-<br><i>ACM OOPSLA'98</i>, pp.36-44, 1998.</ul>
-
-<p>To avoid this problem, the two class loaders <code>L1</code> and
-<code>L2</code> must delegate the loading operation of the class
-<code>Point</code> to another class loader, <code>L3</code>, which is
-a parent class loader of <code>L1</code> and <code>L2</code>.
-<code>delegateLoadingOf()</code> in <code>javassist.Loader</code>
-is a method for specifying what classes should be loaded by the
-parent loader.
-
-<p>If <code>L1</code> is the parent class loader of <code>L2</code>,
-that is, if <code>L1</code> loads the class of <code>L2</code>,
-then <code>L2</code> can delegate the loading operation of
-<code>Point</code> to <code>L1</code> for avoiding the problem above.
-However, this technique does not work in the case below:
-
-<ul><pre>class Point {     // loaded by L1
-    Window win;
-    int x, y;
-}
-
-class Box {       // loaded by L1
-    Point base;
-    Point getBase() { return base; }
-}
-
-class Window {    // loaded by L2
-    Point size;
-    Point getSize() { size.win = this; return size; }
-}</pre></ul>
-
-<p>Since all the classes included in a class definition loaded by
-a class loader <code>L1</code> are also loaded by <code>L1</code>,
-the class of the field <code>win</code> in <code>Point</code> is
-now the class <code>Window</code> loaded by <code>L1</code>.
-Thus <code>size.win = this</code> in <code>getSize()</code> throws
-a <code>ClassCastException</code> because of type mismatch; the type of
-<code>size.win</code> is the class <code>Point</code> loaded by
-<code>L1</code> whereas the type of <code>this</code> is the class
-<code>Point</code> loaded by <code>L2</code>.
-
 <p><code>javassist.Loader</code> searches for classes in a different
 order from <code>java.lang.ClassLoader</code>.
 <code>ClassLoader</code> first delegates the loading operations to
@@ -522,15 +574,17 @@ to be loaded by the parent class loader.
 <p>This search order allows loading modified classes by Javassist into
 the JVM.  However, it delegates to the parent class loader if it fails
 to find modified classes for some reason.  Once a class is loaded by
-the parent class loader, the other classes used by that class will be
-also loaded without modification by the parent class loader.  <em>If your
-program fails to load a modified class,</em> you should make sure whether
-all the classes using that class have been loaded by
+the parent class loader, the other classes referred to in that class will be
+also loaded without modification by the parent class loader.  
+Recall that all the classes referred to in a class C are loaded by the
+real loader of C.
+<em>If your program fails to load a modified class,</em> you should
+make sure whether all the classes using that class have been loaded by
 <code>javassist.Loader</code>.
 
 <p><br>
 
-<h3>4.2 Writing a class loader</h3>
+<h3>4.3 Writing a class loader</h3>
 
 <p>A simple class loader using Javassist is as follows:
 
@@ -602,7 +656,7 @@ Hence, the
 
 <p><br>
 
-<h3>4.3 The <code>toClass</code> method in <code>CtClass</code></h3>
+<h3>4.4 The <code>toClass</code> method in <code>CtClass</code></h3>
 
 <p>The <code>CtClass</code> provides a convenience method
 <code>toClass</code>, which loads the class by an internal class
@@ -640,10 +694,9 @@ loaded by <code>loadClass()</code>.  If you encounter an unexpected
 of the class by calling <code>getClassLoader()</code>
 in <code>java.lang.Class</code>.
 
-
 <p><br>
 
-<h3>4.4 Modifying a system class</h3>
+<h3>4.5 Modifying a system class</h3>
 
 <p>The system classes like <code>java.lang.String</code> cannot be
 loaded by a class loader other than the system class loader.
