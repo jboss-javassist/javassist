@@ -571,6 +571,9 @@ public class ClassPool {
      * <p>If <code>classname</code> ends with "[]", then this method
      * returns a <code>CtClass</code> object for that array type.
      *
+     * <p>To obtain an inner class, use "$" instead of "." for separating
+     * the enclosing class name and the inner class name.
+     *
      * @param classname         a fully-qualified class name.
      */
     public synchronized CtClass get(String classname)

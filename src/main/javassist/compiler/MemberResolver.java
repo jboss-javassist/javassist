@@ -100,19 +100,20 @@ public class MemberResolver implements TokenId {
         }
         catch (NotFoundException e) {}
 
-        /* -- not necessary to search implemented interfaces.
-        try {
-            CtClass[] ifs = clazz.getInterfaces();
-            int size = ifs.length;
-            for (int i = 0; i < size; ++i) {
-                Object[] r = lookupMethod(ifs[i], methodName, argTypes,
-                                          argDims, argClassNames);
-                if (r != null)
-                    return r;
+        int mod = clazz.getModifiers();
+        if (Modifier.isAbstract(mod) || Modifier.isInterface(mod))
+            try {
+                CtClass[] ifs = clazz.getInterfaces();
+                int size = ifs.length;
+                for (int i = 0; i < size; ++i) {
+                    Method r = lookupMethod(ifs[i], null, methodName,
+                                            argTypes, argDims, argClassNames,
+                                            (onlyExact || maybe != null));
+                    if (r != null)
+                        return r;
+                }
             }
-        }
-        catch (NotFoundException e) {}
-        */
+            catch (NotFoundException e) {}
 
         if (onlyExact)
             return null;
