@@ -35,6 +35,22 @@ import javassist.bytecode.annotation.*;
  * <code>AnnotationAttribute.visibleTag</code>, then the obtained
  * attribute is a runtime visible one.
  *
+ * <p>For example,
+ *
+ * <ul><pre>
+ * CtMethod m = ... ;
+ * MethodInfo minfo = m.getMethodInfo();
+ * AnnotationsAttribute attr = (AnnotationsAttribute)
+ *         minfo.getAttribute(AnnotationsAttribute.invisibleTag);
+ * Annotation an = attr.getAnnotation("Author");
+ * String s = ((StringMemberValue)a.getMemberValue("name")).getValue();
+ * System.out.println("@Author(name=" + s + ")");
+ * </pre></ul>
+ *
+ * <p>This code snippet retrieves an annotation of the type <code>Author</code>
+ * from the <code>MethodInfo</code> object specified by <code>minfo</code>.
+ * Then, it prints the value of <code>name</code> in <code>Author</code>.
+ *
  * <p>If you want to record a new AnnotationAttribute object, execute the
  * following snippet:
  *
@@ -48,6 +64,8 @@ import javassist.bytecode.annotation.*;
  * attr.setAnnotation(a);
  * cf.addAttribute(attr);
  * </pre></ul>
+ *
+ * @see javassist.bytecode.annotation.Annotation
  */
 public class AnnotationsAttribute extends AttributeInfo {
     /**
@@ -125,6 +143,7 @@ public class AnnotationsAttribute extends AttributeInfo {
      * <code>getAnnotations()</code> as to the returned data structure.
      *
      * @param type      the annotation type.
+     * @return null if the specified annotation type is not included.
      * @see #getAnnotations()
      */
     public Annotation getAnnotation(String type) {

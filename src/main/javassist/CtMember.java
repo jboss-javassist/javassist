@@ -120,7 +120,7 @@ public abstract class CtMember {
     public abstract String getName();
 
     /**
-     * Obtains an attribute with the given name.
+     * Obtains a user-defined attribute with the given name.
      * If that attribute is not found in the class file, this
      * method returns null.
      *
@@ -129,7 +129,7 @@ public abstract class CtMember {
     public abstract byte[] getAttribute(String name);
 
     /**
-     * Adds an attribute. The attribute is saved in the class file.
+     * Adds a user-defined attribute. The attribute is saved in the class file.
      *
      * @param name      attribute name
      * @param data      attribute value

@@ -20,8 +20,7 @@ package javassist.bytecode.annotation;
  *
  * @author <a href="mailto:bill@jboss.org">Bill Burke</a>
  */
-public interface MemberValueVisitor
-{
+public interface MemberValueVisitor {
    public void visitAnnotationMemberValue(AnnotationMemberValue node);
    public void visitArrayMemberValue(ArrayMemberValue node);
    public void visitBooleanMemberValue(BooleanMemberValue node);
