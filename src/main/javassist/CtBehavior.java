@@ -158,9 +158,31 @@ public abstract class CtBehavior extends CtMember {
      *                  body does nothing except returning zero or null.
      */
     public void setBody(String src) throws CannotCompileException {
+        setBody(src, null, null);
+    }
+
+    /**
+     * Sets a member body.
+     *
+     * @param src       the source code representing the member body.
+     *                  It must be a single statement or block.
+     *                  If it is <code>null</code>, the substituted member
+     *                  body does nothing except returning zero or null.
+     * @param delegateObj       the source text specifying the object
+     *                          that is called on by <code>$proceed()</code>.
+     * @param delegateMethod    the name of the method
+     *                          that is called by <code>$proceed()</code>.
+     */
+    public void setBody(String src,
+                        String delegateObj, String delegateMethod)
+        throws CannotCompileException
+    {
         declaringClass.checkModify();
         try {
             Javac jv = new Javac(declaringClass);
+            if (delegateMethod != null)
+                jv.recordProceed(delegateObj, delegateMethod);
+
             Bytecode b = jv.compileBody(this, src);
             methodInfo.setCodeAttribute(b.toCodeAttribute());
             methodInfo.setAccessFlags(methodInfo.getAccessFlags()

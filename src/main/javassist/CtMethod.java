@@ -312,6 +312,25 @@ public final class CtMethod extends CtBehavior {
     }
 
     /**
+     * Sets a method body.
+     *
+     * @param src       the source code representing the method body.
+     *                  It must be a single statement or block.
+     *                  If it is <code>null</code>, the substituted method
+     *                  body does nothing except returning zero or null.
+     * @param delegateObj       the source text specifying the object
+     *                          that is called on by <code>$proceed()</code>.
+     * @param delegateMethod    the name of the method
+     *                          that is called by <code>$proceed()</code>.
+     */
+    public void setBody(String src,
+                        String delegateObj, String delegateMethod)
+        throws CannotCompileException
+    {
+        super.setBody(src, delegateObj, delegateMethod);
+    }
+
+    /**
      * Copies a method body from another method.
      * If this method is abstract, the abstract modifier is removed
      * after the method body is copied.
