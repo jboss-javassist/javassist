@@ -180,7 +180,7 @@ public final class CtConstructor extends CtBehavior {
         if (methodInfo.isStaticInitializer())
             return MethodInfo.nameClinit;
         else
-            return declaringClass.getName();
+            return declaringClass.getSimpleName();
     }
 
     /**
