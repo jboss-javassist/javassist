@@ -236,6 +236,13 @@ see javassist.Dump.
 
 <h2>Changes</h2>
 
+<p>- version 2.5.1 in May, 2003.
+<br>Simple changes for integration with JBoss AOP
+<ul>
+  <li>Made ClassPool.get0 protected so that subclasses of ClassPool can call it.
+  <li>Moved all access to the class cache (the field ClassPool.classes) to a method called getCached(String classname).  This is so subclasses of ClassPool can override this behavior.
+</ul>
+
 <p>- version 2.5 in May, 2003.
 <br>From this version, Javassist is part of the JBoss project.
 <ul>
