@@ -35,6 +35,22 @@ public class MemberResolver implements TokenId {
         throw new CompileError("fatal");
     }
 
+    /**
+     * @param jvmClassName      a class name.  Not a package name.
+     */
+    public void recordPackage(String jvmClassName) {
+        String classname = jvmToJavaName(jvmClassName);
+        for (;;) {
+            int i = classname.lastIndexOf('.');
+            if (i > 0) {
+                classname = classname.substring(0, i);
+                classPool.recordInvalidClassName(classname);
+            }
+            else
+                break;
+        }
+    }
+
     public static class Method {
         public CtClass declaring;
         public MethodInfo info;
@@ -336,12 +352,18 @@ public class MemberResolver implements TokenId {
             return lookupClass0(name, notCheckInner);
         }
         catch (NotFoundException e) {}
-
-        try {
-            if (name.indexOf('.') < 0)
-                return classPool.get("java.lang." + name);
+        if (name.indexOf('.') < 0) {
+            String jlangName = "java.lang." + name;
+            try {
+                CtClass cc = classPool.get(jlangName);
+                // if java.lang... is found, then
+                classPool.recordInvalidClassName(name);  
+                return cc;
+            }
+            catch (NotFoundException e) {
+                classPool.recordInvalidClassName(jlangName);
+            }
         }
-        catch (NotFoundException e) {}
 
         throw new CompileError("no such class: " + name);
     }

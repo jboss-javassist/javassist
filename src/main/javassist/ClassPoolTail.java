@@ -17,6 +17,7 @@ package javassist;
 
 import java.io.*;
 import java.util.zip.*;
+import java.util.Hashtable;
 
 final class ClassPathList {
     ClassPathList next;
@@ -130,10 +131,12 @@ final class JarClassPath implements ClassPath {
 final class ClassPoolTail extends ClassPool {
     protected ClassPathList pathList;
     private Class thisClass;
+    private Hashtable packages;         // should be synchronized.
 
     public ClassPoolTail() {
         pathList = null;
         thisClass = getClass();
+        packages = new Hashtable();
     }
 
     public String toString() {
@@ -148,6 +151,14 @@ final class ClassPoolTail extends ClassPool {
 
         buf.append(']');
         return buf.toString();
+    }
+
+    /**
+     * You can record "System" so that java.lang.System can be quickly
+     * found although "System" is not a package name.
+     */
+    public void recordInvalidClassName(String name) {
+        packages.put(name, name);
     }
 
     public byte[] write(String classname)
@@ -274,6 +285,9 @@ final class ClassPoolTail extends ClassPool {
     public InputStream openClassfile(String classname)
         throws NotFoundException
     {
+        if (packages.get(classname) != null)
+            throw new NotFoundException(classname);
+
         ClassPathList list = pathList;
         InputStream ins = null;
         NotFoundException error = null;

@@ -331,30 +331,33 @@ class CtClassType extends CtClass {
     }
 
     public CtField getField(String name) throws NotFoundException {
-        try {
-            return getDeclaredField(name);
-        }
-        catch (NotFoundException e) {}
+        CtField f = getField2(name);
+        if (f == null)
+            throw new NotFoundException("field: " + name + " in " + getName());
+        else
+            return f;
+    }
+
+    CtField getField2(String name) {
+        CtField df = getDeclaredField2(name);
+        if (df != null)
+            return df;
 
         try {
             CtClass[] ifs = getInterfaces();
             int num = ifs.length;
-            for (int i = 0; i < num; ++i)
-                try {
-                    return ifs[i].getField(name);
-                }
-                catch (NotFoundException e) {}
-        }
-        catch (NotFoundException e) {}
+            for (int i = 0; i < num; ++i) {
+                CtField f = ifs[i].getField2(name);
+                if (f != null)
+                    return f;
+            }
 
-        try {
             CtClass s = getSuperclass();
             if (s != null)
-                return s.getField(name);
+                return s.getField2(name);
         }
         catch (NotFoundException e) {}
-
-        throw new NotFoundException(name);
+        return null;
     }
 
     public CtField[] getDeclaredFields() {
@@ -385,6 +388,14 @@ class CtClassType extends CtClass {
     }
 
     public CtField getDeclaredField(String name) throws NotFoundException {
+        CtField f = getDeclaredField2(name);
+        if (f == null)
+            throw new NotFoundException("field: " + name + " in " + getName());
+        else
+            return f;
+    }
+
+    private CtField getDeclaredField2(String name) {
         CtField cf = getFieldsCache();
         while (cf != null) {
             if (cf.getName().equals(name))
@@ -393,7 +404,7 @@ class CtClassType extends CtClass {
             cf = cf.next;
         }
 
-        throw new NotFoundException(name);
+        return null;
     }
 
     public CtBehavior[] getDeclaredBehaviors() {

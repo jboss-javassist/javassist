@@ -35,7 +35,7 @@ public abstract class CtClass {
     /**
      * The version number of this release.
      */
-    public static final String version = "2.7 alpha 5";
+    public static final String version = "2.7 alpha 6";
 
     /**
      * Prints the version number and the copyright notice.
@@ -484,6 +484,11 @@ public abstract class CtClass {
     public CtField getField(String name) throws NotFoundException {
         throw new NotFoundException(name);
     }
+
+    /**
+     * @return null     if the specified field is not found.
+     */
+    CtField getField2(String name) { return null; }
 
     /**
      * Gets all the fields declared in the class.  The inherited fields

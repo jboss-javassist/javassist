@@ -293,7 +293,8 @@ public class Lex implements TokenId {
             token.doubleValue = (double)value;
             return FloatConstant;
         }
-        else if (c2 == 'E' || c2 == 'e' || c2 == '.') {
+        else if (c2 == 'E' || c2 == 'e'
+                 || c2 == 'D' || c2 == 'd' || c2 == '.') {
             StringBuffer tbuf = textBuffer;
             tbuf.setLength(0);
             tbuf.append(value);
@@ -308,7 +309,7 @@ public class Lex implements TokenId {
     }
 
     private int readDouble(StringBuffer sbuf, int c, Token token) {
-        if (c != 'E' && c != 'e') {
+        if (c != 'E' && c != 'e' && c != 'D' && c != 'd') {
             sbuf.append((char)c);
             for (;;) {
                 c = getc();
@@ -343,7 +344,9 @@ public class Lex implements TokenId {
         if (c == 'F' || c == 'f')
             return FloatConstant;
         else {
-            ungetc(c);
+            if (c != 'D' && c != 'd')
+                ungetc(c);
+
             return DoubleConstant;
         }
     }

@@ -283,6 +283,7 @@ public class MemberCodeGen extends CodeGen {
                     exprType = CLASS;
                     arrayDim = 0;
                     className = nfe.getField(); // JVM-internal
+                    resolver.recordPackage(className);
                     isStatic = true;
                 }
 
@@ -594,10 +595,9 @@ public class MemberCodeGen extends CodeGen {
     /* This method also returns a value in resultStatic.
      */
     protected CtField fieldAccess(ASTree expr) throws CompileError {
-        CtField f = null;
-        boolean is_static = false;
         if (expr instanceof Member) {
             String name = ((Member)expr).get();
+            CtField f = null;
             try {
                 f = thisClass.getField(name);
             }
@@ -606,35 +606,47 @@ public class MemberCodeGen extends CodeGen {
                 throw new NoFieldException(name, expr);
             }
 
-            is_static = Modifier.isStatic(f.getModifiers());
+            boolean is_static = Modifier.isStatic(f.getModifiers());
             if (!is_static)
                 if (inStaticMethod)
                     throw new CompileError(
                                 "not available in a static method: " + name);
                 else
                     bytecode.addAload(0);       // this
+
+            resultStatic = is_static;
+            return f;
         }
         else if (expr instanceof Expr) {
             Expr e = (Expr)expr;
             int op = e.getOperator();
             if (op == MEMBER) {
                 // static member by # (extension by Javassist)
-                f = resolver.lookupField(((Symbol)e.oprand1()).get(),
+                CtField f = resolver.lookupField(((Symbol)e.oprand1()).get(),
                                          (Symbol)e.oprand2());
-                is_static = true;
+                resultStatic = true;
+                return f;
             }
             else if (op == '.') {
+                CtField f = null;
                 try {
                     e.oprand1().accept(this);
+                    /* Don't call lookupFieldByJvmName2().
+                     * The left operand of . is not a class name but
+                     * a normal expression.
+                     */
                     if (exprType == CLASS && arrayDim == 0)
                         f = resolver.lookupFieldByJvmName(className,
                                                     (Symbol)e.oprand2());
                     else
                         badLvalue();
 
-                    is_static = Modifier.isStatic(f.getModifiers());
+                    boolean is_static = Modifier.isStatic(f.getModifiers());
                     if (is_static)
                         bytecode.addOpcode(POP);
+
+                    resultStatic = is_static;
+                    return f;
                 }
                 catch (NoFieldException nfe) {
                     if (nfe.getExpr() != e.oprand1())
@@ -645,9 +657,11 @@ public class MemberCodeGen extends CodeGen {
                      * lookupFieldByJvmName2() throws NoFieldException.
                      */
                     Symbol fname = (Symbol)e.oprand2();
-                    f = resolver.lookupFieldByJvmName2(nfe.getField(),
-                                                       fname, expr);
-                    is_static = true;
+                    String cname = nfe.getField();
+                    f = resolver.lookupFieldByJvmName2(cname, fname, expr);
+                    resolver.recordPackage(cname);
+                    resultStatic = true;
+                    return f;
                 }
             }
             else
@@ -656,8 +670,8 @@ public class MemberCodeGen extends CodeGen {
         else
             badLvalue();
 
-        resultStatic = is_static;
-        return f;
+        resultStatic = false;
+        return null;    // never reach
     }
 
     private static void badLvalue() throws CompileError {
