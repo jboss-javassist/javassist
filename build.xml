@@ -61,7 +61,7 @@ to ${build.classes.dir}.</echo>
   </target>
 
   <target name="jar" depends="compile">
-    <jar jarfile="javassist.jar">
+    <jar jarfile="javassist.jar" manifest="${src.dir}/META-INF/MANIFEST.MF">
       <fileset dir="${build.classes.dir}">
       	  <include name="**/*.class"/>
       </fileset>

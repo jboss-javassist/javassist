@@ -35,7 +35,16 @@ public abstract class CtClass {
     /**
      * The version number of this release.
      */
-    public static final String version = "2.7";
+    public static final String version = "2.7 beta 1";
+
+    /**
+     * Prints the version number and the copyright notice.
+     */
+    public static void main(String[] args) {
+        System.out.println("Javassist version " + CtClass.version);
+        System.out.println("Copyright (C) 1999-2003 Shigeru Chiba."
+                           + " All Rights Reserved.");
+    }
 
     static final String javaLangObject = "java.lang.Object";
 
