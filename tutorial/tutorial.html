@@ -34,9 +34,10 @@ Shigeru Chiba
 Java bytecode is stored in a binary file called a class file.
 Each class file contains one Java class or interface.
 
-<p>The class <code>Javassist.CtClass</code> is an abstract representation
-of a class file.  A <code>CtClass</code> object is a handle for dealing
-with a class file.  The following program is a very simple example:
+<p>The class <code>Javassist.CtClass</code> is an abstract
+representation of a class file.  A <code>CtClass</code> (compile-time
+class) object is a handle for dealing with a class file.  The
+following program is a very simple example:
 
 <ul><pre>
 ClassPool pool = ClassPool.getDefault();
@@ -57,7 +58,18 @@ to a file or an output stream.
 mapping between classes and <code>CtClass</code> objects.  Javassist
 never allows two distinct <code>CtClass</code> objects to represent
 the same class.  This is a crucial feature to consistent program
-transformaiton.
+transformaiton.  If you need, however, you can deal with multiple
+instances of <code>ClassPool</code> at the same time.  To create a new
+instance of <code>ClassPool</code>, write the following code:
+
+<ul><pre>
+ClassPool cp = new ClassPool(null);
+cp.appendSystemPath();
+cp.insertClassPath(".");    // or something appropriate
+</pre></ul>
+
+<p><code>ClassPool.getDefault()</code> is just a singleton factory
+method provided for convenience.
 
 <p>To modify the definition of a class, the users must first obtain a
 reference to the <code>CtClass</code> object representing that class.

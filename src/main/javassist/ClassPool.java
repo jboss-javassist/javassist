@@ -86,10 +86,23 @@ public class ClassPool {
    /**
     * Provide a hook so that subclasses can do their own
     * caching of classes
+    *
+    * @see #removeCached(String)
     */
     protected CtClass getCached(String classname)
     {
         return (CtClass)classes.get(classname); 
+    }
+
+   /**
+    * Provide a hook so that subclasses can do their own
+    * caching of classes
+    *
+    * @see #getCached(String)
+    */
+    protected void removeCached(String classname)
+    {
+        classes.remove(classname);
     }
 
     /**
@@ -480,7 +493,7 @@ public class ClassPool {
     synchronized void classNameChanged(String oldname, CtClass clazz) {
         CtClass c = (CtClass)getCached(oldname);
         if (c == clazz)         // must check this equation
-            classes.remove(c);
+            removeCached(oldname);
 
         String newName = clazz.getName();
         checkNotFrozen(newName, "the class with the new name is frozen.");
