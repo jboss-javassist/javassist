@@ -19,7 +19,6 @@ import javassist.CtClass;
 import javassist.CtMethod;
 import javassist.NotFoundException;
 import javassist.bytecode.*;
-import javassist.CannotCompileException;
 
 public class TransformBefore extends TransformCall {
     protected CtClass[] parameterTypes;

@@ -20,7 +20,6 @@ import java.io.Serializable;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import javassist.CtClass;
 
 /**
  * A runtime class metaobject.

@@ -16,7 +16,6 @@
 package javassist.reflect;
 
 import javassist.*;
-import java.io.IOException;
 import javassist.CtMethod.ConstParameter;
 
 /**

@@ -18,7 +18,6 @@ package javassist.convert;
 import javassist.CtClass;
 import javassist.CtMethod;
 import javassist.bytecode.*;
-import javassist.CannotCompileException;
 
 public class TransformCall extends Transformer {
     protected String classname, methodname, methodDescriptor;

@@ -19,7 +19,6 @@ import javassist.bytecode.*;
 import javassist.ClassPool;
 import javassist.CtClass;
 import javassist.CtField;
-import javassist.CannotCompileException;
 import javassist.NotFoundException;
 import javassist.Modifier;
 

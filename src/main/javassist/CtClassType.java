@@ -20,7 +20,6 @@ import javassist.compiler.Javac;
 import javassist.compiler.CompileError;
 import javassist.expr.ExprEditor;
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;

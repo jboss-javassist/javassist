@@ -23,7 +23,6 @@ import javassist.CtBehavior;
 import javassist.CtMethod;
 import javassist.CtConstructor;
 import javassist.CannotCompileException;
-import javassist.ClassPool;
 import javassist.Modifier;
 import javassist.bytecode.Bytecode;
 import javassist.bytecode.Opcode;
@@ -120,7 +119,7 @@ public class Javac {
         Declarator d = fd.getDeclarator();
         f = new CtFieldWithInit(gen.lookupClass(d), d.getVariable().get(),
                                 gen.getThisClass());
-        f.setModifiers(gen.getModifiers(fd.getModifiers()));
+        f.setModifiers(MemberCodeGen.getModifiers(fd.getModifiers()));
         if (fd.getInit() != null)
             f.setInit(fd.getInit());
 
@@ -130,7 +129,7 @@ public class Javac {
     private CtMember compileMethod(Parser p, MethodDecl md)
         throws CompileError
     {
-        int mod = gen.getModifiers(md.getModifiers());
+        int mod = MemberCodeGen.getModifiers(md.getModifiers());
         CtClass[] plist = gen.makeParamList(md);
         CtClass[] tlist = gen.makeThrowsList(md);
         recordParams(plist, Modifier.isStatic(mod));

@@ -19,7 +19,6 @@ import javassist.bytecode.*;
 import javassist.CtClass;
 import javassist.CtField;
 import javassist.Modifier;
-import javassist.CannotCompileException;
 
 final public class TransformFieldAccess extends Transformer {
     private String newClassname, newFieldname;

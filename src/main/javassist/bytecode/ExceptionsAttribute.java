@@ -161,7 +161,7 @@ public class ExceptionsAttribute extends AttributeInfo {
     /**
      * Returns <code>number_of_exceptions</code>.
      */
-    public int length() { return info.length / 2 - 1; }
+    public int tableLength() { return info.length / 2 - 1; }
 
     /**
      * Returns the value of <code>exception_index_table[nth]</code>.

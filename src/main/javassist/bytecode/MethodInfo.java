@@ -21,7 +21,6 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.List;
 import java.util.LinkedList;
-import javassist.CannotCompileException;
 
 /**
  * <code>method_info</code> structure.

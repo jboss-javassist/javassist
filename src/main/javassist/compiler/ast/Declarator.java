@@ -60,7 +60,7 @@ public class Declarator extends ASTList implements TokenId {
         Declarator d = new Declarator(this.varType, this.arrayDim + dim);
         d.qualifiedClass = this.qualifiedClass;
         d.setLeft(sym);
-        d.append(d, init);
+        append(d, init);
         return d;
     }
 

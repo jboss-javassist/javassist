@@ -17,7 +17,6 @@ package javassist.rmi;
 
 import java.io.*;
 import java.net.*;
-import java.awt.*;
 import java.applet.Applet;
 import java.lang.reflect.*;
 

@@ -15,7 +15,6 @@
 
 package javassist.rmi;
 
-import java.io.*;
 import javassist.*;
 import java.lang.reflect.Method;
 import java.util.Hashtable;

@@ -17,10 +17,8 @@ package javassist.web;
 
 import java.net.*;
 import java.io.*;
-import java.util.Hashtable;
 import java.util.Date;
 import javassist.ClassPool;
-import javassist.Translator;
 
 /**
  * A web server for Javassist.

@@ -41,7 +41,7 @@ public class InnerClassesAttribute extends AttributeInfo {
     /**
      * Returns <code>number_of_classes</code>.
      */
-    public int length() { return ByteArray.readU16bit(get(), 0); }
+    public int tableLength() { return ByteArray.readU16bit(get(), 0); }
 
     /**
      * Returns <code>classes[nth].inner_class_info_index</code>.

@@ -15,9 +15,6 @@
 
 package javassist.bytecode;
 
-import java.io.DataOutputStream;
-import java.io.IOException;
-import javassist.CannotCompileException;
 import javassist.CtClass;
 import javassist.CtPrimitiveType;
 

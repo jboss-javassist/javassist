@@ -81,6 +81,8 @@ public class AttributeInfo {
             return new SourceFileAttribute(cp, name, in);
         else if (nameStr.equals(LineNumberAttribute.tag))
             return new LineNumberAttribute(cp, name, in);
+        else if (nameStr.equals(LocalVariableAttribute.tag))
+            return new LocalVariableAttribute(cp, name, in);
         else if (nameStr.equals(SyntheticAttribute.tag))
             return new SyntheticAttribute(cp, name, in);
         else if (nameStr.equals(DeprecatedAttribute.tag))

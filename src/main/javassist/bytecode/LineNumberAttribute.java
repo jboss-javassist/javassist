@@ -20,7 +20,7 @@ import java.io.IOException;
 import java.util.Map;
 
 /**
- * <code>LineNumberTablec_attribute</code>.
+ * <code>LineNumberTable_attribute</code>.
  */
 public class LineNumberAttribute extends AttributeInfo {
     /**

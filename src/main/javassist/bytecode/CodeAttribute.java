@@ -21,7 +21,6 @@ import java.io.IOException;
 import java.util.List;
 import java.util.LinkedList;
 import java.util.Map;
-import javassist.CtClass;
 
 /**
  * <code>Code_attribute</code>.

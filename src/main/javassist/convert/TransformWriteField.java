@@ -18,7 +18,6 @@ package javassist.convert;
 import javassist.CtClass;
 import javassist.CtField;
 import javassist.bytecode.*;
-import javassist.CannotCompileException;
 
 final public class TransformWriteField extends TransformReadField {
     public TransformWriteField(Transformer next, CtField field,

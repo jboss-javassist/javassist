@@ -18,7 +18,6 @@ package javassist.expr;
 import javassist.*;
 import javassist.bytecode.*;
 import javassist.compiler.*;
-import javassist.compiler.ast.ASTree;
 import javassist.compiler.ast.ASTList;
 
 /**
