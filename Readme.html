@@ -258,6 +258,12 @@ see javassist.Dump.
 <p>- version 3.0
 
 <ul>
+  <li>ClassPool has been largely modified.
+      <ul><li>write(), writeFile(), .. in ClassPool were moved to CtClass.
+          <li>The host of javassist.Translator was changed from ClassPool
+              to javassist.Loader.
+      </ul>
+
   <li>javassist.bytecode.annotation has been added.
   <li>The ClassPool framework has been redesigned.
      <ul>

@@ -227,6 +227,8 @@ public class ClassPool {
      *
      * @see CtClass#forName(String)
      * @see CtClass#toClass()
+     * @see #toClass()
+     * @see #forName(String)
      */
     public static class SimpleLoader extends ClassLoader {
         /**
@@ -249,11 +251,15 @@ public class ClassPool {
 
     /**
      * Returns a <code>java.lang.Class</code> object that has been loaded
-     * by <code>loadClass()</code>.  Such an object cannot be
+     * by <code>toClass()</code> in <code>CtClass</code>
+     * or <code>ClassPool</code>.  Such an object cannot be
      * obtained by <code>java.lang.Class.forName()</code> because it has
      * been loaded by an internal class loader of Javassist.
+     *
+     * @param name	the fully-qualified class name.
+     * @see #toClass(CtClass)
      */
-    static Class forName(String name) throws ClassNotFoundException {
+    public Class forName(String name) throws ClassNotFoundException {
         if (classLoader == null)
             classLoader = new SimpleLoader();
 
@@ -261,27 +267,34 @@ public class ClassPool {
     }
 
    /**
-    * Callback to write the class and create a Class object
-    * ClassPool can be extended to override this behavior
-    * @param classname
-    * @param classfile
-    * @return
-    * @throws NotFoundException
-    * @throws IOException
-    * @throws CannotCompileException
+    * Loads the class represented by a <code>CtClass</code> object.
+    * <code>toClass()</code> in <code>CtClass</code> calls this method
+    * to load a class.
+    *
+    * <p>This method can be overridden to change the class loader.
+    * In the default implementation,
+    * the class loader is a <code>SimpleLoader</code>.
+    * If this method is overridden, <code>forName()</code> must be also
+    * overridden for extending the behavior.
+    *
+    * @param cc     the loaded <code>CtClass</code>.
+    * @return   the <code>java.lang.Class</code> object representing
+    *           the loaded class.
+    * @see #forName(String)
     */
-   public Class writeAsClass(String classname, byte[] classfile)
-       throws CannotCompileException
-   {
-       try {
-          if (classLoader == null)
-              classLoader = new SimpleLoader();
-           return classLoader.loadClass(classname, classfile);
-       }
-       catch (ClassFormatError e) {
-           throw new CannotCompileException(e, classname);
-       }
-   }
+    public Class toClass(CtClass cc)
+        throws NotFoundException, CannotCompileException, IOException
+    {
+        try {
+            if (classLoader == null)
+                classLoader = new SimpleLoader();
+
+            return classLoader.loadClass(cc.getName(), cc.toBytecode());
+        }
+        catch (ClassFormatError e) {
+            throw new CannotCompileException(e, cc.getName());
+        }
+    }
 
    /**
      * Reads a class file and constructs a <code>CtClass</code>

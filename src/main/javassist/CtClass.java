@@ -849,7 +849,7 @@ public abstract class CtClass {
     public Class toClass()
         throws NotFoundException, IOException, CannotCompileException
     {
-        return getClassPool().writeAsClass(getName(), toBytecode());
+        return getClassPool().toClass(this);
     }
 
     /**
@@ -861,8 +861,8 @@ public abstract class CtClass {
      * @see CtClass#toClass()
      * @see ClassPool.SimpleLoader
      */
-    public static Class forName(String name) throws ClassNotFoundException {
-        return ClassPool.forName(name);
+    public Class forName(String name) throws ClassNotFoundException {
+        return getClassPool().forName(name);
     }
 
     /**
