@@ -956,7 +956,7 @@ public abstract class CtClass {
      * in <code>ClassPool</code>.
      *
      * @see #toClass(java.lang.ClassLoader)
-     * @see ClassPool#toClass(java.lang.ClassLoader)
+     * @see ClassPool#toClass(CtClass)
      */
     public Class toClass() throws CannotCompileException {
         return getClassPool().toClass(this);
