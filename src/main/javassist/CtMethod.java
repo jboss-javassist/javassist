@@ -208,6 +208,10 @@ public final class CtMethod extends CtBehavior {
     /**
      * Sets the encoded modifiers of the method.
      *
+     * <p>Changing the modifiers may cause a problem.
+     * For example, if a non-static method is changed to static,
+     * the method will be rejected by the bytecode verifier.
+     *
      * @see Modifier
      */
     public void setModifiers(int mod) {
