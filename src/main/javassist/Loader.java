@@ -210,6 +210,8 @@ public class Loader extends ClassLoader {
      * @param cp        the <code>ClassPool</code> object for obtaining
      *                  a class file.
      * @param t         a translator.
+     * @throws NotFoundException        if <code>t.start()</code> throws an exception.
+     * @throws CannotCompileException   if <code>t.start()</code> throws an exception.
      */
     public void addTranslator(ClassPool cp, Translator t)
         throws NotFoundException, CannotCompileException {
