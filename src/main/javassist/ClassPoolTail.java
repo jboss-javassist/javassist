@@ -163,14 +163,12 @@ final class JarClassPath implements ClassPath {
     }
 }
 
-final class ClassPoolTail extends ClassPool {
+final class ClassPoolTail extends AbsClassPool {
     protected ClassPathList pathList;
-    private Class thisClass;
     private Hashtable packages;         // should be synchronized.
 
     public ClassPoolTail() {
         pathList = null;
-        thisClass = getClass();
         packages = new Hashtable();
     }
 
@@ -196,33 +194,44 @@ final class ClassPoolTail extends ClassPool {
         packages.put(name, name);
     }
 
-    public byte[] write(String classname)
-        throws NotFoundException, IOException
+    /**
+     * @return the contents of the class file. 
+     * @throws NotFoundException    if the file could not be found.
+     */
+    byte[] readSource(String classname)
+        throws NotFoundException, IOException, CannotCompileException
     {
-        return readClassfile(classname);
+        byte[] b = readClassfile(classname);
+        if (b == null)
+            throw new NotFoundException(classname);
+        else
+            return b;
     }
 
-    public void write(String classname, DataOutputStream out)
+    /**
+     * @return null                 if the file could not be found.
+     * @throws NotFoundException    if any error is reported by ClassPath.
+     */
+    boolean write0(String classname, DataOutputStream out, boolean callback)
         throws NotFoundException, CannotCompileException, IOException
     {
-        byte[] b = write(classname);
-        out.write(b, 0, b.length);
+        byte[] b = readClassfile(classname);
+        if (b == null)
+            return false;       // not found
+        else {
+            out.write(b, 0, b.length);
+            return true;
+        }
     }
 
-    public CtClass get(String classname) throws NotFoundException {
-        throw new RuntimeException("fatal error");
-    }
-
-    public CtClass makeClass(String classname) {
-        throw new RuntimeException("fatal error");
-    }
-
+    /*
+    -- faster version --
     void checkClassName(String classname) throws NotFoundException {
         if (find(classname) == null)
             throw new NotFoundException(classname);
     }
 
-    /* slower version.
+    -- slower version --
 
     void checkClassName(String classname) throws NotFoundException {
         InputStream fin = openClassfile(classname);
@@ -303,11 +312,16 @@ final class ClassPoolTail extends ClassPool {
      * specified by <code>classname</code>.
      *
      * @param classname         a fully-qualified class name
+     * @return null                 if the file has not been found.
+     * @throws NotFoundException    if any error is reported by ClassPath.
      */
-    byte[] readClassfile(String classname)
+    private byte[] readClassfile(String classname)
         throws NotFoundException, IOException
     {
         InputStream fin = openClassfile(classname);
+        if (fin == null)
+            return null;
+
         byte[] b;
         try {
             b = readStream(fin);
@@ -323,13 +337,15 @@ final class ClassPoolTail extends ClassPool {
      * Opens the class file for the class specified by
      * <code>classname</code>.
      *
-     * @param classname         a fully-qualified class name
+     * @param classname             a fully-qualified class name
+     * @return null                 if the file has not been found.
+     * @throws NotFoundException    if any error is reported by ClassPath.
      */
-    public InputStream openClassfile(String classname)
+    private InputStream openClassfile(String classname)
         throws NotFoundException
     {
         if (packages.get(classname) != null)
-            throw new NotFoundException(classname);
+            return null;    // not found
 
         ClassPathList list = pathList;
         InputStream ins = null;
@@ -352,7 +368,7 @@ final class ClassPoolTail extends ClassPool {
         if (error != null)
             throw error;
         else
-            throw new NotFoundException(classname);
+            return null;    // not found
     }
 
     /**

@@ -43,7 +43,7 @@ public interface Translator {
      * Is invoked by a <code>ClassPool</code> for notifying that
      * a class is written out to an output stream.
      *
-     * <p>If CtClass.frozen() is true, that is, if the class has been
+     * <p>If <code>CtClass.frozen()</code> is true, that is, if the class has been
      * already modified and written, then onWrite() is not invoked.
      *
      * @param pool      the <code>ClassPool</code> that this translator

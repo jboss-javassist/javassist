@@ -1,17 +1,20 @@
 <?xml version="1.0"?>
 
-<!-- ======================================================================= -->
-<!-- JBoss build file                                                       -->
-<!-- ======================================================================= -->
+<!-- =================================================================== -->
+<!-- JBoss build file                                                    -->
+<!-- =================================================================== -->
 
 <project name="javassist" default="jar" basedir=".">
 
   <property name="dist-version" value="javassist-2.7"/>
 
   <property environment="env"/>
+  <property name="target.jar" value="javassist.jar"/>
   <property name="src.dir" value="${basedir}/src/main"/>
   <property name="build.dir" value="${basedir}/build"/>
   <property name="build.classes.dir" value="${build.dir}/classes"/>
+
+  <property name="run.dir" value="${build.classes.dir}"/>
 
   <!-- Build classpath -->
   <path id="classpath">
@@ -61,7 +64,7 @@ to ${build.classes.dir}.</echo>
   </target>
 
   <target name="jar" depends="compile">
-    <jar jarfile="javassist.jar" manifest="${src.dir}/META-INF/MANIFEST.MF">
+    <jar jarfile="${target.jar}" manifest="${src.dir}/META-INF/MANIFEST.MF">
       <fileset dir="${build.classes.dir}">
       	  <include name="**/*.class"/>
       </fileset>
@@ -103,8 +106,72 @@ Copyright (C) 1999-2004 Shigeru Chiba. All Rights Reserved.</i>]]></bottom>
   <target name="clean">
     <delete dir="build"/>
     <delete dir="html"/>
-    <delete file="javassist.jar"/>
+    <delete file="${target.jar}"/>
     <delete file="${dist-version}.zip"/>
   </target>
-</project>
 
+  <!-- =================================================================== -->
+  <!-- Run samples                                                         -->
+  <!-- =================================================================== -->
+
+  <target name = "sample-all"
+          depends="sample-test,sample-reflect,sample-duplicate,sample-vector">
+    <echo>** please run sample-rmi and sample-evolve separately **</echo>
+  </target>
+
+  <target name = "sample-test" depends="sample" >
+    <java fork="true" dir="${run.dir}" classname="sample.Test">
+      <classpath refid="classpath"/>
+    </java>
+  </target>
+
+  <target name = "sample-reflect" depends="sample" >
+    <java fork="true" dir="${run.dir}" classname="javassist.reflect.Loader">
+      <classpath refid="classpath"/>
+      <arg line="sample.reflect.Main Joe" />
+    </java>
+  </target>
+
+  <target name = "sample-duplicate" depends="sample" >
+    <echo>run sample.duplicate.Viewer without reflection</echo>
+    <java fork="true" dir="${run.dir}" classname="sample.duplicate.Viewer">
+      <classpath refid="classpath"/>
+    </java>
+    <echo>run sample.duplicate.Viewer with reflection</echo>
+    <java fork="true" dir="${run.dir}" classname="sample.duplicate.Main">
+      <classpath refid="classpath"/>
+    </java>
+  </target>
+
+  <target name = "sample-vector" depends="sample" >
+    <echo>javassist.preproc.Compiler sample/vector/Test.j</echo>
+    <java fork="true" dir="${run.dir}" classname="javassist.preproc.Compiler">
+      <classpath refid="classpath"/>
+      <arg line="sample/vector/Test.j"/>
+    </java>
+    <echo>javac sample/vector/Test.java</echo>
+    <javac srcdir="${build.classes.dir}"
+           destdir="${build.classes.dir}"
+           includes="sample/vector/Test.java">
+            <classpath refid="classpath"/>
+    </javac>
+    <java fork="true" dir="${run.dir}" classname="sample.vector.Test" />
+  </target>
+
+  <target name = "sample-rmi" depends="sample" >
+    <echo>** Please open sample/rmi/webdemo.html with your browser **</echo>
+    <java fork="true" dir="${run.dir}" classname="sample.rmi.Counter">
+      <classpath refid="classpath"/>
+      <arg value="5001" />
+    </java>
+  </target>
+
+  <target name = "sample-evolve" depends="sample" >
+    <echo>** Please open http://localhost:5003/demo.html with your browser **</echo>
+    <java fork="true" dir="${run.dir}" classname="sample.evolve.DemoLoader">
+      <classpath refid="classpath"/>
+      <arg value="5003" />
+    </java>
+  </target>
+
+</project>

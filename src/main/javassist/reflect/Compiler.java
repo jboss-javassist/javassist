@@ -90,7 +90,8 @@ public class Compiler {
         throws Exception
     {
         Reflection implementor = new Reflection();
-        ClassPool pool = ClassPool.getDefault(implementor);
+        ClassPool pool = ClassPool.getDefault();
+        pool.insertTranslator(implementor);
 
         for (int i = 0; i < n; ++i) {
             CtClass c = pool.get(entries[i].classname);

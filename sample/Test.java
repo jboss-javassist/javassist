@@ -23,7 +23,7 @@ public class Test {
     }
 
     public static void main(String[] args) throws Exception {
-	ClassPool pool = ClassPool.getDefault(null);
+	ClassPool pool = ClassPool.getDefault();
 
 	CtClass cc = pool.get("sample.Test");
 	try {

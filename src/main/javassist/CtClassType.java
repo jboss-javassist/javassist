@@ -180,8 +180,8 @@ class CtClassType extends CtClass {
         if (name.equals(oldname))
             return;
 
-        classPool.checkNotFrozen(name,
-                                 "the class with the new name is frozen");
+        // check this in advance although classNameChanged() below does.
+        classPool.checkNotFrozen(name);
         ClassFile cf = getClassFile2();
         super.setName(name);
         cf.setName(name);
@@ -197,8 +197,8 @@ class CtClassType extends CtClass {
             = (String)classnames.get(Descriptor.toJvmName(oldClassName));
         if (newClassName != null) {
             newClassName = Descriptor.toJavaName(newClassName);
-            classPool.checkNotFrozen(newClassName,
-                        "the class " + newClassName + " is frozen");
+            // check this in advance although classNameChanged() below does.
+            classPool.checkNotFrozen(newClassName);
         }
 
         super.replaceClassName(classnames);

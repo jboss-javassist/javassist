@@ -133,7 +133,9 @@ public class Loader extends javassist.Loader {
         delegateLoadingOf("javassist.reflect.Loader");
 
         reflection = new Reflection();
-        setClassPool(ClassPool.getDefault(reflection));
+        ClassPool pool = ClassPool.getDefault();
+        pool.insertTranslator(reflection); 
+        setClassPool(pool);
     }
 
     /**

@@ -29,12 +29,13 @@ public class DemoLoader {
      * updatable.  Then it runs main() in sample.evolve.DemoServer.
      */
     public static void main(String[] args) throws Throwable {
-	Evolution translator = new Evolution();
-	ClassPool cp = ClassPool.getDefault(translator);
-	Loader cl = new Loader();
-	cl.setClassPool(cp);
+        Evolution translator = new Evolution();
+        ClassPool cp = ClassPool.getDefault();
+        cp.insertTranslator(translator);
+        Loader cl = new Loader();
+        cl.setClassPool(cp);
 
-	translator.makeUpdatable("sample.evolve.WebPage");
-	cl.run("sample.evolve.DemoServer", args);
+        translator.makeUpdatable("sample.evolve.WebPage");
+        cl.run("sample.evolve.DemoServer", args);
     }
 }

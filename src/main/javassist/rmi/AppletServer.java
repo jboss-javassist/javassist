@@ -60,7 +60,7 @@ public class AppletServer extends Webserver {
     public AppletServer(int port)
         throws IOException, NotFoundException, CannotCompileException
     {
-        this(ClassPool.getDefault(new StubGenerator()), port);
+        this(ClassPool.getDefault(), new StubGenerator(), port);
     }
 
     /**
@@ -72,16 +72,17 @@ public class AppletServer extends Webserver {
     public AppletServer(int port, ClassPool src)
         throws IOException, NotFoundException, CannotCompileException
     {
-        this(new ClassPool(src, new StubGenerator()), port);
+        this(new ClassPool(src), new StubGenerator(), port);
     }
 
-    private AppletServer(ClassPool loader, int port)
+    private AppletServer(ClassPool loader, StubGenerator gen, int port)
         throws IOException, NotFoundException, CannotCompileException
     {
         super(port);
         exportedNames = new Hashtable();
         exportedObjects = new Vector();
-        stubGen = (StubGenerator)loader.getTranslator();
+        stubGen = gen;
+        loader.insertTranslator(gen);
         setClassPool(loader);
     }
 
