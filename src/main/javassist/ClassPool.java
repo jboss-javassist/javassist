@@ -133,8 +133,12 @@ public class ClassPool extends AbsClassPool {
         if (translator == null)
             cp = this;
         else {
-            cp = new ClassPool(source, parent);
-            source = cp;
+            ClassPool s = this;
+            while (s.source instanceof ClassPool)  
+                s = (ClassPool)s.source;
+
+            cp = new ClassPool(s.source, parent);
+            s.source = cp;
         }
 
         cp.translator = trans;
