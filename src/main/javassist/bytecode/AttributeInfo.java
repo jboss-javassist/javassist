@@ -222,4 +222,18 @@ public class AttributeInfo {
             attr.write(out);
         }
     }
+
+    static LinkedList copyAll(LinkedList list, ConstPool cp) {
+        if (list == null)
+            return null;
+
+        LinkedList newList = new LinkedList();
+        int n = list.size();
+        for (int i = 0; i < n; ++i) {
+            AttributeInfo attr = (AttributeInfo)list.get(i);
+            newList.add(attr.copy(cp, null));
+        }
+
+        return newList;
+    }
 }

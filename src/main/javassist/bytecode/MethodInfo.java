@@ -30,13 +30,9 @@ import java.util.Map;
  */
 public final class MethodInfo {
     ConstPool constPool;
-
     int accessFlags;
-
     int name;
-
     int descriptor;
-
     LinkedList attribute; // may be null
 
     // Bill, do you really need this?
@@ -113,6 +109,21 @@ public final class MethodInfo {
     public String toString() {
         return constPool.getUtf8Info(name) + " "
                 + constPool.getUtf8Info(descriptor);
+    }
+
+    /**
+     * Copies all constant pool items to a given new constant pool
+     * and replaces the original items with the new ones.
+     * This is used for garbage collecting the items of removed fields
+     * and methods.
+     *
+     * @param cp    the destination
+     */
+    void compact(ConstPool cp) {
+        name = cp.addUtf8Info(getName());
+        descriptor = cp.addUtf8Info(getDescriptor());
+        attribute = AttributeInfo.copyAll(attribute, cp);
+        constPool = cp;
     }
 
     void prune(ConstPool cp) {

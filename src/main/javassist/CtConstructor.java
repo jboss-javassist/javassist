@@ -33,8 +33,6 @@ import javassist.compiler.CompileError;
  * @see CtNewConstructor
  */
 public final class CtConstructor extends CtBehavior {
-    protected CtConstructor next;
-
     protected CtConstructor(MethodInfo minfo, CtClass declaring) {
         super(declaring, minfo);
         next = null;
@@ -130,30 +128,6 @@ public final class CtConstructor extends CtBehavior {
         catch (BadBytecode e) {
             throw new CannotCompileException(e);
         }
-    }
-
-    static CtConstructor append(CtConstructor list, CtConstructor tail) {
-        tail.next = null;
-        if (list == null)
-            return tail;
-        else {
-            CtConstructor lst = list;
-            while (lst.next != null)
-                lst = lst.next;
-
-            lst.next = tail;
-            return list;
-        }
-    }
-
-    static int count(CtConstructor m) {
-        int n = 0;
-        while (m != null) {
-            ++n;
-            m = m.next;
-        }
-
-        return n;
     }
 
     /**

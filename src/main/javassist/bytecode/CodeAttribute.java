@@ -82,19 +82,14 @@ public class CodeAttribute extends AttributeInfo implements Opcode {
         maxLocals = src.getMaxLocals();
         exceptions = src.getExceptionTable().copy(cp, classnames);
         info = src.copyCode(cp, classnames, exceptions, this);
-        attributes = new LinkedList();
 
-        /* Since an index into the source constant pool table may not
-           be translated, we don't copy the attributes.
-        */
-        /*
+        attributes = new LinkedList();
         List src_attr = src.getAttributes();
         int num = src_attr.size();
         for (int i = 0; i < num; ++i) {
             AttributeInfo ai = (AttributeInfo)src_attr.get(i);
             attributes.add(ai.copy(cp, classnames));
         }
-        */
     }
 
     CodeAttribute(ConstPool cp, int name_id, DataInputStream in)

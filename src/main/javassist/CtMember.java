@@ -20,9 +20,53 @@ package javassist;
  * or a method.
  */
 public abstract class CtMember {
+    protected CtMember next;          // for internal use
     protected CtClass declaringClass;
 
     protected CtMember(CtClass clazz) { declaringClass = clazz; }
+
+    static CtMember append(CtMember list, CtMember tail) {
+        tail.next = null;
+        if (list == null)
+            return tail;
+        else {
+            CtMember lst = list;
+            while (lst.next != null)
+                lst = lst.next;
+
+            lst.next = tail;
+            return list;
+        }
+    }
+
+    static int count(CtMember f) {
+        int n = 0;
+        while (f != null) {
+            ++n;
+            f = f.next;
+        }
+
+        return n;
+    }
+
+    static CtMember remove(CtMember list, CtMember m) {
+        CtMember top = list;
+        if (list == null)
+            return null;
+        else if (list == m)
+            return list.next;
+        else
+            while (list.next != null) {
+                if (list.next == m) {
+                    list.next = list.next.next;
+                    break;
+                }
+
+                list = list.next;
+            }
+
+        return top;
+    }
 
     public String toString() {
         StringBuffer buffer = new StringBuffer(getClass().getName());

@@ -1392,6 +1392,11 @@ Javassist classes are never used at runtime of the modified classes.
 has several limitations with respect to the language that the compiler can
 accept.  Those limitations are:
 
+<p><li>The new syntax introduced by J2SE 5.0 (including enums and generics)
+has not been supported.  Annotations are supported only by the low level
+API of Javassist.
+See the <code>javassist.bytecode.annotation</code> package.
+
 <p><li>All the class names must be fully qualified (they must include
 package names).  This is because the compiler does not support
 <code>import</code>
@@ -1408,12 +1413,27 @@ supported.
 <p><li>Labeled <code>continue</code> and <code>break</code> statements
 are not supported.
 
-<p><li>The <code>finally</code> clause following
-<code>try</code> and <code>catch</code> clauses is not supported.
-
 <p><li>The compiler does not correctly implement the Java method dispatch
 algorithm.  The compiler may confuse if methods defined in a class
 have the same name but take different parameter lists.
+
+<p>For example,
+
+<ul><pre>
+class A {} 
+class B extends A {} 
+class C extends C {} 
+
+class X { 
+    void foo(A a) { .. } 
+    void foo(B b) { .. } 
+}
+</pre></ul>
+
+<p>If the compiled expression is <code>x.foo(new C())</code>, where
+<code>x</code> is an instance of X, the compiler may produce a call
+to <code>foo(A)</code> although the compiler can correctly compile
+<code>foo((B)new C())</code>.
 
 <p><li>The users are recommended to use <code>#</code> as the separator
 between a class name and a static method or field name.

@@ -59,6 +59,21 @@ public final class FieldInfo {
         read(in);
     }
 
+    /**
+     * Copies all constant pool items to a given new constant pool
+     * and replaces the original items with the new ones.
+     * This is used for garbage collecting the items of removed fields
+     * and methods.
+     *
+     * @param cp    the destination
+     */
+    void compact(ConstPool cp) {
+        name = cp.addUtf8Info(getName());
+        descriptor = cp.addUtf8Info(getDescriptor());
+        attribute = AttributeInfo.copyAll(attribute, cp);
+        constPool = cp;
+    }
+
     void prune(ConstPool cp) {
         int index = getConstantValue();
         if (index == 0)

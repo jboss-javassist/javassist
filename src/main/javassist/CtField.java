@@ -27,7 +27,6 @@ import javassist.compiler.ast.ASTree;
  */
 public class CtField extends CtMember {
     protected FieldInfo fieldInfo;
-    CtField next;
 
     /**
      * Creates a <code>CtField</code> object.
@@ -98,6 +97,14 @@ public class CtField extends CtMember {
         next = null;
     }
 
+    /**
+     * Returns a String representation of the object.
+     */
+    public String toString() {
+        return getDeclaringClass().getName() + "." + getName()
+               + ":" + fieldInfo.getDescriptor();
+    }
+
     protected void extendToString(StringBuffer buffer) {
         buffer.append(' ');
         buffer.append(getName());
@@ -147,30 +154,6 @@ public class CtField extends CtMember {
         }
 
         throw new CannotCompileException("not a field");
-    }
-
-    static CtField append(CtField list, CtField tail) {
-        tail.next = null;
-        if (list == null)
-            return tail;
-        else {
-            CtField lst = list;
-            while (lst.next != null)
-                lst = lst.next;
-
-            lst.next = tail;
-            return list;
-        }
-    }
-
-    static int count(CtField f) {
-        int n = 0;
-        while (f != null) {
-            ++n;
-            f = f.next;
-        }
-
-        return n;
     }
 
     /**

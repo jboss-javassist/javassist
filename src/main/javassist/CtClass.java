@@ -44,7 +44,7 @@ public abstract class CtClass {
     /**
      * The version number of this release.
      */
-    public static final String version = "3.0 RC1";
+    public static final String version = "3.0";
 
     /**
      * Prints the version number and the copyright notice.
@@ -55,7 +55,7 @@ public abstract class CtClass {
      */
     public static void main(String[] args) {
         System.out.println("Javassist version " + CtClass.version);
-        System.out.println("Copyright (C) 1999-2004 Shigeru Chiba."
+        System.out.println("Copyright (C) 1999-2005 Shigeru Chiba."
                            + " All Rights Reserved.");
     }
 
@@ -747,11 +747,31 @@ public abstract class CtClass {
     }
 
     /**
+     * Removes a constructor declared in this class.
+     *
+     * @param c     removed constructor.
+     * @throws NotFoundException   if the constructor is not found.
+     */
+    public void removeConstructor(CtConstructor c) throws NotFoundException {
+        checkModify();
+    }
+
+    /**
      * Adds a method.
      */
     public void addMethod(CtMethod m) throws CannotCompileException {
         checkModify();
     }
+
+    /**
+     * Removes a method declared in this class.
+     *
+     * @param m     removed method.
+     * @throws NotFoundException   if the method is not found.
+     */
+    public void removeMethod(CtMethod m) throws NotFoundException {
+        checkModify();
+     }
 
     /**
      * Adds a field.
@@ -822,6 +842,16 @@ public abstract class CtClass {
     public void addField(CtField f, CtField.Initializer init)
         throws CannotCompileException
     {
+        checkModify();
+    }
+
+    /**
+     * Removes a field declared in this class.
+     *
+     * @param f     removed field.
+     * @throws NotFoundException   if the field is not found.
+     */
+    public void removeField(CtField f) throws NotFoundException {
         checkModify();
     }
 

@@ -27,7 +27,6 @@ import javassist.bytecode.*;
  * @see CtNewMethod
  */
 public final class CtMethod extends CtBehavior {
-    protected CtMethod next;
     protected String cachedStringRep;
 
     CtMethod(MethodInfo minfo, CtClass declaring) {
@@ -131,30 +130,6 @@ public final class CtMethod extends CtBehavior {
         catch (BadBytecode e) {
             throw new CannotCompileException(e);
         }
-    }
-
-    static CtMethod append(CtMethod list, CtMethod tail) {
-        tail.next = null;
-        if (list == null)
-            return tail;
-        else {
-            CtMethod lst = list;
-            while (lst.next != null)
-                lst = lst.next;
-
-            lst.next = tail;
-            return list;
-        }
-    }
-
-    static int count(CtMethod m) {
-        int n = 0;
-        while (m != null) {
-            ++n;
-            m = m.next;
-        }
-
-        return n;
     }
 
     /**

@@ -99,13 +99,33 @@ public final class ClassFile {
     }
 
     /**
-     * Discards all attributes, associated with both the class file and
-     * the members such as a code attribute and exceptions attribute.
-     * The unused constant pool entries are also discarded (a new packed
-     * constant pool is constructed).
+     * Eliminates dead constant pool items.  If a method or a field is removed,
+     * the constant pool items used by that method/field become dead items.
+     * This method recreates a constant pool.
      */
-    public void prune() {
+    public void compact() {
+        ConstPool cp = compact0();
+        ArrayList list = methods;
+        int n = list.size();
+        for (int i = 0; i < n; ++i) {
+            MethodInfo minfo = (MethodInfo)list.get(i);
+            minfo.compact(cp);
+        }
+
+        list = fields;
+        n = list.size();
+        for (int i = 0; i < n; ++i) {
+            FieldInfo finfo = (FieldInfo)list.get(i);
+            finfo.compact(cp);
+        }
+
+        attributes = AttributeInfo.copyAll(attributes, cp);
+        constPool = cp;
+    }
+
+    private ConstPool compact0() {
         ConstPool cp = new ConstPool(thisclassname);
+        thisClass = cp.getThisClassInfo();
         superClass = cp.addClassInfo(getSuperclass());
 
         if (interfaces != null) {
@@ -114,6 +134,18 @@ public final class ClassFile {
                 interfaces[i]
                     = cp.addClassInfo(constPool.getClassInfo(interfaces[i]));
         }
+
+        return cp;
+    }
+
+    /**
+     * Discards all attributes, associated with both the class file and
+     * the members such as a code attribute and exceptions attribute.
+     * The unused constant pool entries are also discarded (a new packed
+     * constant pool is constructed).
+     */
+    public void prune() {
+        ConstPool cp = compact0();
 
         ArrayList list = methods;
         int n = list.size();
