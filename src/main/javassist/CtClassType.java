@@ -71,10 +71,40 @@ class CtClassType extends CtClass {
 
     protected void extendToString(StringBuffer buffer) {
         if (wasChanged)
-            buffer.append(" changed");
+            buffer.append("changed ");
 
         if (wasFrozen)
-            buffer.append(" frozen");		
+            buffer.append("frozen ");		
+
+        buffer.append(Modifier.toString(getModifiers()));
+        buffer.append(" class ");
+        buffer.append(getName());
+
+        try {
+            CtClass ext = getSuperclass();
+            if (ext != null) {
+                String name =ext.getName();
+                if (!name.equals("java.lang.Object"))
+                    buffer.append(" extends " + ext.getName());
+            }
+        }
+        catch (NotFoundException e) {
+            buffer.append(" extends ??");
+        }
+
+        try {
+            CtClass[] intf = getInterfaces();
+            if (intf.length > 0)
+                buffer.append(" implements ");
+
+            for (int i = 0; i < intf.length; ++i) {
+                buffer.append(intf[i].getName());
+                buffer.append(", ");
+            }            
+        }
+        catch (NotFoundException e) {
+            buffer.append(" extends ??");
+        }
 
         CtField field = getFieldsCache();
         buffer.append(" fields=");

@@ -43,7 +43,7 @@ class CtNewClass extends CtClassType {
 
     protected void extendToString(StringBuffer buffer) {
         if (hasConstructor)
-            buffer.append(" hasConstructor");
+            buffer.append("hasConstructor ");
 
         super.extendToString(buffer);
     }

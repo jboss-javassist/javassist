@@ -41,8 +41,6 @@ public final class CtPrimitiveType extends CtClass {
         dataSize = size;
     }
 
-    protected void extendToString(StringBuffer buffer) {}
-
     /**
      * Returns <code>true</code> if this object represents a primitive
      * Java type: boolean, byte, char, short, int, long, float, double,
