@@ -18,6 +18,7 @@ package javassist.compiler;
 import javassist.CtClass;
 import javassist.CtField;
 import javassist.ClassPool;
+import javassist.Modifier;
 import javassist.NotFoundException;
 import javassist.compiler.ast.*;
 import javassist.bytecode.*;
@@ -227,6 +228,12 @@ public class TypeChecker extends Visitor implements Opcode, TokenId {
             }
     }
 
+    /*
+     * If atBinExpr() substitutes a new expression for the original
+     * binary-operator expression, it changes the operator name to '+'
+     * (if the original is not '+') and sets the new expression to the
+     * left-hand-side expression and null to the right-hand-side expression. 
+     */
     public void atBinExpr(BinExpr expr) throws CompileError {
         int token = expr.getOperator();
         int k = CodeGen.lookupBinOp(token);
@@ -241,16 +248,19 @@ public class TypeChecker extends Visitor implements Opcode, TokenId {
                      */
                     e = CallExpr.makeCall(Expr.make('.', e,
                                             new Member("toString")), null);
-                    expr.setLeft(e);
+                    expr.setOprand1(e);
                     expr.setOprand2(null);    // <---- look at this!
                     className = jvmJavaLangString;
                 }
             }
             else {
-                expr.oprand1().accept(this);
+                ASTree left = expr.oprand1();
+                ASTree right = expr.oprand2();
+                left.accept(this);
                 int type1 = exprType;
-                expr.oprand2().accept(this);
-                computeBinExprType(expr, token, type1);
+                right.accept(this);
+                if (!isConstant(expr, token, left, right))
+                    computeBinExprType(expr, token, type1);
             }
         }
         else {
@@ -260,18 +270,17 @@ public class TypeChecker extends Visitor implements Opcode, TokenId {
         }
     }
 
-    // expr must be a + expression.
+    /* EXPR must be a + expression.
+     * atPlusExpr() returns non-null if the given expression is string
+     * concatenation.  The returned value is "new StringBuffer().append..".
+     */
     private Expr atPlusExpr(BinExpr expr) throws CompileError {
         ASTree left = expr.oprand1();
         ASTree right = expr.oprand2();
         if (right == null) {
-            /* this expression has been already type-checked since it is
-               string concatenation.
-               see atBinExpr() above.
-             */
-            exprType = CLASS;
-            arrayDim = 0;
-            className = jvmJavaLangString;
+            // this expression has been already type-checked.
+            // see atBinExpr() above.
+            left.accept(this);
             return null;
         }
 
@@ -292,6 +301,10 @@ public class TypeChecker extends Visitor implements Opcode, TokenId {
         int dim1 = arrayDim;
         String cname = className;
         right.accept(this);
+
+        if (isConstant(expr, '+', left, right))
+            return null;
+
         if ((type1 == CLASS && dim1 == 0 && jvmJavaLangString.equals(cname))
             || (exprType == CLASS && arrayDim == 0
                 && jvmJavaLangString.equals(className))) {
@@ -307,6 +320,91 @@ public class TypeChecker extends Visitor implements Opcode, TokenId {
             computeBinExprType(expr, '+', type1);
             return null;
         }
+    }
+
+    private boolean isConstant(BinExpr expr, int op, ASTree left,
+                               ASTree right) throws CompileError
+    {
+        left = stripPlusExpr(left);
+        right = stripPlusExpr(right);
+        ASTree newExpr = null;
+        if (left instanceof StringL && right instanceof StringL && op == '+')
+            newExpr = new StringL(((StringL)left).get()
+                                  + ((StringL)right).get());
+        else if (left instanceof IntConst)
+            newExpr = ((IntConst)left).compute(op, right);
+        else if (left instanceof DoubleConst)
+            newExpr = ((DoubleConst)left).compute(op, right);
+
+        if (newExpr == null)
+            return false;       // not a constant expression
+        else {
+            expr.setOperator('+');
+            expr.setOprand1(newExpr);
+            expr.setOprand2(null);
+            newExpr.accept(this);   // for setting exprType, arrayDim, ...
+            return true;
+        }
+    }
+
+    private static ASTree stripPlusExpr(ASTree expr) {
+        if (expr instanceof BinExpr) {
+            BinExpr e = (BinExpr)expr;
+            if (e.getOperator() == '+' && e.oprand2() == null)
+                return e.getLeft();
+        }
+        else if (expr instanceof Expr) {    // note: BinExpr extends Expr.
+            Expr e = (Expr)expr;
+            int op = e.getOperator();
+            if (op == MEMBER) {
+                ASTree cexpr = getConstantFieldValue((Member)e.oprand2());
+                if (cexpr != null)
+                    return cexpr;
+            }
+            else if (op == '+' && e.getRight() == null)
+                return e.getLeft();
+        }
+        else if (expr instanceof Member) {
+            ASTree cexpr = getConstantFieldValue((Member)expr);
+            if (cexpr != null)
+                return cexpr;
+        }
+
+        return expr;
+    }
+
+    /**
+     * If MEM is a static final field, this method returns a constant
+     * expression representing the value of that field.
+     */
+    private static ASTree getConstantFieldValue(Member mem) {
+        return getConstantFieldValue(mem.getField());
+    }
+
+    public static ASTree getConstantFieldValue(CtField f) {
+        if (f == null)
+            return null;
+
+        Object value = f.getConstantValue();
+        if (value == null)
+            return null;
+
+        if (value instanceof String)
+            return new StringL((String)value);
+        else if (value instanceof Double || value instanceof Float) {
+            int token = (value instanceof Double)
+                        ? DoubleConstant : FloatConstant;
+            return new DoubleConst(((Number)value).doubleValue(), token);
+        }
+        else if (value instanceof Number) {
+            int token = (value instanceof Long) ? LongConstant : IntConstant; 
+            return new IntConst(((Number)value).longValue(), token);
+        }
+        else if (value instanceof Boolean)
+            return new Keyword(((Boolean)value).booleanValue()
+                               ? TokenId.TRUE : TokenId.FALSE);
+        else
+            return null;
     }
 
     private static boolean isPlusExpr(ASTree expr) {
@@ -419,11 +517,40 @@ public class TypeChecker extends Visitor implements Opcode, TokenId {
         else if (token == CALL)              // method call
             fatal();
         else {
-            expr.oprand1().accept(this);
-            if (token == '-' || token == '~')
-                if (CodeGen.isP_INT(exprType))
-                    exprType = INT;         // type may be BYTE, ...
+            oprand.accept(this);
+            if (!isConstant(expr, token, oprand))
+                if (token == '-' || token == '~')
+                    if (CodeGen.isP_INT(exprType))
+                        exprType = INT;         // type may be BYTE, ...
         }
+    }
+
+    private boolean isConstant(Expr expr, int op, ASTree oprand) {
+        oprand = stripPlusExpr(oprand);
+        if (oprand instanceof IntConst) {
+            IntConst c = (IntConst)oprand;
+            long v = c.get();
+            if (op == '-')
+                v = -v;
+            else if (op == '~')
+                v = ~v;
+            else
+                return false;
+
+            c.set(v);
+        }
+        else if (oprand instanceof DoubleConst) {
+            DoubleConst c = (DoubleConst)oprand;
+            if (op == '-')
+                c.set(-c.get());
+            else
+                return false;
+        }
+        else
+            return false;
+
+        expr.setOperator('+');
+        return true;
     }
 
     public void atCallExpr(CallExpr expr) throws CompileError {
@@ -464,6 +591,9 @@ public class TypeChecker extends Visitor implements Opcode, TokenId {
                     exprType = CLASS;
                     arrayDim = 0;
                     className = nfe.getField(); // JVM-internal
+                    e.setOperator(MEMBER);
+                    e.setOprand1(new Symbol(MemberResolver.jvmToJavaName(
+                                                            className)));
                 }
 
                 if (arrayDim > 0)
@@ -480,7 +610,7 @@ public class TypeChecker extends Visitor implements Opcode, TokenId {
             fatal();
 
         MemberResolver.Method minfo
-            = atMethodCallCore(targetClass, mname, args);
+                = atMethodCallCore(targetClass, mname, args);
         expr.setMethod(minfo);
     }
 
@@ -591,11 +721,21 @@ public class TypeChecker extends Visitor implements Opcode, TokenId {
             className = null;
     }
 
+    /* if EXPR is to access a static field, fieldAccess() translates EXPR
+     * into an expression using '#' (MEMBER).  For example, it translates
+     * java.lang.Integer.TYPE into java.lang.Integer#TYPE.  This translation
+     * speeds up type resolution by MemberCodeGen.
+     */
     protected CtField fieldAccess(ASTree expr) throws CompileError {
         if (expr instanceof Member) {
-            String name = ((Member)expr).get();
+            Member mem = (Member)expr;
+            String name = mem.get();
             try {
-                return thisClass.getField(name);
+                CtField f = thisClass.getField(name);
+                if (Modifier.isStatic(f.getModifiers()))
+                    mem.setField(f);
+
+                return f;
             }
             catch (NotFoundException e) {
                 // EXPR might be part of a static member access?
@@ -605,9 +745,13 @@ public class TypeChecker extends Visitor implements Opcode, TokenId {
         else if (expr instanceof Expr) {
             Expr e = (Expr)expr;
             int op = e.getOperator();
-            if (op == MEMBER)
-                return resolver.lookupField(((Symbol)e.oprand1()).get(),
-                                            (Symbol)e.oprand2());
+            if (op == MEMBER) {
+                Member mem = (Member)e.oprand2();
+                CtField f
+                    = resolver.lookupField(((Symbol)e.oprand1()).get(), mem);
+                mem.setField(f);
+                return f;
+            }
             else if (op == '.')
                 try {
                     e.oprand1().accept(this);
@@ -623,9 +767,15 @@ public class TypeChecker extends Visitor implements Opcode, TokenId {
                      * If EXPR might be part of a qualified class name,
                      * lookupFieldByJvmName2() throws NoFieldException.
                      */
-                    Symbol fname = (Symbol)e.oprand2();
-                    return resolver.lookupFieldByJvmName2(nfe.getField(),
-                                                          fname, expr);
+                    Member fname = (Member)e.oprand2();
+                    String jvmClassName = nfe.getField();
+                    CtField f = resolver.lookupFieldByJvmName2(jvmClassName,
+                                                               fname, expr);
+                    e.setOperator(MEMBER);
+                    e.setOprand1(new Symbol(MemberResolver.jvmToJavaName(
+                                                            jvmClassName)));
+                    fname.setField(f);
+                    return f;
                 }
         }
 

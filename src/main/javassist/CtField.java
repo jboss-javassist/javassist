@@ -251,13 +251,17 @@ public class CtField extends CtMember {
      * A constant field is <code>static</code> and <code>final</code>.
      *
      * @return  a <code>Integer</code>, <code>Long</code>, <code>Float</code>,
-     *          <code>Double</code>, or <code>String</code> object
+     *          <code>Double</code>, <code>Boolean</code>,
+     *          or <code>String</code> object
      *          representing the constant value. 
      *          <code>null</code> if it is not a constant field
      *          or if the field type is not a primitive type
      *          or <code>String</code>.
      */
     public Object getConstantValue() {
+        // When this method is modified,
+        // see also getConstantFieldValue() in TypeChecker.
+
         int index = fieldInfo.getConstantValue();
         if (index == 0)
             return null;
@@ -271,7 +275,12 @@ public class CtField extends CtMember {
             case ConstPool.CONST_Double :
                 return new Double(cp.getDoubleInfo(index));
             case ConstPool.CONST_Integer :
-                return new Integer(cp.getIntegerInfo(index));
+                int value = cp.getIntegerInfo(index);
+                // "Z" means boolean type.
+                if ("Z".equals(fieldInfo.getDescriptor()))
+                    return new Boolean(value != 0);
+                else
+                    return new Integer(value);
             case ConstPool.CONST_String :
                 return cp.getStringInfo(index);
             default :

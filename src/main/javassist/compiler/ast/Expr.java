@@ -50,6 +50,8 @@ public class Expr extends ASTList implements TokenId {
 
     public int getOperator() { return operatorId; }
 
+    public void setOperator(int op) { operatorId = op; }
+
     public ASTree oprand1() { return getLeft(); }
 
     public void setOprand1(ASTree expr) {

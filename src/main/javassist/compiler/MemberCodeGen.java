@@ -627,7 +627,13 @@ public class MemberCodeGen extends CodeGen {
     {
         CtField f = fieldAccess(expr);
         boolean is_static = resultStatic;
-        atFieldRead(f, is_static);
+        ASTree cexpr = TypeChecker.getConstantFieldValue(f);
+        if (cexpr == null)
+            atFieldRead(f, is_static);
+        else {
+            cexpr.accept(this);
+            setFieldType(f.getFieldInfo2());
+        }
     }
 
     /**

@@ -843,7 +843,7 @@ public abstract class CodeGen extends Visitor implements Opcode, TokenId {
         if (p >= 0) {
             int op = binOp[index + p + 1];
             if (op != NOP) {
-                if (p == P_INT)
+                if (p == P_INT && exprType != BOOLEAN)
                     exprType = INT;     // type1 may be BYTE, ...
 
                 bytecode.addOpcode(op);
@@ -1281,7 +1281,7 @@ public abstract class CodeGen extends Visitor implements Opcode, TokenId {
         else if (token == MEMBER) {     // field read
             /* MEMBER ('#') is an extension by Javassist.
              * The compiler internally uses # for compiling .class
-             * expressions such as "int.class". 
+             * expressions such as "int.class".
              */
             atFieldRead(expr);
         }

@@ -228,7 +228,7 @@ public class MemberResolver implements TokenId {
     }
 
     /**
-     * Only used by fieldAccess() in MemberCodeGen.
+     * Only used by fieldAccess() in MemberCodeGen and TypeChecker.
      *
      * @param jvmClassName  a JVM class name.  e.g. java/lang/String
      */
