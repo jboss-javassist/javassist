@@ -75,8 +75,8 @@ public class ObjectImporter implements java.io.Serializable {
     private String servername, orgServername;
     private int port, orgPort;
 
-    private byte[] lookupCommand = "POST /lookup HTTP/1.0".getBytes();
-    private byte[] rmiCommand = "POST /rmi HTTP/1.0".getBytes();
+    protected byte[] lookupCommand = "POST /lookup HTTP/1.0".getBytes();
+    protected byte[] rmiCommand = "POST /rmi HTTP/1.0".getBytes();
 
     /**
      * Constructs an object importer.

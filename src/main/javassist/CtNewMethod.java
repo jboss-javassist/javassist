@@ -82,7 +82,8 @@ public class CtNewMethod {
     }
 
     /**
-     * Creates a public method.
+     * Creates a public (non-static) method.  The created method cannot
+     * be changed to a static method later.
      *
      * @param returnType        the type of the returned value.
      * @param mname             the method name.
@@ -94,14 +95,42 @@ public class CtNewMethod {
      *                  does nothing except returning zero or null.
      * @param declaring    the class to which the created method is added.
      */
-    public static CtMethod make(CtClass returnType, String mname,
-                                CtClass[] parameters, CtClass[] exceptions,
+    public static CtMethod make(CtClass returnType,
+                                String mname, CtClass[] parameters,
+                                CtClass[] exceptions,
+                                String body, CtClass declaring)
+        throws CannotCompileException
+    {
+        return make(Modifier.PUBLIC, returnType, mname, parameters, exceptions,
+                    body, declaring);
+    }
+
+    /**
+     * Creates a method.
+     *
+     * @param modifiers         access modifiers.
+     * @param returnType        the type of the returned value.
+     * @param mname             the method name.
+     * @param parameters        a list of the parameter types.
+     * @param exceptions        a list of the exception types.
+     * @param body              the source text of the method body.
+     *                  It must be a block surrounded by <code>{}</code>.
+     *                  If it is <code>null</code>, the created method
+     *                  does nothing except returning zero or null.
+     * @param declaring    the class to which the created method is added.
+     *
+     * @see Modifier
+     */
+    public static CtMethod make(int modifiers, CtClass returnType,
+                                String mname, CtClass[] parameters,
+                                CtClass[] exceptions,
                                 String body, CtClass declaring)
         throws CannotCompileException
     {
         try {
             CtMethod cm
                 = new CtMethod(returnType, mname, parameters, declaring);
+            cm.setModifiers(modifiers);
             cm.setExceptionTypes(exceptions);
             cm.setBody(body);
             return cm;

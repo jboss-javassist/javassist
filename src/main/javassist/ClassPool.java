@@ -227,8 +227,8 @@ public class ClassPool {
      *
      * @see CtClass#forName(String)
      * @see CtClass#toClass()
-     * @see #toClass()
-     * @see #forName(String)
+     * @see ClassPool#toClass(CtClass)
+     * @see ClassPool#forName(String)
      */
     public static class SimpleLoader extends ClassLoader {
         /**
@@ -438,7 +438,7 @@ public class ClassPool {
      *
      * @param classname     a fully-qualified class name.
      * @return null if the class file could not be found.
-     * @see CtClassType#getURL()
+     * @see CtClass#getURL()
      */
     public URL find(String classname) {
         return source.find(classname);
