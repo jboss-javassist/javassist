@@ -16,6 +16,7 @@
 package javassist.bytecode.annotation;
 
 import javassist.bytecode.ConstPool;
+import javassist.bytecode.Descriptor;
 import javassist.CtClass;
 import javassist.CtMethod;
 import javassist.CtPrimitiveType;
@@ -32,7 +33,7 @@ import java.util.Iterator;
  * Comment
  *
  * @author <a href="mailto:bill@jboss.org">Bill Burke</a>
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.4 $
  *
  **/
 public class AnnotationInfo
@@ -102,7 +103,9 @@ public class AnnotationInfo
       }
       else
       {
-         throw new RuntimeException("cannot handle member type: " + returnType.getName());
+         // treat as enum.  I know this is not typed, but JBoss has an Annotation Compiler for JDK 1.4
+         // and I want it to work with that. - Bill Burke
+         return new EnumMemberValue(returnType.getName(), cp);
       }
    }
 
@@ -116,7 +119,8 @@ public class AnnotationInfo
 
       if (!clazz.isInterface()) throw new RuntimeException("Only interfaces are allowed for AnnotationInfo creation.");
       this.cp = cp;
-      type_index = (short) cp.addClassInfo(clazz);
+      // beta1 type_index = (short) cp.addClassInfo(clazz);
+      type_index = (short)cp.addUtf8Info(Descriptor.toDescriptor(clazz.getName()));
       CtMethod methods[] = clazz.getDeclaredMethods();
       if (methods.length > 0)
       {
@@ -140,7 +144,8 @@ public class AnnotationInfo
 
    public String getAnnotationType()
    {
-      return cp.getClassInfo(type_index);
+      String name = Descriptor.fromDescriptor(cp.getUtf8Info(type_index));
+      return name;
    }
 
    public Set getMemberNames()

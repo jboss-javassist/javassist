@@ -15,6 +15,7 @@
 package javassist.bytecode.annotation;
 
 import javassist.bytecode.ConstPool;
+import javassist.bytecode.Descriptor;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -23,7 +24,7 @@ import java.io.IOException;
  * Comment
  *
  * @author <a href="mailto:bill@jboss.org">Bill Burke</a>
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.4 $
  *
  **/
 public class ClassMemberValue extends MemberValue
@@ -44,12 +45,14 @@ public class ClassMemberValue extends MemberValue
 
    public String getClassName()
    {
-      return cp.getClassInfo(class_info_index);
+      // beta1 return cp.getClassInfo(class_info_index);
+      return Descriptor.fromDescriptor(cp.getUtf8Info(class_info_index));
    }
 
    public void setClassName(String name)
    {
-      class_info_index = (short)cp.addClassInfo(name);
+      // beta1 class_info_index = (short)cp.addClassInfo(name);
+      class_info_index = (short)cp.addUtf8Info(Descriptor.toDescriptor(name));
    }
 
    public String toString()

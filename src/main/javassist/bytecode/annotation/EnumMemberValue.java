@@ -16,6 +16,7 @@
 package javassist.bytecode.annotation;
 
 import javassist.bytecode.ConstPool;
+import javassist.bytecode.Descriptor;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -24,7 +25,7 @@ import java.io.IOException;
  * Comment
  *
  * @author <a href="mailto:bill@jboss.org">Bill Burke</a>
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.4 $
  *
  **/
 public class EnumMemberValue extends MemberValue
@@ -39,15 +40,45 @@ public class EnumMemberValue extends MemberValue
       this.const_name_index = cni;
    }
 
+   public EnumMemberValue(String type, ConstPool cp)
+   {
+      super('e', cp);
+      setEnumType(type);
+   }
+
+   public EnumMemberValue(ConstPool cp)
+   {
+      super('e', cp);
+   }
+
+   /**
+    * @return tring representing the classname
+    */
    public String getEnumType()
    {
-      return cp.getUtf8Info(type_name_index);
+      return Descriptor.fromDescriptor(cp.getUtf8Info(type_name_index));
+   }
+
+   /**
+    *
+    * @param classname FQN classname
+    */
+   public void setEnumType(String classname)
+   {
+      type_name_index = (short)cp.addUtf8Info(Descriptor.toDescriptor(classname));
    }
 
    public String getEnumVal()
    {
       return cp.getUtf8Info(const_name_index);
    }
+
+   public void setEnumVal(String name)
+   {
+      const_name_index = (short)cp.addUtf8Info(name);
+   }
+
+
 
    public String toString()
    {
