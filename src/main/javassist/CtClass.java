@@ -531,9 +531,19 @@ public abstract class CtClass {
      * If this class is a member class or interface of another class,
      * then the class enclosing this class is returned.
      *
-     * @return null if this class is a top-level class.
+     * @return null if this class is a top-level class or an anonymous class.
      */
     public CtClass getDeclaringClass() throws NotFoundException {
+        return null;
+    }
+
+    /**
+     * Returns the immediately enclosing class of this class.
+     * This method works only with JDK 1.5 or later.
+     * 
+     * @return null if this class is a top-level class.
+     */
+    public CtClass getEnclosingClass() throws NotFoundException {
         return null;
     }
 

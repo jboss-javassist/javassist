@@ -24,6 +24,7 @@ import javassist.bytecode.CodeAttribute;
 import javassist.bytecode.CodeIterator;
 import javassist.bytecode.ConstPool;
 import javassist.bytecode.Descriptor;
+import javassist.bytecode.EnclosingMethodAttribute;
 import javassist.bytecode.FieldInfo;
 import javassist.bytecode.InnerClassesAttribute;
 import javassist.bytecode.MethodInfo;
@@ -186,6 +187,10 @@ class CtClassType extends CtClass {
 
             fin = new BufferedInputStream(fin);
             classfile = new ClassFile(new DataInputStream(fin));
+            if (!classfile.getName().equals(qualifiedName))
+                throw new RuntimeException(classfile.getName() + " in "
+                                + qualifiedName.replace('.', '/') + ".java");
+
             return classfile;
         }
         catch (NotFoundException e) {
@@ -421,10 +426,27 @@ class CtClassType extends CtClass {
         String name = getName();
         int n = ica.tableLength();
         for (int i = 0; i < n; ++i)
-            if (name.equals(ica.innerClass(i)))
-                return classPool.get(ica.outerClass(i));
+            if (name.equals(ica.innerClass(i))) {
+                String outName = ica.outerClass(i);
+                if (outName != null)
+                    return classPool.get(outName);
+            }
 
         return null;
+    }
+
+    public CtClass getEnclosingClass() throws NotFoundException {
+        CtClass enc = getDeclaringClass();
+        if (enc == null) {
+            ClassFile cf = getClassFile2();
+            EnclosingMethodAttribute ema
+                = (EnclosingMethodAttribute)cf.getAttribute(
+                                                    EnclosingMethodAttribute.tag);
+            if (ema != null)
+                enc = classPool.get(ema.className());
+        }
+
+        return enc;
     }
 
     public CtClass makeNestedClass(String name, boolean isStatic) {

@@ -248,6 +248,9 @@ public class ClassPool {
         throws NotFoundException
     {
         CtClass clazz = get0(orgName, false);
+        if (clazz == null)
+            throw new NotFoundException(orgName);
+
         if (clazz instanceof CtClassType)
             ((CtClassType)clazz).setClassPool(this);
 
