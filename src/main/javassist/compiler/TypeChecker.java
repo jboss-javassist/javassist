@@ -17,11 +17,17 @@ package javassist.compiler;
 
 import javassist.CtClass;
 import javassist.CtField;
+import javassist.Modifier;
 import javassist.ClassPool;
 import javassist.NotFoundException;
 import javassist.compiler.ast.*;
 import javassist.bytecode.*;
 
+/**
+ * This class does type checking and, if needed, transformes the original
+ * abstract syntax tree.  The resulting tree is available from
+ * this.modifiedExpr.
+ */
 public class TypeChecker extends Visitor implements Opcode, TokenId {
     static final String javaLangObject = "java.lang.Object";
     static final String jvmJavaLangObject = "java/lang/Object";
@@ -34,6 +40,7 @@ public class TypeChecker extends Visitor implements Opcode, TokenId {
     protected int exprType;     // VOID, NULL, CLASS, BOOLEAN, INT, ...
     protected int arrayDim;
     protected String className; // JVM-internal representation
+    protected ASTree modifiedExpr; // null if the given expr was not changed
 
     protected MemberResolver resolver;
     protected CtClass   thisClass;
@@ -98,6 +105,7 @@ public class TypeChecker extends Visitor implements Opcode, TokenId {
             exprType = CLASS;
             arrayDim = 0;
             className = MemberResolver.javaToJvmName(cname);
+            modifiedExpr = null;
         }
     }
 
@@ -109,8 +117,12 @@ public class TypeChecker extends Visitor implements Opcode, TokenId {
             atMultiNewArray(type, classname, size);
         else {
             size.head().accept(this);
+            if (modifiedExpr != null)
+                size.setHead(modifiedExpr);
+
             exprType = type;
             arrayDim = 1;
+            modifiedExpr = null;
             if (type == CLASS)
                 className = resolveClassName(classname);
             else
@@ -130,8 +142,11 @@ public class TypeChecker extends Visitor implements Opcode, TokenId {
 
             ++count;
             s.accept(this);
+            if (modifiedExpr != null)
+                size.setHead(modifiedExpr);
         }
 
+        modifiedExpr = null;
         exprType = type;
         arrayDim = dim;
         if (type == CLASS)
@@ -174,49 +189,80 @@ public class TypeChecker extends Visitor implements Opcode, TokenId {
         int varArray = d.getArrayDim();
         String varClass = d.getClassName();
 
-        if (op != '=')
+        if (op != '=') {
             atVariable(var);
+            if (modifiedExpr != null)
+                expr.setOprand1(modifiedExpr);
+        }
 
         right.accept(this);
+        if (modifiedExpr != null)
+            expr.setOprand2(modifiedExpr);
+
         exprType = varType;
         arrayDim = varArray;
         className = varClass;
+        modifiedExpr = null;
     }
 
     private void atArrayAssign(Expr expr, int op, Expr array,
                         ASTree right) throws CompileError
     {
-        atArrayRead(array.oprand1(), array.oprand2());
+        atArrayRead(array);
+        if (modifiedExpr != null)
+            expr.setOprand1(modifiedExpr);
+
         int aType = exprType;
         int aDim = arrayDim;
         String cname = className;
         right.accept(this);
+        if (modifiedExpr != null)
+            expr.setOprand2(modifiedExpr);
+
         exprType = aType;
         arrayDim = aDim;
         className = cname;
+        modifiedExpr = null;
     }
 
     protected void atFieldAssign(Expr expr, int op, ASTree left, ASTree right)
         throws CompileError
     {
-        CtField f = fieldAccess(left);
-        atFieldRead(f);
+        CtField f = atFieldRead(left);
         int fType = exprType;
         int fDim = arrayDim;
         String cname = className;
+        if (modifiedExpr != null)
+            expr.setOprand1(modifiedExpr);
+
+        if (Modifier.isFinal(f.getModifiers()))
+            throw new CompileError("assignment to a final field");
+
         right.accept(this);
+        if (modifiedExpr != null)
+            expr.setOprand2(modifiedExpr);
+
         exprType = fType;
         arrayDim = fDim;
         className = cname;
+        modifiedExpr = null;
     }
 
     public void atCondExpr(CondExpr expr) throws CompileError {
         booleanExpr(expr.condExpr());
+        if (modifiedExpr != null)
+            expr.setCond(modifiedExpr);
+
         expr.thenExpr().accept(this);
+        if (modifiedExpr != null)
+            expr.setThen(modifiedExpr);
+
         int type1 = exprType;
         int dim1 = arrayDim;
         String cname1 = className;
         expr.elseExpr().accept(this);
+        if (modifiedExpr != null)
+            expr.setElse(modifiedExpr);
 
         if (dim1 == 0 && dim1 == arrayDim)
             if (CodeGen.rightIsStrong(type1, exprType))
@@ -225,63 +271,89 @@ public class TypeChecker extends Visitor implements Opcode, TokenId {
                 expr.setElse(new CastExpr(type1, 0, expr.elseExpr()));
                 exprType = type1;
             }
+
+        modifiedExpr = null;
     }
 
     public void atBinExpr(BinExpr expr) throws CompileError {
         int token = expr.getOperator();
         int k = CodeGen.lookupBinOp(token);
-        if (k >= 0) {
+        if (k < 0) {
+            /* equation: &&, ||, ==, !=, <=, >=, <, >
+            */
+            booleanExpr(expr);
+        }
+        else {
             /* arithmetic operators: +, -, *, /, %, |, ^, &, <<, >>, >>>
              */
-            if (token == '+') {
+            if (token != '+')
+                atNonPlusExpr(expr, token);
+            else {
                 Expr e = atPlusExpr(expr);
                 if (e != null) {
                     /* String concatenation has been translated into
                      * an expression using StringBuffer.
                      */
                     e = CallExpr.makeCall(Expr.make('.', e,
-                                            new Member("toString")), null);
-                    expr.setLeft(e);
-                    expr.setOprand2(null);    // <---- look at this!
+                                          new Member("toString")), null);
                     className = jvmJavaLangString;
+                    modifiedExpr = e;       // expr will be replaced with e.
                 }
             }
-            else {
-                expr.oprand1().accept(this);
-                int type1 = exprType;
-                expr.oprand2().accept(this);
-                computeBinExprType(expr, token, type1);
-            }
-        }
-        else {
-            /* equation: &&, ||, ==, !=, <=, >=, <, >
-            */
-            booleanExpr(expr);
         }
     }
 
-    // expr must be a + expression.
+    private void atNonPlusExpr(BinExpr expr, int token) throws CompileError {
+        ASTree left = expr.oprand1();
+        ASTree right = expr.oprand2();
+
+        left.accept(this);
+        if (modifiedExpr != null) {
+            left = modifiedExpr;
+            expr.setOprand1(left);
+        }
+
+        int type1 = exprType;
+        right.accept(this);
+        if (modifiedExpr != null) {
+            right = modifiedExpr;
+            expr.setOprand2(right);
+        }
+
+        modifiedExpr = computeConstExpr(token, left, right);
+        computeBinExprType(expr, token, type1);
+    }
+
+    /* This method deals with string concatenation.  It converts a +
+     * expression on String such as:
+     *     "value:" + i + "."
+     * into:
+     *     new StringBuffer().append("value:").append(i).append(".")
+     *                          .toString()
+     *
+     * This method also inserts a cast operator for the right operand
+     * if needed.
+     *
+     * EXPR must be a + expression.
+     *
+     * atPlusExpr() returns null if the expression is not a string
+     * concatenation.
+     */
     private Expr atPlusExpr(BinExpr expr) throws CompileError {
         ASTree left = expr.oprand1();
         ASTree right = expr.oprand2();
-        if (right == null) {
-            /* this expression has been already type-checked since it is
-               string concatenation.
-               see atBinExpr() above.
-             */
-            exprType = CLASS;
-            arrayDim = 0;
-            className = jvmJavaLangString;
-            return null;
-        }
 
         if (isPlusExpr(left)) {
             Expr newExpr = atPlusExpr((BinExpr)left);
             if (newExpr != null) {
                 right.accept(this);
+                if (modifiedExpr != null)
+                    right = modifiedExpr;
+
                 exprType = CLASS;
                 arrayDim = 0;
                 className = "java/lang/StringBuffer";
+                modifiedExpr = null;
                 return makeAppendCall(newExpr, right);
             }
         }
@@ -291,17 +363,37 @@ public class TypeChecker extends Visitor implements Opcode, TokenId {
         int type1 = exprType;
         int dim1 = arrayDim;
         String cname = className;
+        if (modifiedExpr != null) {
+            left = modifiedExpr;
+            expr.setOprand1(left);
+        }
+
         right.accept(this);
+        if (modifiedExpr != null) {
+            right = modifiedExpr;
+            expr.setOprand2(right);
+        }
+
+        modifiedExpr = computeConstExpr('+', left, right);
         if ((type1 == CLASS && dim1 == 0 && jvmJavaLangString.equals(cname))
             || (exprType == CLASS && arrayDim == 0
-                && jvmJavaLangString.equals(className))) {
-            ASTList sbufClass = ASTList.make(new Symbol("java"),
-                            new Symbol("lang"), new Symbol("StringBuffer"));
-            ASTree e = new NewExpr(sbufClass, null);
+                && jvmJavaLangString.equals(className)))
+        {
             exprType = CLASS;
             arrayDim = 0;
-            className = "java/lang/StringBuffer";
-            return makeAppendCall(makeAppendCall(e, left), right);
+            if (modifiedExpr != null) {
+                // this expression is constant.
+                className = jvmJavaLangString;
+                return null;
+            }
+            else {
+                className = "java/lang/StringBuffer";
+                ASTList sbufClass = ASTList.make(new Symbol("java"),
+                                                 new Symbol("lang"),
+                                                 new Symbol("StringBuffer"));
+                ASTree e = new NewExpr(sbufClass, null);
+                return makeAppendCall(makeAppendCall(e, left), right);
+            }
         }
         else {
             computeBinExprType(expr, '+', type1);
@@ -336,33 +428,54 @@ public class TypeChecker extends Visitor implements Opcode, TokenId {
 
         if (CodeGen.isP_INT(exprType))
             exprType = INT;         // type1 may be BYTE, ...
+
+        arrayDim = 0;
+        // don't change the value of modifiedExpr.
     }
 
     private void booleanExpr(ASTree expr)
         throws CompileError
     {
+        ASTree modExpr = null;
         int op = CodeGen.getCompOperator(expr);
         if (op == EQ) {         // ==, !=, ...
             BinExpr bexpr = (BinExpr)expr;
             bexpr.oprand1().accept(this);
+            if (modifiedExpr != null)
+                bexpr.setOprand1(modifiedExpr);
+
             int type1 = exprType;
             int dim1 = arrayDim;
             bexpr.oprand2().accept(this);
+            if (modifiedExpr != null)
+                bexpr.setOprand2(modifiedExpr);
+
             if (dim1 == 0 && arrayDim == 0)
                 insertCast(bexpr, type1, exprType);
         }
-        else if (op == '!')
+        else if (op == '!') {
             ((Expr)expr).oprand1().accept(this);
+            if (modifiedExpr != null)
+                ((Expr)expr).setOprand1(modifiedExpr);
+        }
         else if (op == ANDAND || op == OROR) {
             BinExpr bexpr = (BinExpr)expr;
             bexpr.oprand1().accept(this);
+            if (modifiedExpr != null)
+                bexpr.setOprand1(modifiedExpr);
+
             bexpr.oprand2().accept(this);
+            if (modifiedExpr != null)
+                bexpr.setOprand2(modifiedExpr);
         }
-        else                // others
+        else {               // others
             expr.accept(this);
+            modExpr = modifiedExpr;
+        }
 
         exprType = BOOLEAN;
         arrayDim = 0;
+        modifiedExpr = modExpr;
     }
 
     private void insertCast(BinExpr expr, int type1, int type2)
@@ -374,18 +487,37 @@ public class TypeChecker extends Visitor implements Opcode, TokenId {
             exprType = type1;
     }
 
+    private ASTree computeConstExpr(int op, ASTree left, ASTree right) {
+        if (left instanceof StringL && right instanceof StringL && op == '+')
+            return new StringL(((StringL)left).get() + ((StringL)right).get());
+        else if (left instanceof IntConst)
+            return ((IntConst)left).compute(op, right);
+        else if (left instanceof DoubleConst)
+            return ((DoubleConst)left).compute(op, right);
+        else
+            return null;        // not constant expression
+    }
+
     public void atCastExpr(CastExpr expr) throws CompileError {
         String cname = resolveClassName(expr.getClassName());
         expr.getOprand().accept(this);
+        if (modifiedExpr != null)
+            expr.setOprand(modifiedExpr);
+
         exprType = expr.getType();
         arrayDim = expr.getArrayDim();
         className = cname;
+        modifiedExpr = null;
     }
 
     public void atInstanceOfExpr(InstanceOfExpr expr) throws CompileError {
         expr.getOprand().accept(this);
+        if (modifiedExpr != null)
+            expr.setOprand(modifiedExpr);
+
         exprType = BOOLEAN;
         arrayDim = 0;
+        modifiedExpr = null;
     }
 
     public void atExpr(Expr expr) throws CompileError {
@@ -411,7 +543,7 @@ public class TypeChecker extends Visitor implements Opcode, TokenId {
                 atFieldRead(expr);
         }
         else if (token == ARRAY)
-            atArrayRead(oprand, expr.oprand2());
+            atArrayRead(expr);
         else if (token == PLUSPLUS || token == MINUSMINUS)
             atPlusPlus(token, oprand, expr);
         else if (token == '!')
@@ -419,11 +551,38 @@ public class TypeChecker extends Visitor implements Opcode, TokenId {
         else if (token == CALL)              // method call
             fatal();
         else {
-            expr.oprand1().accept(this);
-            if (token == '-' || token == '~')
+            oprand.accept(this);
+            if (modifiedExpr != null) {
+                oprand = modifiedExpr;
+                expr.setOprand1(oprand);
+            }
+
+            modifiedExpr = computeConstExpr(token, oprand);
+            if (token == '-' || token == '~') {
                 if (CodeGen.isP_INT(exprType))
                     exprType = INT;         // type may be BYTE, ...
+            }
         }
+    }
+
+    private ASTree computeConstExpr(int op, ASTree oprand) {
+        if (oprand instanceof IntConst) {
+            IntConst c = (IntConst)oprand;
+            long v = c.get();
+            if (op == '-')
+                v = -v;
+            else if (op == '~')
+                v = ~v;
+
+            c.set(v);
+        }
+        else if (oprand instanceof DoubleConst) {
+            DoubleConst c = (DoubleConst)oprand;
+            if (op == '-')
+                c.set(-c.get());
+        }
+
+        return null;
     }
 
     public void atCallExpr(CallExpr expr) throws CompileError {
@@ -455,6 +614,8 @@ public class TypeChecker extends Visitor implements Opcode, TokenId {
                 ASTree target = e.oprand1();
                 try {
                     target.accept(this);
+                    if (modifiedExpr != null)
+                        e.setOprand1(modifiedExpr);
                 }
                 catch (NoFieldException nfe) {
                     if (nfe.getExpr() != target)
@@ -482,6 +643,7 @@ public class TypeChecker extends Visitor implements Opcode, TokenId {
         MemberResolver.Method minfo
             = atMethodCallCore(targetClass, mname, args);
         expr.setMethod(minfo);
+        modifiedExpr = null;
     }
 
     private static void badMethod() throws CompileError {
@@ -489,6 +651,8 @@ public class TypeChecker extends Visitor implements Opcode, TokenId {
     }
 
     /**
+     * modifiedExpr is not set.
+     *
      * @return  a pair of the class declaring the invoked method
      *          and the MethodInfo of that method.  Never null.
      */
@@ -531,6 +695,9 @@ public class TypeChecker extends Visitor implements Opcode, TokenId {
         while (args != null) {
             ASTree a = args.head();
             a.accept(this);
+            if (modifiedExpr != null)
+                args.setHead(modifiedExpr);
+
             types[i] = exprType;
             dims[i] = arrayDim;
             cnames[i] = className;
@@ -539,6 +706,8 @@ public class TypeChecker extends Visitor implements Opcode, TokenId {
         }
     }
 
+    /* modifiedExpr is not set.
+     */
     void setReturnType(String desc) throws CompileError {
         int i = desc.indexOf(')');
         if (i < 0)
@@ -566,11 +735,8 @@ public class TypeChecker extends Visitor implements Opcode, TokenId {
         }
     }
 
-    private void atFieldRead(ASTree expr) throws CompileError {
-        atFieldRead(fieldAccess(expr));
-    }
-
-    private void atFieldRead(CtField f) throws CompileError {
+    private CtField atFieldRead(ASTree expr) throws CompileError {
+        CtField f = fieldAccess(expr);
         FieldInfo finfo = f.getFieldInfo2();
         String type = finfo.getDescriptor();
 
@@ -589,6 +755,9 @@ public class TypeChecker extends Visitor implements Opcode, TokenId {
             className = type.substring(i + 1, type.indexOf(';', i + 1));
         else
             className = null;
+
+        modifiedExpr = null; ??
+        return f;
     }
 
     protected CtField fieldAccess(ASTree expr) throws CompileError {
@@ -611,6 +780,9 @@ public class TypeChecker extends Visitor implements Opcode, TokenId {
             else if (op == '.')
                 try {
                     e.oprand1().accept(this);
+                    if (modifiedExpr != null)
+                        e.setOprand1(modifiedExpr);
+
                     if (exprType == CLASS && arrayDim == 0)
                         return resolver.lookupFieldByJvmName(className,
                                                     (Symbol)e.oprand2());
@@ -636,25 +808,38 @@ public class TypeChecker extends Visitor implements Opcode, TokenId {
         exprType = CLASS;
         arrayDim = 0;
         className =jvmJavaLangClass;
+        modifiedExpr = null;
     }
 
     public void atArrayLength(Expr expr) throws CompileError {
         expr.oprand1().accept(this);
+        if (modifiedExpr != null)
+            expr.setOprand1(modifiedExpr);
+
         exprType = INT;
         arrayDim = 0;
+        modifiedExpr = null;
     }
 
-    public void atArrayRead(ASTree array, ASTree index)
-        throws CompileError
-    {
+    public void atArrayRead(Expr expr) throws CompileError {
+        ASTree array = expr.oprand1();
         array.accept(this);
+        if (modifiedExpr != null)
+            expr.setOprand1(modifiedExpr);
+
         int type = exprType;
         int dim = arrayDim;
         String cname = className;
+
+        ASTree index = expr.oprand2();
         index.accept(this);
+        if (modifiedExpr != null)
+            expr.setOprand2(modifiedExpr);
+
         exprType = type;
         arrayDim = dim - 1;
         className = cname;
+        modifiedExpr = null;
     }
 
     private void atPlusPlus(int token, ASTree oprand, Expr expr)
@@ -668,12 +853,13 @@ public class TypeChecker extends Visitor implements Opcode, TokenId {
             Declarator d = ((Variable)oprand).getDeclarator();
             exprType = d.getType();
             arrayDim = d.getArrayDim();
+            modifiedExpr = null;
         }
         else {
             if (oprand instanceof Expr) {
                 Expr e = (Expr)oprand;
                 if (e.getOperator() == ARRAY) {
-                    atArrayRead(e.oprand1(), e.oprand2());
+                    atArrayRead(e);
                     // arrayDim should be 0.
                     int t = exprType;
                     if (t == INT || t == BYTE || t == CHAR || t == SHORT)
@@ -689,8 +875,7 @@ public class TypeChecker extends Visitor implements Opcode, TokenId {
 
     protected void atFieldPlusPlus(ASTree oprand) throws CompileError
     {
-        CtField f = fieldAccess(oprand);
-        atFieldRead(f);
+        atFieldRead(oprand);
         int t = exprType;
         if (t == INT || t == BYTE || t == CHAR || t == SHORT)
             exprType = INT;
