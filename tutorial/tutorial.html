@@ -61,7 +61,7 @@ mapping between classes and <code>CtClass</code> objects.  Javassist
 never allows two distinct <code>CtClass</code> objects to represent
 the same class unless two independent <code>ClassPool</code> are created.
 This is a significant feature for consistent program
-transformaiton.  To create multiple
+transformation.  To create multiple
 instances of <code>ClassPool</code>, write the following code:
 
 <ul><pre>
@@ -119,7 +119,7 @@ pool.insertClassPath(new ClassClassPath(this.getClass()));
 
 <p>
 This statement registers the class path that was used for loading
-the class of the object that <code>this</code> referes to.
+the class of the object that <code>this</code> refers to.
 You can use any <code>Class</code> object as an argument instead of
 <code>this.getClass()</code>.  The class path used for loading the
 class represented by that <code>Class</code> object is registered.

@@ -46,7 +46,7 @@ in <code>CtClass</code> should be called.
 For example,
 
 <ul><pre>
-FileInputStream fin
+BufferedInputStream fin
     = new BufferedInputStream(new FileInputStream("Point.class"));
 ClassFile cf = new ClassFile(new DataInputStream(fin));
 </pre></ul>
