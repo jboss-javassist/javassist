@@ -117,7 +117,7 @@ public class ClassPool {
      * <p>When this method is called for the first time, the default
      * class pool is created with the following code snippet:
      *
-     * <ul><code>ClassPool cp = new ClassPool(null);
+     * <ul><code>ClassPool cp = new ClassPool();
      * cp.appendSystemPath();
      * </code></ul>
      *
@@ -140,32 +140,43 @@ public class ClassPool {
 
     /**
      * Provide a hook so that subclasses can do their own
-     * caching of classes
+     * caching of classes.
      *
+     * @see #cacheCtClass(String,CtClass)
      * @see #removeCached(String)
      */
-     protected CtClass getCached(String classname)
-     {
-         return (CtClass)classes.get(classname); 
-     }
+    protected CtClass getCached(String classname) {
+        return (CtClass)classes.get(classname); 
+    }
+
+    /**
+     * Provides a hook so that subclasses can do their own
+     * caching of classes.
+     *
+     * @see #getCached(String)
+     * @see #removeCached(String,CtClass)
+     */
+    protected void cacheCtClass(String classname, CtClass c) {
+        classes.put(classname, c);
+    }
 
     /**
      * Provide a hook so that subclasses can do their own
-     * caching of classes
+     * caching of classes.
      *
      * @see #getCached(String)
+     * @see #cacheCtClass(String,CtClass)
      */
-     protected void removeCached(String classname)
-     {
-         classes.remove(classname);
-     }
+    protected void removeCached(String classname) {
+        classes.remove(classname);
+    }
 
-     /**
-      * Returns the class search path.
-      */
-     public String toString() {
-         return source.toString();
-     }
+    /**
+     * Returns the class search path.
+     */
+    public String toString() {
+        return source.toString();
+    }
 
     /**
      * Records a name that never exists.
@@ -305,7 +316,7 @@ public class ClassPool {
 
         String newName = clazz.getName();
         checkNotFrozen(newName);
-        classes.put(newName, clazz);
+        cacheCtClass(newName, clazz);
     }
 
     /**
@@ -356,7 +367,7 @@ public class ClassPool {
         clazz = createCtClass(classname, useCache);
         if (clazz != null) {
             if (useCache)
-                classes.put(classname, clazz);
+                cacheCtClass(classname, clazz);
 
             return clazz;
         }
@@ -374,7 +385,7 @@ public class ClassPool {
      *
      * @return null if the class file could not be found.
      */
-    private CtClass createCtClass(String classname, boolean useCache) {
+    protected CtClass createCtClass(String classname, boolean useCache) {
         if (classname.endsWith("[]")) {
             String base = classname.substring(0, classname.indexOf('['));
             if ((!useCache || getCached(base) == null) && find(base) == null)
@@ -398,7 +409,7 @@ public class ClassPool {
      * @return null if the class file could not be found.
      * @see CtClassType#getURL()
      */
-    URL find(String classname) {
+    public URL find(String classname) {
         return source.find(classname);
     }
 
@@ -500,7 +511,7 @@ public class ClassPool {
         clazz.checkModify();
         String classname = clazz.getName();
         checkNotFrozen(classname);
-        classes.put(classname, clazz);
+        cacheCtClass(classname, clazz);
         return clazz;
     }
 
@@ -530,7 +541,7 @@ public class ClassPool {
     {
         checkNotFrozen(classname);
         CtClass clazz = new CtNewClass(classname, this, false, superclass);
-        classes.put(classname, clazz);
+        cacheCtClass(classname, clazz);
         return clazz;
     }
 
@@ -560,7 +571,7 @@ public class ClassPool {
     {
         checkNotFrozen(name);
         CtClass clazz = new CtNewClass(name, this, true, superclass);
-        classes.put(name, clazz);
+        cacheCtClass(name, clazz);
         return clazz;
     }
 
