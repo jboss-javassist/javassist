@@ -316,6 +316,22 @@ class CtClassType extends CtClass {
             getClassFile2().addInterface(anInterface.getName());
     }
 
+    public CtClass getDeclaringClass() throws NotFoundException {
+        ClassFile cf = getClassFile2();
+        InnerClassesAttribute ica = (InnerClassesAttribute)cf.getAttribute(
+                                                InnerClassesAttribute.tag);
+        if (ica == null)
+            return null;
+
+        String name = getName();
+        int n = ica.tableLength();
+        for (int i = 0; i < n; ++i)
+            if (name.equals(ica.innerClass(i)))
+                return classPool.get(ica.outerClass(i));
+
+        return null;
+    }
+
     public CtField[] getFields() {
         ArrayList alist = new ArrayList();
         getFields(alist, this);

@@ -308,7 +308,12 @@ public class MemberCodeGen extends CodeGen {
         throw new CompileError("bad method");
     }
 
-    // atMethodCallCore() is also called by doit() in NewExpr.ProceedForNew
+    /*
+     * atMethodCallCore() is also called by doit() in NewExpr.ProceedForNew
+     *
+     * @param targetClass       the class at which method lookup starts.
+     * @param found         not null if the method look has been already done.
+     */
     public void atMethodCallCore(CtClass targetClass, String mname,
                         ASTList args, boolean isStatic, boolean isSpecial,
                         int aload0pos, MemberResolver.Method found)
@@ -358,8 +363,10 @@ public class MemberCodeGen extends CodeGen {
         }
         else if ((acc & AccessFlag.PRIVATE) != 0) {
             isSpecial = true;
-            if (declClass != targetClass)
-                throw new CompileError("Method " + mname + "is private");
+            String orgName = mname;
+            mname = getAccessiblePrivate(mname, declClass);
+            if (mname == null)
+                throw new CompileError("Method " + orgName + " is private");
         }
 
         boolean popTarget = false;
@@ -390,6 +397,28 @@ public class MemberCodeGen extends CodeGen {
                 bytecode.addInvokevirtual(declClass, mname, desc);
 
         setReturnType(desc, isStatic, popTarget);
+    }
+
+    protected String getAccessiblePrivate(String methodName,
+                                          CtClass declClass) {
+        if (declClass == thisClass)
+            return methodName;
+        else if (isEnclosing(declClass, thisClass))
+            return null;
+        else
+            return null;    // cannot access this private method.
+    }
+
+    private boolean isEnclosing(CtClass outer, CtClass inner) {
+        try {
+            while (inner != null) {
+                inner = inner.getDeclaringClass();
+                if (inner == outer)
+                    return true;
+            }
+        }
+        catch (NotFoundException e) {}
+        return false;   
     }
 
     public int getMethodArgsLength(ASTList args) {

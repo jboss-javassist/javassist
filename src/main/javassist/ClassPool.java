@@ -362,7 +362,12 @@ public class ClassPool {
      * @param classname         a fully-qualified class name.
      */
     public CtClass get(String classname) throws NotFoundException {
-        CtClass clazz = get0(classname, true);
+        CtClass clazz;
+        if (classname == null)
+            clazz = null;
+        else
+            clazz = get0(classname, true);
+
         if (clazz == null)
             throw new NotFoundException(classname);
         else

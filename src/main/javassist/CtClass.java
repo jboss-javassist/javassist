@@ -481,6 +481,16 @@ public abstract class CtClass {
     }
 
     /**
+     * If this class is a member class or interface of another class,
+     * then the class enclosing this class is returned.
+     *
+     * @return null if this class is a top-level class.
+     */
+    public CtClass getDeclaringClass() throws NotFoundException {
+        return null;
+    }
+
+    /**
      * Returns an array containing <code>CtField</code> objects
      * representing all the public fields of the class.
      * That array includes public fields inherited from the

@@ -46,22 +46,64 @@ public class InnerClassesAttribute extends AttributeInfo {
     /**
      * Returns <code>classes[nth].inner_class_info_index</code>.
      */
-    public int innerClass(int nth) {
+    public int innerClassIndex(int nth) {
         return ByteArray.readU16bit(get(), nth * 8 + 2);
+    }
+
+    /**
+     * Returns the class name indicated
+     * by <code>classes[nth].inner_class_info_index</code>.
+     *
+     * @return null or the class name.
+     */
+    public String innerClass(int nth) {
+        int i = innerClassIndex(nth);
+        if (i == 0)
+            return null;
+        else
+            return constPool.getClassInfo(i);
     }
 
     /**
      * Returns <code>classes[nth].outer_class_info_index</code>.
      */
-    public int outerClass(int nth) {
+    public int outerClassIndex(int nth) {
         return ByteArray.readU16bit(get(), nth * 8 + 4);
+    }
+
+    /**
+     * Returns the class name indicated
+     * by <code>classes[nth].outer_class_info_index</code>.
+     *
+     * @return null or the class name.
+     */
+    public String outerClass(int nth) {
+        int i = outerClassIndex(nth);
+        if (i == 0)
+            return null;
+        else
+            return constPool.getClassInfo(i);
     }
 
     /**
      * Returns <code>classes[nth].inner_name_index</code>.
      */
-    public int innerName(int nth) {
+    public int innerNameIndex(int nth) {
         return ByteArray.readU16bit(get(), nth * 8 + 6);
+    }
+
+    /**
+     * Returns the simple class name indicated
+     * by <code>classes[nth].inner_name_index</code>.
+     *
+     * @return null or the class name.
+     */
+    public String innerName(int nth) {
+        int i = innerNameIndex(nth);
+        if (i == 0)
+            return null;
+        else
+            return constPool.getUtf8Info(i);
     }
 
     /**
