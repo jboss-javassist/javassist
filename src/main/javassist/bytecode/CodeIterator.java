@@ -638,6 +638,12 @@ public class CodeIterator implements Opcode {
         if (va != null)
             va.shiftPc(where, gapLength, exclusive);
 
+        LocalVariableAttribute vta
+            = (LocalVariableAttribute)ca.getAttribute(
+                                              LocalVariableAttribute.typeTag);
+        if (vta != null)
+            vta.shiftPc(where, gapLength, exclusive);
+
         return newcode;
     }
 

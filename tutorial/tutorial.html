@@ -400,6 +400,15 @@ program by a user-defined class loader.  The latter one, as well as
 the program of the user-defined class loader, should be loaded by the
 system class loader.
 
+<ul>
+<b>Note:</b> The JVM does not allow dynamically reloading a class.
+Once a class loader loads a class, it cannot reload a modified
+version of that class during runtime.  Thus, you cannot alter
+the definition of a class after the JVM loads it.
+However, the JPDA (Java Platform Debugger Architecture) provides
+limited ability for reloading a class.  See "HotSwap" of JPDA for details.
+</ul>
+
 <p><br>
 
 <h3>4.1 Class loading in Java</h3>
@@ -589,15 +598,15 @@ The event-listener class must implement the following interface:
 <ul><pre>public interface Translator {
     public void start(ClassPool pool)
         throws NotFoundException, CannotCompileException;
-    public void onWrite(ClassPool pool, String classname)
+    public void onLoad(ClassPool pool, String classname)
         throws NotFoundException, CannotCompileException;
 }</pre></ul>
 
 <p>The method <code>start()</code> is called when this event listener
 is added to a <code>javassist.Loader</code> object by
 <code>addTranslator()</code> in <code>javassist.Loader</code>.  The
-method <code>onWrite()</code> is called before
-<code>javassist.Loader</code> loads a class.  <code>onWrite()</code>
+method <code>onLoad()</code> is called before
+<code>javassist.Loader</code> loads a class.  <code>onLoad()</code>
 can modify the definition of the loaded class.
 
 <p>For example, the following event listener changes all classes
@@ -606,7 +615,7 @@ to public classes just before they are loaded.
 <ul><pre>public class MyTranslator implements Translator {
     void start(ClassPool pool)
         throws NotFoundException, CannotCompileException {}
-    void onWrite(ClassPool pool, String classname)
+    void onLoad(ClassPool pool, String classname)
         throws NotFoundException, CannotCompileException
     {
         CtClass cc = pool.get(classname);
@@ -614,7 +623,7 @@ to public classes just before they are loaded.
     }
 }</pre></ul>
 
-<p>Note that <code>onWrite()</code> does not have to call
+<p>Note that <code>onLoad()</code> does not have to call
 <code>toBytecode()</code> or <code>writeFile()</code> since
 <code>javassist.Loader</code> calls these methods to obtain a class
 file.

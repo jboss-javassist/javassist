@@ -178,6 +178,8 @@ public final class MethodInfo {
 
     /**
      * Returns all the attributes.
+     * A new element can be added to the returned list
+     * and an existing element can be removed from the list.
      *
      * @return a list of <code>AttributeInfo</code> objects.
      * @see AttributeInfo

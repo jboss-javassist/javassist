@@ -84,10 +84,16 @@ In other words, a <code>FieldInfo</code> (or <code>MethodInfo</code> etc.) objec
 must not be shared among different <code>ClassFile</code> objects.
 
 <p>
-To remove a field or a method, you must first obtain a <code>java.util.List</code>
+To remove a field or a method,
+you must first obtain a <code>java.util.List</code>
 object containing all the fields of the class.  <code>getFields()</code>
 and <code>getMethods()</code> return the lists.  A field or a method can
 be removed by calling <code>remove()</code> on the <code>List</code> object.
+An attribute can be removed in a similar way.
+Call <code>getAttributes()</code> in <code>FieldInfo</code> or
+<code>MethodInfo</code> to obtain the list of attributes,
+and remove one from the list.
+
 
 <p><br>
 

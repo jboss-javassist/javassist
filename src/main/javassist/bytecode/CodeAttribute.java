@@ -81,7 +81,7 @@ public class CodeAttribute extends AttributeInfo implements Opcode {
         maxStack = src.getMaxStack();
         maxLocals = src.getMaxLocals();
         exceptions = src.getExceptionTable().copy(cp, classnames);
-        info = src.copyCode(cp, classnames, exceptions);
+        info = src.copyCode(cp, classnames, exceptions, this);
         attributes = new LinkedList();
 
         /* Since an index into the source constant pool table may not
@@ -279,6 +279,8 @@ public class CodeAttribute extends AttributeInfo implements Opcode {
     /**
      * Returns <code>attributes[]</code>.
      * It returns a list of <code>AttributeInfo</code>.
+     * A new element can be added to the returned list
+     * and an existing element can be removed from the list.
      *
      * @see AttributeInfo
      */
@@ -299,7 +301,7 @@ public class CodeAttribute extends AttributeInfo implements Opcode {
      * Copies code.
      */
     private byte[] copyCode(ConstPool destCp, Map classnames,
-                            ExceptionTable etable)
+                            ExceptionTable etable, CodeAttribute destCa)
         throws BadBytecode
     {
         int len = getCodeLength();
@@ -307,7 +309,7 @@ public class CodeAttribute extends AttributeInfo implements Opcode {
 
         LdcEntry ldc = copyCode(this.info, 0, len, this.getConstPool(),
                                 newCode, destCp, classnames);
-        return LdcEntry.doit(newCode, ldc, etable, this);
+        return LdcEntry.doit(newCode, ldc, etable, destCa);
     }
 
     private static LdcEntry copyCode(byte[] code, int beginPos, int endPos,

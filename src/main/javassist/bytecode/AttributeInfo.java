@@ -67,7 +67,8 @@ public class AttributeInfo {
     }
 
     static AttributeInfo read(ConstPool cp, DataInputStream in)
-        throws IOException {
+        throws IOException
+    {
         int name = in.readUnsignedShort();
         String nameStr = cp.getUtf8Info(name);
         if (nameStr.charAt(0) < 'L') {
@@ -77,6 +78,8 @@ public class AttributeInfo {
                 return new ConstantAttribute(cp, name, in);
             else if (nameStr.equals(DeprecatedAttribute.tag))
                 return new DeprecatedAttribute(cp, name, in);
+            else if (nameStr.equals(EnclosingMethodAttribute.tag))
+                return new EnclosingMethodAttribute(cp, name, in);
             else if (nameStr.equals(ExceptionsAttribute.tag))
                 return new ExceptionsAttribute(cp, name, in);
             else if (nameStr.equals(InnerClassesAttribute.tag))
@@ -87,7 +90,8 @@ public class AttributeInfo {
              */
             if (nameStr.equals(LineNumberAttribute.tag))
                 return new LineNumberAttribute(cp, name, in);
-            else if (nameStr.equals(LocalVariableAttribute.tag))
+            else if (nameStr.equals(LocalVariableAttribute.tag)
+                     || nameStr.equals(LocalVariableAttribute.typeTag))
                 return new LocalVariableAttribute(cp, name, in);
             else if (nameStr.equals(AnnotationsAttribute.visibleTag)
                      || nameStr.equals(AnnotationsAttribute.invisibleTag))
@@ -95,6 +99,8 @@ public class AttributeInfo {
             else if (nameStr.equals(ParameterAnnotationsAttribute.visibleTag)
                 || nameStr.equals(ParameterAnnotationsAttribute.invisibleTag))
                 return new ParameterAnnotationsAttribute(cp, name, in);
+            else if (nameStr.equals(SignatureAttribute.tag))
+                return new SignatureAttribute(cp, name, in);
             else if (nameStr.equals(SourceFileAttribute.tag))
                 return new SourceFileAttribute(cp, name, in);
             else if (nameStr.equals(SyntheticAttribute.tag))

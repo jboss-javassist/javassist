@@ -20,13 +20,19 @@ import java.io.IOException;
 import java.util.Map;
 
 /**
- * <code>LocalVariableTable_attribute</code>.
+ * <code>LocalVariableTable_attribute</code> or
+ * <code>LocalVariableTypeTable_attribute</code>.
  */
 public class LocalVariableAttribute extends AttributeInfo {
     /**
      * The name of this attribute <code>"LocalVariableTable"</code>.
      */
     public static final String tag = "LocalVariableTable";
+
+    /**
+     * The name of the attribute <code>"LocalVariableTypeTable"</code>.
+     */
+    public static final String typeTag = "LocalVariableTypeTable";
 
     LocalVariableAttribute(ConstPool cp, int n, DataInputStream in)
         throws IOException
@@ -85,7 +91,7 @@ public class LocalVariableAttribute extends AttributeInfo {
     }
 
     /**
-     * Returns <code>local_variable_table[i].name_index</code>.
+     * Returns the value of <code>local_variable_table[i].name_index</code>.
      * This represents the name of the local variable.
      *
      * @param i         the i-th entry.
@@ -105,8 +111,14 @@ public class LocalVariableAttribute extends AttributeInfo {
     }
 
     /**
-     * Returns <code>local_variable_table[i].descriptor_index</code>.
+     * Returns the value of
+     * <code>local_variable_table[i].descriptor_index</code>.
      * This represents the type descriptor of the local variable.
+     * <p>
+     * If this attribute represents a LocalVariableTypeTable attribute,
+     * this method returns the value of
+     * <code>local_variable_type_table[i].signature_index</code>.
+     * It represents the type of the local variable.
      *
      * @param i         the i-th entry.
      */
@@ -115,13 +127,43 @@ public class LocalVariableAttribute extends AttributeInfo {
     }
 
     /**
+     * This method is equivalent to <code>descriptorIndex()</code>.
+     * If this attribute represents a LocalVariableTypeTable attribute,
+     * this method should be used instead of <code>descriptorIndex()</code>
+     * since the method name is more appropriate.
+     * 
+     * @param i         the i-th entry.
+     * @see #descriptorIndex(int)
+     */
+    public int signatureIndex(int i) {
+        return descriptorIndex(i);
+    }
+
+    /**
      * Returns the type descriptor of the local variable
      * specified by <code>local_variable_table[i].descriptor_index</code>.
-     *
+     * <p>
+     * If this attribute represents a LocalVariableTypeTable attribute,
+     * this method returns the type signature of the local variable
+     * specified by <code>local_variable_type_table[i].signature_index</code>.
+      *
      * @param i         the i-th entry.
      */
     public String descriptor(int i) {
         return getConstPool().getUtf8Info(descriptorIndex(i));
+    }
+
+    /**
+     * This method is equivalent to <code>descriptor()</code>.
+     * If this attribute represents a LocalVariableTypeTable attribute,
+     * this method should be used instead of <code>descriptor()</code>
+     * since the method name is more appropriate.
+     * 
+     * @param i         the i-th entry.
+     * @see #descriptor(int)
+     */
+    public String signature(int i) {
+        return descriptor(i);
     }
 
     /**

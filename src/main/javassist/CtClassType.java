@@ -830,6 +830,7 @@ class CtClassType extends CtClass {
                 modifyConstructors(cf);
                 cf.write(out);
                 out.flush();
+                fieldInitializers = null;
             }
             else 
                 classPool.writeClassfile(getName(), out);
@@ -844,9 +845,12 @@ class CtClassType extends CtClass {
         }
     }
 
-    protected void modifyClassConstructor(ClassFile cf)
+    private void modifyClassConstructor(ClassFile cf)
         throws CannotCompileException, NotFoundException
     {
+        if (fieldInitializers == null)
+            return;
+
         Bytecode code = new Bytecode(cf.getConstPool(), 0, 0);
         Javac jv = new Javac(code, this);
         int stacksize = 0;
@@ -903,7 +907,7 @@ class CtClassType extends CtClass {
         }
     }
 
-    protected void modifyConstructors(ClassFile cf)
+    private void modifyConstructors(ClassFile cf)
         throws CannotCompileException, NotFoundException
     {
         if (fieldInitializers == null)
