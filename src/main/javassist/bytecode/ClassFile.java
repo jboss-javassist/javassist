@@ -171,46 +171,26 @@ public final class ClassFile {
     /**
      * Sets the super class.
      *
-     * <p>Unless the old super class is
-     * <code>java.lang.Object</code>, this method substitutes the new name
-     * for all occurrences of the old class name in the class file.
-     * If the old super class is <code>java.lang.Object</code>,
-     * only the calls to a super constructor are modified.
+     * <p>This method modifies constructors so that they call
+     * constructors declared in the new super class.
      */
     public void setSuperclass(String superclass)
         throws CannotCompileException
     {
-        if (constPool.getClassInfo(superClass).equals("java.lang.Object")) {
-            if (superclass != null)
-                try {
-                    superClass = constPool.addClassInfo(superclass);
-                    setSuperclass2(superclass);
-                }
-                catch (BadBytecode e) {
-                    throw new CannotCompileException(e);
-                }
-        }
-        else {
-            if (superclass == null)
-                superclass = "java.lang.Object";
+        if (superclass == null)
+            superclass = "java.lang.Object";
 
-            renameClass(constPool.getClassInfo(superClass), superclass);
+        try {
+            superClass = constPool.addClassInfo(superclass);
+            LinkedList list = methods;
+            int n = list.size();
+            for (int i = 0; i < n; ++i) {
+                MethodInfo minfo = (MethodInfo)list.get(i);
+                minfo.setSuperclass(superclass);
+            }
         }
-    }
-
-    /* If the original super class is java.lang.Object, a special
-     * treatment is needed.  Some occurrences of java.lang.Object
-     * in the class file should not be changed into the new super
-     * class name.  For example, the call of Vector.addElement(Object)
-     * should not be changed into the call of Vector.addElement(X),
-     * where X is the new super class.
-     */
-    private void setSuperclass2(String superclass) throws BadBytecode {
-        LinkedList list = methods;
-        int n = list.size();
-        for (int i = 0; i < n; ++i) {
-            MethodInfo minfo = (MethodInfo)list.get(i);
-            minfo.setSuperclass(superclass);
+        catch (BadBytecode e) {
+            throw new CannotCompileException(e);
         }
     }
 

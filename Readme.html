@@ -239,6 +239,8 @@ see javassist.Dump.
 <p>- version 2.6 in August, 2003.
 
 <ul>
+  <li>The behavior of CtClass.setSuperclass() was changed.
+      To obtain the previous behavior, call CtClass.replaceClassName().
   <li>CtConstructor.setBody() now works for class initializers.
   <li>CtNewMethod.delegator() now works for static methods.
   <li>javassist.expr.Expr.indexOfBytecode() has been added.
