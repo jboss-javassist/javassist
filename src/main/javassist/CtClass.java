@@ -148,6 +148,28 @@ public abstract class CtClass {
     }
 
     /**
+     * Converts the object to a string.
+     */
+    public String toString() {
+        StringBuffer buf = new StringBuffer(getClass().getName());
+        buf.append("@");
+        buf.append(Integer.toHexString(hashCode()));
+        buf.append("[");
+        buf.append(Modifier.toString(getModifiers()));
+        buf.append(' ');
+        buf.append(getName());
+        extendToString(buf);
+        buf.append("]");
+        return buf.toString();
+    }    
+
+    /**
+     * Implemented in subclasses to add to the {@link #toString()} result.
+     * Subclasses should put a space before each token added to the buffer.
+     */
+    abstract protected void extendToString(StringBuffer buffer);
+
+    /**
      * Returns a <code>ClassPool</code> for this class.
      */
     public ClassPool getClassPool() { return null; }

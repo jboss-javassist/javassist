@@ -24,6 +24,26 @@ public abstract class CtMember {
 
     protected CtMember(CtClass clazz) { declaringClass = clazz; }
 
+    public String toString() {
+        StringBuffer buffer = new StringBuffer(getClass().getName());
+        buffer.append("@");
+        buffer.append(Integer.toHexString(hashCode()));
+        buffer.append("[");
+        buffer.append(Modifier.toString(getModifiers()));
+        extendToString(buffer);
+        buffer.append("]");
+        return buffer.toString();
+    }
+
+    /**
+     * Invoked by {@link #toString()} to add to the buffer and provide the
+     * complete value.  Subclasses should invoke this method, adding a
+     * space before each token.  The modifiers for the member are
+     * provided first; subclasses should provide additional data such
+     * as return type, field or method name, etc.
+     */
+    protected abstract void extendToString(StringBuffer buffer);
+
     /**
      * Returns the class that declares this member.
      */

@@ -98,6 +98,13 @@ public class CtField extends CtMember {
         next = null;
     }
 
+    protected void extendToString(StringBuffer buffer) {
+        buffer.append(' ');
+        buffer.append(getName());
+        buffer.append(' ');
+        buffer.append(fieldInfo.getDescriptor());
+    }
+
     /* Javac.CtFieldWithInit overrides.
      */
     protected ASTree getInitAST() { return null; }

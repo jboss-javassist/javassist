@@ -32,6 +32,13 @@ public abstract class CtBehavior extends CtMember {
         methodInfo = minfo;
     }
 
+    protected void extendToString(StringBuffer buffer) {
+        buffer.append(' ');
+        buffer.append(getName());
+        buffer.append(' ');
+        buffer.append(methodInfo.getDescriptor());
+    }
+
     /**
      * Returns the MethodInfo representing this member in the
      * class file.

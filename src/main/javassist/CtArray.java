@@ -27,6 +27,11 @@ final class CtArray extends CtClass {
         pool = cp;
     }
 
+    protected void extendToString(StringBuffer buffer) {
+        buffer.append(" pool=");
+        buffer.append(pool);
+    }
+
     public ClassPool getClassPool() {
         return pool;
     }

@@ -65,6 +65,38 @@ class CtClassType extends CtClass {
         qualifiedName = classfile.getName();
     }
 
+    protected void extendToString(StringBuffer buffer) {
+        if (wasChanged)
+            buffer.append(" changed");
+
+        if (wasFrozen)
+            buffer.append(" frozen");		
+
+        CtField field = getFieldsCache();
+        buffer.append(" fields=");
+        while (field != null) {
+            buffer.append(field);
+            buffer.append(", ");
+            field = field.next;
+        }
+
+        CtConstructor c = getConstructorsCache();
+        buffer.append(" constructors=");
+        while (c != null) {
+            buffer.append(c);
+            buffer.append(", ");
+            c = c.next;
+        }
+
+        CtMethod m = getMethodsCache();
+        buffer.append(" methods=");
+        while (m != null) {
+            buffer.append(m);
+            buffer.append(", ");
+            m = m.next;
+        }
+    }
+
     protected void eraseCache() {
         fieldsCache = null;
         constructorsCache = null;
