@@ -669,7 +669,7 @@ public class TypeChecker extends Visitor implements Opcode, TokenId {
             if (oprand instanceof Expr) {
                 Expr e = (Expr)oprand;
                 if (e.getOperator() == ARRAY) {
-                    atArrayRead(expr.oprand1(), expr.oprand2());
+                    atArrayRead(e.oprand1(), e.oprand2());
                     // arrayDim should be 0.
                     int t = exprType;
                     if (t == INT || t == BYTE || t == CHAR || t == SHORT)
