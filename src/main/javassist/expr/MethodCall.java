@@ -131,7 +131,7 @@ public class MethodCall extends Expr {
      * Returns true if the called method is of a superclass of the current
      * class.
      */
-    boolean isSuper() {
+    public boolean isSuper() {
         return iterator.byteAt(currentPos) == INVOKESPECIAL
             && !where().getDeclaringClass().getName().equals(getClassName());
     }
