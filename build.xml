@@ -96,6 +96,7 @@ Copyright (C) 1999-2004 Shigeru Chiba. All Rights Reserved.</i>]]></bottom>
     <zip zipfile="${dist-version}.zip">
        <zipfileset dir="${basedir}" prefix="${dist-version}">
           <include name="**"/>
+          <exclude name=".*"/>
           <exclude name="build/**"/>
           <exclude name="local/**"/>
           <exclude name="${dist-version}.zip"/>
