@@ -343,6 +343,27 @@ class CtClassType extends CtClass {
         return null;
     }
 
+    public CtClass makeNestedClass(String name, boolean isStatic) {
+        if (!isStatic)
+            throw new RuntimeException(
+                        "sorry, only nested static class is supported");
+
+        checkModify();
+        CtClass c = classPool.makeNestedClass(getName() + "$" + name);
+        ClassFile cf = getClassFile2();
+        InnerClassesAttribute ica = (InnerClassesAttribute)cf.getAttribute(
+                                                InnerClassesAttribute.tag);
+        if (ica == null) {
+            ica = new InnerClassesAttribute(cf.getConstPool());
+            cf.addAttribute(ica);
+        }
+
+        ica.append(c.getName(), this.getName(), name, AccessFlag.STATIC);
+        ClassFile cf2 = c.getClassFile2();
+        cf2.addAttribute(ica.copy(cf2.getConstPool(), null));
+        return c;
+    }
+
     public CtField[] getFields() {
         ArrayList alist = new ArrayList();
         getFields(alist, this);

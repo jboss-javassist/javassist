@@ -39,6 +39,16 @@ public class InnerClassesAttribute extends AttributeInfo {
     }
 
     /**
+     * Constructs an empty InnerClasses attribute.
+     *
+     * @see #append(String, String, String, int)
+     */
+    public InnerClassesAttribute(ConstPool cp) {
+        super(cp, tag, new byte[2]);
+        ByteArray.write16bit(0, get(), 0);
+    }
+
+    /**
      * Returns <code>number_of_classes</code>.
      */
     public int tableLength() { return ByteArray.readU16bit(get(), 0); }
@@ -65,6 +75,14 @@ public class InnerClassesAttribute extends AttributeInfo {
     }
 
     /**
+     * Sets <code>classes[nth].inner_class_info_index</code> to
+     * the given index.
+     */
+    public void setInnerClassIndex(int nth, int index) {
+        ByteArray.write16bit(index, get(), nth * 8 + 2);
+    }
+
+    /**
      * Returns <code>classes[nth].outer_class_info_index</code>.
      */
     public int outerClassIndex(int nth) {
@@ -83,6 +101,14 @@ public class InnerClassesAttribute extends AttributeInfo {
             return null;
         else
             return constPool.getClassInfo(i);
+    }
+
+    /**
+     * Sets <code>classes[nth].outer_class_info_index</code> to
+     * the given index.
+     */
+    public void setOuterClassIndex(int nth, int index) {
+        ByteArray.write16bit(index, get(), nth * 8 + 4);
     }
 
     /**
@@ -107,10 +133,67 @@ public class InnerClassesAttribute extends AttributeInfo {
     }
 
     /**
+     * Sets <code>classes[nth].inner_name_index</code> to
+     * the given index.
+     */
+    public void setInnerNameIndex(int nth, int index) {
+        ByteArray.write16bit(index, get(), nth * 8 + 6);
+    }
+
+    /**
      * Returns <code>classes[nth].inner_class_access_flags</code>.
      */
     public int accessFlags(int nth) {
         return ByteArray.readU16bit(get(), nth * 8 + 8);
+    }
+
+    /**
+     * Sets <code>classes[nth].inner_class_access_flags</code> to
+     * the given index.
+     */
+    public void setAccessFlags(int nth, int flags) {
+        ByteArray.write16bit(flags, get(), nth * 8 + 8);
+    }
+
+    /**
+     * Appends a new entry.
+     *
+     * @param inner     <code>inner_class_info_index</code>
+     * @param outer     <code>outer_class_info_index</code>
+     * @param name      <code>inner_name_index</code>
+     * @param flags     <code>inner_class_access_flags</code>
+     */
+    public void append(String inner, String outer, String name, int flags) {
+        int i = constPool.addClassInfo(inner);
+        int o = constPool.addClassInfo(outer);
+        int n = constPool.addUtf8Info(name);
+        append(i, o, n, flags);
+    }
+
+    /**
+     * Appends a new entry.
+     *
+     * @param inner     <code>inner_class_info_index</code>
+     * @param outer     <code>outer_class_info_index</code>
+     * @param name      <code>inner_name_index</code>
+     * @param flags     <code>inner_class_access_flags</code>
+     */
+    public void append(int inner, int outer, int name, int flags) {
+        byte[] data = get();
+        int len = data.length;
+        byte[] newData = new byte[len + 8];
+        for (int i = 2; i < len; ++i)
+            newData[i] = data[i];
+
+        int n = ByteArray.readU16bit(data, 0);
+        ByteArray.write16bit(n + 1, newData, 0);
+
+        ByteArray.write16bit(inner, newData, len);
+        ByteArray.write16bit(outer, newData, len + 2);
+        ByteArray.write16bit(name, newData, len + 4);
+        ByteArray.write16bit(flags, newData, len + 6);
+
+        set(newData);
     }
 
     /**

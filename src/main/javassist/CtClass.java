@@ -498,6 +498,20 @@ public abstract class CtClass {
     }
 
     /**
+     * Makes a new nested class.  Making a nested class modifies the
+     * data in this <code>CtClass</code>.
+     *
+     * <p>The current implementation only supports a static nested class.
+     * <code>isStatic</code> must be true.
+     *
+     * @param name          the simple name of the nested class.
+     * @param isStatic      true if the nested class is static.
+     */
+    public CtClass makeNestedClass(String name, boolean isStatic) {
+        throw new RuntimeException(getName() + " is not a class");
+    }
+
+    /**
      * Returns an array containing <code>CtField</code> objects
      * representing all the public fields of the class.
      * That array includes public fields inherited from the
@@ -884,6 +898,8 @@ public abstract class CtClass {
 
     /**
      * Removes this <code>CtClass</code> from the <code>ClassPool</code>.
+     * After this method is called, any method cannot be called on the
+     * removed <code>CtClass</code> object.
      *
      * <p>If needed,
      * the <code>ClassPool</code> will read the class file again

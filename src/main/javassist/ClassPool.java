@@ -578,6 +578,20 @@ public class ClassPool {
     }
 
     /**
+     * Creates a new nested class.
+     * This method is called by CtClassType.makeNestedClass().
+     *
+     * @param classname     a fully-qualified class name.
+     * @return      the nested class.
+     */
+    synchronized CtClass makeNestedClass(String classname) {
+        checkNotFrozen(classname);
+        CtClass clazz = new CtNewNestedClass(classname, this, false, null);
+        cacheCtClass(classname, clazz);
+        return clazz;
+    }
+
+    /**
      * Creates a new public interface.
      * If there already exists a class/interface with the same name,
      * the new interface overwrites that previous one.

@@ -255,22 +255,19 @@ see javassist.Dump.
 
 <h2>Changes</h2>
 
-<p>- version 3.0
+<p>- version 3.0 RC1
 
 <ul>
-  <li>ClassPool has been largely modified.
-      <ul><li>write(), writeFile(), .. in ClassPool were moved to CtClass.
-          <li>The host of javassist.Translator was changed from ClassPool
-              to javassist.Loader.
-      </ul>
-
-  <li>javassist.bytecode.annotation has been added.
   <li>The ClassPool framework has been redesigned.
      <ul>
      <li>writeFile(), write(), ... in ClassPool have been moved to CtClass.
      <li>The design of javassist.Translator has been changed.
      </ul>
 
+  <li>javassist.bytecode.annotation has been added for meta tags.
+  <li>CtClass.makeNestedClass() has been added.
+  <li>The methods declared in javassist.bytecode.InnerClassesAttribute
+      have been renamed a bit.
   <li>Now local variables were made available in the source text passed to
   CtBehavior.insertBefore(), MethodCall.replace(), etc.
   <li>CtClass.main(), which prints the version number, has been added.
@@ -279,6 +276,7 @@ see javassist.Dump.
   <li>javassist.bytecode.LocalVariableAttribute has been added.
   <li>CtClass.getURL() and javassist.ClassPath.find() has been added.
   <li>CtBehavior.insertAt() has been added.
+  <li>CtClass.detach() has been added.
 </ul>
 
 <p>- version 2.6 in August, 2003.
