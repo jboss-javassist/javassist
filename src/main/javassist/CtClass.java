@@ -420,8 +420,8 @@ public abstract class CtClass {
     }
 
     /**
-     * Obtains the class objects representing the interfaces of the
-     * class.
+     * Obtains the class objects representing the interfaces implemented
+     * by the class.
      */
     public CtClass[] getInterfaces() throws NotFoundException {
         return new CtClass[0];
