@@ -303,26 +303,40 @@ public class Loader extends ClassLoader {
      * If the source throws an exception, this returns null.
      *
      * <p>This method can be overridden by a subclass of
-     * <code>Loader</code>.
+     * <code>Loader</code>.  Note that the overridden method must not throw
+     * an exception when it just fails to find a class file.
+     *
+     * @return      null if the specified class could not be found.
+     * @throws ClassNotFoundException   if an exception is thrown while
+     *                                  obtaining a class file.
      */
-    protected Class findClass(String name) {
+    protected Class findClass(String name) throws ClassNotFoundException {
         byte[] classfile;
         try {
             if (source != null) {
                 if (translator != null)
                     translator.onLoad(source, name);
 
-                classfile = source.get(name).toBytecode();
+                try {
+                    classfile = source.get(name).toBytecode();
+                }
+                catch (NotFoundException e) {
+                    return null;
+                }
             }
             else {
                 String jarname = "/" + name.replace('.', '/') + ".class";
                 InputStream in = this.getClass().getResourceAsStream(jarname);
+                if (in == null)
+                    return null;
 
                 classfile = ClassPoolTail.readStream(in);
             }
         }
         catch (Exception e) {
-            return null;
+            throw new ClassNotFoundException(
+                "caught an exception while obtaining a class file for "
+                + name, e);
         }
 
         int i = name.lastIndexOf('.');
