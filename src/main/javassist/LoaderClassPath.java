@@ -31,9 +31,9 @@ import java.lang.ref.WeakReference;
  * @author <a href="mailto:bill@jboss.org">Bill Burke</a>
  * @author Shigeru Chiba
  *
- * @see javassist.ClassPath
  * @see ClassPool#insertClassPath(ClassPath)
  * @see ClassPool#appendClassPath(ClassPath)
+ * @see ClassClassPath
  */
 public class LoaderClassPath implements ClassPath {
     private WeakReference clref;

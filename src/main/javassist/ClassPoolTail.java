@@ -31,40 +31,6 @@ final class ClassPathList {
     }
 }
 
-
-final class SystemClassPath implements ClassPath {
-    Class thisClass;
-
-    SystemClassPath() {
-        /* The value of thisClass was this.getClass() in early versions:
-         *
-         *     thisClass = this.getClass();
-         *
-         * However, this made openClassfile() not search all the system
-         * class paths if javassist.jar is put in jre/lib/ext/
-         * (with JDK1.4).
-         */
-        thisClass = java.lang.Object.class;
-    }
-
-    public InputStream openClassfile(String classname) {
-        String jarname = "/" + classname.replace('.', '/') + ".class";
-        return thisClass.getResourceAsStream(jarname);
-    }
-
-    public URL find(String classname) {
-        String jarname = "/" + classname.replace('.', '/') + ".class";
-        return thisClass.getResource(jarname);
-    }
-
-    public void close() {}
-
-    public String toString() {
-        return "*system class path*";
-    }
-}
-
-
 final class DirClassPath implements ClassPath {
     String directory;
 
@@ -105,7 +71,6 @@ final class DirClassPath implements ClassPath {
         return directory;
     }
 }
-
 
 final class JarClassPath implements ClassPath {
     JarFile jarfile;
@@ -279,7 +244,7 @@ final class ClassPoolTail extends AbsClassPool {
     }
 
     public ClassPath appendSystemPath() {
-        return appendClassPath(new SystemClassPath());
+        return appendClassPath(new ClassClassPath());
     }
 
     public ClassPath insertClassPath(String pathname)

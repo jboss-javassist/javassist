@@ -123,17 +123,23 @@ public class ClassPool extends AbsClassPool {
     }
 
     /**
-     * Inserts a new translator at the head of the translator chain.
+     * Adds a new translator at the end of the translator chain.
      *
      * @param trans         a new translator associated with this class pool.
      * @throws RuntimeException     if trans.start() throws an exception.
      */
-    public void insertTranslator(Translator trans) throws RuntimeException {
-        ClassPool next = new ClassPool(source, parent);
-        next.translator = trans;
-        source = next;
+    public void addTranslator(Translator trans) throws RuntimeException {
+        ClassPool cp;
+        if (translator == null)
+            cp = this;
+        else {
+            cp = new ClassPool(source, parent);
+            source = cp;
+        }
+
+        cp.translator = trans;
         try {
-            trans.start(next);
+            trans.start(cp);
         }
         catch (Exception e) {
             throw new RuntimeException(
@@ -160,7 +166,12 @@ public class ClassPool extends AbsClassPool {
      * cp.appendSystemPath();
      * </code></ul>
      *
+     * <p>If the default class pool cannot find any class files,
+     * try <code>ClassClassPath</code> and <code>LoaderClassPath</code>.
+     *
      * @param t         null or the translator linked to the class pool.
+     * @see ClassClassPath
+     * @see LoaderClassPath
      */
     public static synchronized ClassPool getDefault() {
         if (defaultPool == null) {

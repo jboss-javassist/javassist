@@ -91,7 +91,7 @@ public class Compiler {
     {
         Reflection implementor = new Reflection();
         ClassPool pool = ClassPool.getDefault();
-        pool.insertTranslator(implementor);
+        pool.addTranslator(implementor);
 
         for (int i = 0; i < n; ++i) {
             CtClass c = pool.get(entries[i].classname);

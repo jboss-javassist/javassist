@@ -82,7 +82,7 @@ public class AppletServer extends Webserver {
         exportedNames = new Hashtable();
         exportedObjects = new Vector();
         stubGen = gen;
-        loader.insertTranslator(gen);
+        loader.addTranslator(gen);
         setClassPool(loader);
     }
 
