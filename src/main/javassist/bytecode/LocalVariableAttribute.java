@@ -38,7 +38,21 @@ public class LocalVariableAttribute extends AttributeInfo {
      * Constructs an empty LocalVariableTable.
      */
     public LocalVariableAttribute(ConstPool cp) {
-        super(cp, tag, new byte[2]);
+        this(cp, tag);
+    }
+
+    /**
+     * Constructs an empty LocalVariableTable.
+     *
+     * @param name      the attribute name.
+     *                  <code>LocalVariableAttribute.tag</code> or
+     *                  <code>LocalVariableAttribute.typeTag</code>.
+     * @see #tag
+     * @see #typeTag
+     * @since 3.1
+     */
+    public LocalVariableAttribute(ConstPool cp, String name) {
+        super(cp, name, new byte[2]);
         ByteArray.write16bit(0, info, 0);
     }
 
@@ -48,8 +62,8 @@ public class LocalVariableAttribute extends AttributeInfo {
         super(cp, n, in);
     }
 
-    private LocalVariableAttribute(ConstPool cp, byte[] i) {
-        super(cp, tag, i);
+    private LocalVariableAttribute(ConstPool cp, String name, byte[] i) {
+        super(cp, name, i);
     }
 
     /**
@@ -222,7 +236,8 @@ public class LocalVariableAttribute extends AttributeInfo {
         byte[] src = get();
         byte[] dest = new byte[src.length];
         ConstPool cp = getConstPool();
-        LocalVariableAttribute attr = new LocalVariableAttribute(newCp, dest);
+        LocalVariableAttribute attr
+            = new LocalVariableAttribute(newCp, getName(), dest);
         int n = ByteArray.readU16bit(src, 0);
         ByteArray.write16bit(n, dest, 0);
         int j = 2;

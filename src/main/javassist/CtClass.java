@@ -44,7 +44,7 @@ public abstract class CtClass {
     /**
      * The version number of this release.
      */
-    public static final String version = "3.0";
+    public static final String version = "3.1";
 
     /**
      * Prints the version number and the copyright notice.

@@ -27,13 +27,13 @@ import javassist.bytecode.annotation.*;
  * <code>RuntimeInvisibleAnnotations_attribute</code>.
  *
  * <p>To obtain an AnnotationAttribute object, invoke
- * <code>getAttribute(AnnotationsAttribute.invisibleTag)</code>
+ * <code>getAttribute(AnnotationsAttribute.visibleTag)</code>
  * in <code>ClassFile</code>, <code>MethodInfo</code>,
  * or <code>FieldInfo</code>.  The obtained attribute is a
- * runtime invisible annotations attribute.
+ * runtime visible annotations attribute.
  * If the parameter is
- * <code>AnnotationAttribute.visibleTag</code>, then the obtained
- * attribute is a runtime visible one.
+ * <code>AnnotationAttribute.invisibleTag</code>, then the obtained
+ * attribute is a runtime invisible one.
  *
  * <p>For example,
  *
@@ -41,7 +41,7 @@ import javassist.bytecode.annotation.*;
  * CtMethod m = ... ;
  * MethodInfo minfo = m.getMethodInfo();
  * AnnotationsAttribute attr = (AnnotationsAttribute)
- *         minfo.getAttribute(AnnotationsAttribute.invisibleTag);
+ *         minfo.getAttribute(AnnotationsAttribute.visibleTag);
  * Annotation an = attr.getAnnotation("Author");
  * String s = ((StringMemberValue)a.getMemberValue("name")).getValue();
  * System.out.println("@Author(name=" + s + ")");
@@ -58,7 +58,7 @@ import javassist.bytecode.annotation.*;
  * ClassFile cf = ... ;
  * ConstPool cp = cf.getConstPool();
  * AnnotationsAttribute attr
- *     = new AnnotationsAttribute(cp, AnnotationsAttribute.invisibleTag);
+ *     = new AnnotationsAttribute(cp, AnnotationsAttribute.visibleTag);
  * Annotation a = new Annotation("Author", cp);
  * a.addMemberValue("name", new StringMemberValue("Chiba", cp));
  * attr.setAnnotation(a);
