@@ -434,10 +434,10 @@ and calls <code>say()</code> on that instance.
 <p>Note that the program above depends on the fact that the
 <code>Hello</code> class is never loaded before <code>toClass()</code>
 is invoked.  If not, the JVM would load the original
-<code>Hello</code> class before <code>toClass()</code> request to load
-the modified <code>Hello</code> class.  Hence loading the modified
-<code>Hello</code> class would be failed.
-For example, if
+<code>Hello</code> class before <code>toClass()</code> requests to
+load the modified <code>Hello</code> class.  Hence loading the
+modified <code>Hello</code> class would be failed
+(<code>LinkageError</code> is thrown).  For example, if
 <code>main()</code> in <code>Test</code> is something like this:
 
 <ul><pre>
@@ -455,12 +455,12 @@ throws an exception since the class loader cannot load two different
 versions of the <code>Hello</code> class at the same time.
 
 <p><em>If the program is running on some application server such as
-JBoss,</em> the context class loader used by <code>toClass()</code>
-might be inappropriate.  In this case, you would see an unexpected
-<code>ClassCastException</code>.  To avoid this exception, you must
-explicitly give an appropriate class loader to <code>toClass()</code>.
-For example, if <code>bean</code> is your session bean object, then the
-following code:
+JBoss and Tomcat,</em> the context class loader used by
+<code>toClass()</code> might be inappropriate.  In this case, you
+would see an unexpected <code>ClassCastException</code>.  To avoid
+this exception, you must explicitly give an appropriate class loader
+to <code>toClass()</code>.  For example, if <code>bean</code> is your
+session bean object, then the following code:
 
 <ul><pre>CtClass cc = ...;
 Class c = cc.toClass(bean.getClass().getClassLoader());

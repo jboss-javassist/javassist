@@ -19,7 +19,7 @@ import javassist.*;
 import javassist.CtMethod.ConstParameter;
 
 /**
- * The class implementing the reflection mechanism.
+ * The class implementing the behavioral reflection mechanism.
  *
  * <p>If a class is reflective,
  * then all the method invocations on every
