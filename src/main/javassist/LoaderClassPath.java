@@ -28,6 +28,9 @@ import java.lang.ref.WeakReference;
  * <code>WeakReference</code>.  If the class loader is garbage collected,
  * the other search pathes are examined.
  *
+ * <p>The given class loader must have both <code>getResourceAsStream()</code>
+ * and <code>getResource()</code>.
+ *
  * @author <a href="mailto:bill@jboss.org">Bill Burke</a>
  * @author Shigeru Chiba
  *
@@ -55,6 +58,8 @@ public class LoaderClassPath implements ClassPath {
 
     /**
      * Obtains a class file from the class loader.
+     * This method calls <code>getResourceAsStream(String)</code>
+     * on the class loader.
      */
     public InputStream openClassfile(String classname) {
         String cname = classname.replace('.', '/') + ".class";
@@ -67,6 +72,8 @@ public class LoaderClassPath implements ClassPath {
 
     /**
      * Obtains the URL of the specified class file.
+     * This method calls <code>getResource(String)</code>
+     * on the class loader.
      *
      * @return null if the class file could not be found. 
      */
