@@ -28,9 +28,6 @@ import java.util.Hashtable;
  * from various
  * sources represented by <code>ClassPath</code> and create
  * <code>CtClass</code> objects representing those class files.
- * The source may be another <code>ClassPool</code>.  If so,
- * <code>write()</code> is called on the source <code>ClassPool</code>
- * for obtaining a class file.
  *
  * <p>A <code>CtClass</code>
  * object contained in a <code>ClassPool</code> is written to an
@@ -63,7 +60,8 @@ import java.util.Hashtable;
  * <p>The users can add a listener object receiving an event from a
  * <code>ClassPool</code>.  An event occurs when a listener is
  * added to a <code>ClassPool</code> and when <code>write()</code>
- * is called on a <code>ClassPool</code>.  The listener class
+ * is called on a <code>ClassPool</code> (not when <code>get()</code>
+ * is called!).  The listener class
  * must implement <code>Translator</code>.  A typical listener object
  * is used for modifying a <code>CtClass</code> object <i>on demand</i>
  * when it is written to an output stream.
