@@ -127,6 +127,15 @@ public class MethodCall extends Expr {
         return super.mayThrow();
     }
 
+    /**
+     * Returns true if the called method is of a superclass of the current
+     * class.
+     */
+    boolean isSuper() {
+        return iterator.byteAt(currentPos) == INVOKESPECIAL
+            && !where().getDeclaringClass().getName().equals(getClassName());
+    }
+
     /*
      * Returns the parameter types of the called method.
 
