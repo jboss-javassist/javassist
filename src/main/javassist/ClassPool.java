@@ -662,6 +662,7 @@ public class ClassPool {
      * @param classfile         class file.
      * @exception RuntimeException      if there is a frozen class with the
      *                                  the same name.
+     * @see javassist.ByteArrayClassPath
      */
     public CtClass makeClass(InputStream classfile)
         throws IOException, RuntimeException

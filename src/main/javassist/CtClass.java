@@ -40,6 +40,10 @@ public abstract class CtClass {
 
     /**
      * Prints the version number and the copyright notice.
+     *
+     * <p>The following command invokes this method:
+     *
+     * <ul><pre>java -jar javassist.jar</pre></ul>
      */
     public static void main(String[] args) {
         System.out.println("Javassist version " + CtClass.version);

@@ -109,6 +109,8 @@ public abstract class CtBehavior extends CtMember {
 
     /**
      * Obtains exceptions that this method/constructor may throw.
+     *
+     * @return a zero-length array if there is no throws clause.
      */
     public CtClass[] getExceptionTypes() throws NotFoundException {
         String[] exceptions;
@@ -126,7 +128,7 @@ public abstract class CtBehavior extends CtMember {
      */
     public void setExceptionTypes(CtClass[] types) throws NotFoundException {
         declaringClass.checkModify();
-        if (types == null) {
+        if (types == null || types.length == 0) {
             methodInfo.removeExceptionsAttribute();
             return;
         }

@@ -43,6 +43,7 @@ import java.net.MalformedURLException;
  * @see javassist.ClassPath
  * @see ClassPool#insertClassPath(ClassPath)
  * @see ClassPool#appendClassPath(ClassPath)
+ * @see ClassPool#makeClass(InputStream)
  */
 public class ByteArrayClassPath implements ClassPath {
     protected String classname;
