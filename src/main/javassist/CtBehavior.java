@@ -368,13 +368,14 @@ public abstract class CtBehavior extends CtMember {
         throws CannotCompileException
     {
         declaringClass.checkModify();
+        ConstPool pool = methodInfo.getConstPool();
         CodeAttribute ca = methodInfo.getCodeAttribute();
         if (ca == null)
             throw new CannotCompileException("no method body");
 
         CodeIterator iterator = ca.iterator();
         int retAddr = ca.getMaxLocals();
-        Bytecode b = new Bytecode(methodInfo.getConstPool(), 0, retAddr + 1);
+        Bytecode b = new Bytecode(pool, 0, retAddr + 1);
         b.setStackDepth(ca.getMaxStack() + 1);
         Javac jv = new Javac(b, declaringClass);
         try {
@@ -382,22 +383,14 @@ public abstract class CtBehavior extends CtMember {
                             Modifier.isStatic(getModifiers()));
             CtClass rtype = getReturnType0();
             int varNo = jv.recordReturnType(rtype, true);
-            boolean isVoid = rtype == CtClass.voidType;
 
-            int handlerLen = insertAfterHandler(asFinally, b, rtype);
+            int handlerLen = insertAfterHandler(asFinally, b, rtype, varNo);
+
+            byte[] save = makeSaveCode(pool, rtype, varNo);
+            byte[] restore = makeRestoreCode(b, pool, rtype, varNo);
 
             b.addAstore(retAddr);
-            if (isVoid) {
-                b.addOpcode(Opcode.ACONST_NULL);
-                b.addAstore(varNo);
-                jv.compileStmnt(src);
-            }
-            else {
-                b.addStore(varNo, rtype);
-                jv.compileStmnt(src);
-                b.addLoad(varNo, rtype);
-            }
-
+            jv.compileStmnt(src);
             b.addRet(retAddr);
             ca.setMaxStack(b.getMaxStack());
             ca.setMaxLocals(b.getMaxLocals());
@@ -420,17 +413,7 @@ public abstract class CtBehavior extends CtMember {
                 if (c == Opcode.ARETURN || c == Opcode.IRETURN
                     || c == Opcode.FRETURN || c == Opcode.LRETURN
                     || c == Opcode.DRETURN || c == Opcode.RETURN) {
-                    if (subr - pos > Short.MAX_VALUE - 5) {
-                        int s = iterator.insertGap(pos, 5);
-                        iterator.writeByte(Opcode.JSR_W, pos);
-                        iterator.write32bit(subr - pos + s, pos + 1);
-                    }
-                    else {
-                        int s = iterator.insertGap(pos, 3);
-                        iterator.writeByte(Opcode.JSR, pos);
-                        iterator.write16bit(subr - pos + s, pos + 1);
-                    }
-
+                    insertJSR(iterator, subr, pos, save, restore);
                     subr = iterator.getCodeLength() - gapLen;
                 }
             }
@@ -446,8 +429,60 @@ public abstract class CtBehavior extends CtMember {
         }
     }
 
+    private byte[] makeSaveCode(ConstPool cp, CtClass rtype, int varNo) {
+        Bytecode b = new Bytecode(cp, 0, 0);
+        if (rtype == CtClass.voidType) {
+            b.addOpcode(Opcode.ACONST_NULL);
+            b.addAstore(varNo);
+            return b.get();
+        }
+        else {
+            b.addStore(varNo, rtype);
+            return b.get();
+        }
+    }
+
+    private byte[] makeRestoreCode(Bytecode code, ConstPool cp,
+                                   CtClass rtype, int varNo) {
+        if (rtype == CtClass.voidType) {
+            if (code.getMaxLocals() < 1)
+                code.setMaxLocals(1);
+
+            return new byte[0];
+        }
+        else {
+            Bytecode b = new Bytecode(cp, 0, 0);
+            b.addLoad(varNo, rtype);
+            return b.get();
+        }
+    }
+
+    private void insertJSR(CodeIterator iterator, int subr, int pos,
+                           byte[] save, byte[] restore)
+        throws BadBytecode
+    {
+        int gapSize = 5 + save.length + restore.length;
+        boolean wide = subr - pos > Short.MAX_VALUE - gapSize - 4;
+        gapSize = iterator.insertGap(pos, wide ? gapSize : gapSize - 2);
+
+        iterator.write(save, pos);
+        pos += save.length;
+        if (wide) {
+            iterator.writeByte(Opcode.JSR_W, pos);
+            iterator.write32bit(subr - pos + gapSize, pos + 1);
+            pos += 5;
+        }
+        else {
+            iterator.writeByte(Opcode.JSR, pos);
+            iterator.write16bit(subr - pos + gapSize, pos + 1);
+            pos += 3;
+        }
+
+        iterator.write(restore, pos);
+    }
+
     private int insertAfterHandler(boolean asFinally, Bytecode b,
-                                   CtClass rtype)
+                                   CtClass rtype, int returnVarNo)
     {
         if (!asFinally)
             return 0;
@@ -458,17 +493,27 @@ public abstract class CtBehavior extends CtMember {
         b.addAstore(var);
         if (rtype.isPrimitive()) {
             char c = ((CtPrimitiveType)rtype).getDescriptor();
-            if (c == 'D')
+            if (c == 'D') {
                 b.addDconst(0.0);
-            else if (c == 'F')
+                b.addDstore(returnVarNo);
+            }
+            else if (c == 'F') {
                 b.addFconst(0);
-            else if (c == 'J')
+                b.addFstore(returnVarNo);
+            }
+            else if (c == 'J') {
                 b.addLconst(0);
-            else if (c != 'V')  // int, boolean, char, short, ...
+                b.addLstore(returnVarNo);
+            }
+            else if (c != 'V') { // int, boolean, char, short, ...
                 b.addIconst(0);
+                b.addIstore(returnVarNo);
+            }
         }
-        else
+        else {
             b.addOpcode(Opcode.ACONST_NULL);
+            b.addAstore(returnVarNo);
+        }
 
         b.addOpcode(Opcode.JSR);
         int pc2 = b.currentPc();
