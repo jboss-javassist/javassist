@@ -30,9 +30,8 @@ public class NewExpr extends Expr {
     /**
      * Undocumented constructor.  Do not use; internal-use only.
      */
-    NewExpr(int pos, CodeIterator i, CtClass declaring, MethodInfo m,
-            String type, int np)
-    {
+    protected NewExpr(int pos, CodeIterator i, CtClass declaring,
+                      MethodInfo m, String type, int np) {
         super(pos, i, declaring, m);
         newTypeName = type;
         newPos = np;

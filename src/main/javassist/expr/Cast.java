@@ -27,7 +27,7 @@ public class Cast extends Expr {
     /**
      * Undocumented constructor.  Do not use; internal-use only.
      */
-    Cast(int pos, CodeIterator i, CtClass declaring, MethodInfo m) {
+    protected Cast(int pos, CodeIterator i, CtClass declaring, MethodInfo m) {
         super(pos, i, declaring, m);
     }
 

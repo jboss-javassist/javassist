@@ -29,8 +29,8 @@ import javassist.compiler.ast.ASTList;
 public class NewArray extends Expr {
     int opcode;
 
-    NewArray(int pos, CodeIterator i, CtClass declaring, MethodInfo m,
-             int op) {
+    protected NewArray(int pos, CodeIterator i, CtClass declaring,
+                       MethodInfo m, int op) {
         super(pos, i, declaring, m);
         opcode = op;
     }

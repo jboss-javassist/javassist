@@ -26,7 +26,8 @@ public class MethodCall extends Expr {
     /**
      * Undocumented constructor.  Do not use; internal-use only.
      */
-    MethodCall(int pos, CodeIterator i, CtClass declaring, MethodInfo m) {
+    protected MethodCall(int pos, CodeIterator i, CtClass declaring,
+                         MethodInfo m) {
         super(pos, i, declaring, m);
     }
 

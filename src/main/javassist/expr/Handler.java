@@ -30,8 +30,8 @@ public class Handler extends Expr {
     /**
      * Undocumented constructor.  Do not use; internal-use only.
      */
-    Handler(ExceptionTable et, int nth,
-            CodeIterator it, CtClass declaring, MethodInfo m) {
+    protected Handler(ExceptionTable et, int nth,
+                      CodeIterator it, CtClass declaring, MethodInfo m) {
         super(et.handlerPc(nth), it, declaring, m);
         etable = et;
         index = nth;

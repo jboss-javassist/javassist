@@ -45,20 +45,20 @@ public abstract class Expr implements Opcode {
         thisMethod = m;
     }
 
-    final ConstPool getConstPool() {
+    protected final ConstPool getConstPool() {
         return thisMethod.getConstPool();
     }
 
-    final boolean edited() { return edited; }
+    protected final boolean edited() { return edited; }
 
-    final int locals() { return maxLocals; }
+    protected final int locals() { return maxLocals; }
 
-    final int stack() { return maxStack; }
+    protected final int stack() { return maxStack; }
 
     /**
      * Returns true if this method is static.
      */
-    final boolean withinStatic() {
+    protected final boolean withinStatic() {
         return (thisMethod.getAccessFlags() & AccessFlag.STATIC) != 0;
     }
 
