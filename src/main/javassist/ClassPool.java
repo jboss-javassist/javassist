@@ -83,6 +83,14 @@ public class ClassPool {
 
     protected Hashtable classes;        // should be synchronous
 
+   /**
+    * Provide a hook so that subclasses can do their own
+    * caching of classes
+    */
+    protected CtClass getCached(String classname)
+    {
+        return (CtClass)classes.get(classname); 
+    }
     /**
      * Creates a class pool.
      *
@@ -434,12 +442,12 @@ public class ClassPool {
                        boolean callback)
         throws NotFoundException, CannotCompileException, IOException
     {
-        CtClass clazz = (CtClass)classes.get(classname);
+        CtClass clazz = (CtClass)getCached(classname);
         if (callback && translator != null
                                 && (clazz == null || !clazz.isFrozen())) {
             translator.onWrite(this, classname);
             // The CtClass object might be overwritten.
-            clazz = (CtClass)classes.get(classname);
+            clazz = (CtClass)getCached(classname);
         }
 
         if (clazz == null || !clazz.isModified()) {
@@ -464,7 +472,7 @@ public class ClassPool {
      * Is invoked by CtClassType.setName().
      */
     synchronized void classNameChanged(String oldname, CtClass clazz) {
-        CtClass c = (CtClass)classes.get(oldname);
+        CtClass c = (CtClass)getCached(oldname);
         if (c == clazz)         // must check this equation
             classes.remove(c);
 
@@ -527,7 +535,7 @@ public class ClassPool {
         return clazz;
     }
 
-    private CtClass get0(String classname) throws NotFoundException {
+    protected CtClass get0(String classname) throws NotFoundException {
         if (classname.endsWith("[]"))
             return new CtArray(classname, this);
         else {
