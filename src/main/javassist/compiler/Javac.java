@@ -1,28 +1,17 @@
 /*
- * This file is part of the Javassist toolkit.
+ * Javassist, a Java-bytecode translator toolkit.
+ * Copyright (C) 1999-2003 Shigeru Chiba. All Rights Reserved.
  *
- * The contents of this file are subject to the Mozilla Public License
- * Version 1.1 (the "License"); you may not use this file except in
- * compliance with the License.  You may obtain a copy of the License at
- * either http://www.mozilla.org/MPL/.
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
  *
- * Software distributed under the License is distributed on an "AS IS"
- * basis, WITHOUT WARRANTY OF ANY KIND, either express or implied.  See
- * the License for the specific language governing rights and limitations
- * under the License.
- *
- * The Original Code is Javassist.
- *
- * The Initial Developer of the Original Code is Shigeru Chiba.  Portions
- * created by Shigeru Chiba are Copyright (C) 1999-2003 Shigeru Chiba.
- * All Rights Reserved.
- *
- * Contributor(s):
- *
- * The development of this software is supported in part by the PRESTO
- * program (Sakigake Kenkyu 21) of Japan Science and Technology Corporation.
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  */
-
 package javassist.compiler;
 
 import javassist.CtClass;
@@ -51,12 +40,12 @@ public class Javac {
     /**
      * Constructs a compiler.
      *
-     * @param thisClass		the class that a compiled method/field
-     *				belongs to.
+     * @param thisClass         the class that a compiled method/field
+     *                          belongs to.
      */
     public Javac(CtClass thisClass) {
-	this(new Bytecode(thisClass.getClassFile2().getConstPool(), 0, 0),
-	     thisClass);
+        this(new Bytecode(thisClass.getClassFile2().getConstPool(), 0, 0),
+             thisClass);
     }
 
     /**
@@ -64,13 +53,13 @@ public class Javac {
      * The produced bytecode is stored in the <code>Bytecode</code> object
      * specified by <code>b</code>.
      *
-     * @param thisClass		the class that a compiled method/field
-     *				belongs to.
+     * @param thisClass         the class that a compiled method/field
+     *                          belongs to.
      */
     public Javac(Bytecode b, CtClass thisClass) {
-	gen = new JvstCodeGen(b, thisClass, thisClass.getClassPool());
-	stable = new SymbolTable();
-	bytecode = b;
+        gen = new JvstCodeGen(b, thisClass, thisClass.getClassPool());
+        stable = new SymbolTable();
+        bytecode = b;
     }
 
     /**
@@ -86,128 +75,128 @@ public class Javac {
      * <p>In a method or constructor body, $0, $1, ... and $_
      * are not available.
      *
-     * @return		a <code>CtMethod</code>, <code>CtConstructor</code>,
-     *			or <code>CtField</code> object.
+     * @return          a <code>CtMethod</code>, <code>CtConstructor</code>,
+     *                  or <code>CtField</code> object.
      * @see #recordProceed(String,String)
      */
     public CtMember compile(String src) throws CompileError {
-	Parser p = new Parser(new Lex(src));
-	ASTList mem = p.parseMember1(stable);
-	try {
-	    if (mem instanceof FieldDecl)
-		return compileField((FieldDecl)mem);
-	    else
-		return compileMethod(p, (MethodDecl)mem);
-	}
-	catch (CannotCompileException e) {
-	    throw new CompileError(e.getMessage());
-	}
+        Parser p = new Parser(new Lex(src));
+        ASTList mem = p.parseMember1(stable);
+        try {
+            if (mem instanceof FieldDecl)
+                return compileField((FieldDecl)mem);
+            else
+                return compileMethod(p, (MethodDecl)mem);
+        }
+        catch (CannotCompileException e) {
+            throw new CompileError(e.getMessage());
+        }
     }
 
     public static class CtFieldWithInit extends CtField {
-	private ASTree init;
+        private ASTree init;
 
-	CtFieldWithInit(CtClass type, String name, CtClass declaring)
-	    throws CannotCompileException
-	{
-	    super(type, name, declaring);
-	    init = null;
-	}
+        CtFieldWithInit(CtClass type, String name, CtClass declaring)
+            throws CannotCompileException
+        {
+            super(type, name, declaring);
+            init = null;
+        }
 
-	protected void setInit(ASTree i) { init = i; }
+        protected void setInit(ASTree i) { init = i; }
 
-	protected ASTree getInitAST() {
-	    return init;
-	}
+        protected ASTree getInitAST() {
+            return init;
+        }
     }
 
     private CtField compileField(FieldDecl fd)
-	throws CompileError, CannotCompileException
+        throws CompileError, CannotCompileException
     {
-	CtFieldWithInit f;
-	Declarator d = fd.getDeclarator();
-	f = new CtFieldWithInit(gen.lookupClass(d), d.getVariable().get(),
-				gen.getThisClass());
-	f.setModifiers(gen.getModifiers(fd.getModifiers()));
-	if (fd.getInit() != null)
-	    f.setInit(fd.getInit());
+        CtFieldWithInit f;
+        Declarator d = fd.getDeclarator();
+        f = new CtFieldWithInit(gen.lookupClass(d), d.getVariable().get(),
+                                gen.getThisClass());
+        f.setModifiers(gen.getModifiers(fd.getModifiers()));
+        if (fd.getInit() != null)
+            f.setInit(fd.getInit());
 
-	return f;
+        return f;
     }
 
     private CtMember compileMethod(Parser p, MethodDecl md)
-	throws CompileError
+        throws CompileError
     {
-	int mod = gen.getModifiers(md.getModifiers());
-	CtClass[] plist = gen.makeParamList(md);
-	CtClass[] tlist = gen.makeThrowsList(md);
-	recordParams(plist, Modifier.isStatic(mod));
-	md = p.parseMethod2(stable, md);
-	try {
-	    if (md.isConstructor()) {
-		CtConstructor cons = new CtConstructor(plist,
-						   gen.getThisClass());
-		cons.setModifiers(mod);
-		md.accept(gen);
-		cons.getMethodInfo().setCodeAttribute(
-					bytecode.toCodeAttribute());
-		cons.setExceptionTypes(tlist);
-		return cons;
-	    }
-	    else {
-		Declarator r = md.getReturn();
-		CtClass rtype = gen.lookupClass(r);
-		recordReturnType(rtype, false);
-		CtMethod method = new CtMethod(rtype, r.getVariable().get(),
-					   plist, gen.getThisClass());
-		method.setModifiers(mod);
-		gen.setThisMethod(method);
-		md.accept(gen);
-		if (md.getBody() != null)
-		    method.getMethodInfo().setCodeAttribute(
-					bytecode.toCodeAttribute());
-		else
-		    method.setModifiers(mod | Modifier.ABSTRACT);
+        int mod = gen.getModifiers(md.getModifiers());
+        CtClass[] plist = gen.makeParamList(md);
+        CtClass[] tlist = gen.makeThrowsList(md);
+        recordParams(plist, Modifier.isStatic(mod));
+        md = p.parseMethod2(stable, md);
+        try {
+            if (md.isConstructor()) {
+                CtConstructor cons = new CtConstructor(plist,
+                                                   gen.getThisClass());
+                cons.setModifiers(mod);
+                md.accept(gen);
+                cons.getMethodInfo().setCodeAttribute(
+                                        bytecode.toCodeAttribute());
+                cons.setExceptionTypes(tlist);
+                return cons;
+            }
+            else {
+                Declarator r = md.getReturn();
+                CtClass rtype = gen.lookupClass(r);
+                recordReturnType(rtype, false);
+                CtMethod method = new CtMethod(rtype, r.getVariable().get(),
+                                           plist, gen.getThisClass());
+                method.setModifiers(mod);
+                gen.setThisMethod(method);
+                md.accept(gen);
+                if (md.getBody() != null)
+                    method.getMethodInfo().setCodeAttribute(
+                                        bytecode.toCodeAttribute());
+                else
+                    method.setModifiers(mod | Modifier.ABSTRACT);
 
-		method.setExceptionTypes(tlist);
-		return method;
-	    }
-	}
-	catch (NotFoundException e) {
-	    throw new CompileError(e.toString());
-	}
+                method.setExceptionTypes(tlist);
+                return method;
+            }
+        }
+        catch (NotFoundException e) {
+            throw new CompileError(e.toString());
+        }
     }
 
     /**
      * Compiles a method (or constructor) body.
      */
     public Bytecode compileBody(CtBehavior method, String src)
-	throws CompileError
+        throws CompileError
     {
-	try {
-	    int mod = method.getModifiers();
-	    recordParams(method.getParameterTypes(), Modifier.isStatic(mod));
+        try {
+            int mod = method.getModifiers();
+            recordParams(method.getParameterTypes(), Modifier.isStatic(mod));
 
-	    CtClass rtype;
-	    if (method instanceof CtMethod) {
-		gen.setThisMethod((CtMethod)method);
-		rtype = ((CtMethod)method).getReturnType();
-	    }
-	    else
-		rtype = CtClass.voidType;
+            CtClass rtype;
+            if (method instanceof CtMethod) {
+                gen.setThisMethod((CtMethod)method);
+                rtype = ((CtMethod)method).getReturnType();
+            }
+            else
+                rtype = CtClass.voidType;
 
-	    recordReturnType(rtype, false);
-	    boolean isVoid = rtype == CtClass.voidType;
+            recordReturnType(rtype, false);
+            boolean isVoid = rtype == CtClass.voidType;
 
-	    Parser p = new Parser(new Lex(src));
-	    SymbolTable stb = new SymbolTable(stable);
-	    Stmnt s = p.parseStatement(stb);
-	    gen.atMethodBody(s, method instanceof CtConstructor, isVoid);
-	    return bytecode;
-	}
-	catch (NotFoundException e) {
-	    throw new CompileError(e.toString());
-	}
+            Parser p = new Parser(new Lex(src));
+            SymbolTable stb = new SymbolTable(stable);
+            Stmnt s = p.parseStatement(stb);
+            gen.atMethodBody(s, method instanceof CtConstructor, isVoid);
+            return bytecode;
+        }
+        catch (NotFoundException e) {
+            throw new CompileError(e.toString());
+        }
     }
 
     /**
@@ -220,9 +209,9 @@ public class Javac {
      * <code>isStatic</code> must be recorded before compilation.
      */
     public void recordParams(CtClass[] params, boolean isStatic)
-	throws CompileError
+        throws CompileError
     {
-	gen.recordParams(params, isStatic, "$", "$args", "$$", stable);
+        gen.recordParams(params, isStatic, "$", "$args", "$$", stable);
     }
 
     /**
@@ -235,19 +224,19 @@ public class Javac {
      * <code>compileExpr()</code>.  The correct value of
      * <code>isStatic</code> must be recorded before compilation.
      *
-     * @paaram use0	true if $0 is used.
-     * @param varNo	the register number of $0 (use0 is true)
-     *				or $1 (otherwise).
-     * @param target	the type of $0 (it can be null if use0 is false).
-     * @param isStatic	true if the method in which the compiled bytecode
-     *			is embedded is static.
+     * @paaram use0     true if $0 is used.
+     * @param varNo     the register number of $0 (use0 is true)
+     *                          or $1 (otherwise).
+     * @param target    the type of $0 (it can be null if use0 is false).
+     * @param isStatic  true if the method in which the compiled bytecode
+     *                  is embedded is static.
      */
     public void recordParams(String target, CtClass[] params,
-			     boolean use0, int varNo, boolean isStatic)
-	throws CompileError
+                             boolean use0, int varNo, boolean isStatic)
+        throws CompileError
     {
-	gen.recordParams(params, isStatic, "$", "$args", "$$",
-			 use0, varNo, target, stable);
+        gen.recordParams(params, isStatic, "$", "$args", "$$",
+                         use0, varNo, target, stable);
     }
 
     /**
@@ -258,15 +247,15 @@ public class Javac {
      * <p>If the return type is void, ($r) does nothing.
      * The type of $_ is java.lang.Object.
      *
-     * @param useResultVar	true if $_ is used.
-     * @return		-1 or the variable index assigned to $_.
+     * @param useResultVar      true if $_ is used.
+     * @return          -1 or the variable index assigned to $_.
      */
     public int recordReturnType(CtClass type, boolean useResultVar)
-	throws CompileError
+        throws CompileError
     {
-	gen.recordType(type);
-	return gen.recordReturnType(type, "$r",
-			(useResultVar ? resultVarName : null), stable);
+        gen.recordType(type);
+        return gen.recordReturnType(type, "$r",
+                        (useResultVar ? resultVarName : null), stable);
     }
 
     /**
@@ -274,19 +263,19 @@ public class Javac {
      * the value of $type.
      */
     public void recordType(CtClass t) {
-	gen.recordType(t);
+        gen.recordType(t);
     }
 
     /**
      * Makes the given variable available.
      *
-     * @param type	variable type
-     * @param name	variable name
+     * @param type      variable type
+     * @param name      variable name
      */
     public int recordVariable(CtClass type, String name)
-	throws CompileError
+        throws CompileError
     {
-	return gen.recordVariable(type, name, stable);
+        return gen.recordVariable(type, name, stable);
     }
 
     /**
@@ -294,39 +283,39 @@ public class Javac {
      * If the return type of $proceed() is void, null is pushed on the
      * stack.
      *
-     * @param target	an expression specifying the target object.
-     *				if null, "this" is the target.
-     * @param method	the method name.
+     * @param target    an expression specifying the target object.
+     *                          if null, "this" is the target.
+     * @param method    the method name.
      */
     public void recordProceed(String target, String method)
-	throws CompileError
+        throws CompileError
     {
-	Parser p = new Parser(new Lex(target));
-	final ASTree texpr = p.parseExpression(stable);
-	final String m = method;
+        Parser p = new Parser(new Lex(target));
+        final ASTree texpr = p.parseExpression(stable);
+        final String m = method;
 
-	ProceedHandler h = new ProceedHandler() {
-		public void doit(JvstCodeGen gen, Bytecode b, ASTList args)
-		    throws CompileError
-		{
-		    ASTree expr = new Member(m);
-		    if (texpr != null)
-			expr = Expr.make('.', texpr, expr);
+        ProceedHandler h = new ProceedHandler() {
+                public void doit(JvstCodeGen gen, Bytecode b, ASTList args)
+                    throws CompileError
+                {
+                    ASTree expr = new Member(m);
+                    if (texpr != null)
+                        expr = Expr.make('.', texpr, expr);
 
-		    expr = Expr.make(TokenId.CALL, expr, args);
-		    expr.accept(gen);
-		    gen.addNullIfVoid();
-		}
-	    };
+                    expr = Expr.make(TokenId.CALL, expr, args);
+                    expr.accept(gen);
+                    gen.addNullIfVoid();
+                }
+            };
 
-	gen.setProceedHandler(h, proceedName);
+        gen.setProceedHandler(h, proceedName);
     }
 
     /**
      * Prepares to use $proceed().
      */
     public void recordProceed(ProceedHandler h) {
-	gen.setProceedHandler(h, proceedName);
+        gen.setProceedHandler(h, proceedName);
     }
 
     /**
@@ -340,12 +329,12 @@ public class Javac {
      * ($0, $1, ..) are available.
      */
     public void compileStmnt(String src) throws CompileError {
-	Parser p = new Parser(new Lex(src));
-	SymbolTable stb = new SymbolTable(stable);
+        Parser p = new Parser(new Lex(src));
+        SymbolTable stb = new SymbolTable(stable);
      // while (p.hasMore()) {
-	    Stmnt s = p.parseStatement(stb);
-	    if (s != null)
-		s.accept(gen);
+            Stmnt s = p.parseStatement(stb);
+            if (s != null)
+                s.accept(gen);
      // }
     }
 
@@ -359,9 +348,9 @@ public class Javac {
      * have been invoked.
      */
     public void compileExpr(String src) throws CompileError {
-	Parser p = new Parser(new Lex(src));
-	ASTree e = p.parseExpression(stable);
-	compileExpr(e);
+        Parser p = new Parser(new Lex(src));
+        ASTree e = p.parseExpression(stable);
+        compileExpr(e);
     }
 
     /**
@@ -374,7 +363,7 @@ public class Javac {
      * have been invoked.
      */
     public void compileExpr(ASTree e) throws CompileError {
-	if (e != null)
-	    e.accept(gen);
+        if (e != null)
+            e.accept(gen);
     }
 }

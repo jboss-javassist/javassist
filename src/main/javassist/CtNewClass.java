@@ -1,28 +1,17 @@
 /*
- * This file is part of the Javassist toolkit.
+ * Javassist, a Java-bytecode translator toolkit.
+ * Copyright (C) 1999-2003 Shigeru Chiba. All Rights Reserved.
  *
- * The contents of this file are subject to the Mozilla Public License
- * Version 1.1 (the "License"); you may not use this file except in
- * compliance with the License.  You may obtain a copy of the License at
- * either http://www.mozilla.org/MPL/.
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
  *
- * Software distributed under the License is distributed on an "AS IS"
- * basis, WITHOUT WARRANTY OF ANY KIND, either express or implied.  See
- * the License for the specific language governing rights and limitations
- * under the License.
- *
- * The Original Code is Javassist.
- *
- * The Initial Developer of the Original Code is Shigeru Chiba.  Portions
- * created by Shigeru Chiba are Copyright (C) 1999-2003 Shigeru Chiba.
- * All Rights Reserved.
- *
- * Contributor(s):
- *
- * The development of this software is supported in part by the PRESTO
- * program (Sakigake Kenkyu 21) of Japan Science and Technology Corporation.
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  */
-
 package javassist;
 
 import java.io.DataOutputStream;
@@ -35,41 +24,41 @@ class CtNewClass extends CtClassType {
     protected boolean hasConstructor;
 
     CtNewClass(String name, ClassPool cp,
-	       boolean isInterface, CtClass superclass) {
-	super(name, cp);
-	wasChanged = true;
-	eraseCache();
-	String superName;
-	if (superclass == null)
-	    superName = null;
-	else
-	    superName = superclass.getName();
+               boolean isInterface, CtClass superclass) {
+        super(name, cp);
+        wasChanged = true;
+        eraseCache();
+        String superName;
+        if (superclass == null)
+            superName = null;
+        else
+            superName = superclass.getName();
 
-	classfile = new ClassFile(isInterface, name, superName);
+        classfile = new ClassFile(isInterface, name, superName);
 
-	setModifiers(Modifier.setPublic(getModifiers()));
-	hasConstructor = isInterface;
+        setModifiers(Modifier.setPublic(getModifiers()));
+        hasConstructor = isInterface;
     }
 
     public void addConstructor(CtConstructor c)
-	throws CannotCompileException
+        throws CannotCompileException
     {
-	hasConstructor = true;
-	super.addConstructor(c);
+        hasConstructor = true;
+        super.addConstructor(c);
     }
 
     void toBytecode(DataOutputStream out)
-	throws CannotCompileException, IOException
+        throws CannotCompileException, IOException
     {
-	if (!hasConstructor)
-	    try {
-		inheritAllConstructors();
-	    }
-	    catch (NotFoundException e) {
-		throw new CannotCompileException(e);
-	    }
+        if (!hasConstructor)
+            try {
+                inheritAllConstructors();
+            }
+            catch (NotFoundException e) {
+                throw new CannotCompileException(e);
+            }
 
-	super.toBytecode(out);
+        super.toBytecode(out);
     }
 
     /**
@@ -80,29 +69,29 @@ class CtNewClass extends CtClassType {
      * calls the super's constructor with the same signature.
      */
     public void inheritAllConstructors()
-	throws CannotCompileException, NotFoundException
+        throws CannotCompileException, NotFoundException
     {
-	CtClass superclazz;
-	CtConstructor[] cs;
+        CtClass superclazz;
+        CtConstructor[] cs;
 
-	superclazz = getSuperclass();
-	cs = superclazz.getDeclaredConstructors();
+        superclazz = getSuperclass();
+        cs = superclazz.getDeclaredConstructors();
 
-	int n = 0;
-	for (int i = 0; i < cs.length; ++i) {
-	    CtConstructor c = cs[i];
-	    if (Modifier.isPublic(c.getModifiers())) {
-		CtConstructor cons
-		    = CtNewConstructor.make(c.getParameterTypes(),
-					    c.getExceptionTypes(), this);
-		addConstructor(cons);
-		++n;
-	    }
-	}
+        int n = 0;
+        for (int i = 0; i < cs.length; ++i) {
+            CtConstructor c = cs[i];
+            if (Modifier.isPublic(c.getModifiers())) {
+                CtConstructor cons
+                    = CtNewConstructor.make(c.getParameterTypes(),
+                                            c.getExceptionTypes(), this);
+                addConstructor(cons);
+                ++n;
+            }
+        }
 
-	if (n < 1)
-	    throw new CannotCompileException(
-			"no public constructor in " + superclazz.getName());
+        if (n < 1)
+            throw new CannotCompileException(
+                        "no public constructor in " + superclazz.getName());
 
     }
 }

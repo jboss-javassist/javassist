@@ -1,28 +1,17 @@
 /*
- * This file is part of the Javassist toolkit.
+ * Javassist, a Java-bytecode translator toolkit.
+ * Copyright (C) 1999-2003 Shigeru Chiba. All Rights Reserved.
  *
- * The contents of this file are subject to the Mozilla Public License
- * Version 1.1 (the "License"); you may not use this file except in
- * compliance with the License.  You may obtain a copy of the License at
- * either http://www.mozilla.org/MPL/.
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
  *
- * Software distributed under the License is distributed on an "AS IS"
- * basis, WITHOUT WARRANTY OF ANY KIND, either express or implied.  See
- * the License for the specific language governing rights and limitations
- * under the License.
- *
- * The Original Code is Javassist.
- *
- * The Initial Developer of the Original Code is Shigeru Chiba.  Portions
- * created by Shigeru Chiba are Copyright (C) 1999-2003 Shigeru Chiba.
- * All Rights Reserved.
- *
- * Contributor(s):
- *
- * The development of this software is supported in part by the PRESTO
- * program (Sakigake Kenkyu 21) of Japan Science and Technology Corporation.
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  */
-
 package javassist.rmi;
 
 import java.io.*;
@@ -49,57 +38,57 @@ public class AppletServer extends Webserver {
     private Vector exportedObjects;
 
     private static final byte[] okHeader
-				= "HTTP/1.0 200 OK\r\n\r\n".getBytes();
+                                = "HTTP/1.0 200 OK\r\n\r\n".getBytes();
 
     /**
      * Constructs a web server.
      *
-     * @param port	port number
+     * @param port      port number
      */
     public AppletServer(String port)
-	throws IOException, NotFoundException, CannotCompileException
+        throws IOException, NotFoundException, CannotCompileException
     {
-	this(Integer.parseInt(port));
+        this(Integer.parseInt(port));
     }
 
     /**
      * Constructs a web server.
      *
-     * @param port	port number
+     * @param port      port number
      */
     public AppletServer(int port)
-	throws IOException, NotFoundException, CannotCompileException
+        throws IOException, NotFoundException, CannotCompileException
     {
-	this(ClassPool.getDefault(new StubGenerator()), port);
+        this(ClassPool.getDefault(new StubGenerator()), port);
     }
 
     /**
      * Constructs a web server.
      *
-     * @param port	port number
-     * @param src	the source of classs files.
+     * @param port      port number
+     * @param src       the source of classs files.
      */
     public AppletServer(int port, ClassPool src)
-	throws IOException, NotFoundException, CannotCompileException
+        throws IOException, NotFoundException, CannotCompileException
     {
-	this(new ClassPool(src, new StubGenerator()), port);
+        this(new ClassPool(src, new StubGenerator()), port);
     }
 
     private AppletServer(ClassPool loader, int port)
-	throws IOException, NotFoundException, CannotCompileException
+        throws IOException, NotFoundException, CannotCompileException
     {
-	super(port);
-	exportedNames = new Hashtable();
-	exportedObjects = new Vector();
-	stubGen = (StubGenerator)loader.getTranslator();
-	setClassPool(loader);
+        super(port);
+        exportedNames = new Hashtable();
+        exportedObjects = new Vector();
+        stubGen = (StubGenerator)loader.getTranslator();
+        setClassPool(loader);
     }
 
     /**
      * Begins the HTTP service.
      */
     public void run() {
-	super.run();
+        super.run();
     }
 
     /**
@@ -108,147 +97,147 @@ public class AppletServer extends Webserver {
      * to access the exported object.  A remote applet can load
      * the proxy class and call a method on the exported object.
      *
-     * @param name	the name used for looking the object up.
-     * @param object	the exported object.
-     * @return		the object identifier
+     * @param name      the name used for looking the object up.
+     * @param object    the exported object.
+     * @return          the object identifier
      *
      * @see javassist.rmi.ObjectImporter#lookupObject(String)
      */
     public synchronized int exportObject(String name, Object obj)
-	throws CannotCompileException
+        throws CannotCompileException
     {
-	Class clazz = obj.getClass();
-	ExportedObject eo = new ExportedObject();
-	eo.object = obj;
-	eo.methods = clazz.getMethods();
-	exportedObjects.addElement(eo);
-	eo.identifier = exportedObjects.size() - 1;
-	if (name != null)
-	    exportedNames.put(name, eo);
+        Class clazz = obj.getClass();
+        ExportedObject eo = new ExportedObject();
+        eo.object = obj;
+        eo.methods = clazz.getMethods();
+        exportedObjects.addElement(eo);
+        eo.identifier = exportedObjects.size() - 1;
+        if (name != null)
+            exportedNames.put(name, eo);
 
-	try {
-	    stubGen.makeProxyClass(clazz);
-	}
-	catch (NotFoundException e) {
-	    throw new CannotCompileException(e);
-	}
+        try {
+            stubGen.makeProxyClass(clazz);
+        }
+        catch (NotFoundException e) {
+            throw new CannotCompileException(e);
+        }
 
-	return eo.identifier;
+        return eo.identifier;
     }
 
     /**
      * Processes a request from a web browser (an ObjectImporter).
      */
     public void doReply(InputStream in, OutputStream out, String cmd)
-	throws IOException, BadHttpRequest
+        throws IOException, BadHttpRequest
     {
-	if (cmd.startsWith("POST /rmi "))
-	    processRMI(in, out);
-	else if (cmd.startsWith("POST /lookup "))
-	    lookupName(cmd, in, out);
-	else
-	    super.doReply(in, out, cmd);
+        if (cmd.startsWith("POST /rmi "))
+            processRMI(in, out);
+        else if (cmd.startsWith("POST /lookup "))
+            lookupName(cmd, in, out);
+        else
+            super.doReply(in, out, cmd);
     }
 
     private void processRMI(InputStream ins, OutputStream outs)
-	throws IOException
+        throws IOException
     {
-	ObjectInputStream in = new ObjectInputStream(ins);
+        ObjectInputStream in = new ObjectInputStream(ins);
 
-	int objectId = in.readInt();
-	int methodId = in.readInt();
-	Exception err = null;
-	Object rvalue = null;
-	try {
-	    ExportedObject eo
-		= (ExportedObject)exportedObjects.elementAt(objectId);
-	    Object[] args = readParameters(in);
-	    rvalue = convertRvalue(eo.methods[methodId].invoke(eo.object,
-							       args));
-	}
-	catch(Exception e) {
-	    err = e;
-	    logging2(e.toString());
-	}
+        int objectId = in.readInt();
+        int methodId = in.readInt();
+        Exception err = null;
+        Object rvalue = null;
+        try {
+            ExportedObject eo
+                = (ExportedObject)exportedObjects.elementAt(objectId);
+            Object[] args = readParameters(in);
+            rvalue = convertRvalue(eo.methods[methodId].invoke(eo.object,
+                                                               args));
+        }
+        catch(Exception e) {
+            err = e;
+            logging2(e.toString());
+        }
 
-	outs.write(okHeader);
-	ObjectOutputStream out = new ObjectOutputStream(outs);
-	if (err != null) {
-	    out.writeBoolean(false);
-	    out.writeUTF(err.toString());
-	}
-	else
-	    try {
-		out.writeBoolean(true);
-		out.writeObject(rvalue);
-	    }
-	    catch (NotSerializableException e) {
-		logging2(e.toString());
-	    }
-	    catch (InvalidClassException e) {
-		logging2(e.toString());
-	    }
+        outs.write(okHeader);
+        ObjectOutputStream out = new ObjectOutputStream(outs);
+        if (err != null) {
+            out.writeBoolean(false);
+            out.writeUTF(err.toString());
+        }
+        else
+            try {
+                out.writeBoolean(true);
+                out.writeObject(rvalue);
+            }
+            catch (NotSerializableException e) {
+                logging2(e.toString());
+            }
+            catch (InvalidClassException e) {
+                logging2(e.toString());
+            }
 
-	out.flush();
-	out.close();
-	in.close();
+        out.flush();
+        out.close();
+        in.close();
     }
 
     private Object[] readParameters(ObjectInputStream in)
-	throws IOException, ClassNotFoundException
+        throws IOException, ClassNotFoundException
     {
-	int n = in.readInt();
-	Object[] args = new Object[n];
-	for (int i = 0; i < n; ++i) {
-	    Object a = in.readObject();
-	    if (a instanceof RemoteRef) {
-		RemoteRef ref = (RemoteRef)a;
-		ExportedObject eo
-		    = (ExportedObject)exportedObjects.elementAt(ref.oid);
-		a = eo.object;
-	    }
+        int n = in.readInt();
+        Object[] args = new Object[n];
+        for (int i = 0; i < n; ++i) {
+            Object a = in.readObject();
+            if (a instanceof RemoteRef) {
+                RemoteRef ref = (RemoteRef)a;
+                ExportedObject eo
+                    = (ExportedObject)exportedObjects.elementAt(ref.oid);
+                a = eo.object;
+            }
 
-	    args[i] = a;
-	}
+            args[i] = a;
+        }
 
-	return args;
+        return args;
     }
 
     private Object convertRvalue(Object rvalue)
-	throws CannotCompileException
+        throws CannotCompileException
     {
-	if (rvalue == null)
-	    return null;	// the return type is void.
+        if (rvalue == null)
+            return null;        // the return type is void.
 
-	String classname = rvalue.getClass().getName();
-	if (stubGen.isProxyClass(classname))
-	    return new RemoteRef(exportObject(null, rvalue), classname);
-	else
-	    return rvalue;
+        String classname = rvalue.getClass().getName();
+        if (stubGen.isProxyClass(classname))
+            return new RemoteRef(exportObject(null, rvalue), classname);
+        else
+            return rvalue;
     }
 
     private void lookupName(String cmd, InputStream ins, OutputStream outs)
-	throws IOException
+        throws IOException
     {
-	ObjectInputStream in = new ObjectInputStream(ins);
-	String name = DataInputStream.readUTF(in);
-	ExportedObject found = (ExportedObject)exportedNames.get(name);
-	outs.write(okHeader);
-	ObjectOutputStream out = new ObjectOutputStream(outs);
-	if (found == null) {
-	    logging2(name + "not found.");
-	    out.writeInt(-1);		// error code
-	    out.writeUTF("error");
-	}
-	else {
-	    logging2(name);
-	    out.writeInt(found.identifier);
-	    out.writeUTF(found.object.getClass().getName());
-	}
+        ObjectInputStream in = new ObjectInputStream(ins);
+        String name = DataInputStream.readUTF(in);
+        ExportedObject found = (ExportedObject)exportedNames.get(name);
+        outs.write(okHeader);
+        ObjectOutputStream out = new ObjectOutputStream(outs);
+        if (found == null) {
+            logging2(name + "not found.");
+            out.writeInt(-1);           // error code
+            out.writeUTF("error");
+        }
+        else {
+            logging2(name);
+            out.writeInt(found.identifier);
+            out.writeUTF(found.object.getClass().getName());
+        }
 
-	out.flush();
-	out.close();
-	in.close();
+        out.flush();
+        out.close();
+        in.close();
     }
 }
 

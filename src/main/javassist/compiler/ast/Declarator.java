@@ -1,28 +1,17 @@
 /*
- * This file is part of the Javassist toolkit.
+ * Javassist, a Java-bytecode translator toolkit.
+ * Copyright (C) 1999-2003 Shigeru Chiba. All Rights Reserved.
  *
- * The contents of this file are subject to the Mozilla Public License
- * Version 1.1 (the "License"); you may not use this file except in
- * compliance with the License.  You may obtain a copy of the License at
- * either http://www.mozilla.org/MPL/.
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
  *
- * Software distributed under the License is distributed on an "AS IS"
- * basis, WITHOUT WARRANTY OF ANY KIND, either express or implied.  See
- * the License for the specific language governing rights and limitations
- * under the License.
- *
- * The Original Code is Javassist.
- *
- * The Initial Developer of the Original Code is Shigeru Chiba.  Portions
- * created by Shigeru Chiba are Copyright (C) 1999-2003 Shigeru Chiba.
- * All Rights Reserved.
- *
- * Contributor(s):
- *
- * The development of this software is supported in part by the PRESTO
- * program (Sakigake Kenkyu 21) of Japan Science and Technology Corporation.
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  */
-
 package javassist.compiler.ast;
 
 import javassist.compiler.TokenId;
@@ -35,43 +24,43 @@ public class Declarator extends ASTList implements TokenId {
     protected int varType;
     protected int arrayDim;
     protected int localVar;
-    protected String qualifiedClass;	// JVM-internal representation
+    protected String qualifiedClass;    // JVM-internal representation
 
     public Declarator(int type, int dim) {
-	super(null);
-	varType = type;
-	arrayDim = dim;
-	localVar = -1;
-	qualifiedClass = null;
+        super(null);
+        varType = type;
+        arrayDim = dim;
+        localVar = -1;
+        qualifiedClass = null;
     }
 
     public Declarator(ASTList className, int dim) {
-	super(null);
-	varType = CLASS;
-	arrayDim = dim;
-	localVar = -1;
-	qualifiedClass = astToClassName(className, '/');
+        super(null);
+        varType = CLASS;
+        arrayDim = dim;
+        localVar = -1;
+        qualifiedClass = astToClassName(className, '/');
     }
 
     /* For declaring a pre-defined? local variable.
      */
     public Declarator(int type, String jvmClassName, int dim,
-		      int var, Symbol sym) {
-	super(null);
-	varType = type;
-	arrayDim = dim;
-	localVar = var;
-	qualifiedClass = jvmClassName;
-	setLeft(sym);
-	append(this, null);	// initializer
+                      int var, Symbol sym) {
+        super(null);
+        varType = type;
+        arrayDim = dim;
+        localVar = var;
+        qualifiedClass = jvmClassName;
+        setLeft(sym);
+        append(this, null);     // initializer
     }
 
     public Declarator make(Symbol sym, int dim, ASTree init) {
-	Declarator d = new Declarator(this.varType, this.arrayDim + dim);
-	d.qualifiedClass = this.qualifiedClass;
-	d.setLeft(sym);
-	d.append(d, init);
-	return d;
+        Declarator d = new Declarator(this.varType, this.arrayDim + dim);
+        d.qualifiedClass = this.qualifiedClass;
+        d.setLeft(sym);
+        d.append(d, init);
+        return d;
     }
 
     /* Returns CLASS, BOOLEAN, BYTE, CHAR, SHORT, INT, LONG, FLOAT,
@@ -92,11 +81,11 @@ public class Declarator extends ASTList implements TokenId {
     public void setVariable(Symbol sym) { setLeft(sym); }
 
     public ASTree getInitializer() {
-	ASTList t = tail();
-	if (t != null)
-	    return t.head();
-	else
-	    return null;
+        ASTList t = tail();
+        if (t != null)
+            return t.head();
+        else
+            return null;
     }
 
     public void setLocalVar(int n) { localVar = n; }
@@ -106,23 +95,23 @@ public class Declarator extends ASTList implements TokenId {
     public String getTag() { return "decl"; }
 
     public void accept(Visitor v) throws CompileError {
-	v.atDeclarator(this);
+        v.atDeclarator(this);
     }
 
     public static String astToClassName(ASTList name, char sep) {
-	if (name == null)
-	    return null;
+        if (name == null)
+            return null;
 
-	StringBuffer sbuf = new StringBuffer();
-	for (;;) {
-	    sbuf.append(((Symbol)name.head()).get());
-	    name = name.tail();
-	    if (name == null)
-		break;
+        StringBuffer sbuf = new StringBuffer();
+        for (;;) {
+            sbuf.append(((Symbol)name.head()).get());
+            name = name.tail();
+            if (name == null)
+                break;
 
-	    sbuf.append(sep);
-	}
+            sbuf.append(sep);
+        }
 
-	return sbuf.toString();
+        return sbuf.toString();
     }
 }

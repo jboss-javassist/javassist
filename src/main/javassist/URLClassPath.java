@@ -1,28 +1,17 @@
 /*
- * This file is part of the Javassist toolkit.
+ * Javassist, a Java-bytecode translator toolkit.
+ * Copyright (C) 1999-2003 Shigeru Chiba. All Rights Reserved.
  *
- * The contents of this file are subject to the Mozilla Public License
- * Version 1.1 (the "License"); you may not use this file except in
- * compliance with the License.  You may obtain a copy of the License at
- * either http://www.mozilla.org/MPL/.
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
  *
- * Software distributed under the License is distributed on an "AS IS"
- * basis, WITHOUT WARRANTY OF ANY KIND, either express or implied.  See
- * the License for the specific language governing rights and limitations
- * under the License.
- *
- * The Original Code is Javassist.
- *
- * The Initial Developer of the Original Code is Shigeru Chiba.  Portions
- * created by Shigeru Chiba are Copyright (C) 1999-2003 Shigeru Chiba.
- * All Rights Reserved.
- *
- * Contributor(s):
- *
- * The development of this software is supported in part by the PRESTO
- * program (Sakigake Kenkyu 21) of Japan Science and Technology Corporation.
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  */
-
 package javassist;
 
 import java.io.*;
@@ -41,7 +30,7 @@ public class URLClassPath implements ClassPath {
     protected String directory;
     protected String packageName;
 
-    /*
+    /**
      * Creates a search path specified with URL (http).
      *
      * <p>This search path is used only if a requested
@@ -51,93 +40,98 @@ public class URLClassPath implements ClassPath {
      * If <code>packageName</code> is <code>null</code>, the URL is used
      * for loading any class.
      *
-     * @param host		host name
-     * @param port		port number
-     * @param directory		directory name ending with "/".
-     *				It can be "/" (root directory).
-     * @param packageName	package name.
+     * @param host              host name
+     * @param port              port number
+     * @param directory         directory name ending with "/".
+     *                          It can be "/" (root directory).
+     * @param packageName       package name.
      */
     public URLClassPath(String host, int port,
-			String directory, String packageName) {
-	hostname = host;
-	this.port = port;
-	this.directory = directory;
-	this.packageName = packageName;
+                        String directory, String packageName) {
+        hostname = host;
+        this.port = port;
+        this.directory = directory;
+        this.packageName = packageName;
     }
 
     public String toString() {
-	return hostname + ":" + port + directory;
+        return hostname + ":" + port + directory;
     }
 
     /**
      * Opens a class file with http.
      */
     public InputStream openClassfile(String classname) {
-	try {
-	    if (packageName == null || classname.startsWith(packageName)) {
-		String jarname
-		    = directory + classname.replace('.', '/') + ".class";
-		URLConnection con = fetchClass0(hostname, port, jarname);
-		return con.getInputStream();
-	    }
-	}
-	catch (IOException e) {}
-	return null;	// not found
+        try {
+            if (packageName == null || classname.startsWith(packageName)) {
+                String jarname
+                    = directory + classname.replace('.', '/') + ".class";
+                URLConnection con = fetchClass0(hostname, port, jarname);
+                return con.getInputStream();
+            }
+        }
+        catch (IOException e) {}
+        return null;    // not found
     }
+
+    /**
+     * Closes this class path.
+     */
+    public void close() {}
 
     /**
      * Reads a class file on an http server.
      *
-     * @param host		host name
-     * @param port		port number
-     * @param directory		directory name ending with "/".
-     *				It can be "/" (root directory).
-     * @param classname		fully-qualified class name
+     * @param host              host name
+     * @param port              port number
+     * @param directory         directory name ending with "/".
+     *                          It can be "/" (root directory).
+     * @param classname         fully-qualified class name
      */
     public static byte[] fetchClass(String host, int port,
-				    String directory, String classname)
-	throws IOException
+                                    String directory, String classname)
+        throws IOException
     {
-	byte[] b;
-	URLConnection con = fetchClass0(host, port,
-		directory + classname.replace('.', '/') + ".class");
-	int size = con.getContentLength();
-	InputStream s = con.getInputStream();
-	if (size <= 0)
-	    b = ClassPoolTail.readStream(s);
-	else {
-	    b = new byte[size];
-	    int len = 0;
-	    do {
-		int n = s.read(b, len, size - len);
-		if (n < 0) {
-		    s.close();
-		    throw new IOException("the stream was closed: "
-					  + classname);
-		}
-		len += n;
-	    } while (len < size);
-	}
+        byte[] b;
+        URLConnection con = fetchClass0(host, port,
+                directory + classname.replace('.', '/') + ".class");
+        int size = con.getContentLength();
+        InputStream s = con.getInputStream();
+        if (size <= 0)
+            b = ClassPoolTail.readStream(s);
+        else {
+            b = new byte[size];
+            int len = 0;
+            do {
+                int n = s.read(b, len, size - len);
+                if (n < 0) {
+                    s.close();
+                    throw new IOException("the stream was closed: "
+                                          + classname);
+                }
+                len += n;
+            } while (len < size);
+        }
 
-	s.close();
-	return b;
+        s.close();
+        return b;
     }
 
     private static URLConnection fetchClass0(String host, int port,
-					     String filename)
-	throws IOException
+                                             String filename)
+        throws IOException
     {
-	URL url;
-	try {
-	    url = new URL("http", host, port, filename);
-	}
-	catch (MalformedURLException e) {
-	    // should never reache here.
-	    throw new IOException("invalid URL?");
-	}
+        URL url;
+        try {
+            url = new URL("http", host, port, filename);
+        }
+        catch (MalformedURLException e) {
+            // should never reache here.
+            throw new IOException("invalid URL?");
+        }
 
-	URLConnection con = url.openConnection();
-	con.connect();
-	return con;
+        URLConnection con = url.openConnection();
+        con.connect();
+        return con;
     }
 }

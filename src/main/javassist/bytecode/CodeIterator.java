@@ -1,28 +1,17 @@
 /*
- * This file is part of the Javassist toolkit.
+ * Javassist, a Java-bytecode translator toolkit.
+ * Copyright (C) 1999-2003 Shigeru Chiba. All Rights Reserved.
  *
- * The contents of this file are subject to the Mozilla Public License
- * Version 1.1 (the "License"); you may not use this file except in
- * compliance with the License.  You may obtain a copy of the License at
- * either http://www.mozilla.org/MPL/.
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
  *
- * Software distributed under the License is distributed on an "AS IS"
- * basis, WITHOUT WARRANTY OF ANY KIND, either express or implied.  See
- * the License for the specific language governing rights and limitations
- * under the License.
- *
- * The Original Code is Javassist.
- *
- * The Initial Developer of the Original Code is Shigeru Chiba.  Portions
- * created by Shigeru Chiba are Copyright (C) 1999-2003 Shigeru Chiba.
- * All Rights Reserved.
- *
- * Contributor(s):
- *
- * The development of this software is supported in part by the PRESTO
- * program (Sakigake Kenkyu 21) of Japan Science and Technology Corporation.
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  */
-
 package javassist.bytecode;
 
 /**
@@ -41,17 +30,17 @@ public class CodeIterator implements Opcode {
     protected int currentPos;
 
     CodeIterator(CodeAttribute ca) {
-	codeAttr = ca;
-	bytecode = ca.getCode();
-	begin();
+        codeAttr = ca;
+        bytecode = ca.getCode();
+        begin();
     }
 
     /**
      * Moves to the first instruction.
      */
     public void begin() {
-	currentPos = 0;
-	endPos = getCodeLength();
+        currentPos = 0;
+        endPos = getCodeLength();
     }
 
     /**
@@ -67,21 +56,21 @@ public class CodeIterator implements Opcode {
      * @see CodeAttribute#getCode()
      */
     public void move(int index) {
-	currentPos = index;
+        currentPos = index;
     }
 
     /**
      * Returns a Code attribute read with this iterator.
      */
     public CodeAttribute get() {
-	return codeAttr;
+        return codeAttr;
     }
 
     /**
      * Returns <code>code_length</code> of <code>Code_attribute</code>.
      */
     public int getCodeLength() {
-	return bytecode.length;
+        return bytecode.length;
     }
 
     /**
@@ -93,51 +82,51 @@ public class CodeIterator implements Opcode {
      * Writes an 8bit value at the given index.
      */
     public void writeByte(int value, int index) {
-	bytecode[index] = (byte)value;
+        bytecode[index] = (byte)value;
     }
 
     /**
      * Returns the unsigned 16bit value at the given index.
      */
     public int u16bitAt(int index) {
-	return ByteArray.readU16bit(bytecode, index);
+        return ByteArray.readU16bit(bytecode, index);
     }
 
     /**
      * Returns the signed 16bit value at the given index.
      */
     public int s16bitAt(int index) {
-	return ByteArray.readS16bit(bytecode, index);
+        return ByteArray.readS16bit(bytecode, index);
     }
 
     /**
      * Writes a 16 bit integer at the index.
      */
     public void write16bit(int value, int index) {
-	ByteArray.write16bit(value, bytecode, index);
+        ByteArray.write16bit(value, bytecode, index);
     }
 
     /**
      * Returns the signed 32bit value at the given index.
      */
     public int s32bitAt(int index) {
-	return ByteArray.read32bit(bytecode, index);
+        return ByteArray.read32bit(bytecode, index);
     }
 
     /**
      * Writes a 32bit integer at the index.
      */
     public void write32bit(int value, int index) {
-	ByteArray.write32bit(value, bytecode, index);
+        ByteArray.write32bit(value, bytecode, index);
     }
 
     /**
      * Writes a byte array at the index.
      */
     public void write(byte[] code, int index) {
-	int len = code.length;
-	for (int j = 0; j < len; ++j)
-	    bytecode[index++] = code[j];
+        int len = code.length;
+        for (int j = 0; j < len; ++j)
+            bytecode[index++] = code[j];
     }
 
     /**
@@ -156,9 +145,9 @@ public class CodeIterator implements Opcode {
      * @see CodeIterator#byteAt(int)
      */
     public int next() throws BadBytecode {
-	int pos = currentPos;
-	currentPos = nextOpcode(bytecode, pos);
-	return pos;
+        int pos = currentPos;
+        currentPos = nextOpcode(bytecode, pos);
+        return pos;
     }
 
     /**
@@ -176,11 +165,11 @@ public class CodeIterator implements Opcode {
      *
      * <p>This method works only for a constructor.
      *
-     * @return	the index of the INVOKESPECIAL instruction, or -1
-     *		if a constructor invocation is not found.
+     * @return  the index of the INVOKESPECIAL instruction, or -1
+     *          if a constructor invocation is not found.
      */
     public int skipConstructor() throws BadBytecode {
-	return skipSuperConstructor0(-1);
+        return skipSuperConstructor0(-1);
     }
 
     /**
@@ -198,12 +187,12 @@ public class CodeIterator implements Opcode {
      *
      * <p>This method works only for a constructor.
      *
-     * @return	the index of the INVOKESPECIAL instruction, or -1
-     *		if a super constructor invocation is not found
-     *		but <code>this()</code> is found.
+     * @return  the index of the INVOKESPECIAL instruction, or -1
+     *          if a super constructor invocation is not found
+     *          but <code>this()</code> is found.
      */
     public int skipSuperConstructor() throws BadBytecode {
-	return skipSuperConstructor0(0);
+        return skipSuperConstructor0(0);
     }
 
     /**
@@ -221,44 +210,44 @@ public class CodeIterator implements Opcode {
      *
      * <p>This method works only for a constructor.
      *
-     * @return	the index of the INVOKESPECIAL instruction, or -1
-     *		if a explicit constructor invocation is not found
-     *		but <code>super()</code> is found.
+     * @return  the index of the INVOKESPECIAL instruction, or -1
+     *          if a explicit constructor invocation is not found
+     *          but <code>super()</code> is found.
      */
     public int skipThisConstructor() throws BadBytecode {
-	return skipSuperConstructor0(1);
+        return skipSuperConstructor0(1);
     }
 
-    /* skipSuper	1: this(), 0: super(), -1: both.
+    /* skipSuper        1: this(), 0: super(), -1: both.
      */
     private int skipSuperConstructor0(int skipThis) throws BadBytecode {
-	begin();
-	ConstPool cp = codeAttr.getConstPool();
-	String thisClassName = codeAttr.getDeclaringClass();
-	int nested = 0;
-	while (hasNext()) {
-	    int index = next();
-	    int c = byteAt(index);
-	    if (c == NEW)
-		++nested;
-	    else if (c == INVOKESPECIAL) {
-		int mref = ByteArray.readU16bit(bytecode, index + 1);
-		if (cp.getMethodrefName(mref).equals(MethodInfo.nameInit))
-		    if (--nested < 0) {
-			if (skipThis < 0)
-			    return index;
+        begin();
+        ConstPool cp = codeAttr.getConstPool();
+        String thisClassName = codeAttr.getDeclaringClass();
+        int nested = 0;
+        while (hasNext()) {
+            int index = next();
+            int c = byteAt(index);
+            if (c == NEW)
+                ++nested;
+            else if (c == INVOKESPECIAL) {
+                int mref = ByteArray.readU16bit(bytecode, index + 1);
+                if (cp.getMethodrefName(mref).equals(MethodInfo.nameInit))
+                    if (--nested < 0) {
+                        if (skipThis < 0)
+                            return index;
 
-			String cname = cp.getMethodrefClassName(mref);
-			if (cname.equals(thisClassName) == (skipThis > 0))
-			    return index;
-			else
-			    break;
-		    }
-	    }
-	}
+                        String cname = cp.getMethodrefClassName(mref);
+                        if (cname.equals(thisClassName) == (skipThis > 0))
+                            return index;
+                        else
+                            break;
+                    }
+            }
+        }
 
-	begin();
-	return -1;
+        begin();
+        return -1;
     }
 
     /**
@@ -275,16 +264,16 @@ public class CodeIterator implements Opcode {
      * bytecode sequence for adjusting alignment if the code attribute
      * includes <code>LOOKUPSWITCH</code> or <code>TABLESWITCH</code>.
      *
-     * @param code	inserted bytecode sequence.
-     * @return		the index indicating the first byte of the
-     *			inserted byte sequence.
+     * @param code      inserted bytecode sequence.
+     * @return          the index indicating the first byte of the
+     *                  inserted byte sequence.
      */
     public int insert(byte[] code)
-	throws BadBytecode
+        throws BadBytecode
     {
-	int pos = currentPos;
-	insert0(currentPos, code, false);
-	return pos;
+        int pos = currentPos;
+        insert0(currentPos, code, false);
+        return pos;
     }
 
     /**
@@ -300,11 +289,11 @@ public class CodeIterator implements Opcode {
      * bytecode sequence for adjusting alignment if the code attribute
      * includes <code>LOOKUPSWITCH</code> or <code>TABLESWITCH</code>.
      *
-     * @param pos	the index at which a byte sequence is inserted.
-     * @param code	inserted bytecode sequence.
+     * @param pos       the index at which a byte sequence is inserted.
+     * @param code      inserted bytecode sequence.
      */
     public void insert(int pos, byte[] code) throws BadBytecode {
-	insert0(pos, code, false);
+        insert0(pos, code, false);
     }
 
     /**
@@ -321,16 +310,16 @@ public class CodeIterator implements Opcode {
      * bytecode sequence for adjusting alignment if the code attribute
      * includes <code>LOOKUPSWITCH</code> or <code>TABLESWITCH</code>.
      *
-     * @param code	inserted bytecode sequence.
-     * @return		the index indicating the first byte of the
-     *			inserted byte sequence.
+     * @param code      inserted bytecode sequence.
+     * @return          the index indicating the first byte of the
+     *                  inserted byte sequence.
      */
     public int insertEx(byte[] code)
-	throws BadBytecode
+        throws BadBytecode
     {
-	int pos = currentPos;
-	insert0(currentPos, code, true);
-	return pos;
+        int pos = currentPos;
+        insert0(currentPos, code, true);
+        return pos;
     }
 
     /**
@@ -346,23 +335,23 @@ public class CodeIterator implements Opcode {
      * bytecode sequence for adjusting alignment if the code attribute
      * includes <code>LOOKUPSWITCH</code> or <code>TABLESWITCH</code>.
      *
-     * @param pos	the index at which a byte sequence is inserted.
-     * @param code	inserted bytecode sequence.
+     * @param pos       the index at which a byte sequence is inserted.
+     * @param code      inserted bytecode sequence.
      */
     public void insertEx(int pos, byte[] code) throws BadBytecode {
-	insert0(pos, code, true);
+        insert0(pos, code, true);
     }
 
     private void insert0(int pos, byte[] code, boolean exclusive)
-	throws BadBytecode
+        throws BadBytecode
     {
-	int len = code.length;
-	if (len <= 0)
-	    return;
+        int len = code.length;
+        if (len <= 0)
+            return;
 
-	insertGapCore(pos, len, exclusive);	// currentPos will change.
-	for (int j = 0; j < len; ++j)
-	    bytecode[pos++] = code[j];
+        insertGapCore(pos, len, exclusive);     // currentPos will change.
+        for (int j = 0; j < len; ++j)
+            bytecode[pos++] = code[j];
     }
 
     /**
@@ -377,13 +366,13 @@ public class CodeIterator implements Opcode {
      * <p>If the next instruction is at the beginning of a block statement,
      * then the gap is inserted within that block.
      *
-     * @param length		gap length
-     * @return	the index indicating the first byte of the inserted gap.
+     * @param length            gap length
+     * @return  the index indicating the first byte of the inserted gap.
      */
     public int insertGap(int length) throws BadBytecode {
-	int pos = currentPos;
-	insertGapCore(currentPos, length, false);
-	return pos;
+        int pos = currentPos;
+        insertGapCore(currentPos, length, false);
+        return pos;
     }
 
     /**
@@ -397,11 +386,13 @@ public class CodeIterator implements Opcode {
      * of a block statement,
      * then the gap is inserted within that block.
      *
-     * @param pos		the index at which a gap is inserted.
-     * @param length		gap length.
+     * @param pos               the index at which a gap is inserted.
+     * @param length            gap length.
+     * @return the length of the inserted gap.
+     *          It might be bigger than <code>length</code>.
      */
-    public void insertGap(int pos, int length) throws BadBytecode {
-	insertGapCore(pos, length, false);
+    public int insertGap(int pos, int length) throws BadBytecode {
+        return insertGapCore(pos, length, false);
     }
 
     /**
@@ -416,13 +407,13 @@ public class CodeIterator implements Opcode {
      * <p>If the next instruction is at the beginning of a block statement,
      * then the gap is excluded from that block.
      *
-     * @param length		gap length
-     * @return	the index indicating the first byte of the inserted gap.
+     * @param length            gap length
+     * @return  the index indicating the first byte of the inserted gap.
      */
     public int insertExGap(int length) throws BadBytecode {
-	int pos = currentPos;
-	insertGapCore(currentPos, length, true);
-	return pos;
+        int pos = currentPos;
+        insertGapCore(currentPos, length, true);
+        return pos;
     }
 
     /**
@@ -436,28 +427,35 @@ public class CodeIterator implements Opcode {
      * of a block statement,
      * then the gap is excluded from that block.
      *
-     * @param pos		the index at which a gap is inserted.
-     * @param length		gap length.
+     * @param pos               the index at which a gap is inserted.
+     * @param length            gap length.
+     * @return the length of the inserted gap.
+     *          It might be bigger than <code>length</code>.
      */
-    public void insertExGap(int pos, int length) throws BadBytecode {
-	insertGapCore(pos, length, true);
+    public int insertExGap(int pos, int length) throws BadBytecode {
+        return insertGapCore(pos, length, true);
     }
 
-    private void insertGapCore(int pos, int length, boolean exclusive)
-	throws BadBytecode
+    /**
+     * @return the length of the really inserted gap.
+     */
+    private int insertGapCore(int pos, int length, boolean exclusive)
+        throws BadBytecode
     {
-	if (length <= 0)
-	    return;
+        if (length <= 0)
+            return 0;
 
-	int cur = currentPos;
-	byte[] c = insertGap(bytecode, pos, length, exclusive,
-			     get().getExceptionTable());
-	if (cur >= pos)
-	    currentPos = cur + (c.length - bytecode.length);
+        int cur = currentPos;
+        byte[] c = insertGap(bytecode, pos, length, exclusive,
+                             get().getExceptionTable());
+        int length2 = c.length - bytecode.length;
+        if (cur >= pos)
+            currentPos = cur + length2;
 
-	codeAttr.setCode(c);
-	bytecode = c;
-	endPos = getCodeLength();
+        codeAttr.setCode(c);
+        bytecode = c;
+        endPos = getCodeLength();
+        return length2;
     }
 
     /**
@@ -465,53 +463,53 @@ public class CodeIterator implements Opcode {
      * at the beginning of the exception table in the code attribute
      * edited by this object.
      *
-     * @param offset	the value added to the code positions included
-     *				in the entries.
+     * @param offset    the value added to the code positions included
+     *                          in the entries.
      */
     public void insert(ExceptionTable et, int offset) {
-	codeAttr.getExceptionTable().add(0, et, offset);
+        codeAttr.getExceptionTable().add(0, et, offset);
     }
 
     /**
      * Appends the given bytecode sequence at the end.
      *
-     * @param code	the bytecode appended.
-     * @return	the position of the first byte of the appended bytecode.
+     * @param code      the bytecode appended.
+     * @return  the position of the first byte of the appended bytecode.
      */
     public int append(byte[] code) {
-	int size = getCodeLength();
-	int len = code.length;
-	if (len <= 0)
-	    return size;
+        int size = getCodeLength();
+        int len = code.length;
+        if (len <= 0)
+            return size;
 
-	appendGap(len);
-	byte[] dest = bytecode;
-	for (int i = 0; i < len; ++i)
-	    dest[i + size] = code[i];
+        appendGap(len);
+        byte[] dest = bytecode;
+        for (int i = 0; i < len; ++i)
+            dest[i + size] = code[i];
 
-	return size;
+        return size;
     }
 
     /**
      * Appends a gap at the end of the bytecode sequence.
      *
-     * @param length		gap length
+     * @param length            gap length
      */
     public void appendGap(int gapLength) {
-	byte[] code = bytecode;
-	int codeLength = code.length;
-	byte[] newcode = new byte[codeLength + gapLength];
+        byte[] code = bytecode;
+        int codeLength = code.length;
+        byte[] newcode = new byte[codeLength + gapLength];
 
-	int i;
-	for (i = 0; i < codeLength; ++i)
-	    newcode[i] = code[i];
+        int i;
+        for (i = 0; i < codeLength; ++i)
+            newcode[i] = code[i];
 
-	for (i = codeLength; i < codeLength + gapLength; ++i)
-	    newcode[i] = NOP;
+        for (i = codeLength; i < codeLength + gapLength; ++i)
+            newcode[i] = NOP;
 
-	codeAttr.setCode(newcode);
-	bytecode = newcode;
-	endPos = getCodeLength();
+        codeAttr.setCode(newcode);
+        bytecode = newcode;
+        endPos = getCodeLength();
     }
 
     /**
@@ -519,28 +517,28 @@ public class CodeIterator implements Opcode {
      * at the end of the exception table in the code attribute
      * edited by this object.
      *
-     * @param offset	the value added to the code positions included
-     *				in the entries.
+     * @param offset    the value added to the code positions included
+     *                          in the entries.
      */
     public void append(ExceptionTable et, int offset) {
-	ExceptionTable table = codeAttr.getExceptionTable();
-	table.add(table.size(), et, offset);
+        ExceptionTable table = codeAttr.getExceptionTable();
+        table.add(table.size(), et, offset);
     }
 
     /* opcodeLegth is used for implementing nextOpcode().
      */
     private static final int opcodeLength[] = {
         1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 3, 2, 3,
-	3, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 1,
-	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 1, 1, 1, 1, 1, 1, 1,
-	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 3, 3, 3, 3, 3, 3,
-	3, 3, 3, 3, 3, 3, 3, 3, 3, 2, 0, 0, 1, 1, 1, 1, 1, 1, 3, 3,
-	3, 3, 3, 3, 3, 5, 0, 3, 2, 3, 1, 1, 3, 3, 1, 1, 0, 4, 3, 3,
-	5, 5
+        3, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 1,
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 1, 1, 1, 1, 1, 1, 1,
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 3, 3, 3, 3, 3, 3,
+        3, 3, 3, 3, 3, 3, 3, 3, 3, 2, 0, 0, 1, 1, 1, 1, 1, 1, 3, 3,
+        3, 3, 3, 3, 3, 5, 0, 3, 2, 3, 1, 1, 3, 3, 1, 1, 0, 4, 3, 3,
+        5, 5
     };
     // 0 .. UNUSED (186), LOOKUPSWITCH, TABLESWITCH, WIDE
 
@@ -548,45 +546,45 @@ public class CodeIterator implements Opcode {
      * Calculates the index of the next opcode.
      */
     static int nextOpcode(byte[] code, int index)
-	throws BadBytecode
+        throws BadBytecode
     {
-	int opcode;
-	try {
-	    opcode = code[index] & 0xff;
-	}
-	catch (IndexOutOfBoundsException e) {
-	    throw new BadBytecode("invalid opcode address");
-	}
+        int opcode;
+        try {
+            opcode = code[index] & 0xff;
+        }
+        catch (IndexOutOfBoundsException e) {
+            throw new BadBytecode("invalid opcode address");
+        }
 
-	try {
-	    int len = opcodeLength[opcode];
-	    if (len > 0)
-		return index + len;
-	    else if (opcode == WIDE)
-		if (code[index + 1] == (byte)IINC)	// WIDE IINC
-		    return index + 6;
-		else
-		    return index + 4;		// WIDE ...
-	    else {
-		int index2 = (index & ~3) + 8;
-		if (opcode == LOOKUPSWITCH) {
-		    int npairs = ByteArray.read32bit(code, index2);
-		    return index2 + npairs * 8 + 4;
-		}
-		else if (opcode == TABLESWITCH) {
-		    int low = ByteArray.read32bit(code, index2);
-		    int high = ByteArray.read32bit(code, index2 + 4);
-		    return index2 + (high - low + 1) * 4 + 8;
-		}
-		// else
-		//     throw new BadBytecode(opcode);
-	    }
-	}
-	catch (IndexOutOfBoundsException e) {
-	}
+        try {
+            int len = opcodeLength[opcode];
+            if (len > 0)
+                return index + len;
+            else if (opcode == WIDE)
+                if (code[index + 1] == (byte)IINC)      // WIDE IINC
+                    return index + 6;
+                else
+                    return index + 4;           // WIDE ...
+            else {
+                int index2 = (index & ~3) + 8;
+                if (opcode == LOOKUPSWITCH) {
+                    int npairs = ByteArray.read32bit(code, index2);
+                    return index2 + npairs * 8 + 4;
+                }
+                else if (opcode == TABLESWITCH) {
+                    int low = ByteArray.read32bit(code, index2);
+                    int high = ByteArray.read32bit(code, index2 + 4);
+                    return index2 + (high - low + 1) * 4 + 8;
+                }
+                // else
+                //     throw new BadBytecode(opcode);
+            }
+        }
+        catch (IndexOutOfBoundsException e) {
+        }
 
-	// opcode is UNUSED or an IndexOutOfBoundsException was thrown.
-	throw new BadBytecode(opcode);
+        // opcode is UNUSED or an IndexOutOfBoundsException was thrown.
+        throw new BadBytecode(opcode);
     }
 
     // methods for implementing insertGap().
@@ -598,143 +596,143 @@ public class CodeIterator implements Opcode {
      * a multiple of 4.
      */
     static byte[] insertGap(byte[] code, int where, int gapLength,
-			boolean exclusive, ExceptionTable etable)
-	throws BadBytecode
+                        boolean exclusive, ExceptionTable etable)
+        throws BadBytecode
     {
-	if (gapLength <= 0)
-	    return code;
+        if (gapLength <= 0)
+            return code;
 
-	try {
-	    return insertGap0(code, where, gapLength, exclusive, etable);
-	}
-	catch (AlignmentException e) {
-	    try {
-		return insertGap0(code, where, (gapLength + 3) & ~3,
-				  exclusive, etable);
-	    }
-	    catch (AlignmentException e2) {
-		throw new RuntimeException("fatal error?");
-	    }
-	}
+        try {
+            return insertGap0(code, where, gapLength, exclusive, etable);
+        }
+        catch (AlignmentException e) {
+            try {
+                return insertGap0(code, where, (gapLength + 3) & ~3,
+                                  exclusive, etable);
+            }
+            catch (AlignmentException e2) {
+                throw new RuntimeException("fatal error?");
+            }
+        }
     }
 
     private static byte[] insertGap0(byte[] code, int where, int gapLength,
-				boolean exclusive, ExceptionTable etable)
-	throws BadBytecode, AlignmentException
+                                boolean exclusive, ExceptionTable etable)
+        throws BadBytecode, AlignmentException
     {
-	int codeLength = code.length;
-	byte[] newcode = new byte[codeLength + gapLength];
-	insertGap2(code, where, gapLength, codeLength, newcode, exclusive);
-	etable.shiftPc(where, gapLength, exclusive);
-	return newcode;
+        int codeLength = code.length;
+        byte[] newcode = new byte[codeLength + gapLength];
+        insertGap2(code, where, gapLength, codeLength, newcode, exclusive);
+        etable.shiftPc(where, gapLength, exclusive);
+        return newcode;
     }
 
     private static void insertGap2(byte[] code, int where, int gapLength,
-			int endPos, byte[] newcode, boolean exclusive)
-	throws BadBytecode, AlignmentException
+                        int endPos, byte[] newcode, boolean exclusive)
+        throws BadBytecode, AlignmentException
     {
-	int nextPos;
-	int i = 0;
-	int j = 0;
-	for (; i < endPos; i = nextPos) {
-	    if (i == where) {
-		int j2 = j + gapLength;
-		while (j < j2)
-		    newcode[j++] = NOP;
-	    }
+        int nextPos;
+        int i = 0;
+        int j = 0;
+        for (; i < endPos; i = nextPos) {
+            if (i == where) {
+                int j2 = j + gapLength;
+                while (j < j2)
+                    newcode[j++] = NOP;
+            }
 
-	    nextPos = nextOpcode(code, i);
-	    int inst = code[i] & 0xff;
-	    // if<cond>, if_icmp<cond>, if_acmp<cond>, goto, jsr
-	    if ((153 <= inst && inst <= 168)
-		|| inst == IFNULL || inst == IFNONNULL) {
-		/* 2bytes *signed* offset */
-		int offset = (code[i + 1] << 8) | (code[i + 2] & 0xff);
-		offset = newOffset(i, offset, where, gapLength, exclusive);
-		newcode[j] = code[i];
-		ByteArray.write16bit(offset, newcode, j + 1);
-		j += 3;
-	    }
-	    else if (inst == GOTO_W || inst == JSR_W) {
-		/* 4bytes offset */
-		int offset = ByteArray.read32bit(code, i + 1);
-		offset = newOffset(i, offset, where, gapLength, exclusive);
-		newcode[j++] = code[i];
-		ByteArray.write32bit(offset, newcode, j);
-		j += 4;
-	    }
-	    else if (inst == TABLESWITCH) {
-		if ((gapLength & 3) != 0)
-		    throw new AlignmentException();
+            nextPos = nextOpcode(code, i);
+            int inst = code[i] & 0xff;
+            // if<cond>, if_icmp<cond>, if_acmp<cond>, goto, jsr
+            if ((153 <= inst && inst <= 168)
+                || inst == IFNULL || inst == IFNONNULL) {
+                /* 2bytes *signed* offset */
+                int offset = (code[i + 1] << 8) | (code[i + 2] & 0xff);
+                offset = newOffset(i, offset, where, gapLength, exclusive);
+                newcode[j] = code[i];
+                ByteArray.write16bit(offset, newcode, j + 1);
+                j += 3;
+            }
+            else if (inst == GOTO_W || inst == JSR_W) {
+                /* 4bytes offset */
+                int offset = ByteArray.read32bit(code, i + 1);
+                offset = newOffset(i, offset, where, gapLength, exclusive);
+                newcode[j++] = code[i];
+                ByteArray.write32bit(offset, newcode, j);
+                j += 4;
+            }
+            else if (inst == TABLESWITCH) {
+                if (i != j && (gapLength & 3) != 0)
+                    throw new AlignmentException();
 
-		int i0 = i;
-		int i2 = (i & ~3) + 4;	// 0-3 byte padding
-		while (i0 < i2)
-		    newcode[j++] = code[i0++];
+                int i0 = i;
+                int i2 = (i & ~3) + 4;  // 0-3 byte padding
+                while (i0 < i2)
+                    newcode[j++] = code[i0++];
 
-		int defaultbyte = newOffset(i, ByteArray.read32bit(code, i2),
-					    where, gapLength, exclusive);
-		ByteArray.write32bit(defaultbyte, newcode, j);
-		int lowbyte = ByteArray.read32bit(code, i2 + 4);
-		ByteArray.write32bit(lowbyte, newcode, j + 4);
-		int highbyte = ByteArray.read32bit(code, i2 + 8);
-		ByteArray.write32bit(highbyte, newcode, j + 8);
-		j += 12;
-		i0 = i2 + 12;
-		i2 = i0 + (highbyte - lowbyte + 1) * 4;
-		while (i0 < i2) {
-		    int offset = newOffset(i, ByteArray.read32bit(code, i0),
-					   where, gapLength, exclusive);
-		    ByteArray.write32bit(offset, newcode, j);
-		    j += 4;
-		    i0 += 4;
-		}
-	    }
-	    else if (inst == LOOKUPSWITCH) {
-		if ((gapLength & 3) != 0)
-		    throw new AlignmentException();
+                int defaultbyte = newOffset(i, ByteArray.read32bit(code, i2),
+                                            where, gapLength, exclusive);
+                ByteArray.write32bit(defaultbyte, newcode, j);
+                int lowbyte = ByteArray.read32bit(code, i2 + 4);
+                ByteArray.write32bit(lowbyte, newcode, j + 4);
+                int highbyte = ByteArray.read32bit(code, i2 + 8);
+                ByteArray.write32bit(highbyte, newcode, j + 8);
+                j += 12;
+                i0 = i2 + 12;
+                i2 = i0 + (highbyte - lowbyte + 1) * 4;
+                while (i0 < i2) {
+                    int offset = newOffset(i, ByteArray.read32bit(code, i0),
+                                           where, gapLength, exclusive);
+                    ByteArray.write32bit(offset, newcode, j);
+                    j += 4;
+                    i0 += 4;
+                }
+            }
+            else if (inst == LOOKUPSWITCH) {
+                if (i != j && (gapLength & 3) != 0)
+                    throw new AlignmentException();
 
-		int i0 = i;
-		int i2 = (i & ~3) + 4;	// 0-3 byte padding
-		while (i0 < i2)
-		    newcode[j++] = code[i0++];
+                int i0 = i;
+                int i2 = (i & ~3) + 4;  // 0-3 byte padding
+                while (i0 < i2)
+                    newcode[j++] = code[i0++];
 
-		int defaultbyte = newOffset(i, ByteArray.read32bit(code, i2),
-					    where, gapLength, exclusive);
-		ByteArray.write32bit(defaultbyte, newcode, j);
-		int npairs = ByteArray.read32bit(code, i2 + 4);
-		ByteArray.write32bit(npairs, newcode, j + 4);
-		j += 8;
-		i0 = i2 + 8;
-		i2 = i0 + npairs * 8;
-		while (i0 < i2) {
-		    ByteArray.copy32bit(code, i0, newcode, j);
-		    int offset = newOffset(i,
-					ByteArray.read32bit(code, i0 + 4),
-					where, gapLength, exclusive);
-		    ByteArray.write32bit(offset, newcode, j + 4);
-		    j += 8;
-		    i0 += 8;
-		}
-	    }
-	    else
-		while (i < nextPos)
-		    newcode[j++] = code[i++];
-	    }
+                int defaultbyte = newOffset(i, ByteArray.read32bit(code, i2),
+                                            where, gapLength, exclusive);
+                ByteArray.write32bit(defaultbyte, newcode, j);
+                int npairs = ByteArray.read32bit(code, i2 + 4);
+                ByteArray.write32bit(npairs, newcode, j + 4);
+                j += 8;
+                i0 = i2 + 8;
+                i2 = i0 + npairs * 8;
+                while (i0 < i2) {
+                    ByteArray.copy32bit(code, i0, newcode, j);
+                    int offset = newOffset(i,
+                                        ByteArray.read32bit(code, i0 + 4),
+                                        where, gapLength, exclusive);
+                    ByteArray.write32bit(offset, newcode, j + 4);
+                    j += 8;
+                    i0 += 8;
+                }
+            }
+            else
+                while (i < nextPos)
+                    newcode[j++] = code[i++];
+            }
     }
 
     private static int newOffset(int i, int offset, int where,
-				 int gapLength, boolean exclusive) {
-	int target = i + offset;
-	if (i < where) {
-	    if (where < target || (exclusive && where == target))
-		offset += gapLength;
-	}
-	else
-	    if (target < where || (!exclusive && where == target))
-		offset -= gapLength;
+                                 int gapLength, boolean exclusive) {
+        int target = i + offset;
+        if (i < where) {
+            if (where < target || (exclusive && where == target))
+                offset += gapLength;
+        }
+        else
+            if (target < where || (!exclusive && where == target))
+                offset -= gapLength;
 
-	return offset;
+        return offset;
     }
 }
 

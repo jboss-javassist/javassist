@@ -1,28 +1,17 @@
 /*
- * This file is part of the Javassist toolkit.
+ * Javassist, a Java-bytecode translator toolkit.
+ * Copyright (C) 1999-2003 Shigeru Chiba. All Rights Reserved.
  *
- * The contents of this file are subject to the Mozilla Public License
- * Version 1.1 (the "License"); you may not use this file except in
- * compliance with the License.  You may obtain a copy of the License at
- * either http://www.mozilla.org/MPL/.
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
  *
- * Software distributed under the License is distributed on an "AS IS"
- * basis, WITHOUT WARRANTY OF ANY KIND, either express or implied.  See
- * the License for the specific language governing rights and limitations
- * under the License.
- *
- * The Original Code is Javassist.
- *
- * The Initial Developer of the Original Code is Shigeru Chiba.  Portions
- * created by Shigeru Chiba are Copyright (C) 1999-2003 Shigeru Chiba.
- * All Rights Reserved.
- *
- * Contributor(s):
- *
- * The development of this software is supported in part by the PRESTO
- * program (Sakigake Kenkyu 21) of Japan Science and Technology Corporation.
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  */
-
 package javassist.reflect;
 
 import javassist.*;
@@ -90,41 +79,41 @@ public class Reflection implements Translator {
     protected CodeConverter converter;
 
     private boolean isExcluded(String name) {
-	return name.startsWith(ClassMetaobject.methodPrefix)
-	    || name.equals(classobjectAccessor)
-	    || name.equals(metaobjectSetter)
-	    || name.equals(metaobjectGetter)
-	    || name.startsWith(readPrefix)
-	    || name.startsWith(writePrefix);
+        return name.startsWith(ClassMetaobject.methodPrefix)
+            || name.equals(classobjectAccessor)
+            || name.equals(metaobjectSetter)
+            || name.equals(metaobjectGetter)
+            || name.startsWith(readPrefix)
+            || name.startsWith(writePrefix);
     }
 
     /**
      * Constructs a new <code>Reflection</code> object.
      */
     public Reflection() {
-	classPool = null;
-	converter = new CodeConverter();
+        classPool = null;
+        converter = new CodeConverter();
     }
 
     /**
      * Initializes.
      */
     public void start(ClassPool pool) throws NotFoundException {
-	classPool = pool;
-	final String msg
-	    = "javassist.reflect.Sample is not found or broken.";
-	try {
-	    CtClass c = classPool.get("javassist.reflect.Sample");
-	    trapMethod = c.getDeclaredMethod("trap");
-	    trapStaticMethod = c.getDeclaredMethod("trapStatic");
-	    trapRead = c.getDeclaredMethod("trapRead");
-	    trapWrite = c.getDeclaredMethod("trapWrite");
-	    readParam
-		= new CtClass[] { classPool.get("java.lang.Object") };
-	}
-	catch (NotFoundException e) {
-	    throw new RuntimeException(msg);
-	}
+        classPool = pool;
+        final String msg
+            = "javassist.reflect.Sample is not found or broken.";
+        try {
+            CtClass c = classPool.get("javassist.reflect.Sample");
+            trapMethod = c.getDeclaredMethod("trap");
+            trapStaticMethod = c.getDeclaredMethod("trapStatic");
+            trapRead = c.getDeclaredMethod("trapRead");
+            trapWrite = c.getDeclaredMethod("trapWrite");
+            readParam
+                = new CtClass[] { classPool.get("java.lang.Object") };
+        }
+        catch (NotFoundException e) {
+            throw new RuntimeException(msg);
+        }
     }
 
     /**
@@ -132,10 +121,10 @@ public class Reflection implements Translator {
      * in reflective classes.
      */
     public void onWrite(ClassPool pool, String classname)
-	throws CannotCompileException, NotFoundException
+        throws CannotCompileException, NotFoundException
     {
-	CtClass c = pool.get(classname);
-	c.instrument(converter);
+        CtClass c = pool.get(classname);
+        c.instrument(converter);
     }
 
     /**
@@ -143,21 +132,21 @@ public class Reflection implements Translator {
      * If the super class is also made reflective, it must be done
      * before the sub class.
      *
-     * @param classname		the name of the reflective class
-     * @param metaobject	the class name of metaobjects.
-     * @param metaclass		the class name of the class metaobject.
-     * @return <code>false</code>	if the class is already reflective.
+     * @param classname         the name of the reflective class
+     * @param metaobject        the class name of metaobjects.
+     * @param metaclass         the class name of the class metaobject.
+     * @return <code>false</code>       if the class is already reflective.
      *
      * @see javassist.reflect.Metaobject
      * @see javassist.reflect.ClassMetaobject
      */
     public boolean makeReflective(String classname,
-				  String metaobject, String metaclass)
-	throws CannotCompileException, NotFoundException
+                                  String metaobject, String metaclass)
+        throws CannotCompileException, NotFoundException
     {
-	return makeReflective(classPool.get(classname),
-			      classPool.get(metaobject),
-			      classPool.get(metaclass));
+        return makeReflective(classPool.get(classname),
+                              classPool.get(metaobject),
+                              classPool.get(metaclass));
     }
 
     /**
@@ -165,24 +154,24 @@ public class Reflection implements Translator {
      * If the super class is also made reflective, it must be done
      * before the sub class.
      *
-     * @param clazz		the reflective class.
-     * @param metaobject	the class of metaobjects.
-     *				It must be a subclass of
-     *				<code>Metaobject</code>.
-     * @param metaclass		the class of the class metaobject.
-     *				It must be a subclass of
-     *				<code>ClassMetaobject</code>.
-     * @return <code>false</code>	if the class is already reflective.
+     * @param clazz             the reflective class.
+     * @param metaobject        the class of metaobjects.
+     *                          It must be a subclass of
+     *                          <code>Metaobject</code>.
+     * @param metaclass         the class of the class metaobject.
+     *                          It must be a subclass of
+     *                          <code>ClassMetaobject</code>.
+     * @return <code>false</code>       if the class is already reflective.
      *
      * @see javassist.reflect.Metaobject
      * @see javassist.reflect.ClassMetaobject
      */
     public boolean makeReflective(Class clazz,
-				  Class metaobject, Class metaclass)
-	throws CannotCompileException, NotFoundException
+                                  Class metaobject, Class metaclass)
+        throws CannotCompileException, NotFoundException
     {
-	return makeReflective(clazz.getName(), metaobject.getName(),
-			      metaclass.getName());
+        return makeReflective(clazz.getName(), metaobject.getName(),
+                              metaclass.getName());
     }
 
     /**
@@ -191,24 +180,24 @@ public class Reflection implements Translator {
      * If the super class is also made reflective, it must be done
      * before the sub class.
      *
-     * @param clazz		the reflective class.
-     * @param metaobject	the class of metaobjects.
-     *				It must be a subclass of
-     *				<code>Metaobject</code>.
-     * @param metaclass		the class of the class metaobject.
-     *				It must be a subclass of
-     *				<code>ClassMetaobject</code>.
-     * @return <code>false</code>	if the class is already reflective.
+     * @param clazz             the reflective class.
+     * @param metaobject        the class of metaobjects.
+     *                          It must be a subclass of
+     *                          <code>Metaobject</code>.
+     * @param metaclass         the class of the class metaobject.
+     *                          It must be a subclass of
+     *                          <code>ClassMetaobject</code>.
+     * @return <code>false</code>       if the class is already reflective.
      *
      * @see javassist.reflect.Metaobject
      * @see javassist.reflect.ClassMetaobject
      */
     public boolean makeReflective(CtClass clazz,
-				  CtClass metaobject, CtClass metaclass)
-	throws CannotCompileException, NotFoundException
+                                  CtClass metaobject, CtClass metaclass)
+        throws CannotCompileException, NotFoundException
     {
-	registerReflectiveClass(clazz);
-	return modifyClassfile(clazz, metaobject, metaclass);
+        registerReflectiveClass(clazz);
+        return modifyClassfile(clazz, metaobject, metaclass);
     }
 
     /**
@@ -216,160 +205,160 @@ public class Reflection implements Translator {
      * of this class are instrumented.
      */
     private void registerReflectiveClass(CtClass clazz) {
-	CtField[] fs = clazz.getDeclaredFields();
-	for (int i = 0; i < fs.length; ++i) {
-	    CtField f = fs[i];
-	    int mod = f.getModifiers();
-	    if ((mod & Modifier.PUBLIC) != 0 && (mod & Modifier.FINAL) == 0) {
-		String name = f.getName();
-		converter.replaceFieldRead(f, clazz, readPrefix + name);
-		converter.replaceFieldWrite(f, clazz, writePrefix + name);
-	    }
-	}
+        CtField[] fs = clazz.getDeclaredFields();
+        for (int i = 0; i < fs.length; ++i) {
+            CtField f = fs[i];
+            int mod = f.getModifiers();
+            if ((mod & Modifier.PUBLIC) != 0 && (mod & Modifier.FINAL) == 0) {
+                String name = f.getName();
+                converter.replaceFieldRead(f, clazz, readPrefix + name);
+                converter.replaceFieldWrite(f, clazz, writePrefix + name);
+            }
+        }
     }
 
     private boolean modifyClassfile(CtClass clazz, CtClass metaobject,
-				    CtClass metaclass)
-	throws CannotCompileException, NotFoundException
+                                    CtClass metaclass)
+        throws CannotCompileException, NotFoundException
     {
-	if (clazz.getAttribute("Reflective") != null)
-	    return false;	// this is already reflective.
-	else
-	    clazz.setAttribute("Reflective", new byte[0]);
+        if (clazz.getAttribute("Reflective") != null)
+            return false;       // this is already reflective.
+        else
+            clazz.setAttribute("Reflective", new byte[0]);
 
-	CtClass mlevel = classPool.get("javassist.reflect.Metalevel");
-	boolean addMeta = !clazz.subtypeOf(mlevel);
-	if (addMeta)
-	    clazz.addInterface(mlevel);
+        CtClass mlevel = classPool.get("javassist.reflect.Metalevel");
+        boolean addMeta = !clazz.subtypeOf(mlevel);
+        if (addMeta)
+            clazz.addInterface(mlevel);
 
-	processMethods(clazz, addMeta);
-	processFields(clazz);
+        processMethods(clazz, addMeta);
+        processFields(clazz);
 
-	CtField f;
-	if (addMeta) {
-	    f = new CtField(classPool.get("javassist.reflect.Metaobject"),
-			    metaobjectField, clazz);
-	    f.setModifiers(Modifier.PROTECTED);
-	    clazz.addField(f, CtField.Initializer.byNewWithParams(metaobject));
+        CtField f;
+        if (addMeta) {
+            f = new CtField(classPool.get("javassist.reflect.Metaobject"),
+                            metaobjectField, clazz);
+            f.setModifiers(Modifier.PROTECTED);
+            clazz.addField(f, CtField.Initializer.byNewWithParams(metaobject));
 
-	    clazz.addMethod(CtNewMethod.getter(metaobjectGetter, f));
-	    clazz.addMethod(CtNewMethod.setter(metaobjectSetter, f));
-	}
+            clazz.addMethod(CtNewMethod.getter(metaobjectGetter, f));
+            clazz.addMethod(CtNewMethod.setter(metaobjectSetter, f));
+        }
 
-	f = new CtField(classPool.get("javassist.reflect.ClassMetaobject"),
-			classobjectField, clazz);
-	f.setModifiers(Modifier.PRIVATE | Modifier.STATIC);
-	clazz.addField(f, CtField.Initializer.byNew(metaclass,
-					new String[] { clazz.getName() }));
+        f = new CtField(classPool.get("javassist.reflect.ClassMetaobject"),
+                        classobjectField, clazz);
+        f.setModifiers(Modifier.PRIVATE | Modifier.STATIC);
+        clazz.addField(f, CtField.Initializer.byNew(metaclass,
+                                        new String[] { clazz.getName() }));
 
-	clazz.addMethod(CtNewMethod.getter(classobjectAccessor, f));
-	return true;
+        clazz.addMethod(CtNewMethod.getter(classobjectAccessor, f));
+        return true;
     }
 
     private void processMethods(CtClass clazz, boolean dontSearch)
-	throws CannotCompileException, NotFoundException
+        throws CannotCompileException, NotFoundException
     {
-	CtMethod[] ms = clazz.getMethods();
-	int identifier = 0;
-	for (int i = 0; i < ms.length; ++i) {
-	    CtMethod m = ms[i];
-	    int mod = m.getModifiers();
-	    if (Modifier.isPublic(mod) && !Modifier.isAbstract(mod))
-		processMethods0(mod, clazz, m, i, dontSearch);
-	}
+        CtMethod[] ms = clazz.getMethods();
+        int identifier = 0;
+        for (int i = 0; i < ms.length; ++i) {
+            CtMethod m = ms[i];
+            int mod = m.getModifiers();
+            if (Modifier.isPublic(mod) && !Modifier.isAbstract(mod))
+                processMethods0(mod, clazz, m, i, dontSearch);
+        }
     }
 
     private void processMethods0(int mod, CtClass clazz,
-			CtMethod m, int identifier, boolean dontSearch)
-	throws CannotCompileException, NotFoundException
+                        CtMethod m, int identifier, boolean dontSearch)
+        throws CannotCompileException, NotFoundException
     {
-	CtMethod body;
-	String name = m.getName();
+        CtMethod body;
+        String name = m.getName();
 
-	if (isExcluded(name))	// internally-used method inherited
-	    return;		// from a reflective class.
+        if (isExcluded(name))   // internally-used method inherited
+            return;             // from a reflective class.
 
-	CtMethod m2;
-	if (m.getDeclaringClass() == clazz) {
-	    if (Modifier.isNative(mod))
-		return;
+        CtMethod m2;
+        if (m.getDeclaringClass() == clazz) {
+            if (Modifier.isNative(mod))
+                return;
 
-	    m2 = m;
-	}
-	else {
-	    if (Modifier.isFinal(mod))
-		return;
+            m2 = m;
+        }
+        else {
+            if (Modifier.isFinal(mod))
+                return;
 
-	    mod &= ~Modifier.NATIVE;
-	    m2 = CtNewMethod.delegator(findOriginal(m, dontSearch), clazz);
-	    m2.setModifiers(mod);
-	    clazz.addMethod(m2);
-	}
+            mod &= ~Modifier.NATIVE;
+            m2 = CtNewMethod.delegator(findOriginal(m, dontSearch), clazz);
+            m2.setModifiers(mod);
+            clazz.addMethod(m2);
+        }
 
-	m2.setName(ClassMetaobject.methodPrefix + identifier
-		      + "_" + name);
+        m2.setName(ClassMetaobject.methodPrefix + identifier
+                      + "_" + name);
 
-	if (Modifier.isStatic(mod))
-	    body = trapStaticMethod;
-	else
-	    body = trapMethod;
+        if (Modifier.isStatic(mod))
+            body = trapStaticMethod;
+        else
+            body = trapMethod;
 
-	CtMethod wmethod
-	    = CtNewMethod.wrapped(m.getReturnType(), name,
-				  m.getParameterTypes(), m.getExceptionTypes(),
-				  body, ConstParameter.integer(identifier),
-				  clazz);
-	wmethod.setModifiers(mod);
-	clazz.addMethod(wmethod);
+        CtMethod wmethod
+            = CtNewMethod.wrapped(m.getReturnType(), name,
+                                  m.getParameterTypes(), m.getExceptionTypes(),
+                                  body, ConstParameter.integer(identifier),
+                                  clazz);
+        wmethod.setModifiers(mod);
+        clazz.addMethod(wmethod);
     }
 
     private CtMethod findOriginal(CtMethod m, boolean dontSearch)
-	throws NotFoundException
+        throws NotFoundException
     {
-	if (dontSearch)
-	    return m;
+        if (dontSearch)
+            return m;
 
-	String name = m.getName();
-	CtMethod[] ms = m.getDeclaringClass().getDeclaredMethods();
-	for (int i = 0; i < ms.length; ++i) {
-	    String orgName = ms[i].getName();
-	    if (orgName.endsWith(name)
-		&& orgName.startsWith(ClassMetaobject.methodPrefix)
-		&& ms[i].getSignature().equals(m.getSignature()))
-		return ms[i];
-	}
+        String name = m.getName();
+        CtMethod[] ms = m.getDeclaringClass().getDeclaredMethods();
+        for (int i = 0; i < ms.length; ++i) {
+            String orgName = ms[i].getName();
+            if (orgName.endsWith(name)
+                && orgName.startsWith(ClassMetaobject.methodPrefix)
+                && ms[i].getSignature().equals(m.getSignature()))
+                return ms[i];
+        }
 
-	return m;
+        return m;
     }
 
     private void processFields(CtClass clazz)
-	throws CannotCompileException, NotFoundException
+        throws CannotCompileException, NotFoundException
     {
-	CtField[] fs = clazz.getDeclaredFields();
-	for (int i = 0; i < fs.length; ++i) {
-	    CtField f = fs[i];
-	    int mod = f.getModifiers();
-	    if ((mod & Modifier.PUBLIC) != 0 && (mod & Modifier.FINAL) == 0) {
-		mod |= Modifier.STATIC;
-		String name = f.getName();
-		CtClass ftype = f.getType();
-		CtMethod wmethod
-		    = CtNewMethod.wrapped(ftype, readPrefix + name,
-					  readParam, null, trapRead,
-					  ConstParameter.string(name),
-					  clazz);
-		wmethod.setModifiers(mod);
-		clazz.addMethod(wmethod);
-		CtClass[] writeParam = new CtClass[2];
-		writeParam[0] = classPool.get("java.lang.Object");
-		writeParam[1] = ftype;
-		wmethod = CtNewMethod.wrapped(CtClass.voidType,
-				writePrefix + name,
-				writeParam, null, trapWrite,
-				ConstParameter.string(name), clazz);
-		wmethod.setModifiers(mod);
-		clazz.addMethod(wmethod);
-	    }
-	}
+        CtField[] fs = clazz.getDeclaredFields();
+        for (int i = 0; i < fs.length; ++i) {
+            CtField f = fs[i];
+            int mod = f.getModifiers();
+            if ((mod & Modifier.PUBLIC) != 0 && (mod & Modifier.FINAL) == 0) {
+                mod |= Modifier.STATIC;
+                String name = f.getName();
+                CtClass ftype = f.getType();
+                CtMethod wmethod
+                    = CtNewMethod.wrapped(ftype, readPrefix + name,
+                                          readParam, null, trapRead,
+                                          ConstParameter.string(name),
+                                          clazz);
+                wmethod.setModifiers(mod);
+                clazz.addMethod(wmethod);
+                CtClass[] writeParam = new CtClass[2];
+                writeParam[0] = classPool.get("java.lang.Object");
+                writeParam[1] = ftype;
+                wmethod = CtNewMethod.wrapped(CtClass.voidType,
+                                writePrefix + name,
+                                writeParam, null, trapWrite,
+                                ConstParameter.string(name), clazz);
+                wmethod.setModifiers(mod);
+                clazz.addMethod(wmethod);
+            }
+        }
     }
 }

@@ -1,28 +1,17 @@
 /*
- * This file is part of the Javassist toolkit.
+ * Javassist, a Java-bytecode translator toolkit.
+ * Copyright (C) 1999-2003 Shigeru Chiba. All Rights Reserved.
  *
- * The contents of this file are subject to the Mozilla Public License
- * Version 1.1 (the "License"); you may not use this file except in
- * compliance with the License.  You may obtain a copy of the License at
- * either http://www.mozilla.org/MPL/.
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
  *
- * Software distributed under the License is distributed on an "AS IS"
- * basis, WITHOUT WARRANTY OF ANY KIND, either express or implied.  See
- * the License for the specific language governing rights and limitations
- * under the License.
- *
- * The Original Code is Javassist.
- *
- * The Initial Developer of the Original Code is Shigeru Chiba.  Portions
- * created by Shigeru Chiba are Copyright (C) 1999-2003 Shigeru Chiba.
- * All Rights Reserved.
- *
- * Contributor(s):
- *
- * The development of this software is supported in part by the PRESTO
- * program (Sakigake Kenkyu 21) of Japan Science and Technology Corporation.
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  */
-
 package javassist.bytecode;
 
 import java.io.DataInputStream;
@@ -44,7 +33,7 @@ public final class MethodInfo {
     int accessFlags;
     int name;
     int descriptor;
-    LinkedList attribute;	// may be null
+    LinkedList attribute;       // may be null
 
     /**
      * The name of constructors: <code>&lt;init&gt</code>.
@@ -58,29 +47,29 @@ public final class MethodInfo {
     public static final String nameClinit = "<clinit>";
 
     private MethodInfo(ConstPool cp) {
-	constPool = cp;
-	attribute = null;
+        constPool = cp;
+        attribute = null;
     }
 
     /**
      * Constructs a <code>method_info</code> structure.
      *
-     * @param cp		a constant pool table
-     * @param methodname	method name
-     * @param desc		method descriptor
+     * @param cp                a constant pool table
+     * @param methodname        method name
+     * @param desc              method descriptor
      *
      * @see Descriptor
      */
     public MethodInfo(ConstPool cp, String methodname, String desc) {
-	this(cp);
-	accessFlags = 0;
-	name = cp.addUtf8Info(methodname);
-	descriptor = constPool.addUtf8Info(desc);
+        this(cp);
+        accessFlags = 0;
+        name = cp.addUtf8Info(methodname);
+        descriptor = constPool.addUtf8Info(desc);
     }
 
     MethodInfo(ConstPool cp, DataInputStream in) throws IOException {
-	this(cp);
-	read(in);
+        this(cp);
+        read(in);
     }
 
     /**
@@ -92,32 +81,32 @@ public final class MethodInfo {
      * attributes are copied from the source.  The other attributes
      * are ignored.
      *
-     * @param cp		a constant pool table
-     * @param methodname	a method name
-     * @param src		a source <code>method_info</code>
-     * @param classnameMap	specifies pairs of replaced and substituted
-     *				name.
+     * @param cp                a constant pool table
+     * @param methodname        a method name
+     * @param src               a source <code>method_info</code>
+     * @param classnameMap      specifies pairs of replaced and substituted
+     *                          name.
      * @see Descriptor
      */
     public MethodInfo(ConstPool cp, String methodname, MethodInfo src,
-		      Map classnameMap) throws BadBytecode
+                      Map classnameMap) throws BadBytecode
     {
-	this(cp);
-	read(src, methodname, classnameMap);
+        this(cp);
+        read(src, methodname, classnameMap);
     }
 
     /**
      * Returns a method name.
      */
     public String getName() {
-	return constPool.getUtf8Info(name);
+        return constPool.getUtf8Info(name);
     }
 
     /**
      * Sets a method name.
      */
     public void setName(String newName) {
-	name = constPool.addUtf8Info(newName);
+        name = constPool.addUtf8Info(newName);
     }
 
     /**
@@ -125,8 +114,8 @@ public final class MethodInfo {
      * (static initializer).
      */
     public boolean isMethod() {
-	String n = getName();
-	return !n.equals(nameInit) && !n.equals(nameClinit);
+        String n = getName();
+        return !n.equals(nameInit) && !n.equals(nameClinit);
     }
 
     /**
@@ -143,7 +132,7 @@ public final class MethodInfo {
      * Returns true if this is a class initializer (static initializer).
      */
     public boolean isStaticInitializer() {
-	return getName().equals(nameClinit);
+        return getName().equals(nameClinit);
     }
 
     /**
@@ -152,7 +141,7 @@ public final class MethodInfo {
      * @see AccessFlag
      */
     public int getAccessFlags() {
-	return accessFlags;
+        return accessFlags;
     }
 
     /**
@@ -161,7 +150,7 @@ public final class MethodInfo {
      * @see AccessFlag
      */
     public void setAccessFlags(int acc) {
-	accessFlags = acc;
+        accessFlags = acc;
     }
 
     /**
@@ -170,7 +159,7 @@ public final class MethodInfo {
      * @see Descriptor
      */
     public String getDescriptor() {
-	return constPool.getUtf8Info(descriptor);
+        return constPool.getUtf8Info(descriptor);
     }
 
     /**
@@ -179,8 +168,8 @@ public final class MethodInfo {
      * @see Descriptor
      */
     public void setDescriptor(String desc) {
-	if (!desc.equals(getDescriptor()))
-	    descriptor = constPool.addUtf8Info(desc);
+        if (!desc.equals(getDescriptor()))
+            descriptor = constPool.addUtf8Info(desc);
     }
 
     /**
@@ -190,21 +179,21 @@ public final class MethodInfo {
      * @see AttributeInfo
      */
     public List getAttributes() {
-	if (attribute == null)
-	    attribute = new LinkedList();
+        if (attribute == null)
+            attribute = new LinkedList();
 
-	return attribute;
+        return attribute;
     }
 
     /**
      * Returns the attribute with the specified name.
      * If it is not found, this method returns null.
      *
-     * @param name	attribute name
-     * @return		an <code>AttributeInfo</code> object or null.
+     * @param name      attribute name
+     * @return          an <code>AttributeInfo</code> object or null.
      */
     public AttributeInfo getAttribute(String name) {
-	return AttributeInfo.lookup(attribute, name);
+        return AttributeInfo.lookup(attribute, name);
     }
 
     /**
@@ -212,42 +201,42 @@ public final class MethodInfo {
      * the same name, the new one substitutes for it.
      */
     public void addAttribute(AttributeInfo info) {
-	if (attribute == null)
-	    attribute = new LinkedList();
+        if (attribute == null)
+            attribute = new LinkedList();
 
-	AttributeInfo.remove(attribute, info.getName());
-	attribute.add(info);
+        AttributeInfo.remove(attribute, info.getName());
+        attribute.add(info);
     }
 
     /**
      * Returns an Exceptions attribute.
      *
-     * @return		an Exceptions attribute
-     *			or null if it is not specified.
+     * @return          an Exceptions attribute
+     *                  or null if it is not specified.
      */
     public ExceptionsAttribute getExceptionsAttribute() {
-	AttributeInfo info
-	    = AttributeInfo.lookup(attribute, ExceptionsAttribute.class);
-	return (ExceptionsAttribute)info;
+        AttributeInfo info
+            = AttributeInfo.lookup(attribute, ExceptionsAttribute.class);
+        return (ExceptionsAttribute)info;
     }
 
     /**
      * Returns a Code attribute.
      *
-     * @return		a Code attribute
-     *			or null if it is not specified.
+     * @return          a Code attribute
+     *                  or null if it is not specified.
      */
     public CodeAttribute getCodeAttribute() {
-	AttributeInfo info
-	    = AttributeInfo.lookup(attribute, CodeAttribute.class);
-	return (CodeAttribute)info;
+        AttributeInfo info
+            = AttributeInfo.lookup(attribute, CodeAttribute.class);
+        return (CodeAttribute)info;
     }
 
     /**
      * Removes an Exception attribute.
      */
     public void removeExceptionsAttribute() {
-	AttributeInfo.remove(attribute, ExceptionsAttribute.class);
+        AttributeInfo.remove(attribute, ExceptionsAttribute.class);
     }
 
     /**
@@ -257,18 +246,18 @@ public final class MethodInfo {
      * as this <code>method_info</code> structure.
      */
     public void setExceptionsAttribute(ExceptionsAttribute cattr) {
-	removeExceptionsAttribute();
-	if (attribute == null)
-	    attribute = new LinkedList();
+        removeExceptionsAttribute();
+        if (attribute == null)
+            attribute = new LinkedList();
 
-	attribute.add(cattr);
+        attribute.add(cattr);
     }
 
     /**
      * Removes a Code attribute.
      */
     public void removeCodeAttribute() {
-	AttributeInfo.remove(attribute, CodeAttribute.class);
+        AttributeInfo.remove(attribute, CodeAttribute.class);
     }
 
     /**
@@ -278,32 +267,32 @@ public final class MethodInfo {
      * as this <code>method_info</code> structure.
      */
     public void setCodeAttribute(CodeAttribute cattr) {
-	removeCodeAttribute();
-	if (attribute == null)
-	    attribute = new LinkedList();
+        removeCodeAttribute();
+        if (attribute == null)
+            attribute = new LinkedList();
 
-	attribute.add(cattr);
+        attribute.add(cattr);
     }
 
     /**
      * Returns the line number of the source line corresponding to the
      * specified bytecode contained in this method.
      *
-     * @param pos	the position of the bytecode (&gt;= 0).
-     *			an index into the code array.
-     * @return -1	if this information is not available.
+     * @param pos       the position of the bytecode (&gt;= 0).
+     *                  an index into the code array.
+     * @return -1       if this information is not available.
      */
     public int getLineNumber(int pos) {
-	CodeAttribute ca = getCodeAttribute();
-	if (ca == null)
-	    return -1;
+        CodeAttribute ca = getCodeAttribute();
+        if (ca == null)
+            return -1;
 
-	LineNumberAttribute ainfo
-	    = (LineNumberAttribute)ca.getAttribute(LineNumberAttribute.tag);
-	if (ainfo == null)
-	    return -1;
+        LineNumberAttribute ainfo
+            = (LineNumberAttribute)ca.getAttribute(LineNumberAttribute.tag);
+        if (ainfo == null)
+            return -1;
 
-	return ainfo.toLineNumber(pos);
+        return ainfo.toLineNumber(pos);
     }
 
     /**
@@ -322,68 +311,68 @@ public final class MethodInfo {
      * <p>This method does not perform anything unless this
      * <code>MethodInfo</code> represents a constructor.
      *
-     * @param superclass	the new super class
+     * @param superclass        the new super class
      */
     public void setSuperclass(String superclass) throws BadBytecode {
-	if (!isConstructor())
-	    return;
+        if (!isConstructor())
+            return;
 
-	CodeAttribute ca = getCodeAttribute();
-	byte[] code = ca.getCode();
-	CodeIterator iterator = ca.iterator();
-	int pos = iterator.skipSuperConstructor();
-	if (pos >= 0) {		// not this()
-	    ConstPool cp = constPool;
-	    int mref = ByteArray.readU16bit(code, pos + 1);
-	    int nt = cp.getMethodrefNameAndType(mref);
-	    int sc = cp.addClassInfo(superclass);
-	    int mref2 = cp.addMethodrefInfo(sc, nt);
-	    ByteArray.write16bit(mref2, code, pos + 1);
-	}
+        CodeAttribute ca = getCodeAttribute();
+        byte[] code = ca.getCode();
+        CodeIterator iterator = ca.iterator();
+        int pos = iterator.skipSuperConstructor();
+        if (pos >= 0) {         // not this()
+            ConstPool cp = constPool;
+            int mref = ByteArray.readU16bit(code, pos + 1);
+            int nt = cp.getMethodrefNameAndType(mref);
+            int sc = cp.addClassInfo(superclass);
+            int mref2 = cp.addMethodrefInfo(sc, nt);
+            ByteArray.write16bit(mref2, code, pos + 1);
+        }
     }
 
     private void read(MethodInfo src, String methodname, Map classnames)
-	throws BadBytecode
+        throws BadBytecode
     {
-	ConstPool destCp = constPool;
-	accessFlags = src.accessFlags;
-	name = destCp.addUtf8Info(methodname);
+        ConstPool destCp = constPool;
+        accessFlags = src.accessFlags;
+        name = destCp.addUtf8Info(methodname);
 
-	ConstPool srcCp = src.constPool;
-	String desc = srcCp.getUtf8Info(src.descriptor);
-	String desc2 = Descriptor.rename(desc, classnames);
-	descriptor = destCp.addUtf8Info(desc2);
+        ConstPool srcCp = src.constPool;
+        String desc = srcCp.getUtf8Info(src.descriptor);
+        String desc2 = Descriptor.rename(desc, classnames);
+        descriptor = destCp.addUtf8Info(desc2);
 
-	attribute = new LinkedList();
-	ExceptionsAttribute eattr = src.getExceptionsAttribute();
-	if (eattr != null)
-	    attribute.add(eattr.copy(destCp, classnames));
+        attribute = new LinkedList();
+        ExceptionsAttribute eattr = src.getExceptionsAttribute();
+        if (eattr != null)
+            attribute.add(eattr.copy(destCp, classnames));
 
-	CodeAttribute cattr = src.getCodeAttribute();
-	if (cattr != null)
-	    attribute.add(cattr.copy(destCp, classnames));
+        CodeAttribute cattr = src.getCodeAttribute();
+        if (cattr != null)
+            attribute.add(cattr.copy(destCp, classnames));
     }
 
     private void read(DataInputStream in) throws IOException {
-	accessFlags = in.readUnsignedShort();
-	name = in.readUnsignedShort();
-	descriptor = in.readUnsignedShort();
-	int n = in.readUnsignedShort();
-	attribute = new LinkedList();
-	for (int i = 0; i < n; ++i)
-	    attribute.add(AttributeInfo.read(constPool, in));
+        accessFlags = in.readUnsignedShort();
+        name = in.readUnsignedShort();
+        descriptor = in.readUnsignedShort();
+        int n = in.readUnsignedShort();
+        attribute = new LinkedList();
+        for (int i = 0; i < n; ++i)
+            attribute.add(AttributeInfo.read(constPool, in));
     }
 
     void write(DataOutputStream out) throws IOException {
-	out.writeShort(accessFlags);
-	out.writeShort(name);
-	out.writeShort(descriptor);
+        out.writeShort(accessFlags);
+        out.writeShort(name);
+        out.writeShort(descriptor);
 
-	if (attribute == null)
-	    out.writeShort(0);
-	else {
-	    out.writeShort(attribute.size());
-	    AttributeInfo.writeAll(attribute, out);
-	}
+        if (attribute == null)
+            out.writeShort(0);
+        else {
+            out.writeShort(attribute.size());
+            AttributeInfo.writeAll(attribute, out);
+        }
     }
 }

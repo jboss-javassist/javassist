@@ -1,28 +1,17 @@
 /*
- * This file is part of the Javassist toolkit.
+ * Javassist, a Java-bytecode translator toolkit.
+ * Copyright (C) 1999-2003 Shigeru Chiba. All Rights Reserved.
  *
- * The contents of this file are subject to the Mozilla Public License
- * Version 1.1 (the "License"); you may not use this file except in
- * compliance with the License.  You may obtain a copy of the License at
- * either http://www.mozilla.org/MPL/.
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
  *
- * Software distributed under the License is distributed on an "AS IS"
- * basis, WITHOUT WARRANTY OF ANY KIND, either express or implied.  See
- * the License for the specific language governing rights and limitations
- * under the License.
- *
- * The Original Code is Javassist.
- *
- * The Initial Developer of the Original Code is Shigeru Chiba.  Portions
- * created by Shigeru Chiba are Copyright (C) 1999-2003 Shigeru Chiba.
- * All Rights Reserved.
- *
- * Contributor(s):
- *
- * The development of this software is supported in part by the PRESTO
- * program (Sakigake Kenkyu 21) of Japan Science and Technology Corporation.
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  */
-
 package javassist.rmi;
 
 import java.io.*;
@@ -95,12 +84,12 @@ public class ObjectImporter implements java.io.Serializable {
      * <p>Remote objects are imported from the web server that the given
      * applet has been loaded from.
      *
-     * @param applet	the applet loaded from the <code>Webserver</code>.
+     * @param applet    the applet loaded from the <code>Webserver</code>.
      */
     public ObjectImporter(Applet applet) {
-	URL codebase = applet.getCodeBase();
-	orgServername = servername = codebase.getHost();
-	orgPort = port = codebase.getPort();
+        URL codebase = applet.getCodeBase();
+        orgServername = servername = codebase.getHost();
+        orgPort = port = codebase.getPort();
     }
 
     /**
@@ -117,24 +106,24 @@ public class ObjectImporter implements java.io.Serializable {
      * @see javassist.web.Viewer
      */
     public ObjectImporter(String servername, int port) {
-	this.orgServername = this.servername = servername;
-	this.orgPort = this.port = port;
+        this.orgServername = this.servername = servername;
+        this.orgPort = this.port = port;
     }
 
     /**
      * Finds the object exported by a server with the specified name.
      * If the object is not found, this method returns null.
      *
-     * @param name	the name of the exported object.
-     * @return		the proxy object or null.
+     * @param name      the name of the exported object.
+     * @return          the proxy object or null.
      */
     public Object getObject(String name) {
-	try {
-	    return lookupObject(name);
-	}
-	catch (ObjectNotFoundException e) {
-	    return null;
-	}
+        try {
+            return lookupObject(name);
+        }
+        catch (ObjectNotFoundException e) {
+            return null;
+        }
     }
 
     /**
@@ -142,13 +131,13 @@ public class ObjectImporter implements java.io.Serializable {
      * importer connects a server through the http proxy server.
      */
     public void setHttpProxy(String host, int port) {
-	String proxyHeader = "POST http://" + orgServername + ":" + orgPort;
-	String cmd = proxyHeader + "/lookup HTTP/1.0";
-	lookupCommand = cmd.getBytes();
-	cmd = proxyHeader + "/rmi HTTP/1.0";
-	rmiCommand = cmd.getBytes();
-	this.servername = host;
-	this.port = port;
+        String proxyHeader = "POST http://" + orgServername + ":" + orgPort;
+        String cmd = proxyHeader + "/lookup HTTP/1.0";
+        lookupCommand = cmd.getBytes();
+        cmd = proxyHeader + "/rmi HTTP/1.0";
+        rmiCommand = cmd.getBytes();
+        this.servername = host;
+        this.port = port;
     }
 
     /**
@@ -156,49 +145,49 @@ public class ObjectImporter implements java.io.Serializable {
      * It sends a POST request to the server (via an http proxy server
      * if needed).
      *
-     * @param name	the name of the exported object.
-     * @return		the proxy object.
+     * @param name      the name of the exported object.
+     * @return          the proxy object.
      */
     public Object lookupObject(String name) throws ObjectNotFoundException
     {
-	try {
-	    Socket sock = new Socket(servername, port);
-	    OutputStream out = sock.getOutputStream();
-	    out.write(lookupCommand);
-	    out.write(endofline);
-	    out.write(endofline);
+        try {
+            Socket sock = new Socket(servername, port);
+            OutputStream out = sock.getOutputStream();
+            out.write(lookupCommand);
+            out.write(endofline);
+            out.write(endofline);
 
-	    ObjectOutputStream dout = new ObjectOutputStream(out);
-	    dout.writeUTF(name);
-	    dout.flush();
+            ObjectOutputStream dout = new ObjectOutputStream(out);
+            dout.writeUTF(name);
+            dout.flush();
 
-	    InputStream in = new BufferedInputStream(sock.getInputStream());
-	    skipHeader(in);
-	    ObjectInputStream din = new ObjectInputStream(in);
-	    int n = din.readInt();
-	    String classname = din.readUTF();
-	    din.close();
-	    dout.close();
-	    sock.close();
+            InputStream in = new BufferedInputStream(sock.getInputStream());
+            skipHeader(in);
+            ObjectInputStream din = new ObjectInputStream(in);
+            int n = din.readInt();
+            String classname = din.readUTF();
+            din.close();
+            dout.close();
+            sock.close();
 
-	    if (n >= 0)
-		return createProxy(n, classname);
-	}
-	catch (Exception e) {
-	    e.printStackTrace();
-	    throw new ObjectNotFoundException(name, e);
-	}
+            if (n >= 0)
+                return createProxy(n, classname);
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+            throw new ObjectNotFoundException(name, e);
+        }
 
-	throw new ObjectNotFoundException(name);
+        throw new ObjectNotFoundException(name);
     }
 
     private static final Class[] proxyConstructorParamTypes
-	= new Class[] { ObjectImporter.class, int.class };
+        = new Class[] { ObjectImporter.class, int.class };
 
     private Object createProxy(int oid, String classname) throws Exception {
-	Class c = Class.forName(classname);
-	Constructor cons = c.getConstructor(proxyConstructorParamTypes);
-	return cons.newInstance(new Object[] { this, new Integer(oid) });
+        Class c = Class.forName(classname);
+        Constructor cons = c.getConstructor(proxyConstructorParamTypes);
+        return cons.newInstance(new Object[] { this, new Integer(oid) });
     }
 
     /**
@@ -209,100 +198,100 @@ public class ObjectImporter implements java.io.Serializable {
      * <p>This method is called by only proxy objects.
      */
     public Object call(int objectid, int methodid, Object[] args)
-	throws RemoteException
+        throws RemoteException
     {
-	boolean result;
-	Object rvalue;
-	String errmsg;
+        boolean result;
+        Object rvalue;
+        String errmsg;
 
-	try {
-	    /* This method establishes a raw tcp connection for sending
-	     * a POST message.  Thus the object cannot communicate a
-	     * remote object beyond a fire wall.  To avoid this problem,
-	     * the connection should be established with a mechanism
-	     * collaborating a proxy server.  Unfortunately, java.lang.URL
-	     * does not seem to provide such a mechanism.
-	     *
-	     * You might think that using HttpURLConnection is a better
-	     * way than constructing a raw tcp connection.  Unfortunately,
-	     * URL.openConnection() does not return an HttpURLConnection
-	     * object in Netscape's JVM.  It returns a
-	     * netscape.net.URLConnection object.
-	     *
-	     * lookupObject() has the same problem.
-	     */
-	    Socket sock = new Socket(servername, port);
-	    OutputStream out = new BufferedOutputStream(
-						sock.getOutputStream());
-	    out.write(rmiCommand);
-	    out.write(endofline);
-	    out.write(endofline);
+        try {
+            /* This method establishes a raw tcp connection for sending
+             * a POST message.  Thus the object cannot communicate a
+             * remote object beyond a fire wall.  To avoid this problem,
+             * the connection should be established with a mechanism
+             * collaborating a proxy server.  Unfortunately, java.lang.URL
+             * does not seem to provide such a mechanism.
+             *
+             * You might think that using HttpURLConnection is a better
+             * way than constructing a raw tcp connection.  Unfortunately,
+             * URL.openConnection() does not return an HttpURLConnection
+             * object in Netscape's JVM.  It returns a
+             * netscape.net.URLConnection object.
+             *
+             * lookupObject() has the same problem.
+             */
+            Socket sock = new Socket(servername, port);
+            OutputStream out = new BufferedOutputStream(
+                                                sock.getOutputStream());
+            out.write(rmiCommand);
+            out.write(endofline);
+            out.write(endofline);
 
-	    ObjectOutputStream dout = new ObjectOutputStream(out);
-	    dout.writeInt(objectid);
-	    dout.writeInt(methodid);
-	    writeParameters(dout, args);
-	    dout.flush();
+            ObjectOutputStream dout = new ObjectOutputStream(out);
+            dout.writeInt(objectid);
+            dout.writeInt(methodid);
+            writeParameters(dout, args);
+            dout.flush();
 
-	    InputStream ins = new BufferedInputStream(sock.getInputStream());
-	    skipHeader(ins);
-	    ObjectInputStream din = new ObjectInputStream(ins);
-	    result = din.readBoolean();
-	    rvalue = null;
-	    errmsg = null;
-	    if (result)
-		rvalue = din.readObject();
-	    else
-		errmsg = din.readUTF();
+            InputStream ins = new BufferedInputStream(sock.getInputStream());
+            skipHeader(ins);
+            ObjectInputStream din = new ObjectInputStream(ins);
+            result = din.readBoolean();
+            rvalue = null;
+            errmsg = null;
+            if (result)
+                rvalue = din.readObject();
+            else
+                errmsg = din.readUTF();
 
-	    din.close();
-	    dout.close();
-	    sock.close();
+            din.close();
+            dout.close();
+            sock.close();
 
-	    if (rvalue instanceof RemoteRef) {
-		RemoteRef ref = (RemoteRef)rvalue;
-		rvalue = createProxy(ref.oid, ref.classname);
-	    }
-	}
-	catch (ClassNotFoundException e) {
-	    throw new RemoteException(e);
-	}
-	catch (IOException e) {
-	    throw new RemoteException(e);
-	}
-	catch (Exception e) {
-	    throw new RemoteException(e);
-	}
+            if (rvalue instanceof RemoteRef) {
+                RemoteRef ref = (RemoteRef)rvalue;
+                rvalue = createProxy(ref.oid, ref.classname);
+            }
+        }
+        catch (ClassNotFoundException e) {
+            throw new RemoteException(e);
+        }
+        catch (IOException e) {
+            throw new RemoteException(e);
+        }
+        catch (Exception e) {
+            throw new RemoteException(e);
+        }
 
-	if (result)
-	    return rvalue;
-	else
-	    throw new RemoteException(errmsg);
+        if (result)
+            return rvalue;
+        else
+            throw new RemoteException(errmsg);
     }
 
     private void skipHeader(InputStream in) throws IOException {
-	int len;
-	do {
-	    int c;
-	    len = 0;
-	    while ((c = in.read()) >= 0 && c != 0x0d)
-		++len;
+        int len;
+        do {
+            int c;
+            len = 0;
+            while ((c = in.read()) >= 0 && c != 0x0d)
+                ++len;
 
-	    in.read();	/* skip 0x0a (LF) */
-	} while (len > 0);
+            in.read();  /* skip 0x0a (LF) */
+        } while (len > 0);
     }
 
     private void writeParameters(ObjectOutputStream dout, Object[] params)
-	throws IOException
+        throws IOException
     {
-	int n = params.length;
-	dout.writeInt(n);
-	for (int i = 0; i < n; ++i)
-	    if (params[i] instanceof Proxy) {
-		Proxy p = (Proxy)params[i];
-		dout.writeObject(new RemoteRef(p._getObjectId()));
-	    }
-	    else
-		dout.writeObject(params[i]);
+        int n = params.length;
+        dout.writeInt(n);
+        for (int i = 0; i < n; ++i)
+            if (params[i] instanceof Proxy) {
+                Proxy p = (Proxy)params[i];
+                dout.writeObject(new RemoteRef(p._getObjectId()));
+            }
+            else
+                dout.writeObject(params[i]);
     }
 }

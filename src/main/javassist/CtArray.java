@@ -1,28 +1,17 @@
 /*
- * This file is part of the Javassist toolkit.
+ * Javassist, a Java-bytecode translator toolkit.
+ * Copyright (C) 1999-2003 Shigeru Chiba. All Rights Reserved.
  *
- * The contents of this file are subject to the Mozilla Public License
- * Version 1.1 (the "License"); you may not use this file except in
- * compliance with the License.  You may obtain a copy of the License at
- * either http://www.mozilla.org/MPL/.
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
  *
- * Software distributed under the License is distributed on an "AS IS"
- * basis, WITHOUT WARRANTY OF ANY KIND, either express or implied.  See
- * the License for the specific language governing rights and limitations
- * under the License.
- *
- * The Original Code is Javassist.
- *
- * The Initial Developer of the Original Code is Shigeru Chiba.  Portions
- * created by Shigeru Chiba are Copyright (C) 1999-2003 Shigeru Chiba.
- * All Rights Reserved.
- *
- * Contributor(s):
- *
- * The development of this software is supported in part by the PRESTO
- * program (Sakigake Kenkyu 21) of Japan Science and Technology Corporation.
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  */
-
 package javassist;
 
 /**
@@ -33,61 +22,61 @@ final class CtArray extends CtClass {
 
     // the name of array type ends with "[]".
     CtArray(String name, ClassPool cp) {
-	super(name);
-	pool = cp;
+        super(name);
+        pool = cp;
     }
 
     public ClassPool getClassPool() {
-	return pool;
+        return pool;
     }
 
     public boolean isArray() {
-	return true;
+        return true;
     }
 
     public boolean subtypeOf(CtClass clazz) throws NotFoundException {
-	if (super.subtypeOf(clazz))
-	    return true;
+        if (super.subtypeOf(clazz))
+            return true;
 
-	String cname = clazz.getName();
-	if (cname.equals(javaLangObject)
-	    || cname.equals("java.lang.Cloneable"))
-	    return true;
+        String cname = clazz.getName();
+        if (cname.equals(javaLangObject)
+            || cname.equals("java.lang.Cloneable"))
+            return true;
 
-	return clazz.isArray()
-	    && getComponentType().subtypeOf(clazz.getComponentType());
+        return clazz.isArray()
+            && getComponentType().subtypeOf(clazz.getComponentType());
     }
 
     public CtClass getComponentType() throws NotFoundException {
-	String name = getName();
-	return pool.get(name.substring(0, name.length() - 2));
+        String name = getName();
+        return pool.get(name.substring(0, name.length() - 2));
     }
 
     public CtClass getSuperclass() throws NotFoundException {
-	return pool.get(javaLangObject);
+        return pool.get(javaLangObject);
     }
 
     public CtMethod[] getMethods() {
-	try {
-	    return getSuperclass().getMethods();
-	}
-	catch (NotFoundException e) {
-	    return super.getMethods();
-	}
+        try {
+            return getSuperclass().getMethods();
+        }
+        catch (NotFoundException e) {
+            return super.getMethods();
+        }
     }
 
     public CtMethod getMethod(String name, String desc)
-	throws NotFoundException
+        throws NotFoundException
     {
-	return getSuperclass().getMethod(name, desc);
+        return getSuperclass().getMethod(name, desc);
     }
 
     public CtConstructor[] getConstructors() {
-	try {
-	    return getSuperclass().getConstructors();
-	}
-	catch (NotFoundException e) {
-	    return super.getConstructors();
-	}
+        try {
+            return getSuperclass().getConstructors();
+        }
+        catch (NotFoundException e) {
+            return super.getConstructors();
+        }
     }
 }

@@ -1,28 +1,17 @@
 /*
- * This file is part of the Javassist toolkit.
+ * Javassist, a Java-bytecode translator toolkit.
+ * Copyright (C) 1999-2003 Shigeru Chiba. All Rights Reserved.
  *
- * The contents of this file are subject to the Mozilla Public License
- * Version 1.1 (the "License"); you may not use this file except in
- * compliance with the License.  You may obtain a copy of the License at
- * either http://www.mozilla.org/MPL/.
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
  *
- * Software distributed under the License is distributed on an "AS IS"
- * basis, WITHOUT WARRANTY OF ANY KIND, either express or implied.  See
- * the License for the specific language governing rights and limitations
- * under the License.
- *
- * The Original Code is Javassist.
- *
- * The Initial Developer of the Original Code is Shigeru Chiba.  Portions
- * created by Shigeru Chiba are Copyright (C) 1999-2003 Shigeru Chiba.
- * All Rights Reserved.
- *
- * Contributor(s):
- *
- * The development of this software is supported in part by the PRESTO
- * program (Sakigake Kenkyu 21) of Japan Science and Technology Corporation.
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  */
-
 package javassist;
 
 import javassist.bytecode.*;
@@ -45,13 +34,13 @@ public class CtNewMethod {
      *
      * <ul><pre>"public Object id(Object obj) { return obj; }"</pre></ul>
      *
-     * @param src		the source text. 
+     * @param src               the source text. 
      * @param declaring    the class to which the created method is added.
      */
     public static CtMethod make(String src, CtClass declaring)
-	throws CannotCompileException
+        throws CannotCompileException
     {
-	return make(src, declaring, null, null);
+        return make(src, declaring, null, null);
     }
 
     /**
@@ -64,76 +53,76 @@ public class CtNewMethod {
      * <p>If the source code includes <code>$proceed()</code>, then
      * it is compiled into a method call on the specified object.
      *
-     * @param src		the source text. 
+     * @param src               the source text. 
      * @param declaring    the class to which the created method is added.
-     * @param delegateObj	the source text specifying the object
-     *				that is called on by <code>$proceed()</code>.
-     * @param delegateMethod	the name of the method
-     *				that is called by <code>$proceed()</code>.
+     * @param delegateObj       the source text specifying the object
+     *                          that is called on by <code>$proceed()</code>.
+     * @param delegateMethod    the name of the method
+     *                          that is called by <code>$proceed()</code>.
      */
     public static CtMethod make(String src, CtClass declaring,
-				String delegateObj, String delegateMethod)
-	throws CannotCompileException
+                                String delegateObj, String delegateMethod)
+        throws CannotCompileException
     {
-	Javac compiler = new Javac(declaring);
-	try {
-	    if (delegateMethod != null)
-		compiler.recordProceed(delegateObj, delegateMethod);
+        Javac compiler = new Javac(declaring);
+        try {
+            if (delegateMethod != null)
+                compiler.recordProceed(delegateObj, delegateMethod);
 
-	    CtMember obj = compiler.compile(src);
-	    if (obj instanceof CtMethod)
-		return (CtMethod)obj;
-	}
-	catch (CompileError e) {
-	    throw new CannotCompileException(e);
-	}
+            CtMember obj = compiler.compile(src);
+            if (obj instanceof CtMethod)
+                return (CtMethod)obj;
+        }
+        catch (CompileError e) {
+            throw new CannotCompileException(e);
+        }
 
-	throw new CannotCompileException("not a method");
+        throw new CannotCompileException("not a method");
     }
 
     /**
      * Creates a public method.
      *
-     * @param returnType	the type of the returned value
-     * @param mname		the method name
-     * @param parameters	a list of the parameter types
-     * @param exceptions	a list of the exception types
-     * @param src		the source text of the method body.
-     *			It must be a block surrounded by <code>{}</code>.
+     * @param returnType        the type of the returned value
+     * @param mname             the method name
+     * @param parameters        a list of the parameter types
+     * @param exceptions        a list of the exception types
+     * @param src               the source text of the method body.
+     *                  It must be a block surrounded by <code>{}</code>.
      * @param declaring    the class to which the created method is added.
      */
     public static CtMethod make(CtClass returnType, String mname,
-				CtClass[] parameters, CtClass[] exceptions,
-				String body, CtClass declaring)
-	throws CannotCompileException
+                                CtClass[] parameters, CtClass[] exceptions,
+                                String body, CtClass declaring)
+        throws CannotCompileException
     {
-	try {
-	    CtMethod cm
-		= new CtMethod(returnType, mname, parameters, declaring);
-	    cm.setExceptionTypes(exceptions);
-	    cm.setBody(body);
-	    return cm;
-	}
-	catch (NotFoundException e) {
-	    throw new CannotCompileException(e);
-	}
+        try {
+            CtMethod cm
+                = new CtMethod(returnType, mname, parameters, declaring);
+            cm.setExceptionTypes(exceptions);
+            cm.setBody(body);
+            return cm;
+        }
+        catch (NotFoundException e) {
+            throw new CannotCompileException(e);
+        }
     }
 
     /**
      * Creates a copy of a method.  This method is provided for creating
      * a new method based on an existing method.
      *
-     * @param src	the source method.
+     * @param src       the source method.
      * @param declaring    the class to which the created method is added.
-     * @param map	the hashtable associating original class names
-     *			with substituted names.
-     *			It can be <code>null</code>.
+     * @param map       the hashtable associating original class names
+     *                  with substituted names.
+     *                  It can be <code>null</code>.
      *
      * @see CtMethod#CtMethod(CtMethod,CtClass,ClassMap)
      */
     public static CtMethod copy(CtMethod src, CtClass declaring,
-				ClassMap map) throws CannotCompileException {
-	return new CtMethod(src, declaring, map);
+                                ClassMap map) throws CannotCompileException {
+        return new CtMethod(src, declaring, map);
     }
 
     /**
@@ -141,43 +130,43 @@ public class CtNewMethod {
      * This method is provided for creating
      * a new method based on an existing method.
      *
-     * @param src	the source method.
-     * @param name	the name of the created method.
+     * @param src       the source method.
+     * @param name      the name of the created method.
      * @param declaring    the class to which the created method is added.
-     * @param map	the hashtable associating original class names
-     *			with substituted names.
-     *			It can be <code>null</code>.
+     * @param map       the hashtable associating original class names
+     *                  with substituted names.
+     *                  It can be <code>null</code>.
      *
      * @see CtMethod#CtMethod(CtMethod,CtClass,ClassMap)
      */
     public static CtMethod copy(CtMethod src, String name, CtClass declaring,
-				ClassMap map) throws CannotCompileException {
-	CtMethod cm = new CtMethod(src, declaring, map);
-	cm.setName(name);
-	return cm;
+                                ClassMap map) throws CannotCompileException {
+        CtMethod cm = new CtMethod(src, declaring, map);
+        cm.setName(name);
+        return cm;
     }
 
     /**
      * Creates a public abstract method.
      *
-     * @param returnType	the type of the returned value
-     * @param mname		the method name
-     * @param parameters	a list of the parameter types
-     * @param exceptions	a list of the exception types
+     * @param returnType        the type of the returned value
+     * @param mname             the method name
+     * @param parameters        a list of the parameter types
+     * @param exceptions        a list of the exception types
      * @param declaring    the class to which the created method is added.
      *
      * @see CtMethod#CtMethod(CtClass,String,CtClass[],CtClass)
      */
     public static CtMethod abstractMethod(CtClass returnType,
-					  String mname,
-					  CtClass[] parameters,
-					  CtClass[] exceptions,
-					  CtClass declaring)
-	throws NotFoundException
+                                          String mname,
+                                          CtClass[] parameters,
+                                          CtClass[] exceptions,
+                                          CtClass declaring)
+        throws NotFoundException
     {
-	CtMethod cm = new CtMethod(returnType, mname, parameters, declaring);
-	cm.setExceptionTypes(exceptions);
-	return cm;
+        CtMethod cm = new CtMethod(returnType, mname, parameters, declaring);
+        cm.setExceptionTypes(exceptions);
+        return cm;
     }
 
     /**
@@ -186,37 +175,37 @@ public class CtNewMethod {
      * The created method is initially not static even if the field is
      * static.  Change the modifiers if the method should be static.
      *
-     * @param methodName	the name of the getter
-     * @param field		the field accessed.
+     * @param methodName        the name of the getter
+     * @param field             the field accessed.
      */
     public static CtMethod getter(String methodName, CtField field)
-	throws CannotCompileException
+        throws CannotCompileException
     {
-	FieldInfo finfo = field.getFieldInfo2();
-	String fieldType = finfo.getDescriptor();
-	String desc = "()" + fieldType;
-	ConstPool cp = finfo.getConstPool();
-	MethodInfo minfo = new MethodInfo(cp, methodName, desc);
-	minfo.setAccessFlags(AccessFlag.PUBLIC);
+        FieldInfo finfo = field.getFieldInfo2();
+        String fieldType = finfo.getDescriptor();
+        String desc = "()" + fieldType;
+        ConstPool cp = finfo.getConstPool();
+        MethodInfo minfo = new MethodInfo(cp, methodName, desc);
+        minfo.setAccessFlags(AccessFlag.PUBLIC);
 
-	Bytecode code = new Bytecode(cp, 2, 1);
-	try {
-	    String fieldName = finfo.getName();
-	    if ((finfo.getAccessFlags() & AccessFlag.STATIC) == 0) {
-		code.addAload(0);
-		code.addGetfield(Bytecode.THIS, fieldName, fieldType);
-	    }
-	    else
-		code.addGetstatic(Bytecode.THIS, fieldName, fieldType);
+        Bytecode code = new Bytecode(cp, 2, 1);
+        try {
+            String fieldName = finfo.getName();
+            if ((finfo.getAccessFlags() & AccessFlag.STATIC) == 0) {
+                code.addAload(0);
+                code.addGetfield(Bytecode.THIS, fieldName, fieldType);
+            }
+            else
+                code.addGetstatic(Bytecode.THIS, fieldName, fieldType);
 
-	    code.addReturn(field.getType());
-	}
-	catch (NotFoundException e) {
-	    throw new CannotCompileException(e);
-	}
+            code.addReturn(field.getType());
+        }
+        catch (NotFoundException e) {
+            throw new CannotCompileException(e);
+        }
 
-	minfo.setCodeAttribute(code.toCodeAttribute());
-	return new CtMethod(minfo, field.getDeclaringClass());
+        minfo.setCodeAttribute(code.toCodeAttribute());
+        return new CtMethod(minfo, field.getDeclaringClass());
     }
 
     /**
@@ -226,40 +215,40 @@ public class CtNewMethod {
      * The created method is initially not static even if the field is
      * static.  Change the modifiers if the method should be static.
      *
-     * @param methodName	the name of the setter
-     * @param field		the field accessed.
+     * @param methodName        the name of the setter
+     * @param field             the field accessed.
      */
     public static CtMethod setter(String methodName, CtField field)
-	throws CannotCompileException
+        throws CannotCompileException
     {
-	FieldInfo finfo = field.getFieldInfo2();
-	String fieldType = finfo.getDescriptor();
-	String desc = "(" + fieldType + ")V";
-	ConstPool cp = finfo.getConstPool();
-	MethodInfo minfo = new MethodInfo(cp, methodName, desc);
-	minfo.setAccessFlags(AccessFlag.PUBLIC);
+        FieldInfo finfo = field.getFieldInfo2();
+        String fieldType = finfo.getDescriptor();
+        String desc = "(" + fieldType + ")V";
+        ConstPool cp = finfo.getConstPool();
+        MethodInfo minfo = new MethodInfo(cp, methodName, desc);
+        minfo.setAccessFlags(AccessFlag.PUBLIC);
 
-	Bytecode code = new Bytecode(cp, 3, 3);
-	try {
-	    String fieldName = finfo.getName();
-	    if ((finfo.getAccessFlags() & AccessFlag.STATIC) == 0) {
-		code.addAload(0);
-		code.addLoad(1, field.getType());
-		code.addPutfield(Bytecode.THIS, fieldName, fieldType);
-	    }
-	    else {
-		code.addLoad(0, field.getType());
-		code.addPutstatic(Bytecode.THIS, fieldName, fieldType);
-	    }
+        Bytecode code = new Bytecode(cp, 3, 3);
+        try {
+            String fieldName = finfo.getName();
+            if ((finfo.getAccessFlags() & AccessFlag.STATIC) == 0) {
+                code.addAload(0);
+                code.addLoad(1, field.getType());
+                code.addPutfield(Bytecode.THIS, fieldName, fieldType);
+            }
+            else {
+                code.addLoad(0, field.getType());
+                code.addPutstatic(Bytecode.THIS, fieldName, fieldType);
+            }
 
-	    code.addReturn(null);
-	}
-	catch (NotFoundException e) {
-	    throw new CannotCompileException(e);
-	}
+            code.addReturn(null);
+        }
+        catch (NotFoundException e) {
+            throw new CannotCompileException(e);
+        }
 
-	minfo.setCodeAttribute(code.toCodeAttribute());
-	return new CtMethod(minfo, field.getDeclaringClass());
+        minfo.setCodeAttribute(code.toCodeAttribute());
+        return new CtMethod(minfo, field.getDeclaringClass());
     }
 
     /**
@@ -279,56 +268,56 @@ public class CtNewMethod {
      * <p>The name of the created method can be changed by
      * <code>setName()</code>.
      *
-     * @param delegate	  the method that the created method forwards to.
-     * @param declaring		the class to which the created method is
-     *				added.
+     * @param delegate    the method that the created method forwards to.
+     * @param declaring         the class to which the created method is
+     *                          added.
      */
     public static CtMethod delegator(CtMethod delegate, CtClass declaring)
-	throws CannotCompileException
+        throws CannotCompileException
     {
-	try {
-	    return delegator0(delegate, declaring);
-	}
-	catch (NotFoundException e) {
-	    throw new CannotCompileException(e);
-	}
+        try {
+            return delegator0(delegate, declaring);
+        }
+        catch (NotFoundException e) {
+            throw new CannotCompileException(e);
+        }
     }
 
     private static CtMethod delegator0(CtMethod delegate, CtClass declaring)
-	throws CannotCompileException, NotFoundException
+        throws CannotCompileException, NotFoundException
     {
-	MethodInfo deleInfo = delegate.getMethodInfo2();
-	String methodName = deleInfo.getName();
-	String desc = deleInfo.getDescriptor();
-	ConstPool cp = declaring.getClassFile2().getConstPool();
-	MethodInfo minfo = new MethodInfo(cp, methodName, desc);
-	minfo.setAccessFlags(deleInfo.getAccessFlags());
+        MethodInfo deleInfo = delegate.getMethodInfo2();
+        String methodName = deleInfo.getName();
+        String desc = deleInfo.getDescriptor();
+        ConstPool cp = declaring.getClassFile2().getConstPool();
+        MethodInfo minfo = new MethodInfo(cp, methodName, desc);
+        minfo.setAccessFlags(deleInfo.getAccessFlags());
 
-	ExceptionsAttribute eattr = deleInfo.getExceptionsAttribute();
-	if (eattr != null)
-	    minfo.setExceptionsAttribute(
-				(ExceptionsAttribute)eattr.copy(cp, null));
+        ExceptionsAttribute eattr = deleInfo.getExceptionsAttribute();
+        if (eattr != null)
+            minfo.setExceptionsAttribute(
+                                (ExceptionsAttribute)eattr.copy(cp, null));
 
-	Bytecode code = new Bytecode(cp, 0, 0);
-	boolean isStatic = Modifier.isStatic(delegate.getModifiers());
-	CtClass deleClass = delegate.getDeclaringClass();
-	CtClass[] params = delegate.getParameterTypes();
-	int s;
-	if (isStatic) {
-	    s = code.addLoadParameters(params);
-	    code.addInvokestatic(deleClass, methodName, desc);
-	}
-	else {
-	    code.addLoad(0, deleClass);
-	    s = code.addLoadParameters(params);
-	    code.addInvokespecial(deleClass, methodName, desc);
-	}
+        Bytecode code = new Bytecode(cp, 0, 0);
+        boolean isStatic = Modifier.isStatic(delegate.getModifiers());
+        CtClass deleClass = delegate.getDeclaringClass();
+        CtClass[] params = delegate.getParameterTypes();
+        int s;
+        if (isStatic) {
+            s = code.addLoadParameters(params);
+            code.addInvokestatic(deleClass, methodName, desc);
+        }
+        else {
+            code.addLoad(0, deleClass);
+            s = code.addLoadParameters(params);
+            code.addInvokespecial(deleClass, methodName, desc);
+        }
 
-	code.addReturn(delegate.getReturnType());
-	code.setMaxLocals(++s);
-	code.setMaxStack(s < 2 ? 2 : s); // for a 2-word return value
-	minfo.setCodeAttribute(code.toCodeAttribute());
-	return new CtMethod(minfo, declaring);
+        code.addReturn(delegate.getReturnType());
+        code.setMaxLocals(++s);
+        code.setMaxStack(s < 2 ? 2 : s); // for a 2-word return value
+        minfo.setCodeAttribute(code.toCodeAttribute());
+        return new CtMethod(minfo, declaring);
     }
 
     /**
@@ -415,25 +404,25 @@ public class CtNewMethod {
      * <code>StringVector</code> class, which is a vector containing
      * only <code>String</code> objects, and other vector classes.
      *
-     * @param returnType	the type of the returned value.
-     * @param mname		the method name.
-     * @param parameters	a list of the parameter types.
-     * @param exceptions	a list of the exception types.
-     * @param body		the method body
-     * @param constParam	the constant parameter
-     *				(maybe <code>null</code>).
-     * @param declaring		the class to which the created method is
-     *				added.
+     * @param returnType        the type of the returned value.
+     * @param mname             the method name.
+     * @param parameters        a list of the parameter types.
+     * @param exceptions        a list of the exception types.
+     * @param body              the method body
+     * @param constParam        the constant parameter
+     *                          (maybe <code>null</code>).
+     * @param declaring         the class to which the created method is
+     *                          added.
      */
     public static CtMethod wrapped(CtClass returnType,
-				   String mname,
-				   CtClass[] parameterTypes,
-				   CtClass[] exceptionTypes,
-				   CtMethod body, ConstParameter constParam,
-				   CtClass declaring)
-	throws CannotCompileException
+                                   String mname,
+                                   CtClass[] parameterTypes,
+                                   CtClass[] exceptionTypes,
+                                   CtMethod body, ConstParameter constParam,
+                                   CtClass declaring)
+        throws CannotCompileException
     {
-	return CtNewWrappedMethod.wrapped(returnType, mname, parameterTypes,
-			exceptionTypes, body, constParam, declaring);
+        return CtNewWrappedMethod.wrapped(returnType, mname, parameterTypes,
+                        exceptionTypes, body, constParam, declaring);
     }
 }

@@ -7,7 +7,7 @@
 
 <h1>Javassist version 2</h1>
 
-<h3>in February, 2003.
+<h3>in April, 2003.
 <br>Copyright (C) 2000-2003 by Shigeru Chiba, All rights reserved.</h3>
 
 <p><br></p>
@@ -15,13 +15,14 @@
 <p>Javassist (JAVA programming ASSISTant) is yet another reflective
 system for Java.  It is a class library for editing bytecodes in Java;
 it enables Java programs to define a new class at runtime and to
-modify a class file when the JVM loads it.  Unlike other
-similar bytecode editors, Javassist provides two levels of API:
-source level and bytecode level.  If the users use the source-level
-API, they can edit a class file without knowledge of the specifications
-of the Java bytecode.  The whole API is designed with only the vocabulary
-of the Java language.  On the other hand, the bytecode-level API allows
-the users to directly edit a class file.
+modify a class file when the JVM loads it.  Unlike other similar
+bytecode editors, Javassist provides two levels of API: source level
+and bytecode level.  If the users use the source-level API, they can
+edit a class file without knowledge of the specifications of the Java
+bytecode.  The whole API is designed with only the vocabulary of the
+Java language.  You can even specify inserted bytecode in the form of
+source text; Javassist compiles it on the fly.  On the other hand, the
+bytecode-level API allows the users to directly edit a class file.
 
 <p><br>
 
@@ -45,8 +46,8 @@ the users to directly edit a class file.
 </tr>
 
 <tr>
-<td><li><tt>./javassist-src.zip</tt></td>
-<td>The source archive</td>
+<td><li><tt>./src/main</tt></td>
+<td>The source files</td>
 </tr>
 
 <tr>
@@ -233,6 +234,17 @@ see javassist.Dump.
 
 <h2>Changes</h2>
 
+<p>- version 2.5 in April, 2003.
+<br>From this version, Javassist is part of the JBoss project.
+<ul>
+  <li>The license was changed from MPL to LGPL.
+  <li>ClassPool.removeClassPath() and ClassPath.close() have been added.
+  <li>ClassPool.makeClass(InputStream) has been added.
+  <li>javassist.expr.Handler has been added.
+  <li>CtMethod.isEmpty() and CtConstructor.isEmpty() have been added.
+  <li>LoaderClassPath has been implemented.
+</ul>
+
 <p>- version 2.4 in February, 2003.
 <ul>
   <li>The compiler included in Javassist did not correctly work with
@@ -412,31 +424,27 @@ see javassist.Dump.
 
 <h2>Copyright notices</h2>
 
-<p>
-This library is free software; you can redistribute it and/or
-modify it under the terms of the GNU Lesser General Public
-License as published by the Free Software Foundation; either
+<p>Javassist, a Java-bytecode translator toolkit.
+<br>Copyright (C) 1999-2003 Shigeru Chiba. All Rights Reserved.
+
+<p>This library is free software; you can redistribute it and/or
+modify it under the terms of
+<a href="License.html">the GNU Lesser General Public
+License</a> as published by the Free Software Foundation; either
 version 2.1 of the License, or (at your option) any later version.
-</p>
 
-<p>Software distributed under the License is distributed on an "AS IS"
-basis, WITHOUT WARRANTY OF ANY KIND, either express or implied.  See
-the License for the specific language governing rights and limitations
-under the License.
-
-<p>The Original Code is Javassist.
-
-<p>The Initial Developer of the Original Code is Shigeru Chiba.
-<br>Portions
-created by Shigeru Chiba are Copyright (C) 1999-2003 Shigeru Chiba.
-All Rights Reserved.
+<p>This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+See <a href="License.html">the GNU Lesser General Public License</a>
+for more details.
 
 <p><br>
 
 <h2>Acknowledgments</h2>
 
 <p>The development of this software is sponsored in part by the PRESTO
-program (Sakigake Kenkyu 21) of <a href="http://www.jst.go.jp/">Japan
+programs of <a href="http://www.jst.go.jp/">Japan
 Science and Technology Corporation</a>.
 
 <p>I'd like to thank Michiaki Tatsubori, Johan Cloetens,
@@ -446,7 +454,9 @@ Eric Bui, Lewis Stiller, Susumu Yamazaki, Rodrigo Teruo Tomita,
 Marc Segura-Devillechaise, Jan Baudisch, Julien Blass, Yoshiki Sato,
 Fabian Crabus, Bo Norregaard Jorgensen, Bob Lee, Bill Burke,
 Remy Sanlaville, Muga Nishizawa, Alexey Loubyansky, Saori Oki,
-Andreas Salathe, and Dante Torres estrada for their contributions.
+Andreas Salathe, Dante Torres estrada, S. Pam, Nuno Santos,
+Denis Taye, and Colin Sampaleanu
+for their contributions.
 
 <p><br>
 

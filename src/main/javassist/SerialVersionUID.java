@@ -1,28 +1,17 @@
 /*
- * This file is part of the Javassist toolkit.
+ * Javassist, a Java-bytecode translator toolkit.
+ * Copyright (C) 1999-2003 Shigeru Chiba. All Rights Reserved.
  *
- * The contents of this file are subject to the Mozilla Public License
- * Version 1.1 (the "License"); you may not use this file except in
- * compliance with the License.  You may obtain a copy of the License at
- * either http://www.mozilla.org/MPL/.
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
  *
- * Software distributed under the License is distributed on an "AS IS"
- * basis, WITHOUT WARRANTY OF ANY KIND, either express or implied.  See
- * the License for the specific language governing rights and limitations
- * under the License.
- *
- * The Original Code is Javassist.
- *
- * The Initial Developer of the Original Code is Shigeru Chiba.  Portions
- * created by Shigeru Chiba are Copyright (C) 1999-2003 Shigeru Chiba.
- * All Rights Reserved.
- *
- * Contributor(s):
- *
- * The development of this software is supported in part by the PRESTO
- * program (Sakigake Kenkyu 21) of Japan Science and Technology Corporation.
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  */
-
 package javassist;
 
 import java.io.*;
@@ -43,35 +32,35 @@ public class SerialVersionUID {
      * modifying a class to maintain serialization compatability.
      */
     public static void setSerialVersionUID(CtClass clazz)
-	throws CannotCompileException, NotFoundException
+        throws CannotCompileException, NotFoundException
     {
-	// check for pre-existing field.
-	try {
-	    clazz.getDeclaredField("serialVersionUID");
-	    return;
-	}
-	catch (NotFoundException e) {}
+        // check for pre-existing field.
+        try {
+            clazz.getDeclaredField("serialVersionUID");
+            return;
+        }
+        catch (NotFoundException e) {}
 
-	// check if the class is serializable.
-	if (!isSerializable(clazz))
-	    return;
+        // check if the class is serializable.
+        if (!isSerializable(clazz))
+            return;
             
-	// add field with default value.
-	CtField field = new CtField(CtClass.longType, "serialVersionUID",
-				    clazz);
-	field.setModifiers(Modifier.PRIVATE | Modifier.STATIC |
-			   Modifier.FINAL);
-	clazz.addField(field, calculateDefault(clazz) + "L");
+        // add field with default value.
+        CtField field = new CtField(CtClass.longType, "serialVersionUID",
+                                    clazz);
+        field.setModifiers(Modifier.PRIVATE | Modifier.STATIC |
+                           Modifier.FINAL);
+        clazz.addField(field, calculateDefault(clazz) + "L");
     }
 
     /**
      * Does the class implement Serializable?
      */
     private static boolean isSerializable(CtClass clazz) 
-	throws NotFoundException
+        throws NotFoundException
     {
         ClassPool pool = clazz.getClassPool();
-	return clazz.subtypeOf(pool.get("java.io.Serializable"));
+        return clazz.subtypeOf(pool.get("java.io.Serializable"));
     }
     
     /**
@@ -79,9 +68,9 @@ public class SerialVersionUID {
      * Unique Identifiers.
      */
     static long calculateDefault(CtClass clazz)
-	throws CannotCompileException
+        throws CannotCompileException
     {
-	try {
+        try {
             ByteArrayOutputStream bout = new ByteArrayOutputStream();
             DataOutputStream out = new DataOutputStream(bout);
             ClassFile classFile = clazz.getClassFile();
@@ -135,12 +124,12 @@ public class SerialVersionUID {
             CtConstructor[] constructors = clazz.getDeclaredConstructors();
             Arrays.sort(constructors, new Comparator() {
                 public int compare(Object o1, Object o2) {
-		    CtConstructor c1 = (CtConstructor)o1;
-		    CtConstructor c2 = (CtConstructor)o2;
-		    return c1.getMethodInfo2().getDescriptor().compareTo(
-					c2.getMethodInfo2().getDescriptor());
-		}
-	    });
+                    CtConstructor c1 = (CtConstructor)o1;
+                    CtConstructor c2 = (CtConstructor)o2;
+                    return c1.getMethodInfo2().getDescriptor().compareTo(
+                                        c2.getMethodInfo2().getDescriptor());
+                }
+            });
 
             for (int i = 0; i < constructors.length; i++) {
                 CtConstructor constructor = constructors[i];
@@ -149,7 +138,7 @@ public class SerialVersionUID {
                     out.writeUTF("<init>");
                     out.writeInt(mods);
                     out.writeUTF(constructor.getMethodInfo2()
-				 .getDescriptor().replace('/', '.'));
+                                 .getDescriptor().replace('/', '.'));
                 }
             }
 
@@ -157,15 +146,15 @@ public class SerialVersionUID {
             CtMethod[] methods = clazz.getDeclaredMethods();
             Arrays.sort(methods, new Comparator() {
                 public int compare(Object o1, Object o2) {
-		    CtMethod m1 = (CtMethod)o1;
-		    CtMethod m2 = (CtMethod)o2;
-		    int value = m1.getName().compareTo(m2.getName());
-		    if (value == 0)
-			value = m1.getMethodInfo2().getDescriptor()
-			    .compareTo(m2.getMethodInfo2().getDescriptor());
+                    CtMethod m1 = (CtMethod)o1;
+                    CtMethod m2 = (CtMethod)o2;
+                    int value = m1.getName().compareTo(m2.getName());
+                    if (value == 0)
+                        value = m1.getMethodInfo2().getDescriptor()
+                            .compareTo(m2.getMethodInfo2().getDescriptor());
 
-		    return value;
-		}
+                    return value;
+                }
             });
 
             for (int i = 0; i < methods.length; i++) {
@@ -175,7 +164,7 @@ public class SerialVersionUID {
                     out.writeUTF(method.getName());
                     out.writeInt(mods);
                     out.writeUTF(method.getMethodInfo2()
-				 .getDescriptor().replace('/', '.'));
+                                 .getDescriptor().replace('/', '.'));
                 }
             }
 
@@ -188,13 +177,13 @@ public class SerialVersionUID {
                 hash = (hash << 8) | (digested[i] & 0xFF);
 
             return hash;
-	}
-	catch (IOException e) {
-	    throw new CannotCompileException(e);
-	}
-	catch (NoSuchAlgorithmException e) {
-	    throw new CannotCompileException(e);
-	}
+        }
+        catch (IOException e) {
+            throw new CannotCompileException(e);
+        }
+        catch (NoSuchAlgorithmException e) {
+            throw new CannotCompileException(e);
+        }
     }
 
     private static String javaName(CtClass clazz) {

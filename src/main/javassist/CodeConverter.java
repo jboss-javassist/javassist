@@ -1,28 +1,17 @@
 /*
- * This file is part of the Javassist toolkit.
+ * Javassist, a Java-bytecode translator toolkit.
+ * Copyright (C) 1999-2003 Shigeru Chiba. All Rights Reserved.
  *
- * The contents of this file are subject to the Mozilla Public License
- * Version 1.1 (the "License"); you may not use this file except in
- * compliance with the License.  You may obtain a copy of the License at
- * either http://www.mozilla.org/MPL/.
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
  *
- * Software distributed under the License is distributed on an "AS IS"
- * basis, WITHOUT WARRANTY OF ANY KIND, either express or implied.  See
- * the License for the specific language governing rights and limitations
- * under the License.
- *
- * The Original Code is Javassist.
- *
- * The Initial Developer of the Original Code is Shigeru Chiba.  Portions
- * created by Shigeru Chiba are Copyright (C) 1999-2003 Shigeru Chiba.
- * All Rights Reserved.
- *
- * Contributor(s):
- *
- * The development of this software is supported in part by the PRESTO
- * program (Sakigake Kenkyu 21) of Japan Science and Technology Corporation.
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  */
-
 package javassist;
 
 import javassist.bytecode.*;
@@ -96,15 +85,15 @@ public class CodeConverter {
      * the exactly same as the type of the instantiated class specified by
      * <code>newClass</code>.
      *
-     * @param newClass		the instantiated class.
-     * @param calledClass	the class in which the static method is
-     *				declared.
-     * @param calledMethod	the name of the static method.
+     * @param newClass          the instantiated class.
+     * @param calledClass       the class in which the static method is
+     *                          declared.
+     * @param calledMethod      the name of the static method.
      */
     public void replaceNew(CtClass newClass,
-			   CtClass calledClass, String calledMethod) {
-	transformers = new TransformNew(transformers, newClass.getName(),
-					calledClass.getName(), calledMethod);
+                           CtClass calledClass, String calledMethod) {
+        transformers = new TransformNew(transformers, newClass.getName(),
+                                        calledClass.getName(), calledMethod);
     }
 
     /**
@@ -120,15 +109,15 @@ public class CodeConverter {
      * the class directly declaring the field.  They must not specify
      * a subclass of that class.
      *
-     * @param field		the originally accessed field.
-     * @param newClass	the class declaring the substituted field.
-     * @param newFieldname	the name of the substituted field.
+     * @param field             the originally accessed field.
+     * @param newClass  the class declaring the substituted field.
+     * @param newFieldname      the name of the substituted field.
      */
     public void redirectFieldAccess(CtField field,
-				    CtClass newClass, String newFieldname) {
-	transformers = new TransformFieldAccess(transformers, field,
-						newClass.getName(),
-						newFieldname);
+                                    CtClass newClass, String newFieldname) {
+        transformers = new TransformFieldAccess(transformers, field,
+                                                newClass.getName(),
+                                                newFieldname);
     }
 
     /**
@@ -159,16 +148,16 @@ public class CodeConverter {
      * type of <code>target</code>.  The return type must be the same
      * as the field type.
      *
-     * @param field		the field.
-     * @param calledClass	the class in which the static method is
-     *				declared.
-     * @param calledMethod	the name of the static method.
+     * @param field             the field.
+     * @param calledClass       the class in which the static method is
+     *                          declared.
+     * @param calledMethod      the name of the static method.
      */
     public void replaceFieldRead(CtField field,
-				 CtClass calledClass, String calledMethod) {
-	transformers = new TransformReadField(transformers, field,
-					      calledClass.getName(),
-					      calledMethod);
+                                 CtClass calledClass, String calledMethod) {
+        transformers = new TransformReadField(transformers, field,
+                                              calledClass.getName(),
+                                              calledMethod);
     }
 
     /**
@@ -200,16 +189,16 @@ public class CodeConverter {
      * type of <code>target</code>.  The type of the second parameter
      * is the same as the field type.
      *
-     * @param field		the field.
-     * @param calledClass	the class in which the static method is
-     *				declared.
-     * @param calledMethod	the name of the static method.
+     * @param field             the field.
+     * @param calledClass       the class in which the static method is
+     *                          declared.
+     * @param calledMethod      the name of the static method.
      */
     public void replaceFieldWrite(CtField field,
-				  CtClass calledClass, String calledMethod) {
-	transformers = new TransformWriteField(transformers, field,
-					       calledClass.getName(),
-					       calledMethod);
+                                  CtClass calledClass, String calledMethod) {
+        transformers = new TransformWriteField(transformers, field,
+                                               calledClass.getName(),
+                                               calledMethod);
     }
 
     /**
@@ -224,20 +213,20 @@ public class CodeConverter {
      * If the original method is a static method, the substituted method
      * must be static.
      *
-     * @param origMethod	original method
-     * @param substMethod	substituted method
+     * @param origMethod        original method
+     * @param substMethod       substituted method
      */
     public void redirectMethodCall(CtMethod origMethod,
-				   CtMethod substMethod)
-	throws CannotCompileException
+                                   CtMethod substMethod)
+        throws CannotCompileException
     {
-	String d1 = origMethod.getMethodInfo2().getDescriptor();
-	String d2 = substMethod.getMethodInfo2().getDescriptor();
-	if (!d1.equals(d2))
-	    throw new CannotCompileException("signature mismatch");
+        String d1 = origMethod.getMethodInfo2().getDescriptor();
+        String d2 = substMethod.getMethodInfo2().getDescriptor();
+        if (!d1.equals(d2))
+            throw new CannotCompileException("signature mismatch");
 
-	transformers = new TransformCall(transformers, origMethod,
-					 substMethod);
+        transformers = new TransformCall(transformers, origMethod,
+                                         substMethod);
     }
 
     /**
@@ -270,21 +259,21 @@ public class CodeConverter {
      * Verbose.print(p, tmp1, tmp2);
      * Point p2 = p.move(tmp1, tmp2);</pre></ul>
      *
-     * @param origMethod	the method originally invoked.
-     * @param beforeMethod	the method invoked before
-     *				<code>origMethod</code>.
+     * @param origMethod        the method originally invoked.
+     * @param beforeMethod      the method invoked before
+     *                          <code>origMethod</code>.
      */
     public void insertBeforeMethod(CtMethod origMethod,
-				   CtMethod beforeMethod)
-	throws CannotCompileException
+                                   CtMethod beforeMethod)
+        throws CannotCompileException
     {
-	try {
-	    transformers = new TransformBefore(transformers, origMethod,
-					       beforeMethod);
-	}
-	catch (NotFoundException e) {
-	    throw new CannotCompileException(e);
-	}
+        try {
+            transformers = new TransformBefore(transformers, origMethod,
+                                               beforeMethod);
+        }
+        catch (NotFoundException e) {
+            throw new CannotCompileException(e);
+        }
     }
 
     /**
@@ -317,60 +306,60 @@ public class CodeConverter {
      * Point p2 = p.move(tmp1, tmp2);
      * Verbose.print(p, tmp1, tmp2);</pre></ul>
      *
-     * @param origMethod	the method originally invoked.
-     * @param afterMethod	the method invoked after
-     *				<code>origMethod</code>.
+     * @param origMethod        the method originally invoked.
+     * @param afterMethod       the method invoked after
+     *                          <code>origMethod</code>.
      */
     public void insertAfterMethod(CtMethod origMethod,
-				  CtMethod afterMethod)
-	throws CannotCompileException
+                                  CtMethod afterMethod)
+        throws CannotCompileException
     {
-	try {
-	    transformers = new TransformAfter(transformers, origMethod,
-					       afterMethod);
-	}
-	catch (NotFoundException e) {
-	    throw new CannotCompileException(e);
-	}
+        try {
+            transformers = new TransformAfter(transformers, origMethod,
+                                               afterMethod);
+        }
+        catch (NotFoundException e) {
+            throw new CannotCompileException(e);
+        }
     }
 
     /**
      * Performs code conversion.
      */
     void doit(CtClass clazz, MethodInfo minfo, ConstPool cp)
-	throws CannotCompileException
+        throws CannotCompileException
     {
-	Transformer t;
+        Transformer t;
 
-	CodeAttribute codeAttr = minfo.getCodeAttribute();
-	if (codeAttr == null || transformers == null)
-	    return;
+        CodeAttribute codeAttr = minfo.getCodeAttribute();
+        if (codeAttr == null || transformers == null)
+            return;
 
-	for (t = transformers; t != null; t = t.getNext())
-	    t.initialize(cp, codeAttr);
+        for (t = transformers; t != null; t = t.getNext())
+            t.initialize(cp, codeAttr);
 
-	CodeIterator iterator = codeAttr.iterator();
-	while (iterator.hasNext()) {
-	    try {
-		int pos = iterator.next();
-		for (t = transformers; t != null; t = t.getNext())
-		    pos = t.transform(clazz, pos, iterator, cp);
-	    }
-	    catch (BadBytecode e) {
-		throw new CannotCompileException(e);
-	    }
-	}
+        CodeIterator iterator = codeAttr.iterator();
+        while (iterator.hasNext()) {
+            try {
+                int pos = iterator.next();
+                for (t = transformers; t != null; t = t.getNext())
+                    pos = t.transform(clazz, pos, iterator, cp);
+            }
+            catch (BadBytecode e) {
+                throw new CannotCompileException(e);
+            }
+        }
 
-	int locals = 0;
-	for (t = transformers; t != null; t = t.getNext()) {
-	    int s = t.extraLocals();
-	    if (s > locals)
-		locals = s;
-	}
+        int locals = 0;
+        for (t = transformers; t != null; t = t.getNext()) {
+            int s = t.extraLocals();
+            if (s > locals)
+                locals = s;
+        }
 
-	for (t = transformers; t != null; t = t.getNext())
-	    t.clean();
+        for (t = transformers; t != null; t = t.getNext())
+            t.clean();
 
-	codeAttr.setMaxLocals(codeAttr.getMaxLocals() + locals);
+        codeAttr.setMaxLocals(codeAttr.getMaxLocals() + locals);
     }
 }

@@ -1,28 +1,17 @@
 /*
- * This file is part of the Javassist toolkit.
+ * Javassist, a Java-bytecode translator toolkit.
+ * Copyright (C) 1999-2003 Shigeru Chiba. All Rights Reserved.
  *
- * The contents of this file are subject to the Mozilla Public License
- * Version 1.1 (the "License"); you may not use this file except in
- * compliance with the License.  You may obtain a copy of the License at
- * either http://www.mozilla.org/MPL/.
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
  *
- * Software distributed under the License is distributed on an "AS IS"
- * basis, WITHOUT WARRANTY OF ANY KIND, either express or implied.  See
- * the License for the specific language governing rights and limitations
- * under the License.
- *
- * The Original Code is Javassist.
- *
- * The Initial Developer of the Original Code is Shigeru Chiba.  Portions
- * created by Shigeru Chiba are Copyright (C) 1999-2003 Shigeru Chiba.
- * All Rights Reserved.
- *
- * Contributor(s):
- *
- * The development of this software is supported in part by the PRESTO
- * program (Sakigake Kenkyu 21) of Japan Science and Technology Corporation.
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  */
-
 package javassist;
 
 import javassist.bytecode.AccessFlag;
@@ -56,7 +45,7 @@ public class Modifier {
      * modifier.
      */
     public static boolean isPublic(int mod) {
-	return (mod & PUBLIC) != 0;
+        return (mod & PUBLIC) != 0;
     }
 
     /**
@@ -64,7 +53,7 @@ public class Modifier {
      * modifier.
      */
     public static boolean isPrivate(int mod) {
-	return (mod & PRIVATE) != 0;
+        return (mod & PRIVATE) != 0;
     }
 
     /**
@@ -72,7 +61,7 @@ public class Modifier {
      * modifier.
      */
     public static boolean isProtected(int mod) {
-	return (mod & PROTECTED) != 0;
+        return (mod & PROTECTED) != 0;
     }
 
     /**
@@ -80,7 +69,7 @@ public class Modifier {
      * modifier.
      */
     public static boolean isStatic(int mod) {
-	return (mod & STATIC) != 0;
+        return (mod & STATIC) != 0;
     }
 
     /**
@@ -88,7 +77,7 @@ public class Modifier {
      * modifier.
      */
     public static boolean isFinal(int mod) {
-	return (mod & FINAL) != 0;
+        return (mod & FINAL) != 0;
     }
 
     /**
@@ -96,7 +85,7 @@ public class Modifier {
      * modifier.
      */
     public static boolean isSynchronized(int mod) {
-	return (mod & SYNCHRONIZED) != 0;
+        return (mod & SYNCHRONIZED) != 0;
     }
 
     /**
@@ -104,7 +93,7 @@ public class Modifier {
      * modifier.
      */
     public static boolean isVolatile(int mod) {
-	return (mod & VOLATILE) != 0;
+        return (mod & VOLATILE) != 0;
     }
 
     /**
@@ -112,7 +101,7 @@ public class Modifier {
      * modifier.
      */
     public static boolean isTransient(int mod) {
-	return (mod & TRANSIENT) != 0;
+        return (mod & TRANSIENT) != 0;
     }
 
     /**
@@ -120,7 +109,7 @@ public class Modifier {
      * modifier.
      */
     public static boolean isNative(int mod) {
-	return (mod & NATIVE) != 0;
+        return (mod & NATIVE) != 0;
     }
 
     /**
@@ -128,7 +117,7 @@ public class Modifier {
      * modifier.
      */
     public static boolean isInterface(int mod) {
-	return (mod & INTERFACE) != 0;
+        return (mod & INTERFACE) != 0;
     }
 
     /**
@@ -136,7 +125,7 @@ public class Modifier {
      * modifier.
      */
     public static boolean isAbstract(int mod) {
-	return (mod & ABSTRACT) != 0;
+        return (mod & ABSTRACT) != 0;
     }
 
     /**
@@ -144,7 +133,7 @@ public class Modifier {
      * modifier.
      */
     public static boolean isStrict(int mod) {
-	return (mod & STRICT) != 0;
+        return (mod & STRICT) != 0;
     }
 
     /**
@@ -152,7 +141,7 @@ public class Modifier {
      * cleared.
      */
     public static int setPublic(int mod) {
-	return (mod & ~(PRIVATE | PROTECTED)) | PUBLIC;
+        return (mod & ~(PRIVATE | PROTECTED)) | PUBLIC;
     }
 
     /**
@@ -160,7 +149,7 @@ public class Modifier {
      * cleared.
      */
     public static int setProtected(int mod) {
-	return (mod & ~(PRIVATE | PUBLIC)) | PROTECTED;
+        return (mod & ~(PRIVATE | PUBLIC)) | PROTECTED;
     }
 
     /**
@@ -168,24 +157,24 @@ public class Modifier {
      * cleared.
      */
     public static int setPrivate(int mod) {
-	return (mod & ~(PROTECTED | PUBLIC)) | PRIVATE;
+        return (mod & ~(PROTECTED | PUBLIC)) | PRIVATE;
     }
 
     /**
      * Clears the public, protected, and private bits.
      */
     public static int setPackage(int mod) {
-	return (mod & ~(PROTECTED | PUBLIC | PRIVATE));
+        return (mod & ~(PROTECTED | PUBLIC | PRIVATE));
     }
 
     /**
      * Clears a specified bit in <code>mod</code>.
      */
     public static int clear(int mod, int clearBit) {
-	return mod & ~clearBit;
+        return mod & ~clearBit;
     }
 
     public static String toString(int mod) {
-	return java.lang.reflect.Modifier.toString(mod);
+        return java.lang.reflect.Modifier.toString(mod);
     }
 }

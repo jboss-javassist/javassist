@@ -1,28 +1,17 @@
 /*
- * This file is part of the Javassist toolkit.
+ * Javassist, a Java-bytecode translator toolkit.
+ * Copyright (C) 1999-2003 Shigeru Chiba. All Rights Reserved.
  *
- * The contents of this file are subject to the Mozilla Public License
- * Version 1.1 (the "License"); you may not use this file except in
- * compliance with the License.  You may obtain a copy of the License at
- * either http://www.mozilla.org/MPL/.
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
  *
- * Software distributed under the License is distributed on an "AS IS"
- * basis, WITHOUT WARRANTY OF ANY KIND, either express or implied.  See
- * the License for the specific language governing rights and limitations
- * under the License.
- *
- * The Original Code is Javassist.
- *
- * The Initial Developer of the Original Code is Shigeru Chiba.  Portions
- * created by Shigeru Chiba are Copyright (C) 1999-2003 Shigeru Chiba.
- * All Rights Reserved.
- *
- * Contributor(s):
- *
- * The development of this software is supported in part by the PRESTO
- * program (Sakigake Kenkyu 21) of Japan Science and Technology Corporation.
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  */
-
 package javassist.reflect;
 
 /**
@@ -33,34 +22,34 @@ public class Sample {
     private static ClassMetaobject _classobject;
 
     public Object trap(Object[] args, int identifier) throws Throwable {
-	Metaobject mobj;
-	mobj = _metaobject;
-	if (mobj == null)
-	    return ClassMetaobject.invoke(this, identifier, args);
-	else
-	    return mobj.trapMethodcall(identifier, args);
+        Metaobject mobj;
+        mobj = _metaobject;
+        if (mobj == null)
+            return ClassMetaobject.invoke(this, identifier, args);
+        else
+            return mobj.trapMethodcall(identifier, args);
     }
 
     public static Object trapStatic(Object[] args, int identifier)
-	throws Throwable
+        throws Throwable
     {
-	return _classobject.trapMethodcall(identifier, args);
+        return _classobject.trapMethodcall(identifier, args);
     }
 
     public static Object trapRead(Object[] args, String name) {
-	if (args[0] == null)
-	    return _classobject.trapFieldRead(name);
-	else
-	    return ((Metalevel)args[0])._getMetaobject().trapFieldRead(name);
+        if (args[0] == null)
+            return _classobject.trapFieldRead(name);
+        else
+            return ((Metalevel)args[0])._getMetaobject().trapFieldRead(name);
     }
 
     public static Object trapWrite(Object[] args, String name) {
-	Metalevel base = (Metalevel)args[0];
-	if (base == null)
-	    _classobject.trapFieldWrite(name, args[1]);
-	else
-	    base._getMetaobject().trapFieldWrite(name, args[1]);
+        Metalevel base = (Metalevel)args[0];
+        if (base == null)
+            _classobject.trapFieldWrite(name, args[1]);
+        else
+            base._getMetaobject().trapFieldWrite(name, args[1]);
 
-	return null;
+        return null;
     }
 }

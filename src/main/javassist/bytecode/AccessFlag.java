@@ -1,28 +1,17 @@
 /*
- * This file is part of the Javassist toolkit.
+ * Javassist, a Java-bytecode translator toolkit.
+ * Copyright (C) 1999-2003 Shigeru Chiba. All Rights Reserved.
  *
- * The contents of this file are subject to the Mozilla Public License
- * Version 1.1 (the "License"); you may not use this file except in
- * compliance with the License.  You may obtain a copy of the License at
- * either http://www.mozilla.org/MPL/.
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
  *
- * Software distributed under the License is distributed on an "AS IS"
- * basis, WITHOUT WARRANTY OF ANY KIND, either express or implied.  See
- * the License for the specific language governing rights and limitations
- * under the License.
- *
- * The Original Code is Javassist.
- *
- * The Initial Developer of the Original Code is Shigeru Chiba.  Portions
- * created by Shigeru Chiba are Copyright (C) 1999-2003 Shigeru Chiba.
- * All Rights Reserved.
- *
- * Contributor(s):
- *
- * The development of this software is supported in part by the PRESTO
- * program (Sakigake Kenkyu 21) of Japan Science and Technology Corporation.
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  */
-
 package javassist.bytecode;
 
 /**
@@ -52,7 +41,7 @@ public class AccessFlag {
      * cleared.
      */
     public static int setPublic(int accflags) {
-	return (accflags & ~(PRIVATE | PROTECTED)) | PUBLIC;
+        return (accflags & ~(PRIVATE | PROTECTED)) | PUBLIC;
     }
 
     /**
@@ -60,7 +49,7 @@ public class AccessFlag {
      * cleared.
      */
     public static int setProtected(int accflags) {
-	return (accflags & ~(PRIVATE | PUBLIC)) | PROTECTED;
+        return (accflags & ~(PRIVATE | PUBLIC)) | PROTECTED;
     }
 
     /**
@@ -68,40 +57,40 @@ public class AccessFlag {
      * cleared.
      */
     public static int setPrivate(int accflags) {
-	return (accflags & ~(PROTECTED | PUBLIC)) | PRIVATE;
+        return (accflags & ~(PROTECTED | PUBLIC)) | PRIVATE;
     }
 
     /**
      * Clears the public, protected, and private bits.
      */
     public static int setPackage(int accflags) {
-	return (accflags & ~(PROTECTED | PUBLIC | PRIVATE));
+        return (accflags & ~(PROTECTED | PUBLIC | PRIVATE));
     }
 
     /**
      * Clears a specified bit in <code>accflags</code>.
      */
     public static int clear(int accflags, int clearBit) {
-	return accflags & ~clearBit;
+        return accflags & ~clearBit;
     }
 
     /**
      * Converts a javassist.Modifier into
      * a javassist.bytecode.AccessFlag.
      *
-     * @param modifier		javassist.Modifier
+     * @param modifier          javassist.Modifier
      */
     public static int of(int modifier) {
-	return modifier;
+        return modifier;
     }
 
     /**
      * Converts a javassist.bytecode.AccessFlag
      * into a javassist.Modifier.
      *
-     * @param accflags		javassist.bytecode.Accessflag
+     * @param accflags          javassist.bytecode.Accessflag
      */
     public static int toModifier(int accflags) {
-	return accflags;
+        return accflags;
     }
 }

@@ -1,28 +1,17 @@
 /*
- * This file is part of the Javassist toolkit.
+ * Javassist, a Java-bytecode translator toolkit.
+ * Copyright (C) 1999-2003 Shigeru Chiba. All Rights Reserved.
  *
- * The contents of this file are subject to the Mozilla Public License
- * Version 1.1 (the "License"); you may not use this file except in
- * compliance with the License.  You may obtain a copy of the License at
- * either http://www.mozilla.org/MPL/.
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
  *
- * Software distributed under the License is distributed on an "AS IS"
- * basis, WITHOUT WARRANTY OF ANY KIND, either express or implied.  See
- * the License for the specific language governing rights and limitations
- * under the License.
- *
- * The Original Code is Javassist.
- *
- * The Initial Developer of the Original Code is Shigeru Chiba.  Portions
- * created by Shigeru Chiba are Copyright (C) 1999-2003 Shigeru Chiba.
- * All Rights Reserved.
- *
- * Contributor(s):
- *
- * The development of this software is supported in part by the PRESTO
- * program (Sakigake Kenkyu 21) of Japan Science and Technology Corporation.
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  */
-
 package javassist.bytecode;
 
 import java.io.DataInputStream;
@@ -42,32 +31,32 @@ public final class FieldInfo {
     int accessFlags;
     int name;
     int descriptor;
-    LinkedList attribute;	// may be null.
+    LinkedList attribute;       // may be null.
 
     private FieldInfo(ConstPool cp) {
-	constPool = cp;
-	accessFlags = 0;
-	attribute = null;
+        constPool = cp;
+        accessFlags = 0;
+        attribute = null;
     }
 
     /**
      * Constructs a <code>field_info</code> structure.
      *
-     * @param cp		a constant pool table
-     * @param fieldName		field name
-     * @param desc		field descriptor
+     * @param cp                a constant pool table
+     * @param fieldName         field name
+     * @param desc              field descriptor
      *
      * @see Descriptor
      */
     public FieldInfo(ConstPool cp, String fieldName, String desc) {
-	this(cp);
-	name = cp.addUtf8Info(fieldName);
-	descriptor = cp.addUtf8Info(desc);
+        this(cp);
+        name = cp.addUtf8Info(fieldName);
+        descriptor = cp.addUtf8Info(desc);
     }
 
     FieldInfo(ConstPool cp, DataInputStream in) throws IOException {
-	this(cp);
-	read(in);
+        this(cp);
+        read(in);
     }
 
     /**
@@ -80,14 +69,14 @@ public final class FieldInfo {
      * Returns the field name.
      */
     public String getName() {
-	return constPool.getUtf8Info(name);
+        return constPool.getUtf8Info(name);
     }
 
     /**
      * Sets the field name.
      */
     public void setName(String newName) {
-	name = constPool.addUtf8Info(newName);
+        name = constPool.addUtf8Info(newName);
     }
 
     /**
@@ -96,7 +85,7 @@ public final class FieldInfo {
      * @see AccessFlag
      */
     public int getAccessFlags() {
-	return accessFlags;
+        return accessFlags;
     }
 
     /**
@@ -105,7 +94,7 @@ public final class FieldInfo {
      * @see AccessFlag
      */
     public void setAccessFlags(int acc) {
-	accessFlags = acc;
+        accessFlags = acc;
     }
 
     /**
@@ -114,7 +103,7 @@ public final class FieldInfo {
      * @see Descriptor
      */
     public String getDescriptor() {
-	return constPool.getUtf8Info(descriptor);
+        return constPool.getUtf8Info(descriptor);
     }
 
     /**
@@ -123,8 +112,8 @@ public final class FieldInfo {
      * @see Descriptor
      */
     public void setDescriptor(String desc) {
-	if (!desc.equals(getDescriptor()))
-	    descriptor = constPool.addUtf8Info(desc);
+        if (!desc.equals(getDescriptor()))
+            descriptor = constPool.addUtf8Info(desc);
     }
 
     /**
@@ -134,19 +123,19 @@ public final class FieldInfo {
      * @see AttributeInfo
      */
     public List getAttributes() {
-	if (attribute == null)
-	    attribute = new LinkedList();
+        if (attribute == null)
+            attribute = new LinkedList();
 
-	return attribute;
+        return attribute;
     }
 
     /**
      * Returns the attribute with the specified name.
      *
-     * @param name	attribute name
+     * @param name      attribute name
      */
     public AttributeInfo getAttribute(String name) {
-	return AttributeInfo.lookup(attribute, name);
+        return AttributeInfo.lookup(attribute, name);
     }
 
     /**
@@ -154,32 +143,32 @@ public final class FieldInfo {
      * the same name, the new one substitutes for it.
      */
     public void addAttribute(AttributeInfo info) {
-	if (attribute == null)
-	    attribute = new LinkedList();
+        if (attribute == null)
+            attribute = new LinkedList();
 
-	AttributeInfo.remove(attribute, info.getName());
-	attribute.add(info);
+        AttributeInfo.remove(attribute, info.getName());
+        attribute.add(info);
     }
 
     private void read(DataInputStream in) throws IOException {
-	accessFlags = in.readUnsignedShort();
-	name = in.readUnsignedShort();
-	descriptor = in.readUnsignedShort();
-	int n = in.readUnsignedShort();
-	attribute = new LinkedList();
-	for (int i = 0; i < n; ++i)
-	    attribute.add(AttributeInfo.read(constPool, in));
+        accessFlags = in.readUnsignedShort();
+        name = in.readUnsignedShort();
+        descriptor = in.readUnsignedShort();
+        int n = in.readUnsignedShort();
+        attribute = new LinkedList();
+        for (int i = 0; i < n; ++i)
+            attribute.add(AttributeInfo.read(constPool, in));
     }
 
     void write(DataOutputStream out) throws IOException {
-	out.writeShort(accessFlags);
-	out.writeShort(name);
-	out.writeShort(descriptor);
-	if (attribute == null)
-	    out.writeShort(0);
-	else {
-	    out.writeShort(attribute.size());
-	    AttributeInfo.writeAll(attribute, out);
-	}
+        out.writeShort(accessFlags);
+        out.writeShort(name);
+        out.writeShort(descriptor);
+        if (attribute == null)
+            out.writeShort(0);
+        else {
+            out.writeShort(attribute.size());
+            AttributeInfo.writeAll(attribute, out);
+        }
     }
 }

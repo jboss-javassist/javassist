@@ -1,28 +1,17 @@
 /*
- * This file is part of the Javassist toolkit.
+ * Javassist, a Java-bytecode translator toolkit.
+ * Copyright (C) 1999-2003 Shigeru Chiba. All Rights Reserved.
  *
- * The contents of this file are subject to the Mozilla Public License
- * Version 1.1 (the "License"); you may not use this file except in
- * compliance with the License.  You may obtain a copy of the License at
- * either http://www.mozilla.org/MPL/.
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
  *
- * Software distributed under the License is distributed on an "AS IS"
- * basis, WITHOUT WARRANTY OF ANY KIND, either express or implied.  See
- * the License for the specific language governing rights and limitations
- * under the License.
- *
- * The Original Code is Javassist.
- *
- * The Initial Developer of the Original Code is Shigeru Chiba.  Portions
- * created by Shigeru Chiba are Copyright (C) 1999-2003 Shigeru Chiba.
- * All Rights Reserved.
- *
- * Contributor(s):
- *
- * The development of this software is supported in part by the PRESTO
- * program (Sakigake Kenkyu 21) of Japan Science and Technology Corporation.
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  */
-
 package javassist.rmi;
 
 import java.io.*;
@@ -69,7 +58,7 @@ public class StubGenerator implements Translator {
      * Constructs a stub-code generator.
      */
     public StubGenerator() {
-	proxyClasses = new Hashtable();
+        proxyClasses = new Hashtable();
     }
 
     /**
@@ -78,19 +67,19 @@ public class StubGenerator implements Translator {
      * @see javassist.Translator#start(ClassPool)
      */
     public void start(ClassPool pool) throws NotFoundException {
-	classPool = pool;
-	CtClass c = pool.get(sampleClass);
-	forwardMethod = c.getDeclaredMethod("forward");
-	forwardStaticMethod = c.getDeclaredMethod("forwardStatic");
+        classPool = pool;
+        CtClass c = pool.get(sampleClass);
+        forwardMethod = c.getDeclaredMethod("forward");
+        forwardStaticMethod = c.getDeclaredMethod("forwardStatic");
 
-	proxyConstructorParamTypes
-	    = pool.get(new String[] { "javassist.rmi.ObjectImporter",
-					 "int" });
-	interfacesForProxy
-	    = pool.get(new String[] { "java.io.Serializable",
-					 "javassist.rmi.Proxy" });
-	exceptionForProxy
-	    = new CtClass[] { pool.get("javassist.rmi.RemoteException") };
+        proxyConstructorParamTypes
+            = pool.get(new String[] { "javassist.rmi.ObjectImporter",
+                                         "int" });
+        interfacesForProxy
+            = pool.get(new String[] { "java.io.Serializable",
+                                         "javassist.rmi.Proxy" });
+        exceptionForProxy
+            = new CtClass[] { pool.get("javassist.rmi.RemoteException") };
     }
 
     public void onWrite(ClassPool pool, String classname) {}
@@ -99,163 +88,163 @@ public class StubGenerator implements Translator {
      * Returns <code>true</code> if the specified class is a proxy class
      * recorded by <code>makeProxyClass()</code>.
      *
-     * @param name		a fully-qualified class name
+     * @param name              a fully-qualified class name
      */
     public boolean isProxyClass(String name) {
-	return proxyClasses.get(name) != null;
+        return proxyClasses.get(name) != null;
     }
 
     /**
      * Makes a proxy class.  The produced class is substituted
      * for the original class.
      *
-     * @param clazz		the class referenced
-     *				through the proxy class.
-     * @return		<code>false</code> if the proxy class
-     *			has been already produced.
+     * @param clazz             the class referenced
+     *                          through the proxy class.
+     * @return          <code>false</code> if the proxy class
+     *                  has been already produced.
      */
     public synchronized boolean makeProxyClass(Class clazz)
-	throws CannotCompileException, NotFoundException
+        throws CannotCompileException, NotFoundException
     {
-	String classname = clazz.getName();
-	if (proxyClasses.get(classname) != null)
-	    return false;
-	else {
-	    CtClass ctclazz = produceProxyClass(classPool.get(classname),
-						clazz);
-	    proxyClasses.put(classname, ctclazz);
-	    modifySuperclass(ctclazz);
-	    return true;
-	}
+        String classname = clazz.getName();
+        if (proxyClasses.get(classname) != null)
+            return false;
+        else {
+            CtClass ctclazz = produceProxyClass(classPool.get(classname),
+                                                clazz);
+            proxyClasses.put(classname, ctclazz);
+            modifySuperclass(ctclazz);
+            return true;
+        }
     }
 
     private CtClass produceProxyClass(CtClass orgclass, Class orgRtClass)
-	throws CannotCompileException, NotFoundException
+        throws CannotCompileException, NotFoundException
     {
-	int modify = orgclass.getModifiers();
-	if (Modifier.isAbstract(modify) || Modifier.isNative(modify)
-	    || !Modifier.isPublic(modify))
-  	    throw new CannotCompileException(orgclass.getName()
-			+ " must be public, non-native, and non-abstract.");
+        int modify = orgclass.getModifiers();
+        if (Modifier.isAbstract(modify) || Modifier.isNative(modify)
+            || !Modifier.isPublic(modify))
+            throw new CannotCompileException(orgclass.getName()
+                        + " must be public, non-native, and non-abstract.");
 
-	CtClass proxy = classPool.makeClass(orgclass.getName(),
-					      orgclass.getSuperclass());
+        CtClass proxy = classPool.makeClass(orgclass.getName(),
+                                              orgclass.getSuperclass());
 
-	proxy.setInterfaces(interfacesForProxy);
+        proxy.setInterfaces(interfacesForProxy);
 
-	CtField f
-	    = new CtField(classPool.get("javassist.rmi.ObjectImporter"),
-			  fieldImporter, proxy);
-	f.setModifiers(Modifier.PRIVATE);
-	proxy.addField(f, CtField.Initializer.byParameter(0));
+        CtField f
+            = new CtField(classPool.get("javassist.rmi.ObjectImporter"),
+                          fieldImporter, proxy);
+        f.setModifiers(Modifier.PRIVATE);
+        proxy.addField(f, CtField.Initializer.byParameter(0));
 
-	f = new CtField(CtClass.intType, fieldObjectId, proxy);
-	f.setModifiers(Modifier.PRIVATE);
-	proxy.addField(f, CtField.Initializer.byParameter(1)); 
+        f = new CtField(CtClass.intType, fieldObjectId, proxy);
+        f.setModifiers(Modifier.PRIVATE);
+        proxy.addField(f, CtField.Initializer.byParameter(1)); 
 
-	proxy.addMethod(CtNewMethod.getter(accessorObjectId, f));
+        proxy.addMethod(CtNewMethod.getter(accessorObjectId, f));
 
-	proxy.addConstructor(CtNewConstructor.defaultConstructor(proxy));
-	CtConstructor cons
-	    = CtNewConstructor.skeleton(proxyConstructorParamTypes,
-					null, proxy);
-	proxy.addConstructor(cons);
+        proxy.addConstructor(CtNewConstructor.defaultConstructor(proxy));
+        CtConstructor cons
+            = CtNewConstructor.skeleton(proxyConstructorParamTypes,
+                                        null, proxy);
+        proxy.addConstructor(cons);
 
-	try {
-	    addMethods(proxy, orgRtClass.getMethods());
-	    return proxy;
-	}
-	catch (SecurityException e) {
-	    throw new CannotCompileException(e);
-	}
+        try {
+            addMethods(proxy, orgRtClass.getMethods());
+            return proxy;
+        }
+        catch (SecurityException e) {
+            throw new CannotCompileException(e);
+        }
     }
 
     private CtClass toCtClass(Class rtclass) throws NotFoundException {
-	String name;
-	if (!rtclass.isArray())
-	    name = rtclass.getName();
-	else {
-	    StringBuffer sbuf = new StringBuffer();
-	    do {
-		sbuf.append("[]");
-		rtclass = rtclass.getComponentType();
-	    } while(rtclass.isArray());
-	    sbuf.insert(0, rtclass.getName());
-	    name = sbuf.toString();
-	}
-	    
-	return classPool.get(name);
+        String name;
+        if (!rtclass.isArray())
+            name = rtclass.getName();
+        else {
+            StringBuffer sbuf = new StringBuffer();
+            do {
+                sbuf.append("[]");
+                rtclass = rtclass.getComponentType();
+            } while(rtclass.isArray());
+            sbuf.insert(0, rtclass.getName());
+            name = sbuf.toString();
+        }
+            
+        return classPool.get(name);
     }
 
     private CtClass[] toCtClass(Class[] rtclasses) throws NotFoundException {
-	int n = rtclasses.length;
-	CtClass[] ctclasses = new CtClass[n];
-	for (int i = 0; i < n; ++i)
-	    ctclasses[i] = toCtClass(rtclasses[i]);
+        int n = rtclasses.length;
+        CtClass[] ctclasses = new CtClass[n];
+        for (int i = 0; i < n; ++i)
+            ctclasses[i] = toCtClass(rtclasses[i]);
 
-	return ctclasses;
+        return ctclasses;
     }
 
     /* ms must not be an array of CtMethod.  To invoke a method ms[i]
      * on a server, a client must send i to the server.
      */
     private void addMethods(CtClass proxy, Method[] ms)
-	throws CannotCompileException, NotFoundException
+        throws CannotCompileException, NotFoundException
     {
-	CtMethod wmethod;
-	for (int i = 0; i < ms.length; ++i) {
-	    Method m = ms[i];
-	    int mod = m.getModifiers();
-	    if (m.getDeclaringClass() != Object.class
-			&& !Modifier.isFinal(mod))
-		if (Modifier.isPublic(mod)) {
-		    CtMethod body;
-		    if (Modifier.isStatic(mod))
-			body = forwardStaticMethod;
-		    else
-			body = forwardMethod;
+        CtMethod wmethod;
+        for (int i = 0; i < ms.length; ++i) {
+            Method m = ms[i];
+            int mod = m.getModifiers();
+            if (m.getDeclaringClass() != Object.class
+                        && !Modifier.isFinal(mod))
+                if (Modifier.isPublic(mod)) {
+                    CtMethod body;
+                    if (Modifier.isStatic(mod))
+                        body = forwardStaticMethod;
+                    else
+                        body = forwardMethod;
 
-		    wmethod
-			= CtNewMethod.wrapped(toCtClass(m.getReturnType()),
-					      m.getName(),
-					      toCtClass(m.getParameterTypes()),
-					      exceptionForProxy,
-					      body,
-					      ConstParameter.integer(i),
-					      proxy);
-		    wmethod.setModifiers(mod);
-		    proxy.addMethod(wmethod);
-		}
-		else if (!Modifier.isProtected(mod)
-			 && !Modifier.isPrivate(mod))
-		    // if package method
-		    throw new CannotCompileException(
-			"the methods must be public, protected, or private.");
-	}
+                    wmethod
+                        = CtNewMethod.wrapped(toCtClass(m.getReturnType()),
+                                              m.getName(),
+                                              toCtClass(m.getParameterTypes()),
+                                              exceptionForProxy,
+                                              body,
+                                              ConstParameter.integer(i),
+                                              proxy);
+                    wmethod.setModifiers(mod);
+                    proxy.addMethod(wmethod);
+                }
+                else if (!Modifier.isProtected(mod)
+                         && !Modifier.isPrivate(mod))
+                    // if package method
+                    throw new CannotCompileException(
+                        "the methods must be public, protected, or private.");
+        }
     }
 
     /**
      * Adds a default constructor to the super classes.
      */
     private void modifySuperclass(CtClass orgclass)
-	throws CannotCompileException, NotFoundException
+        throws CannotCompileException, NotFoundException
     {
-	CtClass superclazz;
-	for (;; orgclass = superclazz) {
-	    superclazz = orgclass.getSuperclass();
-	    if (superclazz == null)
-		break;
+        CtClass superclazz;
+        for (;; orgclass = superclazz) {
+            superclazz = orgclass.getSuperclass();
+            if (superclazz == null)
+                break;
 
-	    String name = superclazz.getName();
-	    try {
-		superclazz.getDeclaredConstructor(null);
-		break;	// the constructor with no arguments is found.
-	    }
-	    catch (NotFoundException e) {
-	    }
+            String name = superclazz.getName();
+            try {
+                superclazz.getDeclaredConstructor(null);
+                break;  // the constructor with no arguments is found.
+            }
+            catch (NotFoundException e) {
+            }
 
-	    superclazz.addConstructor(
-			CtNewConstructor.defaultConstructor(superclazz));
-	}
+            superclazz.addConstructor(
+                        CtNewConstructor.defaultConstructor(superclazz));
+        }
     }
 }

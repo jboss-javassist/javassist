@@ -50,12 +50,16 @@
 
   <target name="javadocs">
     <javadoc packagenames="javassist.*"
+           excludepackagenames="javassist.compiler.*,javassist.convert.*"
            sourcepath="src/main"
            defaultexcludes="yes"
            destdir="html"
            author="true"
            version="true"
            use="true"
+           Locale="en_US"
+           Public="true"
+           nohelp="true"
            windowtitle="Javassist API">
       <doctitle><![CDATA[<h1>Javassist</h1>]]></doctitle>
       <bottom><![CDATA[<i>Javassist, a Java-bytecode translator toolkit. 

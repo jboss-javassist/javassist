@@ -1,28 +1,17 @@
 /*
- * This file is part of the Javassist toolkit.
+ * Javassist, a Java-bytecode translator toolkit.
+ * Copyright (C) 1999-2003 Shigeru Chiba. All Rights Reserved.
  *
- * The contents of this file are subject to the Mozilla Public License
- * Version 1.1 (the "License"); you may not use this file except in
- * compliance with the License.  You may obtain a copy of the License at
- * either http://www.mozilla.org/MPL/.
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
  *
- * Software distributed under the License is distributed on an "AS IS"
- * basis, WITHOUT WARRANTY OF ANY KIND, either express or implied.  See
- * the License for the specific language governing rights and limitations
- * under the License.
- *
- * The Original Code is Javassist.
- *
- * The Initial Developer of the Original Code is Shigeru Chiba.  Portions
- * created by Shigeru Chiba are Copyright (C) 1999-2003 Shigeru Chiba.
- * All Rights Reserved.
- *
- * Contributor(s):
- *
- * The development of this software is supported in part by the PRESTO
- * program (Sakigake Kenkyu 21) of Japan Science and Technology Corporation.
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  */
-
 package javassist.expr;
 
 import javassist.bytecode.*;
@@ -83,104 +72,117 @@ public class ExprEditor {
     public ExprEditor() {}
 
     static class NewOp {
-	NewOp next;
-	int pos;
-	String type;
+        NewOp next;
+        int pos;
+        String type;
 
-	NewOp(NewOp n, int p, String t) {
-	    next = n;
-	    pos = p;
-	    type = t;
-	}
+        NewOp(NewOp n, int p, String t) {
+            next = n;
+            pos = p;
+            type = t;
+        }
     }
 
     /**
      * Undocumented method.  Do not use; internal-use only.
      */
     public boolean doit(CtClass clazz, MethodInfo minfo)
-	throws CannotCompileException
+        throws CannotCompileException
     {
-	CodeAttribute codeAttr = minfo.getCodeAttribute();
-	if (codeAttr == null)
-	    return false;
+        CodeAttribute codeAttr = minfo.getCodeAttribute();
+        if (codeAttr == null)
+            return false;
 
-	CodeIterator iterator = codeAttr.iterator();
-	boolean edited = false;
-	int maxLocals = codeAttr.getMaxLocals();
-	int maxStack = 0;
+        CodeIterator iterator = codeAttr.iterator();
+        boolean edited = false;
+        int maxLocals = codeAttr.getMaxLocals();
+        int maxStack = 0;
 
-	NewOp newList = null;
-	ConstPool cp = minfo.getConstPool();
+        NewOp newList = null;
+        ConstPool cp = minfo.getConstPool();
 
-	while (iterator.hasNext())
-	    try {
-		Expr expr = null;
-		int pos = iterator.next();
-		int c = iterator.byteAt(pos);
+        while (iterator.hasNext())
+            try {
+                Expr expr = null;
+                int pos = iterator.next();
+                int c = iterator.byteAt(pos);
 
-		if (c == Opcode.INVOKESTATIC || c == Opcode.INVOKEINTERFACE
-		    || c == Opcode.INVOKEVIRTUAL) {
-		    expr = new MethodCall(pos, iterator, clazz, minfo);
-		    edit((MethodCall)expr);
-		}
-		else if (c == Opcode.GETFIELD || c == Opcode.GETSTATIC
-			|| c == Opcode.PUTFIELD || c == Opcode.PUTSTATIC) {
-		    expr = new FieldAccess(pos, iterator, clazz, minfo, c);
-		    edit((FieldAccess)expr);
-		}
-		else if (c == Opcode.NEW) {
-		    int index = iterator.u16bitAt(pos + 1);
-		    newList = new NewOp(newList, pos,
-					cp.getClassInfo(index));
-		}
-		else if (c == Opcode.INVOKESPECIAL) {
-		    if (newList != null && cp.isConstructor(newList.type,
-				iterator.u16bitAt(pos + 1)) > 0) {
-			expr = new NewExpr(pos, iterator, clazz, minfo,
-					   newList.type, newList.pos);
-			edit((NewExpr)expr);
-			newList = newList.next;
-		    }
-		    else {
-			expr = new MethodCall(pos, iterator, clazz, minfo);
-			MethodCall mcall = (MethodCall)expr;
-			if (!mcall.getMethodName().equals(
-						MethodInfo.nameInit))
-			    edit(mcall);
-		    }
-		}
-		else if (c == Opcode.INSTANCEOF) {
-		    expr = new Instanceof(pos, iterator, clazz, minfo);
-		    edit((Instanceof)expr);
-		}
-		else if (c == Opcode.CHECKCAST) {
-		    expr = new Cast(pos, iterator, clazz, minfo);
-		    edit((Cast)expr);
-		}
+                if (c == Opcode.INVOKESTATIC || c == Opcode.INVOKEINTERFACE
+                    || c == Opcode.INVOKEVIRTUAL) {
+                    expr = new MethodCall(pos, iterator, clazz, minfo);
+                    edit((MethodCall)expr);
+                }
+                else if (c == Opcode.GETFIELD || c == Opcode.GETSTATIC
+                        || c == Opcode.PUTFIELD || c == Opcode.PUTSTATIC) {
+                    expr = new FieldAccess(pos, iterator, clazz, minfo, c);
+                    edit((FieldAccess)expr);
+                }
+                else if (c == Opcode.NEW) {
+                    int index = iterator.u16bitAt(pos + 1);
+                    newList = new NewOp(newList, pos,
+                                        cp.getClassInfo(index));
+                }
+                else if (c == Opcode.INVOKESPECIAL) {
+                    if (newList != null && cp.isConstructor(newList.type,
+                                iterator.u16bitAt(pos + 1)) > 0) {
+                        expr = new NewExpr(pos, iterator, clazz, minfo,
+                                           newList.type, newList.pos);
+                        edit((NewExpr)expr);
+                        newList = newList.next;
+                    }
+                    else {
+                        expr = new MethodCall(pos, iterator, clazz, minfo);
+                        MethodCall mcall = (MethodCall)expr;
+                        if (!mcall.getMethodName().equals(
+                                                MethodInfo.nameInit))
+                            edit(mcall);
+                    }
+                }
+                else if (c == Opcode.INSTANCEOF) {
+                    expr = new Instanceof(pos, iterator, clazz, minfo);
+                    edit((Instanceof)expr);
+                }
+                else if (c == Opcode.CHECKCAST) {
+                    expr = new Cast(pos, iterator, clazz, minfo);
+                    edit((Cast)expr);
+                }
 
-		if (expr != null && expr.edited()) {
-		    edited = true;
-		    if (maxLocals < expr.locals())
-			maxLocals = expr.locals();
+                if (expr != null && expr.edited()) {
+                    edited = true;
+                    maxLocals = max(maxLocals, expr.locals());
+                    maxStack = max(maxStack, expr.stack());
+                }
+            }
+            catch (BadBytecode e) {
+                throw new CannotCompileException(e);
+            }
 
-		    if (maxStack < expr.stack())
-			maxStack = expr.stack();
-		}
-	    }
-	    catch (BadBytecode e) {
-		throw new CannotCompileException(e);
-	    }
+        ExceptionTable et = codeAttr.getExceptionTable();
+        int n = et.size();
+        for (int i = 0; i < n; ++i) {
+            Handler h = new Handler(et, i, iterator, clazz, minfo);
+            edit(h);
+            if (h.edited()) {
+                edited = true;
+                maxLocals = max(maxLocals, h.locals());
+                maxStack = max(maxStack, h.stack());
+            }
+        }
 
-	codeAttr.setMaxLocals(maxLocals);
-	codeAttr.setMaxStack(codeAttr.getMaxStack() + maxStack);
-	return edited;
+        codeAttr.setMaxLocals(maxLocals);
+        codeAttr.setMaxStack(codeAttr.getMaxStack() + maxStack);
+        return edited;
+    }
+
+    private int max(int i, int j) {
+        return i > j ? i : j;
     }
 
     /**
      * Edits a <tt>new</tt> expression (overridable).
      * The default implementation performs nothing.
      *
-     * @param e		the <tt>new</tt> expression creating an object.
+     * @param e         the <tt>new</tt> expression creating an object.
      */
     public void edit(NewExpr e) throws CannotCompileException {}
 
@@ -208,4 +210,10 @@ public class ExprEditor {
      * The default implementation performs nothing.
      */
     public void edit(Cast c) throws CannotCompileException {}
+
+    /**
+     * Edits a catch clause (overridable).
+     * The default implementation performs nothing.
+     */
+    public void edit(Handler h) throws CannotCompileException {}
 }

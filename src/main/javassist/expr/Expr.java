@@ -1,28 +1,17 @@
 /*
- * This file is part of the Javassist toolkit.
+ * Javassist, a Java-bytecode translator toolkit.
+ * Copyright (C) 1999-2003 Shigeru Chiba. All Rights Reserved.
  *
- * The contents of this file are subject to the Mozilla Public License
- * Version 1.1 (the "License"); you may not use this file except in
- * compliance with the License.  You may obtain a copy of the License at
- * either http://www.mozilla.org/MPL/.
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
  *
- * Software distributed under the License is distributed on an "AS IS"
- * basis, WITHOUT WARRANTY OF ANY KIND, either express or implied.  See
- * the License for the specific language governing rights and limitations
- * under the License.
- *
- * The Original Code is Javassist.
- *
- * The Initial Developer of the Original Code is Shigeru Chiba.  Portions
- * created by Shigeru Chiba are Copyright (C) 1999-2003 Shigeru Chiba.
- * All Rights Reserved.
- *
- * Contributor(s):
- *
- * The development of this software is supported in part by the PRESTO
- * program (Sakigake Kenkyu 21) of Japan Science and Technology Corporation.
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  */
-
 package javassist.expr;
 
 import javassist.*;
@@ -46,14 +35,14 @@ abstract class Expr implements Opcode {
     static final String javaLangObject = "java.lang.Object";
 
     Expr(int pos, CodeIterator i, CtClass declaring, MethodInfo m) {
-	currentPos = pos;
-	iterator = i;
-	thisClass = declaring;
-	thisMethod = m;
+        currentPos = pos;
+        iterator = i;
+        thisClass = declaring;
+        thisMethod = m;
     }
 
     final ConstPool getConstPool() {
-	return thisMethod.getConstPool();
+        return thisMethod.getConstPool();
     }
 
     final boolean edited() { return edited; }
@@ -66,20 +55,20 @@ abstract class Expr implements Opcode {
      * Returns true if this method is static.
      */
     final boolean withinStatic() {
-	return (thisMethod.getAccessFlags() & AccessFlag.STATIC) != 0;
+        return (thisMethod.getAccessFlags() & AccessFlag.STATIC) != 0;
     }
 
     /**
      * Returns the constructor or method containing the expression.
      */
     public CtBehavior where() {
-	MethodInfo mi = thisMethod;
-	CtBehavior[] cb = thisClass.getDeclaredBehaviors();
-	for (int i = cb.length - 1; i >= 0; --i)
-	    if (cb[i].getMethodInfo() == mi)
-		return cb[i];
+        MethodInfo mi = thisMethod;
+        CtBehavior[] cb = thisClass.getDeclaredBehaviors();
+        for (int i = cb.length - 1; i >= 0; --i)
+            if (cb[i].getMethodInfo() == mi)
+                return cb[i];
 
- 	throw new RuntimeException("fatal: not found");
+        throw new RuntimeException("fatal: not found");
     }
 
     /**
@@ -89,86 +78,86 @@ abstract class Expr implements Opcode {
      * the throws declaration allows the method to throw.
      */
     public CtClass[] mayThrow() {
-	ClassPool pool = thisClass.getClassPool();
-	ConstPool cp = thisMethod.getConstPool();
-	LinkedList list = new LinkedList();
-	try {
-	    CodeAttribute ca = thisMethod.getCodeAttribute();
-	    ExceptionTable et = ca.getExceptionTable();
-	    int pos = currentPos;
-	    int n = et.size();
-	    for (int i = 0; i < n; ++i)
-		if (et.startPc(i) <= pos && pos < et.endPc(i)) {
-		    int t = et.catchType(i);
-		    if (t > 0)
-			try {
-			    addClass(list, pool.get(cp.getClassInfo(t)));
-			}
-			catch (NotFoundException e) {}
-		}
-	}
-	catch (NullPointerException e) {}
+        ClassPool pool = thisClass.getClassPool();
+        ConstPool cp = thisMethod.getConstPool();
+        LinkedList list = new LinkedList();
+        try {
+            CodeAttribute ca = thisMethod.getCodeAttribute();
+            ExceptionTable et = ca.getExceptionTable();
+            int pos = currentPos;
+            int n = et.size();
+            for (int i = 0; i < n; ++i)
+                if (et.startPc(i) <= pos && pos < et.endPc(i)) {
+                    int t = et.catchType(i);
+                    if (t > 0)
+                        try {
+                            addClass(list, pool.get(cp.getClassInfo(t)));
+                        }
+                        catch (NotFoundException e) {}
+                }
+        }
+        catch (NullPointerException e) {}
 
-	ExceptionsAttribute ea = thisMethod.getExceptionsAttribute();
-	if (ea != null) {
-	    String[] exceptions = ea.getExceptions();
-	    if (exceptions != null) {
-		int n = exceptions.length;
-		for (int i = 0; i < n; ++i)
-		    try {
-			addClass(list, pool.get(exceptions[i]));
-		    }
-		    catch (NotFoundException e) {}
-	    }
-	}
+        ExceptionsAttribute ea = thisMethod.getExceptionsAttribute();
+        if (ea != null) {
+            String[] exceptions = ea.getExceptions();
+            if (exceptions != null) {
+                int n = exceptions.length;
+                for (int i = 0; i < n; ++i)
+                    try {
+                        addClass(list, pool.get(exceptions[i]));
+                    }
+                    catch (NotFoundException e) {}
+            }
+        }
 
-	return (CtClass[])list.toArray(new CtClass[list.size()]);
+        return (CtClass[])list.toArray(new CtClass[list.size()]);
     }
 
     private static void addClass(LinkedList list, CtClass c) {
-	Iterator it = list.iterator();
-	while (it.hasNext())
-	    if (it.next() == c)
-		return;
+        Iterator it = list.iterator();
+        while (it.hasNext())
+            if (it.next() == c)
+                return;
 
-	list.add(c);
+        list.add(c);
     }
 
     /**
      * Returns the line number of the source line containing the
      * expression.
      *
-     * @return -1	if this information is not available.
+     * @return -1       if this information is not available.
      */
     public int getLineNumber() {
-	return thisMethod.getLineNumber(currentPos);
+        return thisMethod.getLineNumber(currentPos);
     }
 
     /**
      * Returns the source file containing the expression.
      *
-     * @return null	if this information is not available.
+     * @return null     if this information is not available.
      */
     public String getFileName() {
-	ClassFile cf = thisClass.getClassFile2();
-	if (cf == null)
-	    return null;
-	else
-	    return cf.getSourceFile();
+        ClassFile cf = thisClass.getClassFile2();
+        if (cf == null)
+            return null;
+        else
+            return cf.getSourceFile();
     }
 
     static final boolean checkResultValue(CtClass retType, String prog)
-	throws CannotCompileException
+        throws CannotCompileException
     {
-	/* Is $_ included in the source code?
-	 */
-	boolean hasIt = (prog.indexOf(Javac.resultVarName) >= 0);
-	if (!hasIt && retType != CtClass.voidType)
-	    throw new CannotCompileException(
-			"the resulting value is not stored in "
-			+ Javac.resultVarName);
+        /* Is $_ included in the source code?
+         */
+        boolean hasIt = (prog.indexOf(Javac.resultVarName) >= 0);
+        if (!hasIt && retType != CtClass.voidType)
+            throw new CannotCompileException(
+                        "the resulting value is not stored in "
+                        + Javac.resultVarName);
 
-	return hasIt;
+        return hasIt;
     }
 
     /* If isStaticCall is true, null is assigned to $0.  So $0 must
@@ -178,46 +167,46 @@ abstract class Expr implements Opcode {
      * be less than 0.
      */
     static final void storeStack(CtClass[] params, boolean isStaticCall,
-				 int regno, Bytecode bytecode) {
-	storeStack0(0, params.length, params, regno + 1, bytecode);
-	if (isStaticCall)
-	    bytecode.addOpcode(ACONST_NULL);
+                                 int regno, Bytecode bytecode) {
+        storeStack0(0, params.length, params, regno + 1, bytecode);
+        if (isStaticCall)
+            bytecode.addOpcode(ACONST_NULL);
 
-	bytecode.addAstore(regno);
+        bytecode.addAstore(regno);
     }
 
     private static void storeStack0(int i, int n, CtClass[] params,
-				    int regno, Bytecode bytecode) {
-	if (i >= n)
-	    return;
-	else {
-	    CtClass c = params[i];
-	    int size;
-	    if (c instanceof CtPrimitiveType)
-		size = ((CtPrimitiveType)c).getDataSize();
-	    else
-		size = 1;
+                                    int regno, Bytecode bytecode) {
+        if (i >= n)
+            return;
+        else {
+            CtClass c = params[i];
+            int size;
+            if (c instanceof CtPrimitiveType)
+                size = ((CtPrimitiveType)c).getDataSize();
+            else
+                size = 1;
 
-	    storeStack0(i + 1, n, params, regno + size, bytecode);
-	    bytecode.addStore(regno, c);
-	}
+            storeStack0(i + 1, n, params, regno + size, bytecode);
+            bytecode.addStore(regno, c);
+        }
     }
 
     protected void replace0(int pos, Bytecode bytecode, int size)
-	throws BadBytecode
+        throws BadBytecode
     {
-	byte[] code = bytecode.get();
-	edited = true;
-	int gap = code.length - size;
-	if (gap > 0)
-	    iterator.insertGap(pos, gap);
-	else
-	    for (int i = 0; i < size; ++i)
-		iterator.writeByte(NOP, pos + i);
+        byte[] code = bytecode.get();
+        edited = true;
+        int gap = code.length - size;
+        for (int i = 0; i < size; ++i)
+            iterator.writeByte(NOP, pos + i);
 
-	iterator.write(code, pos);
-	iterator.insert(bytecode.getExceptionTable(), pos);
-	maxLocals = bytecode.getMaxLocals();
-	maxStack = bytecode.getMaxStack();
+        if (gap > 0)
+            iterator.insertGap(pos, gap);
+
+        iterator.write(code, pos);
+        iterator.insert(bytecode.getExceptionTable(), pos);
+        maxLocals = bytecode.getMaxLocals();
+        maxStack = bytecode.getMaxStack();
     }
 }

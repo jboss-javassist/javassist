@@ -442,15 +442,14 @@ object representing the class in which the edited method is declared.
 so that the code fragment is executed when the method body throws
 an exception and the control returns to the caller.  In the source
 text representing the inserted code fragment, the exception value
-is referred to with the name specified by the third parameter to
-<code>addCatch()</code>.
+is referred to with the special variable <code>$e</code>.
 
 <p>For example, this program:
 
 <ul><pre>
 CtMethod m = ...;
 CtClass etype = ClassPool.getDefault().get("java.io.IOException");
-m.addCatch("{ System.out.println(e); throw e; }", etype, "e");
+m.addCatch("{ System.out.println($e); throw $e; }", etype);
 </pre></ul>
 
 <p>translates the method body represented by <code>m</code> into
@@ -631,7 +630,7 @@ syntax.  It must be followed by an argument list surrounded by parentheses
 
 <p>A <code>FieldAccess</code> object represents field access.
 The method <code>edit()</code> in <code>ExprEditor</code>
-receive this object if field access is found.
+receives this object if field access is found.
 The method <code>replace()</code> in
 <code>FieldAccess</code> receives
 source text representing the substitued statement or
@@ -719,7 +718,7 @@ is the type of the field.
 <p>A <code>NewExpr</code> object represents object creation
 with the <code>new</code> operator.
 The method <code>edit()</code> in <code>ExprEditor</code>
-receive this object if object creation is found.
+receives this object if object creation is found.
 The method <code>replace()</code> in
 <code>NewExpr</code> receives
 source text representing the substitued statement or
@@ -789,7 +788,7 @@ are also available.
 <p>A <code>Instanceof</code> object represents an <code>instanceof</code>
 expression.
 The method <code>edit()</code> in <code>ExprEditor</code>
-receive this object if an instanceof expression is found.
+receives this object if an instanceof expression is found.
 The method <code>replace()</code> in
 <code>Instanceof</code> receives
 source text representing the substitued statement or
@@ -864,7 +863,7 @@ are also available.
 <p>A <code>Cast</code> object represents an expression for
 explicit type casting.
 The method <code>edit()</code> in <code>ExprEditor</code>
-receive this object if explicit type casting is found.
+receives this object if explicit type casting is found.
 The method <code>replace()</code> in
 <code>Cast</code> receives
 source text representing the substitued statement or
@@ -934,6 +933,57 @@ and returns it after
 <p>The other identifiers such as <code>$w</code>,
 <code>$args</code> and <code>$$</code>
 are also available.
+
+<h4>javassist.expr.Handler</h4>
+
+<p>A <code>Handler</code> object represents a <code>catch</code>
+clause of <code>try-catch</code> statement.
+The method <code>edit()</code> in <code>ExprEditor</code>
+receives this object if a <code>catch</code> is found.
+The method <code>insertBefore()</code> in
+<code>Handler</code> compiles the received
+source text and inserts it at the beginning of the <code>catch</code> clause.
+
+In the source text, the identifiers starting with <code>$</code>
+have special meaning:
+
+<ul><table border=0>
+
+<tr>
+<td><code>$1</code></td>
+<td>
+The exception object caught by the <code>catch</code> clause.
+</td>
+</tr>
+
+<tr>
+<td><code>$r</code></td>
+<td>the type of the exception caught by the <code>catch</code> clause.
+It is used in a cast expression.
+</td>
+</tr>
+
+<tr>
+<td><code>$w</code></td>
+<td>The wrapper type.  It is used in a cast expression.
+</td>
+</tr>
+
+<tr><td><code>$type</code> &nbsp &nbsp</td>
+<td rowspan=2>
+A <code>java.lang.Class</code> object representing
+<br>the type of the exception caught by the <code>catch</code> clause.
+</td>
+</tr>
+
+<tr><td>&nbsp</td></tr>
+
+</table>
+</ul>
+
+<p>If a new exception object is assigned to <code>$1</code>,
+it is passed to the original <code>catch</code> clause as the caught
+exception.
 
 <p><br>
 
@@ -1064,6 +1114,6 @@ write:
 
 <hr>
 Java(TM) is a trademark of Sun Microsystems, Inc.<br>
-Copyright (C) 2000-2002 by Shigeru Chiba, All rights reserved.
+Copyright (C) 2000-2003 by Shigeru Chiba, All rights reserved.
 </body>
 </html>

@@ -1,28 +1,17 @@
 /*
- * This file is part of the Javassist toolkit.
+ * Javassist, a Java-bytecode translator toolkit.
+ * Copyright (C) 1999-2003 Shigeru Chiba. All Rights Reserved.
  *
- * The contents of this file are subject to the Mozilla Public License
- * Version 1.1 (the "License"); you may not use this file except in
- * compliance with the License.  You may obtain a copy of the License at
- * either http://www.mozilla.org/MPL/.
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
  *
- * Software distributed under the License is distributed on an "AS IS"
- * basis, WITHOUT WARRANTY OF ANY KIND, either express or implied.  See
- * the License for the specific language governing rights and limitations
- * under the License.
- *
- * The Original Code is Javassist.
- *
- * The Initial Developer of the Original Code is Shigeru Chiba.  Portions
- * created by Shigeru Chiba are Copyright (C) 1999-2003 Shigeru Chiba.
- * All Rights Reserved.
- *
- * Contributor(s):
- *
- * The development of this software is supported in part by the PRESTO
- * program (Sakigake Kenkyu 21) of Japan Science and Technology Corporation.
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  */
-
 package javassist;
 
 import javassist.compiler.CompileError;
@@ -34,26 +23,26 @@ public class CannotCompileException extends Exception {
     private String message;
 
     public String getReason() {
-	if (message != null)
-	    return message;
-	else
-	    return this.toString();
+        if (message != null)
+            return message;
+        else
+            return this.toString();
     }
 
     /**
      * Constructs a CannotCompileException with a message.
      */
     public CannotCompileException(String msg) {
-	super(msg);
-	message = msg;
+        super(msg);
+        message = msg;
     }
 
     /**
      * Constructs a CannotCompileException with an <code>Exception</code>.
      */
     public CannotCompileException(Exception e) {
-	super("by " + e.toString());
-	message = null;
+        super("by " + e.toString());
+        message = null;
     }
 
     /**
@@ -61,15 +50,15 @@ public class CannotCompileException extends Exception {
      * <code>NotFoundException</code>.
      */
     public CannotCompileException(NotFoundException e) {
-	this("cannot find " + e.getMessage());
+        this("cannot find " + e.getMessage());
     }
 
     /**
      * Constructs a CannotCompileException with an <code>CompileError</code>.
      */
     public CannotCompileException(CompileError e) {
-	super("[source error] " + e.getMessage());
-	message = null;
+        super("[source error] " + e.getMessage());
+        message = null;
     }
 
     /**
@@ -77,13 +66,13 @@ public class CannotCompileException extends Exception {
      * with a <code>ClassNotFoundException</code>.
      */
     public CannotCompileException(ClassNotFoundException e, String name) {
-	this("cannot find " + name);
+        this("cannot find " + name);
     }
 
     /**
      * Constructs a CannotCompileException with a ClassFormatError.
      */
     public CannotCompileException(ClassFormatError e, String name) {
-	this("invalid class format: " + name);
+        this("invalid class format: " + name);
     }
 }

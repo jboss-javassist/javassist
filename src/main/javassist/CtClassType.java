@@ -1,28 +1,17 @@
 /*
- * This file is part of the Javassist toolkit.
+ * Javassist, a Java-bytecode translator toolkit.
+ * Copyright (C) 1999-2003 Shigeru Chiba. All Rights Reserved.
  *
- * The contents of this file are subject to the Mozilla Public License
- * Version 1.1 (the "License"); you may not use this file except in
- * compliance with the License.  You may obtain a copy of the License at
- * either http://www.mozilla.org/MPL/.
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
  *
- * Software distributed under the License is distributed on an "AS IS"
- * basis, WITHOUT WARRANTY OF ANY KIND, either express or implied.  See
- * the License for the specific language governing rights and limitations
- * under the License.
- *
- * The Original Code is Javassist.
- *
- * The Initial Developer of the Original Code is Shigeru Chiba.  Portions
- * created by Shigeru Chiba are Copyright (C) 1999-2003 Shigeru Chiba.
- * All Rights Reserved.
- *
- * Contributor(s):
- *
- * The development of this software is supported in part by the PRESTO
- * program (Sakigake Kenkyu 21) of Japan Science and Technology Corporation.
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  */
-
 package javassist;
 
 import javassist.bytecode.*;
@@ -31,6 +20,7 @@ import javassist.compiler.CompileError;
 import javassist.expr.ExprEditor;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -54,46 +44,52 @@ class CtClassType extends CtClass {
     private CtMethod methodsCache;
 
     private FieldInitLink fieldInitializers;
-    private Hashtable hiddenMethods;	// must be synchronous
+    private Hashtable hiddenMethods;    // must be synchronous
     private int uniqueNumberSeed;
 
     CtClassType(String name, ClassPool cp) {
-	super(name);
-	classPool = cp;
-	wasChanged = wasFrozen = false;
-	classfile = null;
-	fieldInitializers = null;
-	hiddenMethods = null;
-	uniqueNumberSeed = 0;
-	eraseCache();
+        super(name);
+        classPool = cp;
+        wasChanged = wasFrozen = false;
+        classfile = null;
+        fieldInitializers = null;
+        hiddenMethods = null;
+        uniqueNumberSeed = 0;
+        eraseCache();
+    }
+
+    CtClassType(InputStream ins, ClassPool cp) throws IOException {
+        this((String)null, cp);
+        classfile = new ClassFile(new DataInputStream(ins));
+        qualifiedName = classfile.getName();
     }
 
     protected void eraseCache() {
-	fieldsCache = null;
-	constructorsCache = null;
-	classInitializerCache = null;
-	methodsCache = null;
+        fieldsCache = null;
+        constructorsCache = null;
+        classInitializerCache = null;
+        methodsCache = null;
     }
 
     public ClassFile getClassFile2() {
-	if (classfile != null)
-	    return classfile;
+        if (classfile != null)
+            return classfile;
 
-	try {
-	    byte[] b = classPool.readSource(getName());
-	    DataInputStream dis
-		= new DataInputStream(new ByteArrayInputStream(b));
-	    return (classfile = new ClassFile(dis));
-	}
-	catch (NotFoundException e) {
-	    throw new RuntimeException(e.toString());
-	}
-	catch (IOException e) {
-	    throw new RuntimeException(e.toString());
-	}
-	catch (CannotCompileException e) {
-	    throw new RuntimeException(e.toString());
-	}
+        try {
+            byte[] b = classPool.readSource(getName());
+            DataInputStream dis
+                = new DataInputStream(new ByteArrayInputStream(b));
+            return (classfile = new ClassFile(dis));
+        }
+        catch (NotFoundException e) {
+            throw new RuntimeException(e.toString());
+        }
+        catch (IOException e) {
+            throw new RuntimeException(e.toString());
+        }
+        catch (CannotCompileException e) {
+            throw new RuntimeException(e.toString());
+        }
     }
 
     public ClassPool getClassPool() { return classPool; }
@@ -102,758 +98,764 @@ class CtClassType extends CtClass {
 
     public boolean isFrozen() { return wasFrozen; }
 
+    void freeze() { wasFrozen = true; }
+
     void checkModify() throws RuntimeException {
-	super.checkModify();
-	wasChanged = true;
+        super.checkModify();
+        wasChanged = true;
     }
 
     public void defrost() { wasFrozen = false; }
 
     public boolean subtypeOf(CtClass clazz) throws NotFoundException {
-	int i;
-	String cname = clazz.getName();
-	if (this == clazz || getName().equals(cname))
-	    return true;
+        int i;
+        String cname = clazz.getName();
+        if (this == clazz || getName().equals(cname))
+            return true;
 
-	ClassFile file = getClassFile2();
-	String supername = file.getSuperclass();
-	if (supername != null && supername.equals(cname))
-	    return true;
+        ClassFile file = getClassFile2();
+        String supername = file.getSuperclass();
+        if (supername != null && supername.equals(cname))
+            return true;
 
-	String[] ifs = file.getInterfaces();
-	int num = ifs.length;
-	for (i = 0; i < num; ++i)
-	    if (ifs[i].equals(cname))
-		return true;
+        String[] ifs = file.getInterfaces();
+        int num = ifs.length;
+        for (i = 0; i < num; ++i)
+            if (ifs[i].equals(cname))
+                return true;
 
-	if (supername != null && classPool.get(supername).subtypeOf(clazz))
-	    return true;
+        if (supername != null && classPool.get(supername).subtypeOf(clazz))
+            return true;
 
-	for (i = 0; i < num; ++i)
-	    if (classPool.get(ifs[i]).subtypeOf(clazz))
-		return true;
+        for (i = 0; i < num; ++i)
+            if (classPool.get(ifs[i]).subtypeOf(clazz))
+                return true;
 
-	return false;
+        return false;
     }
 
     public void setName(String name) throws RuntimeException {
-	String oldname = getName();
-	if (name.equals(oldname))
-	    return;
+        String oldname = getName();
+        if (name.equals(oldname))
+            return;
 
-	classPool.checkNotFrozen(name,
-				 "the class with the new name is frozen");
-	ClassFile cf = getClassFile2();
-	super.setName(name);
-	cf.setName(name);
-	eraseCache();
-	classPool.classNameChanged(oldname, this);
+        classPool.checkNotFrozen(name,
+                                 "the class with the new name is frozen");
+        ClassFile cf = getClassFile2();
+        super.setName(name);
+        cf.setName(name);
+        eraseCache();
+        classPool.classNameChanged(oldname, this);
     }
 
     public void replaceClassName(ClassMap classnames)
-	throws RuntimeException 
+        throws RuntimeException 
     {
-	String oldClassName = getName();
-	String newClassName
-	    = (String)classnames.get(Descriptor.toJvmName(oldClassName));
-	if (newClassName != null) {
-	    newClassName = Descriptor.toJavaName(newClassName);
-	    classPool.checkNotFrozen(newClassName,
-			"the class " + newClassName + " is frozen");
-	}
+        String oldClassName = getName();
+        String newClassName
+            = (String)classnames.get(Descriptor.toJvmName(oldClassName));
+        if (newClassName != null) {
+            newClassName = Descriptor.toJavaName(newClassName);
+            classPool.checkNotFrozen(newClassName,
+                        "the class " + newClassName + " is frozen");
+        }
 
-	super.replaceClassName(classnames);
-	ClassFile cf = getClassFile2();
-	cf.renameClass(classnames);
-	eraseCache();
+        super.replaceClassName(classnames);
+        ClassFile cf = getClassFile2();
+        cf.renameClass(classnames);
+        eraseCache();
 
-	if (newClassName != null) {
-	    super.setName(newClassName);
-	    classPool.classNameChanged(oldClassName, this);
-	}
+        if (newClassName != null) {
+            super.setName(newClassName);
+            classPool.classNameChanged(oldClassName, this);
+        }
     }
 
     public void replaceClassName(String oldname, String newname)
-	throws RuntimeException 
+        throws RuntimeException 
     {
-	String thisname = getName();
-	if (thisname.equals(oldname))
-	    setName(newname);
-	else {
-	    super.replaceClassName(oldname, newname);
-	    getClassFile2().renameClass(oldname, newname);
-	    eraseCache();
-	}
+        String thisname = getName();
+        if (thisname.equals(oldname))
+            setName(newname);
+        else {
+            super.replaceClassName(oldname, newname);
+            getClassFile2().renameClass(oldname, newname);
+            eraseCache();
+        }
     }
 
     public boolean isInterface() {
-	return Modifier.isInterface(getModifiers());
+        return Modifier.isInterface(getModifiers());
     }
 
     public int getModifiers() {
-	int acc = getClassFile2().getAccessFlags();
-	acc = AccessFlag.clear(acc, AccessFlag.SUPER);
-	return AccessFlag.toModifier(acc);
+        int acc = getClassFile2().getAccessFlags();
+        acc = AccessFlag.clear(acc, AccessFlag.SUPER);
+        return AccessFlag.toModifier(acc);
     }
 
     public void setModifiers(int mod) {
-	checkModify();
-	int acc = AccessFlag.of(mod) | AccessFlag.SUPER;
-	getClassFile2().setAccessFlags(acc);
+        checkModify();
+        int acc = AccessFlag.of(mod) | AccessFlag.SUPER;
+        getClassFile2().setAccessFlags(acc);
     }
 
     public boolean subclassOf(CtClass superclass) {
-	CtClass curr = this;
-	try {
-	    while (curr != null) {
-		if (curr == superclass)
-		    return true;
+        if (superclass == null)
+            return false;
 
-		curr = curr.getSuperclass();
-	    }
-	}
-	catch (Exception ignored) {}
-	return false;
+        String superName = superclass.getName();
+        CtClass curr = this;
+        try {
+            while (curr != null) {
+                if (curr.getName().equals(superName))
+                    return true;
+
+                curr = curr.getSuperclass();
+            }
+        }
+        catch (Exception ignored) {}
+        return false;
     }
 
     public CtClass getSuperclass() throws NotFoundException {
-	String supername = getClassFile2().getSuperclass();
-	if (supername == null)
-	    return null;
-	else
-	    return classPool.get(supername);
+        String supername = getClassFile2().getSuperclass();
+        if (supername == null)
+            return null;
+        else
+            return classPool.get(supername);
     }
 
     public void setSuperclass(CtClass clazz) throws CannotCompileException {
-	checkModify();
-	getClassFile2().setSuperclass(clazz.getName());
+        checkModify();
+        getClassFile2().setSuperclass(clazz.getName());
     }
 
     public CtClass[] getInterfaces() throws NotFoundException {
-	String[] ifs = getClassFile2().getInterfaces();
-	int num = ifs.length;
-	CtClass[] ifc = new CtClass[num];
-	for (int i = 0; i < num; ++i)
-	    ifc[i] = classPool.get(ifs[i]);
+        String[] ifs = getClassFile2().getInterfaces();
+        int num = ifs.length;
+        CtClass[] ifc = new CtClass[num];
+        for (int i = 0; i < num; ++i)
+            ifc[i] = classPool.get(ifs[i]);
 
-	return ifc;
+        return ifc;
     }
 
     public void setInterfaces(CtClass[] list) {
-	checkModify();
-	String[] ifs;
-	if (list == null)
-	    ifs = new String[0];
-	else {
-	    int num = list.length;
-	    ifs = new String[num];
-	    for (int i = 0; i < num; ++i)
-		ifs[i] = list[i].getName();
-	}
+        checkModify();
+        String[] ifs;
+        if (list == null)
+            ifs = new String[0];
+        else {
+            int num = list.length;
+            ifs = new String[num];
+            for (int i = 0; i < num; ++i)
+                ifs[i] = list[i].getName();
+        }
 
-	getClassFile2().setInterfaces(ifs);
+        getClassFile2().setInterfaces(ifs);
     }
 
     public void addInterface(CtClass anInterface) {
-	checkModify();
-	if (anInterface != null)
-	    getClassFile2().addInterface(anInterface.getName());
+        checkModify();
+        if (anInterface != null)
+            getClassFile2().addInterface(anInterface.getName());
     }
 
     public CtField[] getFields() {
-	ArrayList alist = new ArrayList();
-	getFields(alist, this);
-	return (CtField[])alist.toArray(new CtField[alist.size()]);
+        ArrayList alist = new ArrayList();
+        getFields(alist, this);
+        return (CtField[])alist.toArray(new CtField[alist.size()]);
     }
 
     private static void getFields(ArrayList alist, CtClass cc) {
-	int i, num;
-	if (cc == null)
-	    return;
+        int i, num;
+        if (cc == null)
+            return;
 
-	try {
-	    getFields(alist, cc.getSuperclass());
-	}
-	catch (NotFoundException e) {}
+        try {
+            getFields(alist, cc.getSuperclass());
+        }
+        catch (NotFoundException e) {}
 
-	try {
-	    CtClass[] ifs = cc.getInterfaces();
-	    num = ifs.length;
-	    for (i = 0; i < num; ++i)
-		getFields(alist, ifs[i]);
-	}
-	catch (NotFoundException e) {}
+        try {
+            CtClass[] ifs = cc.getInterfaces();
+            num = ifs.length;
+            for (i = 0; i < num; ++i)
+                getFields(alist, ifs[i]);
+        }
+        catch (NotFoundException e) {}
 
-	CtField cf = ((CtClassType)cc).getFieldsCache();
-	while (cf != null) {
-	    if (Modifier.isPublic(cf.getModifiers()))
-		alist.add(cf);
+        CtField cf = ((CtClassType)cc).getFieldsCache();
+        while (cf != null) {
+            if (Modifier.isPublic(cf.getModifiers()))
+                alist.add(cf);
 
-	    cf = cf.next;
-	}
+            cf = cf.next;
+        }
     }
 
     public CtField getField(String name) throws NotFoundException {
-	try {
-	    return getDeclaredField(name);
-	}
-	catch (NotFoundException e) {}
+        try {
+            return getDeclaredField(name);
+        }
+        catch (NotFoundException e) {}
 
-	try {
-	    CtClass[] ifs = getInterfaces();
-	    int num = ifs.length;
-	    for (int i = 0; i < num; ++i)
-		try {
-		    return ifs[i].getField(name);
-		}
-		catch (NotFoundException e) {}
-	}
-	catch (NotFoundException e) {}
+        try {
+            CtClass[] ifs = getInterfaces();
+            int num = ifs.length;
+            for (int i = 0; i < num; ++i)
+                try {
+                    return ifs[i].getField(name);
+                }
+                catch (NotFoundException e) {}
+        }
+        catch (NotFoundException e) {}
 
-	try {
-	    CtClass s = getSuperclass();
-	    if (s != null)
-		return s.getField(name);
-	}
-	catch (NotFoundException e) {}
+        try {
+            CtClass s = getSuperclass();
+            if (s != null)
+                return s.getField(name);
+        }
+        catch (NotFoundException e) {}
 
-	throw new NotFoundException(name);
+        throw new NotFoundException(name);
     }
 
     public CtField[] getDeclaredFields() {
-	CtField cf = getFieldsCache();
-	int num = CtField.count(cf);
-	CtField[] cfs = new CtField[num];
-	int i = 0;
-	while (cf != null) {
-	    cfs[i++] = cf;
-	    cf = cf.next;
-	}
+        CtField cf = getFieldsCache();
+        int num = CtField.count(cf);
+        CtField[] cfs = new CtField[num];
+        int i = 0;
+        while (cf != null) {
+            cfs[i++] = cf;
+            cf = cf.next;
+        }
 
-	return cfs;
+        return cfs;
     }
 
     protected CtField getFieldsCache() {
-	if (fieldsCache == null) {
-	    List list = getClassFile2().getFields();
-	    int n = list.size();
-	    for (int i = 0; i < n; ++i) {
-		FieldInfo finfo = (FieldInfo)list.get(i);
-		fieldsCache = CtField.append(fieldsCache,
-					     new CtField(finfo, this));
-	    }
-	}
+        if (fieldsCache == null) {
+            List list = getClassFile2().getFields();
+            int n = list.size();
+            for (int i = 0; i < n; ++i) {
+                FieldInfo finfo = (FieldInfo)list.get(i);
+                fieldsCache = CtField.append(fieldsCache,
+                                             new CtField(finfo, this));
+            }
+        }
 
-	return fieldsCache;
+        return fieldsCache;
     }
 
     public CtField getDeclaredField(String name) throws NotFoundException {
-	CtField cf = getFieldsCache();
-	while (cf != null) {
-	    if (cf.getName().equals(name))
-		return cf;
+        CtField cf = getFieldsCache();
+        while (cf != null) {
+            if (cf.getName().equals(name))
+                return cf;
 
-	    cf = cf.next;
-	}
+            cf = cf.next;
+        }
 
-	throw new NotFoundException(name);
+        throw new NotFoundException(name);
     }
 
     public CtBehavior[] getDeclaredBehaviors() {
-	CtConstructor cc = getConstructorsCache();
-	CtMethod cm = getMethodsCache();
-	int num = CtMethod.count(cm) + CtConstructor.count(cc);
-	CtBehavior[] cb = new CtBehavior[num];
-	int i = 0;
-	while (cc != null) {
-	    cb[i++] = cc;
-	    cc = cc.next;
-	}
+        CtConstructor cc = getConstructorsCache();
+        CtMethod cm = getMethodsCache();
+        int num = CtMethod.count(cm) + CtConstructor.count(cc);
+        CtBehavior[] cb = new CtBehavior[num];
+        int i = 0;
+        while (cc != null) {
+            cb[i++] = cc;
+            cc = cc.next;
+        }
 
-	while (cm != null) {
-	    cb[i++] = cm;
-	    cm = cm.next;
-	}
-	
-	return cb;
+        while (cm != null) {
+            cb[i++] = cm;
+            cm = cm.next;
+        }
+        
+        return cb;
     }
 
     public CtConstructor[] getConstructors() {
-	CtConstructor[] cons = getDeclaredConstructors();
-	if (cons.length == 0)
-	    return cons;
+        CtConstructor[] cons = getDeclaredConstructors();
+        if (cons.length == 0)
+            return cons;
 
-	int n = 0;
-	int i = cons.length;
-	while (--i >= 0)
-	    if (Modifier.isPublic(cons[i].getModifiers()))
-		++n;
+        int n = 0;
+        int i = cons.length;
+        while (--i >= 0)
+            if (Modifier.isPublic(cons[i].getModifiers()))
+                ++n;
 
-	CtConstructor[] result = new CtConstructor[n];
-	n = 0;
-	i = cons.length;
-	while (--i >= 0) {
-	    CtConstructor c = cons[i];
-	    if (Modifier.isPublic(c.getModifiers()))
-		result[n++] = c;
-	}
+        CtConstructor[] result = new CtConstructor[n];
+        n = 0;
+        i = cons.length;
+        while (--i >= 0) {
+            CtConstructor c = cons[i];
+            if (Modifier.isPublic(c.getModifiers()))
+                result[n++] = c;
+        }
 
-	return result;
+        return result;
     }
 
     public CtConstructor getConstructor(String desc)
-	throws NotFoundException
+        throws NotFoundException
     {
-	CtConstructor cc = getConstructorsCache();
-	while (cc != null) {
-	    if (cc.getMethodInfo2().getDescriptor().equals(desc))
-		return cc;
+        CtConstructor cc = getConstructorsCache();
+        while (cc != null) {
+            if (cc.getMethodInfo2().getDescriptor().equals(desc))
+                return cc;
 
-	    cc = cc.next;
-	}
+            cc = cc.next;
+        }
 
-	return super.getConstructor(desc);
+        return super.getConstructor(desc);
     }
 
     public CtConstructor[] getDeclaredConstructors() {
-	CtConstructor cc = getConstructorsCache();
-	int num = CtConstructor.count(cc);
-	CtConstructor[] ccs = new CtConstructor[num];
-	int i = 0;
-	while (cc != null) {
-	    ccs[i++] = cc;
-	    cc = cc.next;
-	}
-	
-	return ccs;
+        CtConstructor cc = getConstructorsCache();
+        int num = CtConstructor.count(cc);
+        CtConstructor[] ccs = new CtConstructor[num];
+        int i = 0;
+        while (cc != null) {
+            ccs[i++] = cc;
+            cc = cc.next;
+        }
+        
+        return ccs;
     }
 
     protected CtConstructor getConstructorsCache() {
-	if (constructorsCache == null) {
-	    List list = getClassFile2().getMethods();
-	    int n = list.size();
-	    for (int i = 0; i < n; ++i) {
-		MethodInfo minfo = (MethodInfo)list.get(i);
-		if (minfo.isConstructor())
-		    constructorsCache
-			= CtConstructor.append(constructorsCache,
-					    new CtConstructor(minfo, this));
-	    }
-	}
+        if (constructorsCache == null) {
+            List list = getClassFile2().getMethods();
+            int n = list.size();
+            for (int i = 0; i < n; ++i) {
+                MethodInfo minfo = (MethodInfo)list.get(i);
+                if (minfo.isConstructor())
+                    constructorsCache
+                        = CtConstructor.append(constructorsCache,
+                                            new CtConstructor(minfo, this));
+            }
+        }
 
-	return constructorsCache;
+        return constructorsCache;
     }
 
     public CtConstructor getClassInitializer() {
-	if (classInitializerCache == null) {
-	    List list = getClassFile2().getMethods();
-	    int n = list.size();
-	    for (int i = 0; i < n; ++i) {
-		MethodInfo minfo = (MethodInfo)list.get(i);
-		if (minfo.isStaticInitializer()) {
-		    classInitializerCache = new CtConstructor(minfo, this);
-		    break;
-		}
-	    }
-	}
+        if (classInitializerCache == null) {
+            List list = getClassFile2().getMethods();
+            int n = list.size();
+            for (int i = 0; i < n; ++i) {
+                MethodInfo minfo = (MethodInfo)list.get(i);
+                if (minfo.isStaticInitializer()) {
+                    classInitializerCache = new CtConstructor(minfo, this);
+                    break;
+                }
+            }
+        }
 
-	return classInitializerCache;
+        return classInitializerCache;
     }
 
     public CtMethod[] getMethods() {
-	HashMap h = new HashMap();
-	getMethods0(h, this);
-	return (CtMethod[])h.values().toArray(new CtMethod[0]);
+        HashMap h = new HashMap();
+        getMethods0(h, this);
+        return (CtMethod[])h.values().toArray(new CtMethod[0]);
     }
 
     private static void getMethods0(HashMap h, CtClass cc) {
-	try {
-	    CtClass[] ifs = cc.getInterfaces();
-	    int size = ifs.length;
-	    for (int i = 0; i < size; ++i)
-		getMethods0(h, ifs[i]);
-	}
-	catch (NotFoundException e) {}
+        try {
+            CtClass[] ifs = cc.getInterfaces();
+            int size = ifs.length;
+            for (int i = 0; i < size; ++i)
+                getMethods0(h, ifs[i]);
+        }
+        catch (NotFoundException e) {}
 
-	try {
-	    CtClass s = cc.getSuperclass();
-	    if (s != null)
-		getMethods0(h, s);
-	}
-	catch (NotFoundException e) {}
+        try {
+            CtClass s = cc.getSuperclass();
+            if (s != null)
+                getMethods0(h, s);
+        }
+        catch (NotFoundException e) {}
 
-	if (cc instanceof CtClassType) {
-	    CtMethod cm = ((CtClassType)cc).getMethodsCache();
-	    while (cm != null) {
-		if (Modifier.isPublic(cm.getModifiers()))
-		    h.put(cm, cm);
+        if (cc instanceof CtClassType) {
+            CtMethod cm = ((CtClassType)cc).getMethodsCache();
+            while (cm != null) {
+                if (Modifier.isPublic(cm.getModifiers()))
+                    h.put(cm, cm);
 
-		cm = cm.next;
-	    }
-	}
+                cm = cm.next;
+            }
+        }
     }
 
     public CtMethod getMethod(String name, String desc)
-	throws NotFoundException
+        throws NotFoundException
     {
-	CtMethod m = getMethod0(this, name, desc);
-	if (m != null)
-	    return m;
-	else
-	    throw new NotFoundException(name + "(..) is not found in "
-					+ getName());
+        CtMethod m = getMethod0(this, name, desc);
+        if (m != null)
+            return m;
+        else
+            throw new NotFoundException(name + "(..) is not found in "
+                                        + getName());
     }
 
     private static CtMethod getMethod0(CtClass cc,
-				       String name, String desc) {
-	if (cc instanceof CtClassType) {
-	    CtMethod cm = ((CtClassType)cc).getMethodsCache();
-	    while (cm != null) {
-		if (cm.getName().equals(name)
-		    && cm.getMethodInfo2().getDescriptor().equals(desc))
-		    return cm;
+                                       String name, String desc) {
+        if (cc instanceof CtClassType) {
+            CtMethod cm = ((CtClassType)cc).getMethodsCache();
+            while (cm != null) {
+                if (cm.getName().equals(name)
+                    && cm.getMethodInfo2().getDescriptor().equals(desc))
+                    return cm;
 
-		cm = cm.next;
-	    }
-	}
+                cm = cm.next;
+            }
+        }
 
-	try {
-	    CtClass s = cc.getSuperclass();
-	    if (s != null) {
-		CtMethod m = getMethod0(s, name, desc);
-		if (m != null)
-		    return m;
-	    }
-	}
-	catch (NotFoundException e) {}
+        try {
+            CtClass s = cc.getSuperclass();
+            if (s != null) {
+                CtMethod m = getMethod0(s, name, desc);
+                if (m != null)
+                    return m;
+            }
+        }
+        catch (NotFoundException e) {}
 
-	try {
-	    CtClass[] ifs = cc.getInterfaces();
-	    int size = ifs.length;
-	    for (int i = 0; i < size; ++i) {
-		CtMethod m = getMethod0(ifs[i], name, desc);
-		if (m != null)
-		    return m;
-	    }
-	}
-	catch (NotFoundException e) {}
-	return null;
+        try {
+            CtClass[] ifs = cc.getInterfaces();
+            int size = ifs.length;
+            for (int i = 0; i < size; ++i) {
+                CtMethod m = getMethod0(ifs[i], name, desc);
+                if (m != null)
+                    return m;
+            }
+        }
+        catch (NotFoundException e) {}
+        return null;
     }
 
     public CtMethod[] getDeclaredMethods() {
-	CtMethod cm = getMethodsCache();
-	int num = CtMethod.count(cm);
-	CtMethod[] cms = new CtMethod[num];
-	int i = 0;
-	while (cm != null) {
-	    cms[i++] = cm;
-	    cm = cm.next;
-	}
-	
-	return cms;
+        CtMethod cm = getMethodsCache();
+        int num = CtMethod.count(cm);
+        CtMethod[] cms = new CtMethod[num];
+        int i = 0;
+        while (cm != null) {
+            cms[i++] = cm;
+            cm = cm.next;
+        }
+        
+        return cms;
     }
 
     public CtMethod getDeclaredMethod(String name) throws NotFoundException {
-	CtMethod m = getMethodsCache();
-	while (m != null) {
-	    if (m.getName().equals(name))
-		return m;
+        CtMethod m = getMethodsCache();
+        while (m != null) {
+            if (m.getName().equals(name))
+                return m;
 
-	    m = m.next;
-	}
+            m = m.next;
+        }
 
-	throw new NotFoundException(name + "(..) is not found in "
-				    + getName());
+        throw new NotFoundException(name + "(..) is not found in "
+                                    + getName());
     }
 
     public CtMethod getDeclaredMethod(String name, CtClass[] params)
-	throws NotFoundException
+        throws NotFoundException
     {
-	String desc = Descriptor.ofParameters(params);
-	CtMethod m = getMethodsCache();
-	while (m != null) {
-	    if (m.getName().equals(name)
-		&& m.getMethodInfo2().getDescriptor().startsWith(desc))
-		return m;
+        String desc = Descriptor.ofParameters(params);
+        CtMethod m = getMethodsCache();
+        while (m != null) {
+            if (m.getName().equals(name)
+                && m.getMethodInfo2().getDescriptor().startsWith(desc))
+                return m;
 
-	    m = m.next;
-	}
+            m = m.next;
+        }
 
-	throw new NotFoundException(name + "(..) is not found in "
-				    + getName());
+        throw new NotFoundException(name + "(..) is not found in "
+                                    + getName());
     }
 
     protected CtMethod getMethodsCache() {
-	if (methodsCache == null) {
-	    List list = getClassFile2().getMethods();
-	    int n = list.size();
-	    for (int i = 0; i < n; ++i) {
-		MethodInfo minfo = (MethodInfo)list.get(i);
-		if (minfo.isMethod())
-		    methodsCache = CtMethod.append(methodsCache,
-						new CtMethod(minfo, this));
-	    }
-	}
+        if (methodsCache == null) {
+            List list = getClassFile2().getMethods();
+            int n = list.size();
+            for (int i = 0; i < n; ++i) {
+                MethodInfo minfo = (MethodInfo)list.get(i);
+                if (minfo.isMethod())
+                    methodsCache = CtMethod.append(methodsCache,
+                                                new CtMethod(minfo, this));
+            }
+        }
 
-	return methodsCache;
+        return methodsCache;
     }
 
     public void addField(CtField f, String init)
-	throws CannotCompileException
+        throws CannotCompileException
     {
-	addField(f, CtField.Initializer.byExpr(init));
+        addField(f, CtField.Initializer.byExpr(init));
     }
 
     public void addField(CtField f, CtField.Initializer init)
-	throws CannotCompileException
+        throws CannotCompileException
     {
-	checkModify();
-	if (f.getDeclaringClass() != this)
-	    throw new CannotCompileException("cannot add");
+        checkModify();
+        if (f.getDeclaringClass() != this)
+            throw new CannotCompileException("cannot add");
 
-	if (init == null)
-	    init = f.getInit();
+        if (init == null)
+            init = f.getInit();
 
-	getFieldsCache();
-	fieldsCache = CtField.append(fieldsCache, f);
-	getClassFile2().addField(f.getFieldInfo2());
+        getFieldsCache();
+        fieldsCache = CtField.append(fieldsCache, f);
+        getClassFile2().addField(f.getFieldInfo2());
 
-	if (init != null) {
-	    FieldInitLink fil = new FieldInitLink(f, init);
-	    FieldInitLink link = fieldInitializers;
-	    if (link == null)
-		fieldInitializers = fil;
-	    else {
-		while (link.next != null)
-		    link = link.next;
+        if (init != null) {
+            FieldInitLink fil = new FieldInitLink(f, init);
+            FieldInitLink link = fieldInitializers;
+            if (link == null)
+                fieldInitializers = fil;
+            else {
+                while (link.next != null)
+                    link = link.next;
 
-		link.next = fil;
-	    }
-	}
+                link.next = fil;
+            }
+        }
     }
 
     public void addConstructor(CtConstructor c)
-	throws CannotCompileException
+        throws CannotCompileException
     {
-	checkModify();
-	if (c.getDeclaringClass() != this)
-	    throw new CannotCompileException("cannot add");
+        checkModify();
+        if (c.getDeclaringClass() != this)
+            throw new CannotCompileException("cannot add");
 
-	getConstructorsCache();
-	constructorsCache = CtConstructor.append(constructorsCache, c);
-	getClassFile2().addMethod(c.getMethodInfo2());
+        getConstructorsCache();
+        constructorsCache = CtConstructor.append(constructorsCache, c);
+        getClassFile2().addMethod(c.getMethodInfo2());
     }
 
     public void addMethod(CtMethod m) throws CannotCompileException {
-	checkModify();
-	if (m.getDeclaringClass() != this)
-	    throw new CannotCompileException("cannot add");
+        checkModify();
+        if (m.getDeclaringClass() != this)
+            throw new CannotCompileException("cannot add");
 
-	getMethodsCache();
-	methodsCache = CtMethod.append(methodsCache, m);
-	getClassFile2().addMethod(m.getMethodInfo2());
-	if ((m.getModifiers() & Modifier.ABSTRACT) != 0)
-	    setModifiers(getModifiers() | Modifier.ABSTRACT);
+        getMethodsCache();
+        methodsCache = CtMethod.append(methodsCache, m);
+        getClassFile2().addMethod(m.getMethodInfo2());
+        if ((m.getModifiers() & Modifier.ABSTRACT) != 0)
+            setModifiers(getModifiers() | Modifier.ABSTRACT);
     }
 
     public byte[] getAttribute(String name) {
-	AttributeInfo ai = getClassFile2().getAttribute(name);
-	if (ai == null)
-	    return null;
-	else
-	    return ai.get();
+        AttributeInfo ai = getClassFile2().getAttribute(name);
+        if (ai == null)
+            return null;
+        else
+            return ai.get();
     }
 
     public void setAttribute(String name, byte[] data) {
-	checkModify();
-	ClassFile cf = getClassFile2();
-	cf.addAttribute(new AttributeInfo(cf.getConstPool(), name, data));
+        checkModify();
+        ClassFile cf = getClassFile2();
+        cf.addAttribute(new AttributeInfo(cf.getConstPool(), name, data));
     }
 
     public void instrument(CodeConverter converter)
-	throws CannotCompileException
+        throws CannotCompileException
     {
-	checkModify();
-	ClassFile cf = getClassFile2();
-	ConstPool cp = cf.getConstPool();
-	List list = cf.getMethods();
-	int n = list.size();
-	for (int i = 0; i < n; ++i) {
-	    MethodInfo minfo = (MethodInfo)list.get(i);
-	    converter.doit(this, minfo, cp);
-	}
+        checkModify();
+        ClassFile cf = getClassFile2();
+        ConstPool cp = cf.getConstPool();
+        List list = cf.getMethods();
+        int n = list.size();
+        for (int i = 0; i < n; ++i) {
+            MethodInfo minfo = (MethodInfo)list.get(i);
+            converter.doit(this, minfo, cp);
+        }
     }
 
     public void instrument(ExprEditor editor)
-	throws CannotCompileException
+        throws CannotCompileException
     {
-	checkModify();
-	ClassFile cf = getClassFile2();
-	List list = cf.getMethods();
-	int n = list.size();
-	for (int i = 0; i < n; ++i) {
-	    MethodInfo minfo = (MethodInfo)list.get(i);
-	    editor.doit(this, minfo);
-	}
+        checkModify();
+        ClassFile cf = getClassFile2();
+        List list = cf.getMethods();
+        int n = list.size();
+        for (int i = 0; i < n; ++i) {
+            MethodInfo minfo = (MethodInfo)list.get(i);
+            editor.doit(this, minfo);
+        }
     }
 
     void toBytecode(DataOutputStream out)
-	throws CannotCompileException, IOException
+        throws CannotCompileException, IOException
     {
-	ClassFile cf = getClassFile2();
-	try {
-	    modifyClassConstructor(cf);
-	    modifyConstructors(cf);
-	}
-	catch (NotFoundException e) {
-	    throw new CannotCompileException(e);
-	}
+        ClassFile cf = getClassFile2();
+        try {
+            modifyClassConstructor(cf);
+            modifyConstructors(cf);
+        }
+        catch (NotFoundException e) {
+            throw new CannotCompileException(e);
+        }
 
-	wasFrozen = true;
-	try {
-	    cf.write(out);
-	    out.flush();
-	}
-	catch (IOException e) {
-	    throw new CannotCompileException(e);
-	}
+        wasFrozen = true;
+        try {
+            cf.write(out);
+            out.flush();
+        }
+        catch (IOException e) {
+            throw new CannotCompileException(e);
+        }
     }
 
     protected void modifyClassConstructor(ClassFile cf)
-	throws CannotCompileException, NotFoundException
+        throws CannotCompileException, NotFoundException
     {
-	Bytecode code = new Bytecode(cf.getConstPool(), 0, 0);
-	Javac jv = new Javac(code, this);
-	int stacksize = 0;
-	boolean none = true;
-	for (FieldInitLink fi = fieldInitializers; fi != null; fi = fi.next) {
-	    CtField f = fi.field;
-	    if (Modifier.isStatic(f.getModifiers())) {
-		none = false;
-		int s = fi.init.compileIfStatic(f.getType(), f.getName(),
-						code, jv);
-		if (stacksize < s)
-		    stacksize = s;
-	    }
-	}
+        Bytecode code = new Bytecode(cf.getConstPool(), 0, 0);
+        Javac jv = new Javac(code, this);
+        int stacksize = 0;
+        boolean none = true;
+        for (FieldInitLink fi = fieldInitializers; fi != null; fi = fi.next) {
+            CtField f = fi.field;
+            if (Modifier.isStatic(f.getModifiers())) {
+                none = false;
+                int s = fi.init.compileIfStatic(f.getType(), f.getName(),
+                                                code, jv);
+                if (stacksize < s)
+                    stacksize = s;
+            }
+        }
 
-	if (none)
-	    return;	// no initializer for static fileds.
+        if (none)
+            return;     // no initializer for static fileds.
 
-	MethodInfo m = cf.getStaticInitializer();
-	if (m == null) {
-	    code.add(Bytecode.RETURN);
-	    code.setMaxStack(stacksize);
-	    m = new MethodInfo(cf.getConstPool(),
-			       "<clinit>", "()V");
-	    m.setAccessFlags(AccessFlag.STATIC);
-	    m.setCodeAttribute(code.toCodeAttribute());
-	    cf.addMethod(m);
-	}
-	else {
-	    CodeAttribute codeAttr = m.getCodeAttribute();
-	    if (codeAttr == null)
-		throw new CannotCompileException("empty <clinit>");
+        MethodInfo m = cf.getStaticInitializer();
+        if (m == null) {
+            code.add(Bytecode.RETURN);
+            code.setMaxStack(stacksize);
+            m = new MethodInfo(cf.getConstPool(),
+                               "<clinit>", "()V");
+            m.setAccessFlags(AccessFlag.STATIC);
+            m.setCodeAttribute(code.toCodeAttribute());
+            cf.addMethod(m);
+        }
+        else {
+            CodeAttribute codeAttr = m.getCodeAttribute();
+            if (codeAttr == null)
+                throw new CannotCompileException("empty <clinit>");
 
-	    try {
-		CodeIterator it = codeAttr.iterator();
-		int pos = it.insertEx(code.get());
-		it.insert(code.getExceptionTable(), pos);
-		int maxstack = codeAttr.getMaxStack();
-		if (maxstack < stacksize)
-		    codeAttr.setMaxStack(stacksize);
-	    }
-	    catch (BadBytecode e) {
-		throw new CannotCompileException(e);
-	    }
-	}
+            try {
+                CodeIterator it = codeAttr.iterator();
+                int pos = it.insertEx(code.get());
+                it.insert(code.getExceptionTable(), pos);
+                int maxstack = codeAttr.getMaxStack();
+                if (maxstack < stacksize)
+                    codeAttr.setMaxStack(stacksize);
+            }
+            catch (BadBytecode e) {
+                throw new CannotCompileException(e);
+            }
+        }
     }
 
     protected void modifyConstructors(ClassFile cf)
-	throws CannotCompileException, NotFoundException
+        throws CannotCompileException, NotFoundException
     {
-	if (fieldInitializers == null)
-	    return;
+        if (fieldInitializers == null)
+            return;
 
-	ConstPool cp = cf.getConstPool();
-	List list = cf.getMethods();
-	int n = list.size();
-	for (int i = 0; i < n; ++i) {
-	    MethodInfo minfo = (MethodInfo)list.get(i);
-	    if (minfo.isConstructor()) {
-		CodeAttribute codeAttr = minfo.getCodeAttribute();
-		if (codeAttr != null)
-		    try {
-			Bytecode init = new Bytecode(cp, 0,
-					     codeAttr.getMaxLocals());
-			CtClass[] params
-			    = Descriptor.getParameterTypes(
-						minfo.getDescriptor(),
-						classPool);
-			int stacksize = makeFieldInitializer(init, params);
-			insertAuxInitializer(codeAttr, init, stacksize);
-		    }
-		    catch (BadBytecode e) {
-			throw new CannotCompileException(e);
-		    }
-	    }
-	}
+        ConstPool cp = cf.getConstPool();
+        List list = cf.getMethods();
+        int n = list.size();
+        for (int i = 0; i < n; ++i) {
+            MethodInfo minfo = (MethodInfo)list.get(i);
+            if (minfo.isConstructor()) {
+                CodeAttribute codeAttr = minfo.getCodeAttribute();
+                if (codeAttr != null)
+                    try {
+                        Bytecode init = new Bytecode(cp, 0,
+                                             codeAttr.getMaxLocals());
+                        CtClass[] params
+                            = Descriptor.getParameterTypes(
+                                                minfo.getDescriptor(),
+                                                classPool);
+                        int stacksize = makeFieldInitializer(init, params);
+                        insertAuxInitializer(codeAttr, init, stacksize);
+                    }
+                    catch (BadBytecode e) {
+                        throw new CannotCompileException(e);
+                    }
+            }
+        }
     }
 
     private static void insertAuxInitializer(CodeAttribute codeAttr,
-					     Bytecode initializer,
-					     int stacksize)
-	throws BadBytecode
+                                             Bytecode initializer,
+                                             int stacksize)
+        throws BadBytecode
     {
-	CodeIterator it = codeAttr.iterator();
-	int index = it.skipSuperConstructor();
-	if (index < 0) {
-	    index = it.skipThisConstructor();
-	    if (index >= 0)
-		return;		// this() is called.
+        CodeIterator it = codeAttr.iterator();
+        int index = it.skipSuperConstructor();
+        if (index < 0) {
+            index = it.skipThisConstructor();
+            if (index >= 0)
+                return;         // this() is called.
 
-	    // Neither this() or super() is called.
-	}
+            // Neither this() or super() is called.
+        }
 
-	int pos = it.insertEx(initializer.get());
-	it.insert(initializer.getExceptionTable(), pos);
-	int maxstack = codeAttr.getMaxStack();
-	if (maxstack < stacksize)
-	    codeAttr.setMaxStack(stacksize);
+        int pos = it.insertEx(initializer.get());
+        it.insert(initializer.getExceptionTable(), pos);
+        int maxstack = codeAttr.getMaxStack();
+        if (maxstack < stacksize)
+            codeAttr.setMaxStack(stacksize);
     }
 
     private int makeFieldInitializer(Bytecode code, CtClass[] parameters)
-	throws CannotCompileException, NotFoundException
+        throws CannotCompileException, NotFoundException
     {
-	int stacksize = 0;
-	Javac jv = new Javac(code, this);
-	try {
-	    jv.recordParams(parameters, false);
-	}
-	catch (CompileError e) {
-	    throw new CannotCompileException(e);
-	}
+        int stacksize = 0;
+        Javac jv = new Javac(code, this);
+        try {
+            jv.recordParams(parameters, false);
+        }
+        catch (CompileError e) {
+            throw new CannotCompileException(e);
+        }
 
-	for (FieldInitLink fi = fieldInitializers; fi !=  null; fi = fi.next) {
-	    CtField f = fi.field;
-	    if (!Modifier.isStatic(f.getModifiers())) {
-		int s = fi.init.compile(f.getType(), f.getName(), code,
-					parameters, jv);
-		if (stacksize < s)
-		    stacksize = s;
-	    }
-	}
+        for (FieldInitLink fi = fieldInitializers; fi !=  null; fi = fi.next) {
+            CtField f = fi.field;
+            if (!Modifier.isStatic(f.getModifiers())) {
+                int s = fi.init.compile(f.getType(), f.getName(), code,
+                                        parameters, jv);
+                if (stacksize < s)
+                    stacksize = s;
+            }
+        }
 
-	return stacksize;
+        return stacksize;
     }
 
     // Methods used by CtNewWrappedMethod
 
     Hashtable getHiddenMethods() {
-	if (hiddenMethods == null)
-	    hiddenMethods = new Hashtable();
+        if (hiddenMethods == null)
+            hiddenMethods = new Hashtable();
 
-	return hiddenMethods;
+        return hiddenMethods;
     }
 
     int getUniqueNumber() { return uniqueNumberSeed++; }
@@ -865,8 +867,8 @@ class FieldInitLink {
     CtField.Initializer init;
 
     FieldInitLink(CtField f, CtField.Initializer i) {
-	next = null;
-	field = f;
-	init = i;
+        next = null;
+        field = f;
+        init = i;
     }
 }

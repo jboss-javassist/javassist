@@ -1,28 +1,17 @@
 /*
- * This file is part of the Javassist toolkit.
+ * Javassist, a Java-bytecode translator toolkit.
+ * Copyright (C) 1999-2003 Shigeru Chiba. All Rights Reserved.
  *
- * The contents of this file are subject to the Mozilla Public License
- * Version 1.1 (the "License"); you may not use this file except in
- * compliance with the License.  You may obtain a copy of the License at
- * either http://www.mozilla.org/MPL/.
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
  *
- * Software distributed under the License is distributed on an "AS IS"
- * basis, WITHOUT WARRANTY OF ANY KIND, either express or implied.  See
- * the License for the specific language governing rights and limitations
- * under the License.
- *
- * The Original Code is Javassist.
- *
- * The Initial Developer of the Original Code is Shigeru Chiba.  Portions
- * created by Shigeru Chiba are Copyright (C) 1999-2003 Shigeru Chiba.
- * All Rights Reserved.
- *
- * Contributor(s):
- *
- * The development of this software is supported in part by the PRESTO
- * program (Sakigake Kenkyu 21) of Japan Science and Technology Corporation.
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  */
-
 package javassist.reflect;
 
 import java.lang.reflect.Method;
@@ -55,14 +44,14 @@ public class Metaobject implements Serializable {
      * constructed before the constructor is called on the base-level
      * object.
      *
-     * @param self	the object that this metaobject is associated with.
-     * @param args	the parameters passed to the constructor of
-     *			<code>self</code>.
+     * @param self      the object that this metaobject is associated with.
+     * @param args      the parameters passed to the constructor of
+     *                  <code>self</code>.
      */
     public Metaobject(Object self, Object[] args) {
-	baseobject = (Metalevel)self;
-	classmetaobject = baseobject._getClass();
-	methods = classmetaobject.getReflectiveMethods();
+        baseobject = (Metalevel)self;
+        classmetaobject = baseobject._getClass();
+        methods = classmetaobject.getReflectiveMethods();
     }
 
     /**
@@ -71,21 +60,21 @@ public class Metaobject implements Serializable {
      * for initialization.
      */
     protected Metaobject() {
-	baseobject = null;
-	classmetaobject = null;
-	methods = null;
+        baseobject = null;
+        classmetaobject = null;
+        methods = null;
     }
 
     private void writeObject(ObjectOutputStream out) throws IOException {
-	out.writeObject(baseobject);
+        out.writeObject(baseobject);
     }
 
     private void readObject(ObjectInputStream in)
-	throws IOException, ClassNotFoundException
+        throws IOException, ClassNotFoundException
     {
-	baseobject = (Metalevel)in.readObject();
-	classmetaobject = baseobject._getClass();
-	methods = classmetaobject.getReflectiveMethods();
+        baseobject = (Metalevel)in.readObject();
+        classmetaobject = baseobject._getClass();
+        methods = classmetaobject.getReflectiveMethods();
     }
 
     /**
@@ -94,28 +83,28 @@ public class Metaobject implements Serializable {
      * @see javassist.reflect.ClassMetaobject
      */
     public final ClassMetaobject getClassMetaobject() {
-	return classmetaobject;
+        return classmetaobject;
     }
 
     /**
      * Obtains the object controlled by this metaobject.
      */
     public final Object getObject() {
-	return baseobject;
+        return baseobject;
     }
 
     /**
      * Changes the object controlled by this metaobject.
      *
-     * @param self	the object
+     * @param self      the object
      */
     public final void setObject(Object self) {
-	baseobject = (Metalevel)self;
-	classmetaobject = baseobject._getClass();
-	methods = classmetaobject.getReflectiveMethods();
+        baseobject = (Metalevel)self;
+        classmetaobject = baseobject._getClass();
+        methods = classmetaobject.getReflectiveMethods();
 
-	// call _setMetaobject() after the metaobject is settled.
-	baseobject._setMetaobject(this);
+        // call _setMetaobject() after the metaobject is settled.
+        baseobject._setMetaobject(this);
     }
 
     /**
@@ -124,14 +113,14 @@ public class Metaobject implements Serializable {
      */
     public final String getMethodName(int identifier) {
         String mname = methods[identifier].getName();
-	int j = ClassMetaobject.methodPrefixLen;
-	for (;;) {
-	    char c = mname.charAt(j++);
-	    if (c < '0' || '9' < c)
-		break;
-	}
+        int j = ClassMetaobject.methodPrefixLen;
+        for (;;) {
+            char c = mname.charAt(j++);
+            if (c < '0' || '9' < c)
+                break;
+        }
 
-	return mname.substring(j);
+        return mname.substring(j);
     }
 
     /**
@@ -140,7 +129,7 @@ public class Metaobject implements Serializable {
      * by <code>identifier</code>.
      */
     public final Class[] getParameterTypes(int identifier) {
-	return methods[identifier].getParameterTypes();
+        return methods[identifier].getParameterTypes();
     }
 
     /**
@@ -148,7 +137,7 @@ public class Metaobject implements Serializable {
      * return type of the method specified by <code>identifier</code>.
      */
     public final Class getReturnType(int identifier) {
-	return methods[identifier].getReturnType();
+        return methods[identifier].getReturnType();
     }
 
     /**
@@ -159,16 +148,16 @@ public class Metaobject implements Serializable {
      * <p>Every subclass of this class should redefine this method.
      */
     public Object trapFieldRead(String name) {
-	Class jc = getClassMetaobject().getJavaClass();
-	try {
-	    return jc.getField(name).get(getObject());
-	}
-	catch (NoSuchFieldException e) {
-	    throw new RuntimeException(e.toString());
-	}
-	catch (IllegalAccessException e) {
-	    throw new RuntimeException(e.toString());
-	}
+        Class jc = getClassMetaobject().getJavaClass();
+        try {
+            return jc.getField(name).get(getObject());
+        }
+        catch (NoSuchFieldException e) {
+            throw new RuntimeException(e.toString());
+        }
+        catch (IllegalAccessException e) {
+            throw new RuntimeException(e.toString());
+        }
     }
 
     /**
@@ -179,16 +168,16 @@ public class Metaobject implements Serializable {
      * <p>Every subclass of this class should redefine this method.
      */
     public void trapFieldWrite(String name, Object value) {
-	Class jc = getClassMetaobject().getJavaClass();
-	try {
-	    jc.getField(name).set(getObject(), value);
-	}
-	catch (NoSuchFieldException e) {
-	    throw new RuntimeException(e.toString());
-	}
-	catch (IllegalAccessException e) {
-	    throw new RuntimeException(e.toString());
-	}
+        Class jc = getClassMetaobject().getJavaClass();
+        try {
+            jc.getField(name).set(getObject(), value);
+        }
+        catch (NoSuchFieldException e) {
+            throw new RuntimeException(e.toString());
+        }
+        catch (IllegalAccessException e) {
+            throw new RuntimeException(e.toString());
+        }
     }
 
     /**
@@ -224,16 +213,16 @@ public class Metaobject implements Serializable {
      * constructor of the super class finishes.
      */
     public Object trapMethodcall(int identifier, Object[] args) 
-	throws Throwable
+        throws Throwable
     {
-	try {
-	    return methods[identifier].invoke(getObject(), args);
-	}
-	catch (java.lang.reflect.InvocationTargetException e) {
-	    throw e.getTargetException();
-	}
+        try {
+            return methods[identifier].invoke(getObject(), args);
+        }
+        catch (java.lang.reflect.InvocationTargetException e) {
+            throw e.getTargetException();
+        }
         catch (java.lang.IllegalAccessException e) {
-	    throw new CannotInvokeException(e);
-	}
+            throw new CannotInvokeException(e);
+        }
     }
 }

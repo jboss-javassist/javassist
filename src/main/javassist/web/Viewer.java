@@ -1,28 +1,17 @@
 /*
- * This file is part of the Javassist toolkit.
+ * Javassist, a Java-bytecode translator toolkit.
+ * Copyright (C) 1999-2003 Shigeru Chiba. All Rights Reserved.
  *
- * The contents of this file are subject to the Mozilla Public License
- * Version 1.1 (the "License"); you may not use this file except in
- * compliance with the License.  You may obtain a copy of the License at
- * either http://www.mozilla.org/MPL/.
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
  *
- * Software distributed under the License is distributed on an "AS IS"
- * basis, WITHOUT WARRANTY OF ANY KIND, either express or implied.  See
- * the License for the specific language governing rights and limitations
- * under the License.
- *
- * The Original Code is Javassist.
- *
- * The Initial Developer of the Original Code is Shigeru Chiba.  Portions
- * created by Shigeru Chiba are Copyright (C) 1999-2003 Shigeru Chiba.
- * All Rights Reserved.
- *
- * Contributor(s):
- *
- * The development of this software is supported in part by the PRESTO
- * program (Sakigake Kenkyu 21) of Japan Science and Technology Corporation.
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  */
-
 package javassist.web;
 
 import java.io.*;
@@ -65,26 +54,26 @@ public class Viewer extends ClassLoader {
      * Starts a program.
      */
     public static void main(String[] args) throws Throwable {
-	if (args.length >= 3) {
-	    Viewer cl = new Viewer(args[0], Integer.parseInt(args[1]));
-	    String[] args2 = new String[args.length - 3];
-	    System.arraycopy(args, 3, args2, 0, args.length - 3);
-	    cl.run(args[2], args2);
-	}
-	else
-	    System.err.println(
-	"Usage: java javassist.web.Viewer <host> <port> class [args ...]");
+        if (args.length >= 3) {
+            Viewer cl = new Viewer(args[0], Integer.parseInt(args[1]));
+            String[] args2 = new String[args.length - 3];
+            System.arraycopy(args, 3, args2, 0, args.length - 3);
+            cl.run(args[2], args2);
+        }
+        else
+            System.err.println(
+        "Usage: java javassist.web.Viewer <host> <port> class [args ...]");
     }
 
     /**
      * Constructs a viewer.
      *
-     * @param host		server name
-     * @param p			port number
+     * @param host              server name
+     * @param p                 port number
      */
     public Viewer(String host, int p) {
-	server = host;
-	port = p;
+        server = host;
+        port = p;
     }
 
     /**
@@ -100,39 +89,39 @@ public class Viewer extends ClassLoader {
     /**
      * Invokes main() in the class specified by <code>classname</code>.
      *
-     * @param classname		executed class
-     * @param args		the arguments passed to <code>main()</code>.
+     * @param classname         executed class
+     * @param args              the arguments passed to <code>main()</code>.
      */
     public void run(String classname, String[] args)
-	throws Throwable
+        throws Throwable
     {
-	Class c = loadClass(classname);
-	try {
-	    c.getDeclaredMethod("main", new Class[] { String[].class })
-		.invoke(null, new Object[] { args });
-	}
-	catch (java.lang.reflect.InvocationTargetException e) {
-	    throw e.getTargetException();
-	}
+        Class c = loadClass(classname);
+        try {
+            c.getDeclaredMethod("main", new Class[] { String[].class })
+                .invoke(null, new Object[] { args });
+        }
+        catch (java.lang.reflect.InvocationTargetException e) {
+            throw e.getTargetException();
+        }
     }
 
     /**
      * Requests the class loader to load a class.
      */
     protected synchronized Class loadClass(String name, boolean resolve)
-	throws ClassNotFoundException
+        throws ClassNotFoundException
     {
-	Class c = findLoadedClass(name);
-	if (c == null)
-	    c = findClass(name);
+        Class c = findLoadedClass(name);
+        if (c == null)
+            c = findClass(name);
 
-	if (c == null)
-	    throw new ClassNotFoundException(name);
+        if (c == null)
+            throw new ClassNotFoundException(name);
 
-	if (resolve)
-	    resolveClass(c);
+        if (resolve)
+            resolveClass(c);
 
-	return c;
+        return c;
     }
 
     /**
@@ -146,21 +135,21 @@ public class Viewer extends ClassLoader {
      * <code>Viewer</code>.
      */
     protected Class findClass(String name) throws ClassNotFoundException {
-	Class c = null;
-	if (name.startsWith("java.") || name.startsWith("javax.")
-	    || name.equals("javassist.web.Viewer"))
-	    c = findSystemClass(name);
+        Class c = null;
+        if (name.startsWith("java.") || name.startsWith("javax.")
+            || name.equals("javassist.web.Viewer"))
+            c = findSystemClass(name);
 
-	if (c == null)
-	    try {
-		byte[] b = fetchClass(name);
-		if (b != null)
-		    c = defineClass(name, b, 0, b.length);
-	    }
-	catch (Exception e) {
-	}
+        if (c == null)
+            try {
+                byte[] b = fetchClass(name);
+                if (b != null)
+                    c = defineClass(name, b, 0, b.length);
+            }
+        catch (Exception e) {
+        }
 
-	return c;
+        return c;
     }
 
     /**
@@ -169,50 +158,50 @@ public class Viewer extends ClassLoader {
      */
     protected byte[] fetchClass(String classname) throws Exception
     {
-	byte[] b;
-	URL url = new URL("http", server, port,
-			  "/" + classname.replace('.', '/') + ".class");
-	URLConnection con = url.openConnection();
-	con.connect();
-	int size = con.getContentLength();
-	InputStream s = con.getInputStream();
-	if (size <= 0)
-	    b = readStream(s);
-	else {
-	    b = new byte[size];
-	    int len = 0;
-	    do {
-		int n = s.read(b, len, size - len);
-		if (n < 0) {
-		    s.close();
-		    throw new IOException("the stream was closed: "
-					  + classname);
-		}
-		len += n;
-	    } while (len < size);
-	}
+        byte[] b;
+        URL url = new URL("http", server, port,
+                          "/" + classname.replace('.', '/') + ".class");
+        URLConnection con = url.openConnection();
+        con.connect();
+        int size = con.getContentLength();
+        InputStream s = con.getInputStream();
+        if (size <= 0)
+            b = readStream(s);
+        else {
+            b = new byte[size];
+            int len = 0;
+            do {
+                int n = s.read(b, len, size - len);
+                if (n < 0) {
+                    s.close();
+                    throw new IOException("the stream was closed: "
+                                          + classname);
+                }
+                len += n;
+            } while (len < size);
+        }
 
-	s.close();
-	return b;
+        s.close();
+        return b;
     }
 
     private byte[] readStream(InputStream fin) throws IOException {
-	byte[] buf = new byte[4096];
-	int size = 0;
-	int len = 0;
-	do {
-	    size += len;
-	    if (buf.length - size <= 0) {
-		byte[] newbuf = new byte[buf.length * 2];
-		System.arraycopy(buf, 0, newbuf, 0, size);
-		buf = newbuf;
-	    }
+        byte[] buf = new byte[4096];
+        int size = 0;
+        int len = 0;
+        do {
+            size += len;
+            if (buf.length - size <= 0) {
+                byte[] newbuf = new byte[buf.length * 2];
+                System.arraycopy(buf, 0, newbuf, 0, size);
+                buf = newbuf;
+            }
 
-	    len = fin.read(buf, size, buf.length - size);
-	} while (len >= 0);
+            len = fin.read(buf, size, buf.length - size);
+        } while (len >= 0);
 
-	byte[] result = new byte[size];
-	System.arraycopy(buf, 0, result, 0, size);
-	return result;
+        byte[] result = new byte[size];
+        System.arraycopy(buf, 0, result, 0, size);
+        return result;
     }
 }

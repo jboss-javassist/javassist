@@ -1,28 +1,17 @@
 /*
- * This file is part of the Javassist toolkit.
+ * Javassist, a Java-bytecode translator toolkit.
+ * Copyright (C) 1999-2003 Shigeru Chiba. All Rights Reserved.
  *
- * The contents of this file are subject to the Mozilla Public License
- * Version 1.1 (the "License"); you may not use this file except in
- * compliance with the License.  You may obtain a copy of the License at
- * either http://www.mozilla.org/MPL/.
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
  *
- * Software distributed under the License is distributed on an "AS IS"
- * basis, WITHOUT WARRANTY OF ANY KIND, either express or implied.  See
- * the License for the specific language governing rights and limitations
- * under the License.
- *
- * The Original Code is Javassist.
- *
- * The Initial Developer of the Original Code is Shigeru Chiba.  Portions
- * created by Shigeru Chiba are Copyright (C) 1999-2003 Shigeru Chiba.
- * All Rights Reserved.
- *
- * Contributor(s):
- *
- * The development of this software is supported in part by the PRESTO
- * program (Sakigake Kenkyu 21) of Japan Science and Technology Corporation.
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  */
-
 package javassist.expr;
 
 import javassist.*;
@@ -38,7 +27,7 @@ public class Instanceof extends Expr {
      * Undocumented constructor.  Do not use; internal-use only.
      */
     Instanceof(int pos, CodeIterator i, CtClass declaring, MethodInfo m) {
-	super(pos, i, declaring, m);
+        super(pos, i, declaring, m);
     }
 
     /**
@@ -51,20 +40,20 @@ public class Instanceof extends Expr {
      * Returns the line number of the source line containing the
      * instanceof expression.
      *
-     * @return -1	if this information is not available.
+     * @return -1       if this information is not available.
      */
     public int getLineNumber() {
-	return super.getLineNumber();
+        return super.getLineNumber();
     }
 
     /**
      * Returns the source file containing the
      * instanceof expression.
      *
-     * @return null	if this information is not available.
+     * @return null     if this information is not available.
      */
     public String getFileName() {
-	return super.getFileName();
+        return super.getFileName();
     }
 
     /**
@@ -73,11 +62,11 @@ public class Instanceof extends Expr {
      * of the instanceof operator.
      */
     public CtClass getType() throws NotFoundException {
-	ConstPool cp = getConstPool();
-	int pos = currentPos;
-	int index = iterator.u16bitAt(pos + 1);
-	String name = cp.getClassInfo(index);
-	return Descriptor.toCtClass(name, thisClass.getClassPool());
+        ConstPool cp = getConstPool();
+        int pos = currentPos;
+        int index = iterator.u16bitAt(pos + 1);
+        String name = cp.getClassInfo(index);
+        return Descriptor.toCtClass(name, thisClass.getClassPool());
     }
 
     /**
@@ -87,7 +76,7 @@ public class Instanceof extends Expr {
      * the throws declaration allows the method to throw.
      */
     public CtClass[] mayThrow() {
-	return super.mayThrow();
+        return super.mayThrow();
     }
 
     /**
@@ -96,70 +85,70 @@ public class Instanceof extends Expr {
      *
      * <p>$0 is available but the value is <code>null</code>.
      *
-     * @param statement		a Java statement.
+     * @param statement         a Java statement.
      */
     public void replace(String statement) throws CannotCompileException {
-	ConstPool constPool = getConstPool();
-	int pos = currentPos;
-	int index = iterator.u16bitAt(pos + 1);
+        ConstPool constPool = getConstPool();
+        int pos = currentPos;
+        int index = iterator.u16bitAt(pos + 1);
 
-	Javac jc = new Javac(thisClass);
-	ClassPool cp = thisClass.getClassPool();
-	CodeAttribute ca = iterator.get();
+        Javac jc = new Javac(thisClass);
+        ClassPool cp = thisClass.getClassPool();
+        CodeAttribute ca = iterator.get();
 
-	try {
-	    CtClass[] params
-		= new CtClass[] { cp.get(javaLangObject) };
-	    CtClass retType = CtClass.booleanType;
+        try {
+            CtClass[] params
+                = new CtClass[] { cp.get(javaLangObject) };
+            CtClass retType = CtClass.booleanType;
 
-	    int paramVar = ca.getMaxLocals();
-	    jc.recordParams(javaLangObject, params, true, paramVar,
-			    withinStatic());
-	    int retVar = jc.recordReturnType(retType, true);
-	    jc.recordProceed(new ProceedForInstanceof(index));
+            int paramVar = ca.getMaxLocals();
+            jc.recordParams(javaLangObject, params, true, paramVar,
+                            withinStatic());
+            int retVar = jc.recordReturnType(retType, true);
+            jc.recordProceed(new ProceedForInstanceof(index));
 
-	    // because $type is not the return type...
-	    jc.recordType(getType());
+            // because $type is not the return type...
+            jc.recordType(getType());
 
-	    /* Is $_ included in the source code?
-	     */
-	    checkResultValue(retType, statement);
+            /* Is $_ included in the source code?
+             */
+            checkResultValue(retType, statement);
 
-	    Bytecode bytecode = jc.getBytecode();
-	    storeStack(params, true, paramVar, bytecode);
-	    jc.compileStmnt(statement);
-	    bytecode.addLoad(retVar, retType);
+            Bytecode bytecode = jc.getBytecode();
+            storeStack(params, true, paramVar, bytecode);
+            jc.compileStmnt(statement);
+            bytecode.addLoad(retVar, retType);
 
-	    replace0(pos, bytecode, 3);
-	}
-	catch (CompileError e) { throw new CannotCompileException(e); }
-	catch (NotFoundException e) { throw new CannotCompileException(e); }
-	catch (BadBytecode e) {
-	    throw new CannotCompileException("broken method");
-	}
+            replace0(pos, bytecode, 3);
+        }
+        catch (CompileError e) { throw new CannotCompileException(e); }
+        catch (NotFoundException e) { throw new CannotCompileException(e); }
+        catch (BadBytecode e) {
+            throw new CannotCompileException("broken method");
+        }
     }
 
     /* boolean $proceed(Object obj)
      */
     static class ProceedForInstanceof implements ProceedHandler {
-	int index;
+        int index;
 
-	ProceedForInstanceof(int i) {
-	    index = i;
-	}
+        ProceedForInstanceof(int i) {
+            index = i;
+        }
 
-	public void doit(JvstCodeGen gen, Bytecode bytecode, ASTList args)
-	    throws CompileError
-	{
-	    if (gen.atMethodArgsLength(args) != 1)
-		throw new CompileError(Javac.proceedName
-			+ "() cannot take more than one parameter "
-			+ "for instanceof");
+        public void doit(JvstCodeGen gen, Bytecode bytecode, ASTList args)
+            throws CompileError
+        {
+            if (gen.atMethodArgsLength(args) != 1)
+                throw new CompileError(Javac.proceedName
+                        + "() cannot take more than one parameter "
+                        + "for instanceof");
 
-	    gen.atMethodArgs(args, new int[1], new int[1], new String[1]);
-	    bytecode.addOpcode(Opcode.INSTANCEOF);
-	    bytecode.addIndex(index);
-	    gen.setType(CtClass.booleanType);
-	}
+            gen.atMethodArgs(args, new int[1], new int[1], new String[1]);
+            bytecode.addOpcode(Opcode.INSTANCEOF);
+            bytecode.addIndex(index);
+            gen.setType(CtClass.booleanType);
+        }
     }
 }

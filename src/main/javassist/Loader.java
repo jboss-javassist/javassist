@@ -1,28 +1,17 @@
 /*
- * This file is part of the Javassist toolkit.
+ * Javassist, a Java-bytecode translator toolkit.
+ * Copyright (C) 1999-2003 Shigeru Chiba. All Rights Reserved.
  *
- * The contents of this file are subject to the Mozilla Public License
- * Version 1.1 (the "License"); you may not use this file except in
- * compliance with the License.  You may obtain a copy of the License at
- * either http://www.mozilla.org/MPL/.
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
  *
- * Software distributed under the License is distributed on an "AS IS"
- * basis, WITHOUT WARRANTY OF ANY KIND, either express or implied.  See
- * the License for the specific language governing rights and limitations
- * under the License.
- *
- * The Original Code is Javassist.
- *
- * The Initial Developer of the Original Code is Shigeru Chiba.  Portions
- * created by Shigeru Chiba are Copyright (C) 1999-2003 Shigeru Chiba.
- * All Rights Reserved.
- *
- * Contributor(s):
- *
- * The development of this software is supported in part by the PRESTO
- * program (Sakigake Kenkyu 21) of Japan Science and Technology Corporation.
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  */
-
 package javassist;
 
 import java.io.*;
@@ -137,8 +126,8 @@ import java.util.Vector;
  * @see javassist.Translator
  */
 public class Loader extends ClassLoader {
-    private Hashtable notDefinedHere;	// must be atomic.
-    private Vector notDefinedPackages;	// must be atomic.
+    private Hashtable notDefinedHere;   // must be atomic.
+    private Vector notDefinedPackages;  // must be atomic.
     private ClassPool source;
 
     /**
@@ -158,19 +147,35 @@ public class Loader extends ClassLoader {
      * Creates a new class loader.
      */
     public Loader() {
-	this(null);
+        this(null);
     }
 
     /**
      * Creates a new class loader.
      *
-     * @param cp	the source of class files.
+     * @param cp        the source of class files.
      */
     public Loader(ClassPool cp) {
-	notDefinedHere = new Hashtable();
-	notDefinedPackages = new Vector();
-	source = cp;
-	delegateLoadingOf("javassist.Loader");
+        init(cp);
+    }
+
+    /**
+     * Creates a new class loader
+     * using the specified parent class loader for delegation.
+     *
+     * @param parent    the parent class loader.
+     * @param cp        the source of class files.
+     */
+    public Loader(ClassLoader parent, ClassPool cp) {
+        super(parent);
+        init(cp);
+    }
+
+    private void init(ClassPool cp) {
+        notDefinedHere = new Hashtable();
+        notDefinedPackages = new Vector();
+        source = cp;
+        delegateLoadingOf("javassist.Loader");
     }
 
     /**
@@ -182,17 +187,17 @@ public class Loader extends ClassLoader {
      * in that package and the sub packages are delegated.
      */
     public void delegateLoadingOf(String classname) {
-	if (classname.endsWith("."))
-	    notDefinedPackages.addElement(classname);
-	else
-	    notDefinedHere.put(classname, this);
+        if (classname.endsWith("."))
+            notDefinedPackages.addElement(classname);
+        else
+            notDefinedHere.put(classname, this);
     }
 
     /**
      * Sets the soruce <code>ClassPool</code>.
      */
     public void setClassPool(ClassPool cp) {
-	source = cp;
+        source = cp;
     }
 
     /**
@@ -201,70 +206,70 @@ public class Loader extends ClassLoader {
      *
      * <p>This method calls <code>run()</code>.
      *
-     * @param args[0]		class name to be loaded.
-     * @param args[1-n]		parameters passed to <code>main()</code>.
+     * @param args[0]           class name to be loaded.
+     * @param args[1-n]         parameters passed to <code>main()</code>.
      *
      * @see javassist.Loader#run(String[])
      */
     public static void main(String[] args) throws Throwable {
-	Loader cl = new Loader();
-	cl.run(args);
+        Loader cl = new Loader();
+        cl.run(args);
     }
 
     /**
      * Loads a class and calls <code>main()</code> in that class.
      *
-     * @param args[0]		the name of the loaded class.
-     * @param args[1-n]		parameters passed to <code>main()</code>.
+     * @param args[0]           the name of the loaded class.
+     * @param args[1-n]         parameters passed to <code>main()</code>.
      */
     public void run(String[] args) throws Throwable {
-	int n = args.length - 1;
-	if (n >= 0) {
-	    String[] args2 = new String[n];
-	    for (int i = 0; i < n; ++i)
-		args2[i] = args[i + 1];
+        int n = args.length - 1;
+        if (n >= 0) {
+            String[] args2 = new String[n];
+            for (int i = 0; i < n; ++i)
+                args2[i] = args[i + 1];
 
-	    run(args[0], args2);
-	}
+            run(args[0], args2);
+        }
     }
 
     /**
      * Loads a class and calls <code>main()</code> in that class.
      *
-     * @param classname		the loaded class.
-     * @param args		parameters passed to <code>main()</code>.
+     * @param classname         the loaded class.
+     * @param args              parameters passed to <code>main()</code>.
      */
     public void run(String classname, String[] args) throws Throwable {
-	Class c = loadClass(classname);
-	try {
-	    c.getDeclaredMethod("main", new Class[] { String[].class })
-		.invoke(null, new Object[] { args });
-	}
-	catch (java.lang.reflect.InvocationTargetException e) {
-	    throw e.getTargetException();
-	}
+        Class c = loadClass(classname);
+        try {
+            c.getDeclaredMethod("main", new Class[] { String[].class })
+                .invoke(null, new Object[] { args });
+        }
+        catch (java.lang.reflect.InvocationTargetException e) {
+            throw e.getTargetException();
+        }
     }
 
     /**
      * Requests the class loader to load a class.
      */
     protected Class loadClass(String name, boolean resolve)
-	throws ClassFormatError, ClassNotFoundException
+        throws ClassFormatError, ClassNotFoundException
     {
-	Class c = findLoadedClass(name);
-	if (c == null)
-	    c = loadClassByDelegation(name);
+        Class c = findLoadedClass(name);
+        if (c == null)
+            c = loadClassByDelegation(name);
 
-	if (c == null)
-	    c = findClass(name);
+        if (c == null)
+            c = findClass(name);
 
-	if (c == null)
-	    c = delegateToParent(name);
+        if (c == null)
+            c = delegateToParent(name);
 
-	if (resolve)
-	    resolveClass(c);
+        if (resolve)
+            resolveClass(c);
 
-	return c;
+        return c;
     }
 
     /**
@@ -275,66 +280,66 @@ public class Loader extends ClassLoader {
      * <code>Loader</code>.
      */
     protected Class findClass(String name) {
-	byte[] classfile;
-	try {
-	    if (source != null)
-		classfile = source.write(name);
-	    else {
-		String jarname = "/" + name.replace('.', '/') + ".class";
-		InputStream in = this.getClass().getResourceAsStream(jarname);
+        byte[] classfile;
+        try {
+            if (source != null)
+                classfile = source.write(name);
+            else {
+                String jarname = "/" + name.replace('.', '/') + ".class";
+                InputStream in = this.getClass().getResourceAsStream(jarname);
 
-		classfile = ClassPoolTail.readStream(in);
-	    }
-	}
-	catch (Exception e) {
-	    return null;
-	}
+                classfile = ClassPoolTail.readStream(in);
+            }
+        }
+        catch (Exception e) {
+            return null;
+        }
 
-	return defineClass(name, classfile, 0, classfile.length);
+        return defineClass(name, classfile, 0, classfile.length);
     }
 
     private Class loadClassByDelegation(String name)
-	throws ClassNotFoundException
+        throws ClassNotFoundException
     {
-	/* The swing components must be loaded by a system
-	 * class loader.
-	 * javax.swing.UIManager loads a (concrete) subclass
-	 * of LookAndFeel by a system class loader and cast
-	 * an instance of the class to LookAndFeel for
-	 * (maybe) a security reason.  To avoid failure of
-	 * type conversion, LookAndFeel must not be loaded
-	 * by this class loader.
-	 */
+        /* The swing components must be loaded by a system
+         * class loader.
+         * javax.swing.UIManager loads a (concrete) subclass
+         * of LookAndFeel by a system class loader and cast
+         * an instance of the class to LookAndFeel for
+         * (maybe) a security reason.  To avoid failure of
+         * type conversion, LookAndFeel must not be loaded
+         * by this class loader.
+         */
 
-	Class c = null;
-	if (doDelegation)
-	    if (name.startsWith("java.") || name.startsWith("javax.")
-		|| name.startsWith("sun.") || name.startsWith("com.sun.")
-		|| notDelegated(name))
-		c = delegateToParent(name);
+        Class c = null;
+        if (doDelegation)
+            if (name.startsWith("java.") || name.startsWith("javax.")
+                || name.startsWith("sun.") || name.startsWith("com.sun.")
+                || notDelegated(name))
+                c = delegateToParent(name);
 
-	return c;
+        return c;
     }
 
     private boolean notDelegated(String name) {
-	if (notDefinedHere.get(name) != null)
-	    return true;
+        if (notDefinedHere.get(name) != null)
+            return true;
 
-	int n = notDefinedPackages.size();
-	for (int i = 0; i < n; ++i)
-	    if (name.startsWith((String)notDefinedPackages.elementAt(i)))
-		return true;
+        int n = notDefinedPackages.size();
+        for (int i = 0; i < n; ++i)
+            if (name.startsWith((String)notDefinedPackages.elementAt(i)))
+                return true;
 
-	return false;
+        return false;
     }
 
     private Class delegateToParent(String classname)
-	throws ClassNotFoundException
+        throws ClassNotFoundException
     {
-	ClassLoader cl = getParent();
-	if (cl != null)
-	    return cl.loadClass(classname);
-	else
-	    return findSystemClass(classname);
+        ClassLoader cl = getParent();
+        if (cl != null)
+            return cl.loadClass(classname);
+        else
+            return findSystemClass(classname);
     }
 }

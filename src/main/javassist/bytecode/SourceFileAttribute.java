@@ -1,28 +1,17 @@
 /*
- * This file is part of the Javassist toolkit.
+ * Javassist, a Java-bytecode translator toolkit.
+ * Copyright (C) 1999-2003 Shigeru Chiba. All Rights Reserved.
  *
- * The contents of this file are subject to the Mozilla Public License
- * Version 1.1 (the "License"); you may not use this file except in
- * compliance with the License.  You may obtain a copy of the License at
- * either http://www.mozilla.org/MPL/.
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
  *
- * Software distributed under the License is distributed on an "AS IS"
- * basis, WITHOUT WARRANTY OF ANY KIND, either express or implied.  See
- * the License for the specific language governing rights and limitations
- * under the License.
- *
- * The Original Code is Javassist.
- *
- * The Initial Developer of the Original Code is Shigeru Chiba.  Portions
- * created by Shigeru Chiba are Copyright (C) 1999-2003 Shigeru Chiba.
- * All Rights Reserved.
- *
- * Contributor(s):
- *
- * The development of this software is supported in part by the PRESTO
- * program (Sakigake Kenkyu 21) of Japan Science and Technology Corporation.
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  */
-
 package javassist.bytecode;
 
 import java.io.DataInputStream;
@@ -39,42 +28,42 @@ public class SourceFileAttribute extends AttributeInfo {
     public static final String tag = "SourceFile";
 
     SourceFileAttribute(ConstPool cp, int n, DataInputStream in)
-	throws IOException
+        throws IOException
     {
-	super(cp, n, in);
+        super(cp, n, in);
     }
 
     /**
      * Constructs a SourceFile attribute.
      *
-     * @param cp		a constant pool table.
-     * @param filename		the name of the source file.
+     * @param cp                a constant pool table.
+     * @param filename          the name of the source file.
      */
     public SourceFileAttribute(ConstPool cp, String filename) {
-	super(cp, tag);
-	int index = cp.addUtf8Info(filename);
-	byte[] bvalue = new byte[2];
-	bvalue[0] = (byte)(index >>> 8);
-	bvalue[1] = (byte)index;
-	set(bvalue);
+        super(cp, tag);
+        int index = cp.addUtf8Info(filename);
+        byte[] bvalue = new byte[2];
+        bvalue[0] = (byte)(index >>> 8);
+        bvalue[1] = (byte)index;
+        set(bvalue);
     }
 
     /**
      * Returns the file name indicated by <code>sourcefile_index</code>.
      */
     public String getFileName() {
-	return getConstPool().getUtf8Info(ByteArray.readU16bit(get(), 0));
+        return getConstPool().getUtf8Info(ByteArray.readU16bit(get(), 0));
     }
 
     /**
      * Makes a copy.  Class names are replaced according to the
      * given <code>Map</code> object.
      *
-     * @param newCp	the constant pool table used by the new copy.
-     * @param classnames	pairs of replaced and substituted
-     *				class names.
+     * @param newCp     the constant pool table used by the new copy.
+     * @param classnames        pairs of replaced and substituted
+     *                          class names.
      */
     public AttributeInfo copy(ConstPool newCp, Map classnames) {
-	return new SourceFileAttribute(newCp, getFileName());
+        return new SourceFileAttribute(newCp, getFileName());
     }
 }

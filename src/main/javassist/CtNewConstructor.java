@@ -1,28 +1,17 @@
 /*
- * This file is part of the Javassist toolkit.
+ * Javassist, a Java-bytecode translator toolkit.
+ * Copyright (C) 1999-2003 Shigeru Chiba. All Rights Reserved.
  *
- * The contents of this file are subject to the Mozilla Public License
- * Version 1.1 (the "License"); you may not use this file except in
- * compliance with the License.  You may obtain a copy of the License at
- * either http://www.mozilla.org/MPL/.
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
  *
- * Software distributed under the License is distributed on an "AS IS"
- * basis, WITHOUT WARRANTY OF ANY KIND, either express or implied.  See
- * the License for the specific language governing rights and limitations
- * under the License.
- *
- * The Original Code is Javassist.
- *
- * The Initial Developer of the Original Code is Shigeru Chiba.  Portions
- * created by Shigeru Chiba are Copyright (C) 1999-2003 Shigeru Chiba.
- * All Rights Reserved.
- *
- * Contributor(s):
- *
- * The development of this software is supported in part by the PRESTO
- * program (Sakigake Kenkyu 21) of Japan Science and Technology Corporation.
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  */
-
 package javassist;
 
 import javassist.bytecode.*;
@@ -41,14 +30,14 @@ public class CtNewConstructor {
      * Specifies that no parameters are passed to a super-class'
      * constructor.  That is, the default constructor is invoked.
      */
-    public static final int PASS_NONE = 0;	// call super()
+    public static final int PASS_NONE = 0;      // call super()
 
     /**
      * Specifies that parameters are converted into an array of
      * <code>Object</code> and passed to a super-class'
      * constructor.
      */
-    public static final int PASS_ARRAY = 1;	// an array of parameters
+    public static final int PASS_ARRAY = 1;     // an array of parameters
 
     /**
      * Specifies that parameters are passed <i>as is</i>
@@ -62,66 +51,66 @@ public class CtNewConstructor {
      * The source code must include not only the constructor body
      * but the whole declaration.
      *
-     * @param src		the source text. 
+     * @param src               the source text. 
      * @param declaring    the class to which the created constructor is added.
      */
     public static CtConstructor make(String src, CtClass declaring)
-	throws CannotCompileException
+        throws CannotCompileException
     {
-	Javac compiler = new Javac(declaring);
-	try {
-	    CtMember obj = compiler.compile(src);
-	    if (obj instanceof CtConstructor)
-		return (CtConstructor)obj;
-	}
-	catch (CompileError e) {
-	    throw new CannotCompileException(e);
-	}
+        Javac compiler = new Javac(declaring);
+        try {
+            CtMember obj = compiler.compile(src);
+            if (obj instanceof CtConstructor)
+                return (CtConstructor)obj;
+        }
+        catch (CompileError e) {
+            throw new CannotCompileException(e);
+        }
 
-	throw new CannotCompileException("not a constructor");
+        throw new CannotCompileException("not a constructor");
     }
 
     /**
      * Creates a public constructor.
      *
-     * @param returnType	the type of the returned value
-     * @param mname		the method name
-     * @param parameters	a list of the parameter types
-     * @param exceptions	a list of the exception types
-     * @param src		the source text of the method body.
-     *			It must be a block surrounded by <code>{}</code>.
+     * @param returnType        the type of the returned value
+     * @param mname             the method name
+     * @param parameters        a list of the parameter types
+     * @param exceptions        a list of the exception types
+     * @param src               the source text of the method body.
+     *                  It must be a block surrounded by <code>{}</code>.
      * @param declaring    the class to which the created method is added.
      */
     public static CtConstructor make(CtClass[] parameters,
-				     CtClass[] exceptions,
-				     String body, CtClass declaring)
-	throws CannotCompileException
+                                     CtClass[] exceptions,
+                                     String body, CtClass declaring)
+        throws CannotCompileException
     {
-	try {
-	    CtConstructor cc = new CtConstructor(parameters, declaring);
-	    cc.setExceptionTypes(exceptions);
-	    cc.setBody(body);
-	    return cc;
-	}
-	catch (NotFoundException e) {
-	    throw new CannotCompileException(e);
-	}
+        try {
+            CtConstructor cc = new CtConstructor(parameters, declaring);
+            cc.setExceptionTypes(exceptions);
+            cc.setBody(body);
+            return cc;
+        }
+        catch (NotFoundException e) {
+            throw new CannotCompileException(e);
+        }
     }
 
     /**
      * Creats a copy of a constructor.
      *
-     * @param c		the copied constructor.
+     * @param c         the copied constructor.
      * @param declaring    the class to which the created method is added.
-     * @param map	the hashtable associating original class names
-     *			with substituted names.
-     *			It can be <code>null</code>.
+     * @param map       the hashtable associating original class names
+     *                  with substituted names.
+     *                  It can be <code>null</code>.
      *
      * @see CtConstructor#CtConstructor(CtConstructor,CtClass,ClassMap)
      */
     public static CtConstructor copy(CtConstructor c, CtClass declaring,
-				ClassMap map) throws CannotCompileException {
-	return new CtConstructor(c, declaring, map);
+                                ClassMap map) throws CannotCompileException {
+        return new CtConstructor(c, declaring, map);
     }
 
     /**
@@ -131,25 +120,25 @@ public class CtNewConstructor {
      * <code>super()</code>.
      */
     public static CtConstructor defaultConstructor(CtClass declaring)
-	throws CannotCompileException
+        throws CannotCompileException
     {
-	CtConstructor cons = new CtConstructor((CtClass[])null, declaring);
+        CtConstructor cons = new CtConstructor((CtClass[])null, declaring);
 
-	ConstPool cp = declaring.getClassFile2().getConstPool();
-	Bytecode code = new Bytecode(cp, 1, 1);
-	code.addAload(0);
-	try {
-	    code.addInvokespecial(declaring.getSuperclass(),
-				  "<init>", "()V");
-	}
-	catch (NotFoundException e) {
-	    throw new CannotCompileException(e);
-	}
+        ConstPool cp = declaring.getClassFile2().getConstPool();
+        Bytecode code = new Bytecode(cp, 1, 1);
+        code.addAload(0);
+        try {
+            code.addInvokespecial(declaring.getSuperclass(),
+                                  "<init>", "()V");
+        }
+        catch (NotFoundException e) {
+            throw new CannotCompileException(e);
+        }
 
-	code.add(Bytecode.RETURN);
+        code.add(Bytecode.RETURN);
 
-	cons.getMethodInfo2().setCodeAttribute(code.toCodeAttribute());
-	return cons;
+        cons.getMethodInfo2().setCodeAttribute(code.toCodeAttribute());
+        return cons;
     }
 
     /**
@@ -164,18 +153,18 @@ public class CtNewConstructor {
      * objects implicitly insert initialization code in constructor
      * bodies.
      *
-     * @param parameters	parameter types
-     * @param exceptions	exception types
-     * @param declaring		the class to which the created constructor
-     *				is added.
+     * @param parameters        parameter types
+     * @param exceptions        exception types
+     * @param declaring         the class to which the created constructor
+     *                          is added.
      * @see CtField.Initializer#byParameter(int)
      */
     public static CtConstructor skeleton(CtClass[] parameters,
-			CtClass[] exceptions, CtClass declaring)
-	throws CannotCompileException
+                        CtClass[] exceptions, CtClass declaring)
+        throws CannotCompileException
     {
-	return make(parameters, exceptions, PASS_NONE,
-		    null, null, declaring);
+        return make(parameters, exceptions, PASS_NONE,
+                    null, null, declaring);
     }
 
     /**
@@ -184,17 +173,17 @@ public class CtNewConstructor {
      * specified by <code>parameters</code> and calls the super's
      * constructor with those parameters.
      *
-     * @param parameters	parameter types
-     * @param exceptions	exception types
-     * @param declaring		the class to which the created constructor
-     *				is added.
+     * @param parameters        parameter types
+     * @param exceptions        exception types
+     * @param declaring         the class to which the created constructor
+     *                          is added.
      */
     public static CtConstructor make(CtClass[] parameters,
-				     CtClass[] exceptions, CtClass declaring)
-	throws CannotCompileException
+                                     CtClass[] exceptions, CtClass declaring)
+        throws CannotCompileException
     {
-	return make(parameters, exceptions, PASS_PARAMS,
-		    null, null, declaring);
+        return make(parameters, exceptions, PASS_PARAMS,
+                    null, null, declaring);
     }
 
     /**
@@ -287,27 +276,27 @@ public class CtNewConstructor {
      *     }
      * }</pre></ul>
      *
-     * @param parameters	a list of the parameter types
-     * @param exceptions	a list of the exceptions
-     * @param howto		how to pass parameters to the super-class'
-     *				constructor (<code>PASS_NONE</code>,
-     *				<code>PASS_ARRAY</code>,
-     *				or <code>PASS_PARAMS</code>)
-     * @param body		appended body (may be <code>null</code>).
-     *				It must be not a constructor but a method.
-     * @param cparam		constant parameter (may be <code>null</code>.)
-     * @param declaring		the class to which the created constructor
-     *				is added.
+     * @param parameters        a list of the parameter types
+     * @param exceptions        a list of the exceptions
+     * @param howto             how to pass parameters to the super-class'
+     *                          constructor (<code>PASS_NONE</code>,
+     *                          <code>PASS_ARRAY</code>,
+     *                          or <code>PASS_PARAMS</code>)
+     * @param body              appended body (may be <code>null</code>).
+     *                          It must be not a constructor but a method.
+     * @param cparam            constant parameter (may be <code>null</code>.)
+     * @param declaring         the class to which the created constructor
+     *                          is added.
      *
      * @see CtNewMethod#wrapped(CtClass,String,CtClass[],CtClass[],CtMethod,CtMethod.ConstParameter,CtClass)
      */
     public static CtConstructor make(CtClass[] parameters,
-				     CtClass[] exceptions, int howto,
-				     CtMethod body, ConstParameter cparam,
-				     CtClass declaring)
-	throws CannotCompileException
+                                     CtClass[] exceptions, int howto,
+                                     CtMethod body, ConstParameter cparam,
+                                     CtClass declaring)
+        throws CannotCompileException
     {
-	return CtNewWrappedConstructor.wrapped(parameters, exceptions,
-					howto, body, cparam, declaring);
+        return CtNewWrappedConstructor.wrapped(parameters, exceptions,
+                                        howto, body, cparam, declaring);
     }
 }

@@ -1,28 +1,17 @@
 /*
- * This file is part of the Javassist toolkit.
+ * Javassist, a Java-bytecode translator toolkit.
+ * Copyright (C) 1999-2003 Shigeru Chiba. All Rights Reserved.
  *
- * The contents of this file are subject to the Mozilla Public License
- * Version 1.1 (the "License"); you may not use this file except in
- * compliance with the License.  You may obtain a copy of the License at
- * either http://www.mozilla.org/MPL/.
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
  *
- * Software distributed under the License is distributed on an "AS IS"
- * basis, WITHOUT WARRANTY OF ANY KIND, either express or implied.  See
- * the License for the specific language governing rights and limitations
- * under the License.
- *
- * The Original Code is Javassist.
- *
- * The Initial Developer of the Original Code is Shigeru Chiba.  Portions
- * created by Shigeru Chiba are Copyright (C) 1999-2003 Shigeru Chiba.
- * All Rights Reserved.
- *
- * Contributor(s):
- *
- * The development of this software is supported in part by the PRESTO
- * program (Sakigake Kenkyu 21) of Japan Science and Technology Corporation.
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  */
-
 package javassist;
 
 import javassist.bytecode.*;
@@ -35,165 +24,165 @@ class CtNewWrappedMethod {
     private static final String addedWrappedMethod = "_added_m$";
 
     public static CtMethod wrapped(CtClass returnType, String mname,
-				   CtClass[] parameterTypes,
-				   CtClass[] exceptionTypes,
-				   CtMethod body, ConstParameter constParam,
-				   CtClass declaring)
-	throws CannotCompileException
+                                   CtClass[] parameterTypes,
+                                   CtClass[] exceptionTypes,
+                                   CtMethod body, ConstParameter constParam,
+                                   CtClass declaring)
+        throws CannotCompileException
     {
-	CtMethod mt = new CtMethod(returnType, mname, parameterTypes,
-				   declaring);
-	mt.setModifiers(body.getModifiers());
-	try {
-	    mt.setExceptionTypes(exceptionTypes);
-	}
-	catch (NotFoundException e) {
-	    throw new CannotCompileException(e);
-	}
+        CtMethod mt = new CtMethod(returnType, mname, parameterTypes,
+                                   declaring);
+        mt.setModifiers(body.getModifiers());
+        try {
+            mt.setExceptionTypes(exceptionTypes);
+        }
+        catch (NotFoundException e) {
+            throw new CannotCompileException(e);
+        }
 
-	Bytecode code = makeBody(declaring, declaring.getClassFile2(), body,
-				 parameterTypes, returnType, constParam);
-	mt.getMethodInfo2().setCodeAttribute(code.toCodeAttribute());
-	return mt;
+        Bytecode code = makeBody(declaring, declaring.getClassFile2(), body,
+                                 parameterTypes, returnType, constParam);
+        mt.getMethodInfo2().setCodeAttribute(code.toCodeAttribute());
+        return mt;
     }
 
     static Bytecode makeBody(CtClass clazz, ClassFile classfile,
-			     CtMethod wrappedBody,
-			     CtClass[] parameters,
-			     CtClass returnType,
-			     ConstParameter cparam)
-	throws CannotCompileException
+                             CtMethod wrappedBody,
+                             CtClass[] parameters,
+                             CtClass returnType,
+                             ConstParameter cparam)
+        throws CannotCompileException
     {
-	boolean isStatic = Modifier.isStatic(wrappedBody.getModifiers());
-	Bytecode code = new Bytecode(classfile.getConstPool(), 0, 0);
-	int stacksize = makeBody0(clazz, classfile, wrappedBody, isStatic,
-				  parameters, returnType, cparam, code);
-	code.setMaxStack(stacksize);
-	code.setMaxLocals(isStatic, parameters, 0);
-	return code;
+        boolean isStatic = Modifier.isStatic(wrappedBody.getModifiers());
+        Bytecode code = new Bytecode(classfile.getConstPool(), 0, 0);
+        int stacksize = makeBody0(clazz, classfile, wrappedBody, isStatic,
+                                  parameters, returnType, cparam, code);
+        code.setMaxStack(stacksize);
+        code.setMaxLocals(isStatic, parameters, 0);
+        return code;
     }
 
     protected static int makeBody0(CtClass clazz, ClassFile classfile,
-				   CtMethod wrappedBody,
-				   boolean isStatic, CtClass[] parameters,
-				   CtClass returnType, ConstParameter cparam,
-				   Bytecode code)
-	throws CannotCompileException
+                                   CtMethod wrappedBody,
+                                   boolean isStatic, CtClass[] parameters,
+                                   CtClass returnType, ConstParameter cparam,
+                                   Bytecode code)
+        throws CannotCompileException
     {
-	if (!(clazz instanceof CtClassType))
-	    throw new CannotCompileException("bad declaring class"
-					     + clazz.getName());
+        if (!(clazz instanceof CtClassType))
+            throw new CannotCompileException("bad declaring class"
+                                             + clazz.getName());
 
-	if (!isStatic)
-	    code.addAload(0);
+        if (!isStatic)
+            code.addAload(0);
 
-	int stacksize = compileParameterList(code, parameters,
-					     (isStatic ? 0 : 1));
-	int stacksize2;
-	String desc;
-	if (cparam == null) {
-	    stacksize2 = 0;
-	    desc = ConstParameter.defaultDescriptor();
-	}
-	else {
-	    stacksize2 = cparam.compile(code);
-	    desc = cparam.descriptor();
-	}
+        int stacksize = compileParameterList(code, parameters,
+                                             (isStatic ? 0 : 1));
+        int stacksize2;
+        String desc;
+        if (cparam == null) {
+            stacksize2 = 0;
+            desc = ConstParameter.defaultDescriptor();
+        }
+        else {
+            stacksize2 = cparam.compile(code);
+            desc = cparam.descriptor();
+        }
 
-	checkSignature(wrappedBody, desc);
+        checkSignature(wrappedBody, desc);
 
-	String bodyname;
-	try {
-	    bodyname = addBodyMethod((CtClassType)clazz, classfile,
-				     wrappedBody);
-	    /* if an exception is thrown below, the method added above
-	     * should be removed. (future work :<)
-	     */
-	}
-	catch (BadBytecode e) {
-	    throw new CannotCompileException(e);
-	}
+        String bodyname;
+        try {
+            bodyname = addBodyMethod((CtClassType)clazz, classfile,
+                                     wrappedBody);
+            /* if an exception is thrown below, the method added above
+             * should be removed. (future work :<)
+             */
+        }
+        catch (BadBytecode e) {
+            throw new CannotCompileException(e);
+        }
 
-	if (isStatic)
-	    code.addInvokestatic(Bytecode.THIS, bodyname, desc);
-	else
-	    code.addInvokespecial(Bytecode.THIS, bodyname, desc);
+        if (isStatic)
+            code.addInvokestatic(Bytecode.THIS, bodyname, desc);
+        else
+            code.addInvokespecial(Bytecode.THIS, bodyname, desc);
 
-	compileReturn(code, returnType);	// consumes 2 stack entries
+        compileReturn(code, returnType);        // consumes 2 stack entries
 
-	if (stacksize < stacksize2 + 2)
-	    stacksize = stacksize2 + 2;
+        if (stacksize < stacksize2 + 2)
+            stacksize = stacksize2 + 2;
 
-	return stacksize;
+        return stacksize;
     }
 
     private static void checkSignature(CtMethod wrappedBody,
-				       String descriptor)
-	throws CannotCompileException
+                                       String descriptor)
+        throws CannotCompileException
     {
-	if (!descriptor.equals(wrappedBody.getMethodInfo2().getDescriptor()))
-	    throw new CannotCompileException(
-			"wrapped method with a bad signature: "
-			+ wrappedBody.getDeclaringClass().getName()
-			+ '.' + wrappedBody.getName());
+        if (!descriptor.equals(wrappedBody.getMethodInfo2().getDescriptor()))
+            throw new CannotCompileException(
+                        "wrapped method with a bad signature: "
+                        + wrappedBody.getDeclaringClass().getName()
+                        + '.' + wrappedBody.getName());
     }
 
     private static String addBodyMethod(CtClassType clazz,
-					ClassFile classfile,
-					CtMethod src)
-	throws BadBytecode
+                                        ClassFile classfile,
+                                        CtMethod src)
+        throws BadBytecode
     {
-	Hashtable bodies = clazz.getHiddenMethods();
-	String bodyname = (String)bodies.get(src);
-	if (bodyname == null) {
-	    do {
-		bodyname = addedWrappedMethod + clazz.getUniqueNumber();
-	    } while (classfile.getMethod(bodyname) != null);
+        Hashtable bodies = clazz.getHiddenMethods();
+        String bodyname = (String)bodies.get(src);
+        if (bodyname == null) {
+            do {
+                bodyname = addedWrappedMethod + clazz.getUniqueNumber();
+            } while (classfile.getMethod(bodyname) != null);
 
-	    ClassMap map = new ClassMap();
-	    map.put(src.getDeclaringClass().getName(), clazz.getName());
-	    MethodInfo body = new MethodInfo(classfile.getConstPool(),
-					     bodyname, src.getMethodInfo2(),
-					     map);
-	    int acc = body.getAccessFlags();
-	    body.setAccessFlags(AccessFlag.setPrivate(acc));
-	    classfile.addMethod(body);
-	    bodies.put(src, bodyname);
-	}
+            ClassMap map = new ClassMap();
+            map.put(src.getDeclaringClass().getName(), clazz.getName());
+            MethodInfo body = new MethodInfo(classfile.getConstPool(),
+                                             bodyname, src.getMethodInfo2(),
+                                             map);
+            int acc = body.getAccessFlags();
+            body.setAccessFlags(AccessFlag.setPrivate(acc));
+            classfile.addMethod(body);
+            bodies.put(src, bodyname);
+        }
 
-	return bodyname;
+        return bodyname;
     }
 
     /* compileParameterList() returns the stack size used
      * by the produced code.
      *
-     * @param regno	the index of the local variable in which
-     *			the first argument is received.
-     *			(0: static method, 1: regular method.)
+     * @param regno     the index of the local variable in which
+     *                  the first argument is received.
+     *                  (0: static method, 1: regular method.)
      */
     static int compileParameterList(Bytecode code,
-				    CtClass[] params, int regno) {
-	return JvstCodeGen.compileParameterList(code, params, regno);
+                                    CtClass[] params, int regno) {
+        return JvstCodeGen.compileParameterList(code, params, regno);
     }
 
     /*
      * The produced codes cosume 1 or 2 stack entries.
      */
     private static void compileReturn(Bytecode code, CtClass type) {
-	if (type.isPrimitive()) {
-	    CtPrimitiveType pt = (CtPrimitiveType)type;
-	    if (pt != CtClass.voidType) {
-		String wrapper = pt.getWrapperName();
-		code.addCheckcast(wrapper);
-		code.addInvokevirtual(wrapper, pt.getGetMethodName(),
-				      pt.getGetMethodDescriptor());
-	    }
+        if (type.isPrimitive()) {
+            CtPrimitiveType pt = (CtPrimitiveType)type;
+            if (pt != CtClass.voidType) {
+                String wrapper = pt.getWrapperName();
+                code.addCheckcast(wrapper);
+                code.addInvokevirtual(wrapper, pt.getGetMethodName(),
+                                      pt.getGetMethodDescriptor());
+            }
 
-	    code.addOpcode(pt.getReturnOp());
-	}
-	else {
-	    code.addCheckcast(type);
-	    code.addOpcode(Bytecode.ARETURN);
-	}
+            code.addOpcode(pt.getReturnOp());
+        }
+        else {
+            code.addCheckcast(type);
+            code.addOpcode(Bytecode.ARETURN);
+        }
     }
 }

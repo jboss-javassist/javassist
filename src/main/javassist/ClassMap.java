@@ -1,28 +1,17 @@
 /*
- * This file is part of the Javassist toolkit.
+ * Javassist, a Java-bytecode translator toolkit.
+ * Copyright (C) 1999-2003 Shigeru Chiba. All Rights Reserved.
  *
- * The contents of this file are subject to the Mozilla Public License
- * Version 1.1 (the "License"); you may not use this file except in
- * compliance with the License.  You may obtain a copy of the License at
- * either http://www.mozilla.org/MPL/.
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
  *
- * Software distributed under the License is distributed on an "AS IS"
- * basis, WITHOUT WARRANTY OF ANY KIND, either express or implied.  See
- * the License for the specific language governing rights and limitations
- * under the License.
- *
- * The Original Code is Javassist.
- *
- * The Initial Developer of the Original Code is Shigeru Chiba.  Portions
- * created by Shigeru Chiba are Copyright (C) 1999-2003 Shigeru Chiba.
- * All Rights Reserved.
- *
- * Contributor(s):
- *
- * The development of this software is supported in part by the PRESTO
- * program (Sakigake Kenkyu 21) of Japan Science and Technology Corporation.
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  */
-
 package javassist;
 
 import javassist.bytecode.Descriptor;
@@ -62,11 +51,11 @@ public class ClassMap extends java.util.HashMap {
      * internal form used in the JVM before putting it in
      * the hashtable.
      *
-     * @param oldname	the original class name
-     * @param newname	the substituted class name.
+     * @param oldname   the original class name
+     * @param newname   the substituted class name.
      */
     public void put(CtClass oldname, CtClass newname) {
-	put(oldname.getName(), newname.getName());
+        put(oldname.getName(), newname.getName());
     }
 
     /**
@@ -75,21 +64,21 @@ public class ClassMap extends java.util.HashMap {
      * internal form used in the JVM before putting it in
      * the hashtable.
      *
-     * @param oldname	the original class name
-     * @param newname	the substituted class name.
+     * @param oldname   the original class name
+     * @param newname   the substituted class name.
      */
     public void put(String oldname, String newname) {
-	if (oldname == newname)
-	    return;
+        if (oldname == newname)
+            return;
 
-	String oldname2 = toJvmName(oldname);
-	String s = (String)get(oldname2);
-	if (s == null || !s.equals(oldname2))
-	    super.put(oldname2, toJvmName(newname));
+        String oldname2 = toJvmName(oldname);
+        String s = (String)get(oldname2);
+        if (s == null || !s.equals(oldname2))
+            super.put(oldname2, toJvmName(newname));
     }
 
     protected final void put0(Object oldname, Object newname) {
-	super.put(oldname, newname);
+        super.put(oldname, newname);
     }
 
     /**
@@ -103,22 +92,22 @@ public class ClassMap extends java.util.HashMap {
      * @see #toJavaName(String)
      */
     public Object get(Object jvmClassName) {
-	return super.get(jvmClassName);
+        return super.get(jvmClassName);
     }
 
     /**
      * Prevents a mapping from the specified class name to another name.
      */
     public void fix(CtClass clazz) {
-	fix(clazz.getName());
+        fix(clazz.getName());
     }
 
     /**
      * Prevents a mapping from the specified class name to another name.
      */
     public void fix(String name) {
-	String name2 = toJvmName(name);
-	super.put(name2, name2);
+        String name2 = toJvmName(name);
+        super.put(name2, name2);
     }
 
     /**
@@ -126,7 +115,7 @@ public class ClassMap extends java.util.HashMap {
      * the JVM.
      */
     public static String toJvmName(String classname) {
-	return Descriptor.toJvmName(classname);
+        return Descriptor.toJvmName(classname);
     }
 
     /**
@@ -134,6 +123,6 @@ public class ClassMap extends java.util.HashMap {
      * the JVM to the normal one used in Java.
      */
     public static String toJavaName(String classname) {
-	return Descriptor.toJavaName(classname);
+        return Descriptor.toJavaName(classname);
     }
 }

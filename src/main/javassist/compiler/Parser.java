@@ -1,28 +1,17 @@
 /*
- * This file is part of the Javassist toolkit.
+ * Javassist, a Java-bytecode translator toolkit.
+ * Copyright (C) 1999-2003 Shigeru Chiba. All Rights Reserved.
  *
- * The contents of this file are subject to the Mozilla Public License
- * Version 1.1 (the "License"); you may not use this file except in
- * compliance with the License.  You may obtain a copy of the License at
- * either http://www.mozilla.org/MPL/.
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
  *
- * Software distributed under the License is distributed on an "AS IS"
- * basis, WITHOUT WARRANTY OF ANY KIND, either express or implied.  See
- * the License for the specific language governing rights and limitations
- * under the License.
- *
- * The Original Code is Javassist.
- *
- * The Initial Developer of the Original Code is Shigeru Chiba.  Portions
- * created by Shigeru Chiba are Copyright (C) 1999-2003 Shigeru Chiba.
- * All Rights Reserved.
- *
- * Contributor(s):
- *
- * The development of this software is supported in part by the PRESTO
- * program (Sakigake Kenkyu 21) of Japan Science and Technology Corporation.
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  */
-
 package javassist.compiler;
 
 import javassist.compiler.ast.*;
@@ -31,7 +20,7 @@ public final class Parser implements TokenId {
     private Lex lex;
 
     public Parser(Lex lex) {
-	this.lex = lex;
+        this.lex = lex;
     }
 
     public boolean hasMore() { return lex.lookAhead() >= 0; }
@@ -40,40 +29,40 @@ public final class Parser implements TokenId {
      * : method.declaration | field.declaration
      */
     public ASTList parseMember(SymbolTable tbl) throws CompileError {
-	ASTList mem = parseMember1(tbl);
-	if (mem instanceof MethodDecl)
-	    return parseMethod2(tbl, (MethodDecl)mem);
-	else
-	    return mem;
+        ASTList mem = parseMember1(tbl);
+        if (mem instanceof MethodDecl)
+            return parseMethod2(tbl, (MethodDecl)mem);
+        else
+            return mem;
     }
 
     /* A method body is not parsed.
      */
     public ASTList parseMember1(SymbolTable tbl) throws CompileError {
-	ASTList mods = parseMemberMods();
-	Declarator d;
-	boolean isConstructor = false;
-	if (lex.lookAhead() == Identifier && lex.lookAhead(1) == '(') {
-	    d = new Declarator(VOID, 0);
-	    isConstructor = true;
-	}
-	else
-	    d = parseFormalType(tbl);
+        ASTList mods = parseMemberMods();
+        Declarator d;
+        boolean isConstructor = false;
+        if (lex.lookAhead() == Identifier && lex.lookAhead(1) == '(') {
+            d = new Declarator(VOID, 0);
+            isConstructor = true;
+        }
+        else
+            d = parseFormalType(tbl);
 
-	if (lex.get() != Identifier)
-	    throw new SyntaxError(lex);
+        if (lex.get() != Identifier)
+            throw new SyntaxError(lex);
 
-	String name;
-	if (isConstructor)
-	    name = MethodDecl.initName;
-	else
-	    name = lex.getString();
+        String name;
+        if (isConstructor)
+            name = MethodDecl.initName;
+        else
+            name = lex.getString();
 
-	d.setVariable(new Symbol(name));
-	if (isConstructor || lex.lookAhead() == '(')
-	    return parseMethod1(tbl, isConstructor, mods, d);
-	else
-	    return parseField(tbl, mods, d);
+        d.setVariable(new Symbol(name));
+        if (isConstructor || lex.lookAhead() == '(')
+            return parseMethod1(tbl, isConstructor, mods, d);
+        else
+            return parseField(tbl, mods, d);
     }
 
     /* field.declaration
@@ -82,22 +71,22 @@ public final class Parser implements TokenId {
      *    [ "=" expression ] ";"
      */
     private FieldDecl parseField(SymbolTable tbl, ASTList mods,
-				Declarator d) throws CompileError
+                                Declarator d) throws CompileError
     {
-	ASTree expr = null;
-	if (lex.lookAhead() == '=') {
-	    lex.get();
-	    expr = parseExpression(tbl);
-	}
+        ASTree expr = null;
+        if (lex.lookAhead() == '=') {
+            lex.get();
+            expr = parseExpression(tbl);
+        }
 
-	int c = lex.get();
-	if (c == ';')
-	    return new FieldDecl(mods, new ASTList(d, new ASTList(expr)));
-	else if (c == ',')
-	    throw new CompileError(
-		"only one field can be declared in one declaration", lex);
-	else
-	    throw new SyntaxError(lex);
+        int c = lex.get();
+        if (c == ';')
+            return new FieldDecl(mods, new ASTList(d, new ASTList(expr)));
+        else if (c == ',')
+            throw new CompileError(
+                "only one field can be declared in one declaration", lex);
+        else
+            throw new SyntaxError(lex);
     }
 
     /* method.declaration
@@ -111,60 +100,60 @@ public final class Parser implements TokenId {
      * Note that a method body is not parsed.
      */
     private MethodDecl parseMethod1(SymbolTable tbl, boolean isConstructor,
-				    ASTList mods, Declarator d)
-	throws CompileError
+                                    ASTList mods, Declarator d)
+        throws CompileError
     {
-	if (lex.get() != '(')
-	    throw new SyntaxError(lex);
+        if (lex.get() != '(')
+            throw new SyntaxError(lex);
 
-	ASTList parms = null;
-	if (lex.lookAhead() != ')')
-	    while (true) {
-		parms = ASTList.append(parms, parseFormalParam(tbl));
-		int t = lex.lookAhead();
-		if (t == ',')
-		    lex.get();
-		else if (t == ')')
-		    break;
-	    }
+        ASTList parms = null;
+        if (lex.lookAhead() != ')')
+            while (true) {
+                parms = ASTList.append(parms, parseFormalParam(tbl));
+                int t = lex.lookAhead();
+                if (t == ',')
+                    lex.get();
+                else if (t == ')')
+                    break;
+            }
 
-	lex.get();	// ')'
-	d.addArrayDim(parseArrayDimension());
-	if (isConstructor && d.getArrayDim() > 0)
-	    throw new SyntaxError(lex);
+        lex.get();      // ')'
+        d.addArrayDim(parseArrayDimension());
+        if (isConstructor && d.getArrayDim() > 0)
+            throw new SyntaxError(lex);
 
-	ASTList throwsList = null;
-	if (lex.lookAhead() == THROWS) {
-	    lex.get();
-	    while (true) {
-		throwsList = ASTList.append(throwsList, parseClassType(tbl));
-		if (lex.lookAhead() == ',')
-		    lex.get();
-		else
-		    break;
-	    }
-	}
+        ASTList throwsList = null;
+        if (lex.lookAhead() == THROWS) {
+            lex.get();
+            while (true) {
+                throwsList = ASTList.append(throwsList, parseClassType(tbl));
+                if (lex.lookAhead() == ',')
+                    lex.get();
+                else
+                    break;
+            }
+        }
 
-	return new MethodDecl(mods, new ASTList(d,
-				ASTList.make(parms, throwsList, null)));
+        return new MethodDecl(mods, new ASTList(d,
+                                ASTList.make(parms, throwsList, null)));
     }
 
     /* Parses a method body.
      */
     public MethodDecl parseMethod2(SymbolTable tbl, MethodDecl md)
-	throws CompileError
+        throws CompileError
     {
-	Stmnt body = null;
-	if (lex.lookAhead() == ';')
-	    lex.get();
-	else {
-	    body = parseBlock(tbl);
-	    if (body == null)
-		body = new Stmnt(BLOCK);
-	}
+        Stmnt body = null;
+        if (lex.lookAhead() == ';')
+            lex.get();
+        else {
+            body = parseBlock(tbl);
+            if (body == null)
+                body = new Stmnt(BLOCK);
+        }
 
-	md.sublist(4).setHead(body);
-	return md;
+        md.sublist(4).setHead(body);
+        return md;
     }
 
     /* member.modifiers
@@ -173,233 +162,233 @@ public final class Parser implements TokenId {
      *    | VOLATILE | TRANSIENT | STRICT )*
      */
     private ASTList parseMemberMods() {
-	int t;
-	ASTList list = null;
-	while (true) {
-	    t = lex.lookAhead();
-	    if (t == ABSTRACT || t == FINAL || t == PUBLIC || t == PROTECTED
-		|| t == PRIVATE || t == SYNCHRONIZED || t == STATIC
-		|| t == VOLATILE || t == TRANSIENT || t == STRICT)
-		list = new ASTList(new Keyword(lex.get()), list);
-	    else
-		break;
-	}
+        int t;
+        ASTList list = null;
+        while (true) {
+            t = lex.lookAhead();
+            if (t == ABSTRACT || t == FINAL || t == PUBLIC || t == PROTECTED
+                || t == PRIVATE || t == SYNCHRONIZED || t == STATIC
+                || t == VOLATILE || t == TRANSIENT || t == STRICT)
+                list = new ASTList(new Keyword(lex.get()), list);
+            else
+                break;
+        }
 
-	return list;
+        return list;
     }
 
     /* formal.type : ( build-in-type | class.type ) array.dimension
      */
     private Declarator parseFormalType(SymbolTable tbl) throws CompileError {
-	int t = lex.lookAhead();
-	if (isBuiltinType(t) || t == VOID) {
-	    lex.get();	// primitive type
-	    int dim = parseArrayDimension();
-	    return new Declarator(t, dim);
-	}
-	else {
-	    ASTList name = parseClassType(tbl);
-	    int dim = parseArrayDimension();
-	    return new Declarator(name, dim);
-	}
+        int t = lex.lookAhead();
+        if (isBuiltinType(t) || t == VOID) {
+            lex.get();  // primitive type
+            int dim = parseArrayDimension();
+            return new Declarator(t, dim);
+        }
+        else {
+            ASTList name = parseClassType(tbl);
+            int dim = parseArrayDimension();
+            return new Declarator(name, dim);
+        }
     }
 
     private static boolean isBuiltinType(int t) {
-	return (t == BOOLEAN || t == BYTE || t == CHAR || t == SHORT
-		|| t == INT || t == LONG || t == FLOAT || t == DOUBLE);
+        return (t == BOOLEAN || t == BYTE || t == CHAR || t == SHORT
+                || t == INT || t == LONG || t == FLOAT || t == DOUBLE);
     }
 
     /* formal.parameter : formal.type Identifier array.dimension
      */
     private Declarator parseFormalParam(SymbolTable tbl)
-	throws CompileError
+        throws CompileError
     {
-	Declarator d = parseFormalType(tbl);
-	if (lex.get() != Identifier)
-	    throw new SyntaxError(lex);
+        Declarator d = parseFormalType(tbl);
+        if (lex.get() != Identifier)
+            throw new SyntaxError(lex);
 
-	String name = lex.getString();
-	d.setVariable(new Symbol(name));
-	d.addArrayDim(parseArrayDimension());
-	tbl.append(name, d);
-	return d;
+        String name = lex.getString();
+        d.setVariable(new Symbol(name));
+        d.addArrayDim(parseArrayDimension());
+        tbl.append(name, d);
+        return d;
     }
 
     /* statement : [ label ":" ]* labeled.statement
      *
      * labeled.statement
-     *		: block.statement
-     *		| if.statement
-     *		| while.statement
-     *		| do.statement
-     *		| for.statement
-     *		| switch.statement
-     *		| try.statement
-     *		| return.statement
-     *		| thorw.statement
-     *		| break.statement
-     *		| continue.statement
-     *		| declaration.or.expression
-     *		| ";"
+     *          : block.statement
+     *          | if.statement
+     *          | while.statement
+     *          | do.statement
+     *          | for.statement
+     *          | switch.statement
+     *          | try.statement
+     *          | return.statement
+     *          | thorw.statement
+     *          | break.statement
+     *          | continue.statement
+     *          | declaration.or.expression
+     *          | ";"
      *
      * This method may return null (empty statement).
      */
     public Stmnt parseStatement(SymbolTable tbl)
-	throws CompileError
+        throws CompileError
     {
-	int t = lex.lookAhead();
-	if (t == '{')
-	    return parseBlock(tbl);
-	else if (t == ';') {
-	    lex.get();
-	    return new Stmnt(BLOCK);	// empty statement
-	}
-	else if (t == Identifier && lex.lookAhead(1) == ':') {
-	    lex.get();	// Identifier
-	    String label = lex.getString();
-	    lex.get();	// ':'
-	    return Stmnt.make(LABEL, new Symbol(label), parseStatement(tbl));
-	}
-	else if (t == IF)
-	    return parseIf(tbl);
-	else if (t == WHILE)
-	    return parseWhile(tbl);
-	else if (t == DO)
-	    return parseDo(tbl);
-	else if (t == FOR)
-	    return parseFor(tbl);
-	else if (t == TRY)
-	    return parseTry(tbl);
-	else if (t == SWITCH)
-	    return parseSwitch(tbl);
-	else if (t == RETURN)
-	    return parseReturn(tbl);
-	else if (t == THROW)
-	    return parseThrow(tbl);
-	else if (t == BREAK)
-	    return parseBreak(tbl);
-	else if (t == CONTINUE)
-	    return parseContinue(tbl);
-	else
-	    return parseDeclarationOrExpression(tbl, false);
+        int t = lex.lookAhead();
+        if (t == '{')
+            return parseBlock(tbl);
+        else if (t == ';') {
+            lex.get();
+            return new Stmnt(BLOCK);    // empty statement
+        }
+        else if (t == Identifier && lex.lookAhead(1) == ':') {
+            lex.get();  // Identifier
+            String label = lex.getString();
+            lex.get();  // ':'
+            return Stmnt.make(LABEL, new Symbol(label), parseStatement(tbl));
+        }
+        else if (t == IF)
+            return parseIf(tbl);
+        else if (t == WHILE)
+            return parseWhile(tbl);
+        else if (t == DO)
+            return parseDo(tbl);
+        else if (t == FOR)
+            return parseFor(tbl);
+        else if (t == TRY)
+            return parseTry(tbl);
+        else if (t == SWITCH)
+            return parseSwitch(tbl);
+        else if (t == RETURN)
+            return parseReturn(tbl);
+        else if (t == THROW)
+            return parseThrow(tbl);
+        else if (t == BREAK)
+            return parseBreak(tbl);
+        else if (t == CONTINUE)
+            return parseContinue(tbl);
+        else
+            return parseDeclarationOrExpression(tbl, false);
     }
 
     /* block.statement : "{" statement* "}"
      */
     private Stmnt parseBlock(SymbolTable tbl) throws CompileError {
-	if (lex.get() != '{')
-	    throw new SyntaxError(lex);
+        if (lex.get() != '{')
+            throw new SyntaxError(lex);
 
-	Stmnt body = null;
-	SymbolTable tbl2 = new SymbolTable(tbl);
-	while (lex.lookAhead() != '}') {
-	    Stmnt s = parseStatement(tbl2);
-	    if (s != null)
-		body = (Stmnt)ASTList.concat(body, new Stmnt(BLOCK, s));
-	}
+        Stmnt body = null;
+        SymbolTable tbl2 = new SymbolTable(tbl);
+        while (lex.lookAhead() != '}') {
+            Stmnt s = parseStatement(tbl2);
+            if (s != null)
+                body = (Stmnt)ASTList.concat(body, new Stmnt(BLOCK, s));
+        }
 
-	lex.get();	// '}'
-	if (body == null)
-	    return new Stmnt(BLOCK);	// empty block
-	else
-	    return body;
+        lex.get();      // '}'
+        if (body == null)
+            return new Stmnt(BLOCK);    // empty block
+        else
+            return body;
     }
 
     /* if.statement : IF "(" expression ")" statement
-     *		      [ ELSE statement ]
+     *                [ ELSE statement ]
      */
     private Stmnt parseIf(SymbolTable tbl) throws CompileError {
-	int t = lex.get();	// IF
-	if (lex.get() != '(')
-	    throw new SyntaxError(lex);
+        int t = lex.get();      // IF
+        if (lex.get() != '(')
+            throw new SyntaxError(lex);
 
-	ASTree expr = parseExpression(tbl);
-	if (lex.get() != ')')
-	    throw new SyntaxError(lex);
+        ASTree expr = parseExpression(tbl);
+        if (lex.get() != ')')
+            throw new SyntaxError(lex);
 
-	Stmnt thenp = parseStatement(tbl);
-	Stmnt elsep;
-	if (lex.lookAhead() == ELSE) {
-	    lex.get();
-	    elsep = parseStatement(tbl);
-	}
-	else
-	    elsep = null;
+        Stmnt thenp = parseStatement(tbl);
+        Stmnt elsep;
+        if (lex.lookAhead() == ELSE) {
+            lex.get();
+            elsep = parseStatement(tbl);
+        }
+        else
+            elsep = null;
 
-	return new Stmnt(t, expr, new ASTList(thenp, new ASTList(elsep)));
+        return new Stmnt(t, expr, new ASTList(thenp, new ASTList(elsep)));
     }
 
     /* while.statement : WHILE "(" expression ")" statement
      */
     private Stmnt parseWhile(SymbolTable tbl)
-	throws CompileError
+        throws CompileError
     {
-	int t = lex.get();	// WHILE
-	if (lex.get() != '(')
-	    throw new SyntaxError(lex);
+        int t = lex.get();      // WHILE
+        if (lex.get() != '(')
+            throw new SyntaxError(lex);
 
-	ASTree expr = parseExpression(tbl);
-	if (lex.get() != ')')
-	    throw new SyntaxError(lex);
+        ASTree expr = parseExpression(tbl);
+        if (lex.get() != ')')
+            throw new SyntaxError(lex);
 
-	Stmnt body = parseStatement(tbl);
-	return new Stmnt(t, expr, body);
+        Stmnt body = parseStatement(tbl);
+        return new Stmnt(t, expr, body);
     }
 
     /* do.statement : DO statement WHILE "(" expression ")" ";"
      */
     private Stmnt parseDo(SymbolTable tbl) throws CompileError {
-	int t = lex.get();	// DO
-	Stmnt body = parseStatement(tbl);
-	if (lex.get() != WHILE || lex.get() != '(')
-	    throw new SyntaxError(lex);
+        int t = lex.get();      // DO
+        Stmnt body = parseStatement(tbl);
+        if (lex.get() != WHILE || lex.get() != '(')
+            throw new SyntaxError(lex);
 
-	ASTree expr = parseExpression(tbl);
-	if (lex.get() != ')' || lex.get() != ';')
-	    throw new SyntaxError(lex);
+        ASTree expr = parseExpression(tbl);
+        if (lex.get() != ')' || lex.get() != ';')
+            throw new SyntaxError(lex);
 
-	return new Stmnt(t, expr, body);
+        return new Stmnt(t, expr, body);
     }
 
     /* for.statement : FOR "(" decl.or.expr expression ";" expression ")"
-     *		       statement
+     *                 statement
      */
     private Stmnt parseFor(SymbolTable tbl) throws CompileError {
-	Stmnt expr1, expr3;
-	ASTree expr2;
-	int t = lex.get();	// FOR
+        Stmnt expr1, expr3;
+        ASTree expr2;
+        int t = lex.get();      // FOR
 
-	SymbolTable tbl2 = new SymbolTable(tbl);
+        SymbolTable tbl2 = new SymbolTable(tbl);
 
-	if (lex.get() != '(')
-	    throw new SyntaxError(lex);
+        if (lex.get() != '(')
+            throw new SyntaxError(lex);
 
-	if (lex.lookAhead() == ';') {
-	    lex.get();
-	    expr1 = null;
-	}
-	else
-	    expr1 = parseDeclarationOrExpression(tbl2, true);
+        if (lex.lookAhead() == ';') {
+            lex.get();
+            expr1 = null;
+        }
+        else
+            expr1 = parseDeclarationOrExpression(tbl2, true);
 
-	if (lex.lookAhead() == ';')
-	    expr2 = null;
-	else
-	    expr2 = parseExpression(tbl2);
+        if (lex.lookAhead() == ';')
+            expr2 = null;
+        else
+            expr2 = parseExpression(tbl2);
 
-	if (lex.get() != ';')
-	    throw new CompileError("; is missing", lex);
+        if (lex.get() != ';')
+            throw new CompileError("; is missing", lex);
 
-	if (lex.lookAhead() == ')')
-	    expr3 = null;
-	else
-	    expr3 = parseExprList(tbl2);
+        if (lex.lookAhead() == ')')
+            expr3 = null;
+        else
+            expr3 = parseExprList(tbl2);
 
-	if (lex.get() != ')')
-	    throw new CompileError(") is missing", lex);
+        if (lex.get() != ')')
+            throw new CompileError(") is missing", lex);
 
-	Stmnt body = parseStatement(tbl2);
-	return new Stmnt(t, expr1, new ASTList(expr2,
-					       new ASTList(expr3, body)));
+        Stmnt body = parseStatement(tbl2);
+        return new Stmnt(t, expr1, new ASTList(expr2,
+                                               new ASTList(expr3, body)));
     }
 
     /* switch.statement : SWITCH "(" expression ")" "{" switch.block "}"
@@ -407,732 +396,732 @@ public final class Parser implements TokenId {
      * swtich.block : ( switch.label* statement )*
      *
      * swtich.label : DEFAULT ":"
-     *		    | CASE const.expression ":"
+     *              | CASE const.expression ":"
      */
     private Stmnt parseSwitch(SymbolTable tbl) throws CompileError {
-	throw new CompileError("switch is not supported", lex);
+        throw new CompileError("switch is not supported", lex);
     }
 
     /* try.statement
      * : TRY block.statement
-     *	 [ CATCH "(" class.type Identifier ")" block.statement ]*
-     *	 [ FINALLY block.statement ]*
+     *   [ CATCH "(" class.type Identifier ")" block.statement ]*
+     *   [ FINALLY block.statement ]*
      */
     private Stmnt parseTry(SymbolTable tbl) throws CompileError {
-	lex.get();	// TRY
-	Stmnt block = parseBlock(tbl);
-	ASTList catchList = null;
-	while (lex.lookAhead() == CATCH) {
-	    lex.get();	// CATCH
-	    if (lex.get() != '(')
-		throw new SyntaxError(lex);
+        lex.get();      // TRY
+        Stmnt block = parseBlock(tbl);
+        ASTList catchList = null;
+        while (lex.lookAhead() == CATCH) {
+            lex.get();  // CATCH
+            if (lex.get() != '(')
+                throw new SyntaxError(lex);
 
-	    SymbolTable tbl2 = new SymbolTable(tbl);
-	    Declarator d = parseFormalParam(tbl2);
-	    if (d.getArrayDim() > 0 || d.getType() != CLASS)
-		throw new SyntaxError(lex);
+            SymbolTable tbl2 = new SymbolTable(tbl);
+            Declarator d = parseFormalParam(tbl2);
+            if (d.getArrayDim() > 0 || d.getType() != CLASS)
+                throw new SyntaxError(lex);
 
-	    if (lex.get() != ')')
-		throw new SyntaxError(lex);
+            if (lex.get() != ')')
+                throw new SyntaxError(lex);
 
-	    Stmnt b = parseBlock(tbl2);
-	    catchList = ASTList.append(catchList, new Pair(d, b));
-	}
+            Stmnt b = parseBlock(tbl2);
+            catchList = ASTList.append(catchList, new Pair(d, b));
+        }
 
-	Stmnt finallyBlock = null;
-	if (lex.lookAhead() == FINALLY) {
-	    lex.get();	// FINALLY
-	    finallyBlock = parseBlock(tbl);
-	}
+        Stmnt finallyBlock = null;
+        if (lex.lookAhead() == FINALLY) {
+            lex.get();  // FINALLY
+            finallyBlock = parseBlock(tbl);
+        }
 
-	return Stmnt.make(TRY, block, catchList, finallyBlock);
+        return Stmnt.make(TRY, block, catchList, finallyBlock);
     }
 
     /* return.statement : RETURN [ expression ] ";"
      */
     private Stmnt parseReturn(SymbolTable tbl) throws CompileError {
-	int t = lex.get();	// RETURN
-	Stmnt s = new Stmnt(t);
-	if (lex.lookAhead() != ';')
-	    s.setLeft(parseExpression(tbl));
+        int t = lex.get();      // RETURN
+        Stmnt s = new Stmnt(t);
+        if (lex.lookAhead() != ';')
+            s.setLeft(parseExpression(tbl));
 
-	if (lex.get() != ';')
-	    throw new CompileError("; is missing", lex);
+        if (lex.get() != ';')
+            throw new CompileError("; is missing", lex);
 
-	return s;
+        return s;
     }
 
     /* throw.statement : THROW expression ";"
      */
     private Stmnt parseThrow(SymbolTable tbl) throws CompileError {
-	int t = lex.get();	// THROW
-	ASTree expr = parseExpression(tbl);
-	if (lex.get() != ';')
-	    throw new CompileError("; is missing", lex);
+        int t = lex.get();      // THROW
+        ASTree expr = parseExpression(tbl);
+        if (lex.get() != ';')
+            throw new CompileError("; is missing", lex);
 
-	return new Stmnt(t, expr);
+        return new Stmnt(t, expr);
     }
 
     /* break.statement : BREAK [ Identifier ] ";"
      */
     private Stmnt parseBreak(SymbolTable tbl)
-	throws CompileError
+        throws CompileError
     {
-	return parseContinue(tbl);
+        return parseContinue(tbl);
     }
 
     /* continue.statement : CONTINUE [ Identifier ] ";"
      */
     private Stmnt parseContinue(SymbolTable tbl)
-	throws CompileError
+        throws CompileError
     {
-	int t = lex.get();	// CONTINUE
-	Stmnt s = new Stmnt(t);
-	int t2 = lex.get();
-	if (t2 == Identifier) {
-	    s.setLeft(new Symbol(lex.getString()));
-	    t2 = lex.get();
-	}
+        int t = lex.get();      // CONTINUE
+        Stmnt s = new Stmnt(t);
+        int t2 = lex.get();
+        if (t2 == Identifier) {
+            s.setLeft(new Symbol(lex.getString()));
+            t2 = lex.get();
+        }
 
-	if (t2 != ';')
-	    throw new CompileError("; is missing", lex);
+        if (t2 != ';')
+            throw new CompileError("; is missing", lex);
 
-	return s;
+        return s;
     }
 
     /* declaration.or.expression
      *      : [ FINAL ] built-in-type array.dimension declarators
      *      | [ FINAL ] class.type array.dimension declarators
      *      | expression ';'
-     *	    | expr.list ';'		if exprList is true
+     *      | expr.list ';'             if exprList is true
      *
      * Note: FINAL is currently ignored.  This must be fixed
      * in future.
      */
     private Stmnt parseDeclarationOrExpression(SymbolTable tbl,
-					       boolean exprList)
-	throws CompileError
+                                               boolean exprList)
+        throws CompileError
     {
-	int t = lex.lookAhead();
-	while (t == FINAL) {
-	    lex.get();
-	    t = lex.lookAhead();
-	}
+        int t = lex.lookAhead();
+        while (t == FINAL) {
+            lex.get();
+            t = lex.lookAhead();
+        }
 
-	if (isBuiltinType(t)) {
-	    t = lex.get();
-	    int dim = parseArrayDimension();
-	    return parseDeclarators(tbl, new Declarator(t, dim));
-	}
-	else if (t == Identifier) {
-	    int i = nextIsClassType(0);
-	    if (i >= 0)
-		if (lex.lookAhead(i) == Identifier) {
-		    ASTList name = parseClassType(tbl);
-		    int dim = parseArrayDimension();
-		    return parseDeclarators(tbl, new Declarator(name, dim));
-		}
-	}
+        if (isBuiltinType(t)) {
+            t = lex.get();
+            int dim = parseArrayDimension();
+            return parseDeclarators(tbl, new Declarator(t, dim));
+        }
+        else if (t == Identifier) {
+            int i = nextIsClassType(0);
+            if (i >= 0)
+                if (lex.lookAhead(i) == Identifier) {
+                    ASTList name = parseClassType(tbl);
+                    int dim = parseArrayDimension();
+                    return parseDeclarators(tbl, new Declarator(name, dim));
+                }
+        }
 
-	Stmnt expr;
-	if (exprList)
-	    expr = parseExprList(tbl);
-	else
-	    expr = new Stmnt(EXPR, parseExpression(tbl));
+        Stmnt expr;
+        if (exprList)
+            expr = parseExprList(tbl);
+        else
+            expr = new Stmnt(EXPR, parseExpression(tbl));
 
-	if (lex.get() != ';')
-	    throw new CompileError("; is missing", lex);
+        if (lex.get() != ';')
+            throw new CompileError("; is missing", lex);
 
-	return expr;
+        return expr;
     }
 
     /* expr.list : ( expression ',')* expression
      */
     private Stmnt parseExprList(SymbolTable tbl) throws CompileError {
-	Stmnt expr = null;
-	for (;;) {
-	    Stmnt e = new Stmnt(EXPR, parseExpression(tbl));
-	    expr = (Stmnt)ASTList.concat(expr, new Stmnt(BLOCK, e));
-	    if (lex.lookAhead() == ',')
-		lex.get();
-	    else
-		return expr;
-	}
+        Stmnt expr = null;
+        for (;;) {
+            Stmnt e = new Stmnt(EXPR, parseExpression(tbl));
+            expr = (Stmnt)ASTList.concat(expr, new Stmnt(BLOCK, e));
+            if (lex.lookAhead() == ',')
+                lex.get();
+            else
+                return expr;
+        }
     }
 
     /* declarators : declarator [ ',' declarator ]* ';'
      */
     private Stmnt parseDeclarators(SymbolTable tbl, Declarator d)
-	throws CompileError
+        throws CompileError
     {
-	Stmnt decl = null;
-	for (;;) {
-	    decl = (Stmnt)ASTList.concat(decl,
-				new Stmnt(DECL, parseDeclarator(tbl, d)));
-	    int t = lex.get();
-	    if (t == ';')
-		return decl;
-	    else if (t != ',')
-		throw new CompileError("; is missing", lex);
-	}
+        Stmnt decl = null;
+        for (;;) {
+            decl = (Stmnt)ASTList.concat(decl,
+                                new Stmnt(DECL, parseDeclarator(tbl, d)));
+            int t = lex.get();
+            if (t == ';')
+                return decl;
+            else if (t != ',')
+                throw new CompileError("; is missing", lex);
+        }
     }
 
     /* declarator : Identifier array.dimension [ '=' initializer ]
      */
     private Declarator parseDeclarator(SymbolTable tbl, Declarator d)
-	throws CompileError
+        throws CompileError
     {
-	if (lex.get() != Identifier || d.getType() == VOID)
-	    throw new SyntaxError(lex);
+        if (lex.get() != Identifier || d.getType() == VOID)
+            throw new SyntaxError(lex);
 
-	String name = lex.getString();
-	Symbol symbol = new Symbol(name);
-	int dim = parseArrayDimension();
-	ASTree init = null;
-	if (lex.lookAhead() == '=') {
-	    lex.get();
-	    init = parseInitializer(tbl);
-	}
+        String name = lex.getString();
+        Symbol symbol = new Symbol(name);
+        int dim = parseArrayDimension();
+        ASTree init = null;
+        if (lex.lookAhead() == '=') {
+            lex.get();
+            init = parseInitializer(tbl);
+        }
 
-	Declarator decl = d.make(symbol, dim, init);
-	tbl.append(name, decl);
-	return decl;
+        Declarator decl = d.make(symbol, dim, init);
+        tbl.append(name, decl);
+        return decl;
     }
 
     /* initializer : expression | array.initializer
      */
     private ASTree parseInitializer(SymbolTable tbl) throws CompileError {
-	if (lex.lookAhead() == '{')
-	    return parseArrayInitializer(tbl);
-	else
-	    return parseExpression(tbl);
+        if (lex.lookAhead() == '{')
+            return parseArrayInitializer(tbl);
+        else
+            return parseExpression(tbl);
     }
 
     /* array.initializer :
      *  '{' (( array.initializer | expression ) ',')* '}'
      */
     private ASTree parseArrayInitializer(SymbolTable tbl)
-	throws CompileError
+        throws CompileError
     {
-	lex.get();	// '{'
-	throw new CompileError("array initializer is not supported", lex);
+        lex.get();      // '{'
+        throw new CompileError("array initializer is not supported", lex);
     }
 
     /* expression : conditional.expr
-     *		  | conditional.expr assign.op expression (right-to-left)
+     *            | conditional.expr assign.op expression (right-to-left)
      */
     public ASTree parseExpression(SymbolTable tbl) throws CompileError {
-	ASTree left = parseConditionalExpr(tbl);
-	if (!isAssignOp(lex.lookAhead()))
-	    return left;
+        ASTree left = parseConditionalExpr(tbl);
+        if (!isAssignOp(lex.lookAhead()))
+            return left;
 
-	int t = lex.get();
-	ASTree right = parseExpression(tbl);
-	return AssignExpr.makeAssign(t, left, right);
+        int t = lex.get();
+        ASTree right = parseExpression(tbl);
+        return AssignExpr.makeAssign(t, left, right);
     }
 
     private static boolean isAssignOp(int t) {
-	return t == '=' || t == MOD_E || t == AND_E
-		|| t == MUL_E || t == PLUS_E || t == MINUS_E || t == DIV_E
-		|| t == EXOR_E || t == OR_E || t == LSHIFT_E
-		|| t == RSHIFT_E || t == ARSHIFT_E;
+        return t == '=' || t == MOD_E || t == AND_E
+                || t == MUL_E || t == PLUS_E || t == MINUS_E || t == DIV_E
+                || t == EXOR_E || t == OR_E || t == LSHIFT_E
+                || t == RSHIFT_E || t == ARSHIFT_E;
     }
 
-    /* conditional.expr			(right-to-left)
-     *	   : logical.or.expr [ '?' expression ':' conditional.expr ]
+    /* conditional.expr                 (right-to-left)
+     *     : logical.or.expr [ '?' expression ':' conditional.expr ]
      */
     private ASTree parseConditionalExpr(SymbolTable tbl) throws CompileError {
-	ASTree cond = parseBinaryExpr(tbl);
-	if (lex.lookAhead() == '?') {
-	    lex.get();
-	    ASTree thenExpr = parseExpression(tbl);
-	    if (lex.get() != ':')
-		throw new CompileError(": is missing", lex);
+        ASTree cond = parseBinaryExpr(tbl);
+        if (lex.lookAhead() == '?') {
+            lex.get();
+            ASTree thenExpr = parseExpression(tbl);
+            if (lex.get() != ':')
+                throw new CompileError(": is missing", lex);
 
-	    ASTree elseExpr = parseExpression(tbl);
-	    return new CondExpr(cond, thenExpr, elseExpr);
-	}
-	else
-	    return cond;
+            ASTree elseExpr = parseExpression(tbl);
+            return new CondExpr(cond, thenExpr, elseExpr);
+        }
+        else
+            return cond;
     }
 
-    /* logical.or.expr		10 (operator precedence)
+    /* logical.or.expr          10 (operator precedence)
      * : logical.and.expr
-     * | logical.or.expr OROR logical.and.expr		left-to-right
+     * | logical.or.expr OROR logical.and.expr          left-to-right
      *
-     * logical.and.expr		9
+     * logical.and.expr         9
      * : inclusive.or.expr
      * | logical.and.expr ANDAND inclusive.or.expr
      *
-     * inclusive.or.expr	8
+     * inclusive.or.expr        8
      * : exclusive.or.expr
      * | inclusive.or.expr "|" exclusive.or.expr
      *
-     * exclusive.or.expr	7
+     * exclusive.or.expr        7
      *  : and.expr
      * | exclusive.or.expr "^" and.expr
      *
-     * and.expr			6
+     * and.expr                 6
      * : equality.expr
      * | and.expr "&" equality.expr
      *
-     * equality.expr		5
+     * equality.expr            5
      * : relational.expr
      * | equality.expr (EQ | NEQ) relational.expr
      *
-     * relational.expr		4
+     * relational.expr          4
      * : shift.expr
      * | relational.expr (LE | GE | "<" | ">") shift.expr
      * | relational.expr INSTANCEOF class.type ("[" "]")*
      *
-     * shift.expr		3
+     * shift.expr               3
      * : additive.expr
      * | shift.expr (LSHIFT | RSHIFT | ARSHIFT) additive.expr
      *
-     * additive.expr		2
+     * additive.expr            2
      * : multiply.expr
      * | additive.expr ("+" | "-") multiply.expr
      *
-     * multiply.expr		1
+     * multiply.expr            1
      * : unary.expr
      * | multiply.expr ("*" | "/" | "%") unary.expr
      */
     private ASTree parseBinaryExpr(SymbolTable tbl) throws CompileError {
-	ASTree expr = parseUnaryExpr(tbl);
-	for (;;) {
-	    int t = lex.lookAhead();
-	    int p = getOpPrecedence(t);
-	    if (p == 0)
-		return expr;
-	    else
-		expr = binaryExpr2(tbl, expr, p);
-	}
+        ASTree expr = parseUnaryExpr(tbl);
+        for (;;) {
+            int t = lex.lookAhead();
+            int p = getOpPrecedence(t);
+            if (p == 0)
+                return expr;
+            else
+                expr = binaryExpr2(tbl, expr, p);
+        }
     }
 
     private ASTree parseInstanceOf(SymbolTable tbl, ASTree expr)
-	throws CompileError
+        throws CompileError
     {
-	int t = lex.lookAhead();
-	if (isBuiltinType(t)) {
-	    lex.get();	// primitive type
-	    int dim = parseArrayDimension();
-	    return new InstanceOfExpr(t, dim, expr);
-	}
-	else {
-	    ASTList name = parseClassType(tbl);
-	    int dim = parseArrayDimension();
-	    return new InstanceOfExpr(name, dim, expr);
-	}
+        int t = lex.lookAhead();
+        if (isBuiltinType(t)) {
+            lex.get();  // primitive type
+            int dim = parseArrayDimension();
+            return new InstanceOfExpr(t, dim, expr);
+        }
+        else {
+            ASTList name = parseClassType(tbl);
+            int dim = parseArrayDimension();
+            return new InstanceOfExpr(name, dim, expr);
+        }
     }
 
     private ASTree binaryExpr2(SymbolTable tbl, ASTree expr, int prec)
-	throws CompileError
+        throws CompileError
     {
-	int t = lex.get();
-	if (t == INSTANCEOF)
-	    return parseInstanceOf(tbl, expr);
+        int t = lex.get();
+        if (t == INSTANCEOF)
+            return parseInstanceOf(tbl, expr);
 
-	ASTree expr2 = parseUnaryExpr(tbl);
-	for (;;) {
-	    int t2 = lex.lookAhead();
-	    int p2 = getOpPrecedence(t2);
-	    if (p2 != 0 && prec > p2)
-		expr2 = binaryExpr2(tbl, expr2, p2);
-	    else
-		return BinExpr.makeBin(t, expr, expr2);
-	}
+        ASTree expr2 = parseUnaryExpr(tbl);
+        for (;;) {
+            int t2 = lex.lookAhead();
+            int p2 = getOpPrecedence(t2);
+            if (p2 != 0 && prec > p2)
+                expr2 = binaryExpr2(tbl, expr2, p2);
+            else
+                return BinExpr.makeBin(t, expr, expr2);
+        }
     }
 
     // !"#$%&'(    )*+,-./0    12345678    9:;<=>?
     private static final int[] binaryOpPrecedence
-	=  { 0, 0, 0, 0, 1, 6, 0, 0,
-	     0, 1, 2, 0, 2, 0, 1, 0,
-	     0, 0, 0, 0, 0, 0, 0, 0,
-	     0, 0, 0, 4, 0, 4, 0 };
+        =  { 0, 0, 0, 0, 1, 6, 0, 0,
+             0, 1, 2, 0, 2, 0, 1, 0,
+             0, 0, 0, 0, 0, 0, 0, 0,
+             0, 0, 0, 4, 0, 4, 0 };
 
     private int getOpPrecedence(int c) {
-	if ('!' <= c && c <= '?')
-	    return binaryOpPrecedence[c - '!'];
-	else if (c == '^')
-	    return 7;
-	else if (c == '|')
-	    return 8;
-	else if (c == ANDAND)
-	    return 9;
-	else if (c == OROR)
-	    return 10;
-	else if (c == EQ || c == NEQ)
-	    return 5;
-	else if (c == LE || c == GE || c == INSTANCEOF)
-	    return 4;
-	else if (c == LSHIFT || c == RSHIFT || c == ARSHIFT)
-	    return 3;
-	else
-	    return 0;	// not a binary operator
+        if ('!' <= c && c <= '?')
+            return binaryOpPrecedence[c - '!'];
+        else if (c == '^')
+            return 7;
+        else if (c == '|')
+            return 8;
+        else if (c == ANDAND)
+            return 9;
+        else if (c == OROR)
+            return 10;
+        else if (c == EQ || c == NEQ)
+            return 5;
+        else if (c == LE || c == GE || c == INSTANCEOF)
+            return 4;
+        else if (c == LSHIFT || c == RSHIFT || c == ARSHIFT)
+            return 3;
+        else
+            return 0;   // not a binary operator
     }
 
     /* unary.expr : "++"|"--" unary.expr
-		  | "+"|"-" unary.expr
-		  | "!"|"~" unary.expr
-		  | cast.expr
-		  | postfix.expr
+                  | "+"|"-" unary.expr
+                  | "!"|"~" unary.expr
+                  | cast.expr
+                  | postfix.expr
 
        unary.expr.not.plus.minus is a unary expression starting without
        "+", "-", "++", or "--".
      */
     private ASTree parseUnaryExpr(SymbolTable tbl) throws CompileError {
-	int t;
-	switch (lex.lookAhead()) {
-	case '+' :
-	case '-' :
-	case PLUSPLUS :
-	case MINUSMINUS :
-	case '!' :
-	case '~' :
-	    t = lex.get();
-	    return new Expr(t, parseUnaryExpr(tbl));
-	case '(' :
-	    return parseCast(tbl);
-	default :
-	    return parsePostfix(tbl);
-	}
+        int t;
+        switch (lex.lookAhead()) {
+        case '+' :
+        case '-' :
+        case PLUSPLUS :
+        case MINUSMINUS :
+        case '!' :
+        case '~' :
+            t = lex.get();
+            return new Expr(t, parseUnaryExpr(tbl));
+        case '(' :
+            return parseCast(tbl);
+        default :
+            return parsePostfix(tbl);
+        }
     }
 
     /* cast.expr : "(" builtin.type ("[" "]")* ")" unary.expr
-		 | "(" class.type ("[" "]")* ")" unary.expr2
+                 | "(" class.type ("[" "]")* ")" unary.expr2
 
        unary.expr2 is a unary.expr begining with "(", NULL, StringL,
        Identifier, THIS, SUPER, or NEW.
      */
     private ASTree parseCast(SymbolTable tbl) throws CompileError {
-	int t = lex.lookAhead(1);
-	if (isBuiltinType(t)) {
-	    lex.get();	// '('
-	    lex.get();	// primitive type
-	    int dim = parseArrayDimension();
-	    if (lex.get() != ')')
-		throw new CompileError(") is missing", lex);
+        int t = lex.lookAhead(1);
+        if (isBuiltinType(t)) {
+            lex.get();  // '('
+            lex.get();  // primitive type
+            int dim = parseArrayDimension();
+            if (lex.get() != ')')
+                throw new CompileError(") is missing", lex);
 
-	    return new CastExpr(t, dim, parseUnaryExpr(tbl));
-	}
-	else if (t == Identifier && nextIsClassCast()) {
-	    lex.get();	// '('
-	    ASTList name = parseClassType(tbl);
-	    int dim = parseArrayDimension();
-	    if (lex.get() != ')')
-		throw new CompileError(") is missing", lex);
+            return new CastExpr(t, dim, parseUnaryExpr(tbl));
+        }
+        else if (t == Identifier && nextIsClassCast()) {
+            lex.get();  // '('
+            ASTList name = parseClassType(tbl);
+            int dim = parseArrayDimension();
+            if (lex.get() != ')')
+                throw new CompileError(") is missing", lex);
 
-	    return new CastExpr(name, dim, parseUnaryExpr(tbl));
-	}
-	else
-	    return parsePostfix(tbl);
+            return new CastExpr(name, dim, parseUnaryExpr(tbl));
+        }
+        else
+            return parsePostfix(tbl);
     }
 
     private boolean nextIsClassCast() {
-	int i = nextIsClassType(1);
-	if (i < 0)
-	    return false;
+        int i = nextIsClassType(1);
+        if (i < 0)
+            return false;
 
-	int t = lex.lookAhead(i);
-	if (t != ')')
-	    return false;
+        int t = lex.lookAhead(i);
+        if (t != ')')
+            return false;
 
-	t = lex.lookAhead(i + 1);
-	return t == '(' || t == NULL || t == StringL
-	       || t == Identifier || t == THIS || t == SUPER || t == NEW
-	       || t == TRUE || t == FALSE || t == LongConstant
-	       || t == IntConstant || t == CharConstant
-	       || t == DoubleConstant || t == FloatConstant;
+        t = lex.lookAhead(i + 1);
+        return t == '(' || t == NULL || t == StringL
+               || t == Identifier || t == THIS || t == SUPER || t == NEW
+               || t == TRUE || t == FALSE || t == LongConstant
+               || t == IntConstant || t == CharConstant
+               || t == DoubleConstant || t == FloatConstant;
     }
 
     private int nextIsClassType(int i) {
-	int t;
-	while (lex.lookAhead(++i) == '.')
-	    if (lex.lookAhead(++i) != Identifier)
-		return -1;
+        int t;
+        while (lex.lookAhead(++i) == '.')
+            if (lex.lookAhead(++i) != Identifier)
+                return -1;
 
-	while ((t = lex.lookAhead(i++)) == '[')
-	    if (lex.lookAhead(i++) != ']')
-		return -1;
+        while ((t = lex.lookAhead(i++)) == '[')
+            if (lex.lookAhead(i++) != ']')
+                return -1;
 
-	return i - 1;
+        return i - 1;
     }
 
     /* array.dimension : [ "[" "]" ]*
      */
     private int parseArrayDimension() throws CompileError {
-	int arrayDim = 0;
-	while (lex.lookAhead() == '[') {
-	    ++arrayDim;
-	    lex.get();
-	    if (lex.get() != ']')
-		throw new CompileError("] is missing", lex);
-	}
+        int arrayDim = 0;
+        while (lex.lookAhead() == '[') {
+            ++arrayDim;
+            lex.get();
+            if (lex.get() != ']')
+                throw new CompileError("] is missing", lex);
+        }
 
-	return arrayDim;
+        return arrayDim;
     }
 
     /* class.type : Identifier ( "." Identifier )*
      */
     private ASTList parseClassType(SymbolTable tbl) throws CompileError {
-	ASTList list = null;
-	for (;;) {
-	    if (lex.get() != Identifier)
-		throw new SyntaxError(lex);
+        ASTList list = null;
+        for (;;) {
+            if (lex.get() != Identifier)
+                throw new SyntaxError(lex);
 
-	    list = ASTList.append(list, new Symbol(lex.getString()));
-	    if (lex.lookAhead() == '.')
-		lex.get();
-	    else
-		break;
-	}
+            list = ASTList.append(list, new Symbol(lex.getString()));
+            if (lex.lookAhead() == '.')
+                lex.get();
+            else
+                break;
+        }
 
-	return list;
+        return list;
     }
 
     /* postfix.expr : number.literal
-     *		    | primary.expr
-     *		    | method.expr
-     *		    | postfix.expr "++" | "--"
-     *		    | postfix.expr "[" array.size "]"
-     *		    | postfix.expr "." Identifier
-     *		    | postfix.expr "#" Identifier
+     *              | primary.expr
+     *              | method.expr
+     *              | postfix.expr "++" | "--"
+     *              | postfix.expr "[" array.size "]"
+     *              | postfix.expr "." Identifier
+     *              | postfix.expr "#" Identifier
      *
      * "#" is not an operator of regular Java.  It separates
      * a class name and a member name in an expression for static member
      * access.  For example,
-     *     java.lang.Integer.toString(3)	in regular Java
+     *     java.lang.Integer.toString(3)        in regular Java
      * must be written like this:
-     *     java.lang.Integer#toString(3)	for this compiler.
+     *     java.lang.Integer#toString(3)        for this compiler.
      */
     private ASTree parsePostfix(SymbolTable tbl) throws CompileError {
-	int token = lex.lookAhead();
-	switch (token) {
-	case LongConstant :
-	case IntConstant :
-	case CharConstant :
-	    lex.get();
-	    return new IntConst(lex.getLong(), token);
-	case DoubleConstant :
-	case FloatConstant :
-	    lex.get();
-	    return new DoubleConst(lex.getDouble(), token);
-	default :
-	    break;
-	}
+        int token = lex.lookAhead();
+        switch (token) {
+        case LongConstant :
+        case IntConstant :
+        case CharConstant :
+            lex.get();
+            return new IntConst(lex.getLong(), token);
+        case DoubleConstant :
+        case FloatConstant :
+            lex.get();
+            return new DoubleConst(lex.getDouble(), token);
+        default :
+            break;
+        }
 
-	String str;
-	ASTree index;
-	ASTree expr = parsePrimaryExpr(tbl);
-	int t;
-	while (true) {
-	    switch (lex.lookAhead()) {
-	    case '(' :
-		expr = parseMethodCall(tbl, expr);
-		break;
-	    case '[' :
-		index = parseArrayIndex(tbl);
-		if (index == null)
-		    throw new SyntaxError(lex);
+        String str;
+        ASTree index;
+        ASTree expr = parsePrimaryExpr(tbl);
+        int t;
+        while (true) {
+            switch (lex.lookAhead()) {
+            case '(' :
+                expr = parseMethodCall(tbl, expr);
+                break;
+            case '[' :
+                index = parseArrayIndex(tbl);
+                if (index == null)
+                    throw new SyntaxError(lex);
 
-		expr = Expr.make(ARRAY, expr, index);
-		break;
-	    case PLUSPLUS :
-	    case MINUSMINUS :
-		t = lex.get();
-		expr = Expr.make(t, null, expr);
-		break;
-	    case '.' :
-		lex.get();
-		if (lex.get() != Identifier)
-		    throw new CompileError("missing member name", lex);
+                expr = Expr.make(ARRAY, expr, index);
+                break;
+            case PLUSPLUS :
+            case MINUSMINUS :
+                t = lex.get();
+                expr = Expr.make(t, null, expr);
+                break;
+            case '.' :
+                lex.get();
+                if (lex.get() != Identifier)
+                    throw new CompileError("missing member name", lex);
 
-		expr = Expr.make('.', expr, new Member(lex.getString()));
-		break;
-	    case '#' :
-		lex.get();
-		t = lex.get();
-		if (t == CLASS)
-		    str = "class";
-		else if (t == Identifier)
-		    str = lex.getString();
-		else
-		    throw new CompileError("missing static member name", lex);
+                expr = Expr.make('.', expr, new Member(lex.getString()));
+                break;
+            case '#' :
+                lex.get();
+                t = lex.get();
+                if (t == CLASS)
+                    str = "class";
+                else if (t == Identifier)
+                    str = lex.getString();
+                else
+                    throw new CompileError("missing static member name", lex);
 
-		expr = Expr.make(MEMBER, toClassName(expr, null),
-				 new Member(str));
-		break;
-	    default :
-		return expr;
-	    }
-	}
+                expr = Expr.make(MEMBER, toClassName(expr, null),
+                                 new Member(str));
+                break;
+            default :
+                return expr;
+            }
+        }
     }
 
     /* method.call : method.expr "(" argument.list ")"
      * method.expr : THIS | SUPER | Identifier
-     *		   | postfix.expr "." Identifier
-     *		   | postfix.expr "#" Identifier
+     *             | postfix.expr "." Identifier
+     *             | postfix.expr "#" Identifier
      */
     private ASTree parseMethodCall(SymbolTable tbl, ASTree expr)
-	throws CompileError
+        throws CompileError
     {
-	if (expr instanceof Keyword) {
-	    int token = ((Keyword)expr).get();
-	    if (token != THIS && token != SUPER)
-		throw new SyntaxError(lex);
-	}
-	else if (expr instanceof Symbol)	// Identifier
-	    ;
-	else if (expr instanceof Expr) {
-	    int op = ((Expr)expr).getOperator();
-	    if (op != '.' && op != MEMBER)
-		throw new SyntaxError(lex);
-	}
+        if (expr instanceof Keyword) {
+            int token = ((Keyword)expr).get();
+            if (token != THIS && token != SUPER)
+                throw new SyntaxError(lex);
+        }
+        else if (expr instanceof Symbol)        // Identifier
+            ;
+        else if (expr instanceof Expr) {
+            int op = ((Expr)expr).getOperator();
+            if (op != '.' && op != MEMBER)
+                throw new SyntaxError(lex);
+        }
 
-	return Expr.make(CALL, expr, parseArgumentList(tbl));
+        return Expr.make(CALL, expr, parseArgumentList(tbl));
     }
 
 
     private ASTList toClassName(ASTree name, ASTList tail)
-	throws CompileError
+        throws CompileError
     {
-	if (name instanceof Symbol)
-	    return new ASTList(name, tail);
-	else if (name instanceof Expr) {
-	    Expr expr = (Expr)name;
-	    if (expr.getOperator() == '.')
-		return toClassName(expr.oprand1(),
-				   new ASTList(expr.oprand2(), tail));
-	}
+        if (name instanceof Symbol)
+            return new ASTList(name, tail);
+        else if (name instanceof Expr) {
+            Expr expr = (Expr)name;
+            if (expr.getOperator() == '.')
+                return toClassName(expr.oprand1(),
+                                   new ASTList(expr.oprand2(), tail));
+        }
 
-	throw new CompileError("bad static member access", lex);
+        throw new CompileError("bad static member access", lex);
     }
 
     /* primary.expr : THIS | SUPER | TRUE | FALSE | NULL
-     *		    | StringL
-     *		    | Identifier
-     *		    | NEW new.expr
-     *		    | "(" expression ")"
+     *              | StringL
+     *              | Identifier
+     *              | NEW new.expr
+     *              | "(" expression ")"
      *
      * Identifier represents either a local variable name, a member name,
      * or a class name.
      */
     private ASTree parsePrimaryExpr(SymbolTable tbl) throws CompileError {
-	int t;
-	String name;
-	Declarator decl;
-	ASTree expr;
+        int t;
+        String name;
+        Declarator decl;
+        ASTree expr;
 
-	switch (t = lex.get()) {
-	case THIS :
-	case SUPER :
-	case TRUE :
-	case FALSE :
-	case NULL :
-	    return new Keyword(t);
-	case Identifier :
-	    name = lex.getString();
-	    decl = tbl.lookup(name);
-	    if (decl == null)
-		return new Member(name);	// this or static member
-	    else
-		return new Variable(name, decl); // local variable
-	case StringL :
-	    return new StringL(lex.getString());
-	case NEW :
-	    return parseNew(tbl);
-	case '(' :
-	    expr = parseExpression(tbl);
-	    if (lex.get() == ')')
-		return expr;
-	    else
-		throw new CompileError(") is missing", lex);
-	default :
-	    throw new SyntaxError(lex);
-	}
+        switch (t = lex.get()) {
+        case THIS :
+        case SUPER :
+        case TRUE :
+        case FALSE :
+        case NULL :
+            return new Keyword(t);
+        case Identifier :
+            name = lex.getString();
+            decl = tbl.lookup(name);
+            if (decl == null)
+                return new Member(name);        // this or static member
+            else
+                return new Variable(name, decl); // local variable
+        case StringL :
+            return new StringL(lex.getString());
+        case NEW :
+            return parseNew(tbl);
+        case '(' :
+            expr = parseExpression(tbl);
+            if (lex.get() == ')')
+                return expr;
+            else
+                throw new CompileError(") is missing", lex);
+        default :
+            throw new SyntaxError(lex);
+        }
     }
 
     /* new.expr : class.type "(" argument.list ")"
-     *		| class.type     array.size [ array.initializer ]
-     *		| primitive.type array.size [ array.initializer ]
+     *          | class.type     array.size [ array.initializer ]
+     *          | primitive.type array.size [ array.initializer ]
      */
     private NewExpr parseNew(SymbolTable tbl) throws CompileError {
-	ASTree init = null;
-    	int t = lex.lookAhead();
-	if (isBuiltinType(t)) {
-	    lex.get();
-	    ASTList size = parseArraySize(tbl);
-	    if (lex.lookAhead() == '{')
-		init = parseArrayInitializer(tbl);
+        ASTree init = null;
+        int t = lex.lookAhead();
+        if (isBuiltinType(t)) {
+            lex.get();
+            ASTList size = parseArraySize(tbl);
+            if (lex.lookAhead() == '{')
+                init = parseArrayInitializer(tbl);
 
-	    return new NewExpr(t, size, init);
-	}
-	else if (t == Identifier) {
-	    ASTList name = parseClassType(tbl);
-	    t = lex.lookAhead();
-	    if (t == '(') {
-		ASTList args = parseArgumentList(tbl);
-		return new NewExpr(name, args);
-	    }
-	    else if (t == '[') {
-		ASTList size = parseArraySize(tbl);
-		if (lex.lookAhead() == '{')
-		    init = parseArrayInitializer(tbl);
+            return new NewExpr(t, size, init);
+        }
+        else if (t == Identifier) {
+            ASTList name = parseClassType(tbl);
+            t = lex.lookAhead();
+            if (t == '(') {
+                ASTList args = parseArgumentList(tbl);
+                return new NewExpr(name, args);
+            }
+            else if (t == '[') {
+                ASTList size = parseArraySize(tbl);
+                if (lex.lookAhead() == '{')
+                    init = parseArrayInitializer(tbl);
 
-		return NewExpr.makeObjectArray(name, size, init);
-	    }
-	}
+                return NewExpr.makeObjectArray(name, size, init);
+            }
+        }
 
-	throw new SyntaxError(lex);
+        throw new SyntaxError(lex);
     }
 
     /* array.size : [ array.index ]*
      */
     private ASTList parseArraySize(SymbolTable tbl) throws CompileError {
-	ASTList list = null;
-	while (lex.lookAhead() == '[')
-	    list = ASTList.append(list, parseArrayIndex(tbl));
+        ASTList list = null;
+        while (lex.lookAhead() == '[')
+            list = ASTList.append(list, parseArrayIndex(tbl));
 
-	return list;
+        return list;
     }
 
     /* array.index : "[" [ expression ] "]"
      */
     private ASTree parseArrayIndex(SymbolTable tbl) throws CompileError {
-	lex.get();	// '['
-	if (lex.lookAhead() == ']') {
-	    lex.get();
-	    return null;
-	}
-	else {
-	    ASTree index = parseExpression(tbl);
-	    if (lex.get() != ']')
-		throw new CompileError("] is missing", lex);
+        lex.get();      // '['
+        if (lex.lookAhead() == ']') {
+            lex.get();
+            return null;
+        }
+        else {
+            ASTree index = parseExpression(tbl);
+            if (lex.get() != ']')
+                throw new CompileError("] is missing", lex);
 
-	    return index;
-	}
+            return index;
+        }
     }
 
     /* argument.list : "(" [ expression [ "," expression ]* ] ")"
      */
     private ASTList parseArgumentList(SymbolTable tbl) throws CompileError {
-	if (lex.get() != '(')
-	    throw new CompileError("( is missing", lex);
+        if (lex.get() != '(')
+            throw new CompileError("( is missing", lex);
 
-	ASTList list = null;
-	if (lex.lookAhead() != ')')
-	    for (;;) {
-		list = ASTList.append(list, parseExpression(tbl));
-		if (lex.lookAhead() == ',')
-		    lex.get();
-		else
-		    break;
-	    }
+        ASTList list = null;
+        if (lex.lookAhead() != ')')
+            for (;;) {
+                list = ASTList.append(list, parseExpression(tbl));
+                if (lex.lookAhead() == ',')
+                    lex.get();
+                else
+                    break;
+            }
 
-	if (lex.get() != ')')
-	    throw new CompileError(") is missing", lex);
+        if (lex.get() != ')')
+            throw new CompileError(") is missing", lex);
 
-	return list;
+        return list;
     }
 }
 

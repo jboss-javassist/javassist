@@ -1,28 +1,17 @@
 /*
- * This file is part of the Javassist toolkit.
+ * Javassist, a Java-bytecode translator toolkit.
+ * Copyright (C) 1999-2003 Shigeru Chiba. All Rights Reserved.
  *
- * The contents of this file are subject to the Mozilla Public License
- * Version 1.1 (the "License"); you may not use this file except in
- * compliance with the License.  You may obtain a copy of the License at
- * either http://www.mozilla.org/MPL/.
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
  *
- * Software distributed under the License is distributed on an "AS IS"
- * basis, WITHOUT WARRANTY OF ANY KIND, either express or implied.  See
- * the License for the specific language governing rights and limitations
- * under the License.
- *
- * The Original Code is Javassist.
- *
- * The Initial Developer of the Original Code is Shigeru Chiba.  Portions
- * created by Shigeru Chiba are Copyright (C) 1999-2003 Shigeru Chiba.
- * All Rights Reserved.
- *
- * Contributor(s):
- *
- * The development of this software is supported in part by the PRESTO
- * program (Sakigake Kenkyu 21) of Japan Science and Technology Corporation.
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  */
-
 package javassist.runtime;
 
 /**
@@ -44,13 +33,13 @@ public class Desc {
     public static boolean useContextClassLoader = false;
 
     private static Class getClassObject(String name)
-	throws ClassNotFoundException
+        throws ClassNotFoundException
     {
-	if (useContextClassLoader)
-	    return Thread.currentThread().getContextClassLoader()
-		   .loadClass(name);
-	else
-	    return Class.forName(name);
+        if (useContextClassLoader)
+            return Thread.currentThread().getContextClassLoader()
+                   .loadClass(name);
+        else
+            return Class.forName(name);
     }
 
     /**
@@ -58,12 +47,12 @@ public class Desc {
      * It is used for implementing <code>$class</code>.
      */
     public static Class getClazz(String name) {
-	try {
-	    return getClassObject(name);
-	}
-	catch (ClassNotFoundException e) {
-	    throw new RuntimeException("$class: internal error");
-	}
+        try {
+            return getClassObject(name);
+        }
+        catch (ClassNotFoundException e) {
+            throw new RuntimeException("$class: internal error");
+        }
     }
 
     /**
@@ -71,10 +60,10 @@ public class Desc {
      * signature.  It is used for implementing <code>$sig</code>.
      */
     public static Class[] getParams(String desc) {
-	if (desc.charAt(0) != '(')
-	    throw new RuntimeException("$sig: internal error");
+        if (desc.charAt(0) != '(')
+            throw new RuntimeException("$sig: internal error");
 
-	return getType(desc, desc.length(), 1, 0);
+        return getType(desc, desc.length(), 1, 0);
     }
 
     /**
@@ -82,86 +71,87 @@ public class Desc {
      * It is used for implementing <code>$type</code>.
      */
     public static Class getType(String desc) {
-	Class[] result = getType(desc, desc.length(), 0, 0);
-	if (result == null || result.length != 1)
-	    throw new RuntimeException("$type: internal error");
+        Class[] result = getType(desc, desc.length(), 0, 0);
+        if (result == null || result.length != 1)
+            throw new RuntimeException("$type: internal error");
 
-	return result[0];
+        return result[0];
     }
 
     private static Class[] getType(String desc, int descLen,
-				   int start, int num) {
-	Class clazz;
-	if (start >= descLen)
-	    return new Class[num];
+                                   int start, int num) {
+        Class clazz;
+        if (start >= descLen)
+            return new Class[num];
 
-	char c = desc.charAt(start);
-	switch (c) {
-	case 'Z' :
-	    clazz = Boolean.TYPE;
-	    break;
-	case 'C' :
-	    clazz = Character.TYPE;
-	    break;
-	case 'B' :
-	    clazz = Byte.TYPE;
-	    break;
-	case 'S' :
-	    clazz = Short.TYPE;
-	    break;
-	case 'I' :
-	    clazz = Integer.TYPE;
-	    break;
-	case 'J' :
-	    clazz = Long.TYPE;
-	    break;
-	case 'F' :
-	    clazz = Float.TYPE;
-	    break;
-	case 'D' :
-	    clazz = Double.TYPE;
-	    break;
-	case 'V' :
-	    clazz = Void.TYPE;
-	    break;
-	case 'L' :
-	case '[' :
-	    return getClassType(desc, descLen, start, num);
-	default :
-	    return new Class[num];
-	}
+        char c = desc.charAt(start);
+        switch (c) {
+        case 'Z' :
+            clazz = Boolean.TYPE;
+            break;
+        case 'C' :
+            clazz = Character.TYPE;
+            break;
+        case 'B' :
+            clazz = Byte.TYPE;
+            break;
+        case 'S' :
+            clazz = Short.TYPE;
+            break;
+        case 'I' :
+            clazz = Integer.TYPE;
+            break;
+        case 'J' :
+            clazz = Long.TYPE;
+            break;
+        case 'F' :
+            clazz = Float.TYPE;
+            break;
+        case 'D' :
+            clazz = Double.TYPE;
+            break;
+        case 'V' :
+            clazz = Void.TYPE;
+            break;
+        case 'L' :
+        case '[' :
+            return getClassType(desc, descLen, start, num);
+        default :
+            return new Class[num];
+        }
 
-	Class[] result = getType(desc, descLen, start + 1, num + 1);
-	result[num] = clazz;
-	return result;
+        Class[] result = getType(desc, descLen, start + 1, num + 1);
+        result[num] = clazz;
+        return result;
     }
 
     private static Class[] getClassType(String desc, int descLen,
-					int start, int num) {
-	int end = start;
-	while (desc.charAt(end) == '[')
-	    ++end;
+                                        int start, int num) {
+        int end = start;
+        while (desc.charAt(end) == '[')
+            ++end;
 
-	if (desc.charAt(end) == 'L') {
-	    end = desc.indexOf(';', end);
-	    if (end < 0)
-		throw new IndexOutOfBoundsException("bad descriptor");
-	}
+        if (desc.charAt(end) == 'L') {
+            end = desc.indexOf(';', end);
+            if (end < 0)
+                throw new IndexOutOfBoundsException("bad descriptor");
+        }
 
-	String cname;
-	if (desc.charAt(start) == 'L')
-	    cname = desc.substring(start + 1, end);
-	else
-	    cname = desc.substring(start, end + 1);
+        String cname;
+        if (desc.charAt(start) == 'L')
+            cname = desc.substring(start + 1, end);
+        else
+            cname = desc.substring(start, end + 1);
 
-	Class[] result = getType(desc, descLen, end + 1, num + 1);
-	try {
-	    result[num] = getClassObject(cname.replace('/', '.'));
-	}
-	catch (ClassNotFoundException e) {
-	    throw new RuntimeException(e);
-	}
+        Class[] result = getType(desc, descLen, end + 1, num + 1);
+        try {
+            result[num] = getClassObject(cname.replace('/', '.'));
+        }
+        catch (ClassNotFoundException e) {
+            // "new RuntimeException(e)" is not available in JDK 1.3.
+            throw new RuntimeException(e.getMessage());
+        }
 
-	return result;
+        return result;
     }
 }
