@@ -418,8 +418,13 @@ public class ClassPool {
     {
         ByteArrayOutputStream barray = new ByteArrayOutputStream();
         DataOutputStream out = new DataOutputStream(barray);
-        write(classname, out, true);
-        out.close();
+        try {
+            write(classname, out, true);
+        }
+        finally {
+            out.close();
+        }
+
         return barray.toByteArray();
     }
 

@@ -98,23 +98,26 @@ public class URLClassPath implements ClassPath {
                 directory + classname.replace('.', '/') + ".class");
         int size = con.getContentLength();
         InputStream s = con.getInputStream();
-        if (size <= 0)
-            b = ClassPoolTail.readStream(s);
-        else {
-            b = new byte[size];
-            int len = 0;
-            do {
-                int n = s.read(b, len, size - len);
-                if (n < 0) {
-                    s.close();
-                    throw new IOException("the stream was closed: "
-                                          + classname);
-                }
-                len += n;
-            } while (len < size);
+        try {
+            if (size <= 0)
+                b = ClassPoolTail.readStream(s);
+            else {
+                b = new byte[size];
+                int len = 0;
+                do {
+                    int n = s.read(b, len, size - len);
+                    if (n < 0)
+                        throw new IOException("the stream was closed: "
+                                              + classname);
+
+                    len += n;
+                } while (len < size);
+            }
+        }
+        finally {
+            s.close();
         }
 
-        s.close();
         return b;
     }
 

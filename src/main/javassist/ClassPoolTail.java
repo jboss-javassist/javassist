@@ -256,8 +256,14 @@ final class ClassPoolTail extends ClassPool {
         throws NotFoundException, IOException
     {
         InputStream fin = openClassfile(classname);
-        byte[] b = readStream(fin);
-        fin.close();
+        byte[] b;
+        try {
+            b = readStream(fin);
+        }
+        finally {
+            fin.close();
+        }
+
         return b;
     }
 
