@@ -688,13 +688,16 @@ public class Bytecode implements Opcode {
     /**
      * Appends instructions for loading all the parameters onto the
      * operand stack.
+     *
+     * @param offset	the index of the first parameter.  It is 0
+     *			if the method is static.  Otherwise, it is 1.
      */
-    public int addLoadParameters(CtClass[] params) {
+    public int addLoadParameters(CtClass[] params, int offset) {
         int stacksize = 0;
         if (params != null) {
             int n = params.length;
             for (int i = 0; i < n; ++i)
-                stacksize += addLoad(stacksize + 1, params[i]);
+                stacksize += addLoad(stacksize + offset, params[i]);
         }
 
         return stacksize;

@@ -200,7 +200,11 @@ public class Javac {
                 Parser p = new Parser(new Lex(src));
                 SymbolTable stb = new SymbolTable(stable);
                 Stmnt s = p.parseStatement(stb);
-                gen.atMethodBody(s, method instanceof CtConstructor, isVoid);
+                boolean callSuper = false;
+                if (method instanceof CtConstructor)
+                    callSuper = !((CtConstructor)method).isClassInitializer();
+
+                gen.atMethodBody(s, callSuper, isVoid);
             }
 
             return bytecode;

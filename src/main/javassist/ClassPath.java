@@ -32,6 +32,8 @@ import java.io.InputStream;
 public interface ClassPath {
     /**
      * Opens a class file.
+     * This method may be called just to examine whether the class file
+     * exists as well as to read the contents of the file.
      *
      * <p>This method can return null if the specified class file is not
      * found.  If null is returned, the next search path is examined.
@@ -39,9 +41,11 @@ public interface ClassPath {
      * so that the search is terminated.
      *
      * <p>This method should not modify the contents of the class file.
+     * Use <code>javassist.Translator</code> for modification.
      *
      * @param classname         a fully-qualified class name
      * @return          the input stream for reading a class file
+     * @see javassist.Translator
      */
     InputStream openClassfile(String classname) throws NotFoundException;
 

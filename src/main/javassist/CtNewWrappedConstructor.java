@@ -63,7 +63,7 @@ class CtNewWrappedConstructor extends CtNewWrappedMethod {
             code.addInvokespecial(superclazz, "<init>", "()V");
         }
         else if (howToCallSuper == PASS_PARAMS) {
-            stacksize = code.addLoadParameters(parameters) + 1;
+            stacksize = code.addLoadParameters(parameters, 1) + 1;
             code.addInvokespecial(superclazz, "<init>",
                                   Descriptor.ofConstructor(parameters));
         }

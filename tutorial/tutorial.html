@@ -317,6 +317,13 @@ modified at load time.  The users of Javassist can define their own
 version of class loader but they can also use a class loader provided
 by Javassist.
 
+<p>Using a class loader is not easy.  Especially if you are a beginner,
+you should separate your program into an application program and an
+instrumentation program and each of the two programs should be loaded
+by a single class loader.  You should
+avoid loading part of the application program with the default class loader
+and the rest of the program with a user-defined class loader.
+
 <p><br>
 
 <h3>4.1 Using <code>javassist.Loader</code></h3>
@@ -461,6 +468,33 @@ a runtime exception because of type mismatch; the type of
 <code>size.win</code> is the class <code>Point</code> loaded by
 <code>L1</code> whereas the type of <code>this</code> is the class
 <code>Point</code> loaded by <code>L2</code>.
+
+<p><code>javassist.Loader</code> searches for classes in a different
+order from <code>java.lang.ClassLoader</code>.
+<code>ClassLoader</code> first delegates the loading operations to
+the parent class loader and then attempts to load the classes
+only if the parent class loader cannot find them.
+On the other hand,
+<code>javassist.Loader</code> attempts
+to load the classes before delegating to the parent class loader.
+It delegates only if:
+
+<ul><li>the classes are not found by using the <code>ClassPool</code>
+object, or
+
+<p><li>the classes have been specified by using
+<code>delegateLoadingOf()</code>
+to be loaded by the parent class loader.
+</ul>
+
+<p>This search order allows loading modified classes by Javassist into
+the JVM.  However, it delegates to the parent class loader if it fails
+to find modified classes for some reason.  Once a class is loaded by
+the parent class loader, the other classes used by that class will be
+also loaded without modification by the parent class loader.  <em>If your
+program fails to load a modified class,</em> you should make sure whether
+all the classes using that class have been loaded by
+<code>javassist.Loader</code>.
 
 <p><br>
 

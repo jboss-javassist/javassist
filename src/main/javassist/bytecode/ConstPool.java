@@ -1001,15 +1001,28 @@ class ClassInfo extends ConstInfo {
     public int getTag() { return tag; }
 
     public void renameClass(ConstPool cp, String oldName, String newName) {
-        if (cp.getUtf8Info(name).equals(oldName))
+        String nameStr = cp.getUtf8Info(name);
+        if (nameStr.equals(oldName))
             name = cp.addUtf8Info(newName);
+        else if (nameStr.charAt(0) == '[') {
+            String nameStr2 = Descriptor.rename(nameStr, oldName, newName);
+            if (nameStr != nameStr2)
+                name = cp.addUtf8Info(nameStr2);
+        }
     }
 
     public void renameClass(ConstPool cp, Map map) {
         String oldName = cp.getUtf8Info(name);
-        String newName = (String)map.get(oldName);
-        if (newName != null && !newName.equals(oldName))
-            name = cp.addUtf8Info(newName);
+        if (oldName.charAt(0) == '[') {
+            String newName = Descriptor.rename(oldName, map);
+            if (oldName != newName)
+                name = cp.addUtf8Info(newName);
+        }
+        else {
+            String newName = (String)map.get(oldName);
+            if (newName != null && !newName.equals(oldName))
+                name = cp.addUtf8Info(newName);
+        }
     }
 
     public int copy(ConstPool src, ConstPool dest, Map map) {

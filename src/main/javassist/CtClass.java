@@ -35,7 +35,7 @@ public abstract class CtClass {
     /**
      * The version number of this release.
      */
-    public static final String version = "2.5.1";
+    public static final String version = "2.6";
 
     static final String javaLangObject = "java.lang.Object";
 
@@ -377,7 +377,9 @@ public abstract class CtClass {
     /**
      * Obtains the class object representing the superclass of the
      * class.
-     * It returns null if the class is <code>java.lang.Object</code>.
+     * It returns null if this object represents the
+     * <code>java.lang.Object</code> class and thus it does not have
+     * the super class.
      */
     public CtClass getSuperclass() throws NotFoundException {
         return null;

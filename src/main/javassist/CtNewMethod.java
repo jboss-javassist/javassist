@@ -307,12 +307,12 @@ public class CtNewMethod {
         CtClass[] params = delegate.getParameterTypes();
         int s;
         if (isStatic) {
-            s = code.addLoadParameters(params);
+            s = code.addLoadParameters(params, 0);
             code.addInvokestatic(deleClass, methodName, desc);
         }
         else {
             code.addLoad(0, deleClass);
-            s = code.addLoadParameters(params);
+            s = code.addLoadParameters(params, 1);
             code.addInvokespecial(deleClass, methodName, desc);
         }
 

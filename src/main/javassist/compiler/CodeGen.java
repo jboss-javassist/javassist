@@ -250,6 +250,10 @@ public abstract class CodeGen extends Visitor implements Opcode, TokenId {
                      method.getReturn().getType() == VOID);
     }
 
+    /**
+     * @param isCons	true if super() must be called.
+     *			false if the method is a class initializer.
+     */
     public void atMethodBody(Stmnt s, boolean isCons, boolean isVoid)
         throws CompileError
     {

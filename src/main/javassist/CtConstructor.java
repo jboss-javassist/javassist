@@ -289,7 +289,10 @@ public final class CtConstructor extends CtBehavior {
      */
     public void setBody(String src) throws CannotCompileException {
         if (src == null)
-            src = "super();";
+            if (isClassInitializer())
+                src = ";";
+            else
+                src = "super();";
 
         super.setBody(src);
     }
