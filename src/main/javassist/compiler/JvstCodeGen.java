@@ -184,10 +184,18 @@ public class JvstCodeGen extends MemberCodeGen {
      */
     protected void atCastToRtype(CastExpr expr) throws CompileError {
         expr.getOprand().accept(this);
-        if (!isRefType(exprType) || arrayDim > 0)
-            throw new CompileError("invalid type for " + returnCastName);
-
-        compileUnwrapValue(returnType, bytecode);
+        if (exprType == VOID || isRefType(exprType) || arrayDim > 0)
+            compileUnwrapValue(returnType, bytecode);
+        else if (returnType instanceof CtPrimitiveType) {
+            CtPrimitiveType pt = (CtPrimitiveType)returnType;
+            int destType = jvmTypeNameToExprType(pt.getDescriptor());
+            atNumCastExpr(exprType, destType);
+            exprType = destType;
+            arrayDim = 0;
+            className = null;
+        }
+        else
+            throw new CompileError("invalid cast");
     }
 
     protected void atCastToWrapper(CastExpr expr) throws CompileError {
@@ -583,15 +591,22 @@ public class JvstCodeGen extends MemberCodeGen {
     protected void compileUnwrapValue(CtClass type, Bytecode code)
         throws CompileError
     {
+        if (type == CtClass.voidType) {
+            addNullIfVoid();
+            return;
+        }
+
+        if (exprType == VOID)
+            throw new CompileError("invalid type for " + returnCastName);
+
         if (type instanceof CtPrimitiveType) {
             CtPrimitiveType pt = (CtPrimitiveType)type;
-            if (pt != CtClass.voidType) {
-                String wrapper = pt.getWrapperName();
-                code.addCheckcast(wrapper);
-                code.addInvokevirtual(wrapper, pt.getGetMethodName(),
-                                      pt.getGetMethodDescriptor());
-                setType(type);
-            }
+            // pt is not voidType.
+            String wrapper = pt.getWrapperName();
+            code.addCheckcast(wrapper);
+            code.addInvokevirtual(wrapper, pt.getGetMethodName(),
+                                  pt.getGetMethodDescriptor());
+            setType(type);
         }
         else {
             code.addCheckcast(type);

@@ -350,15 +350,28 @@ For example, this is a typical use:
 $_ = ($r)result;</pre></ul>
 
 <p>If the result type is a primitive type, then <code>($r)</code>
-converts from the wrapper type to the primitive type.
+follows special semantics.  First, if the operand type of the cast
+expression is a primitive type, <code>($r)</code> works as a normal
+cast operator to the result type.
+On the other hand, if the operand type is a wrapper type,
+<code>($r)</code> converts from the wrapper type to the result type.
 For example, if the result type is <code>int</code>, then
 <code>($r)</code> converts from <code>java.lang.Integer</code> to
 <code>int</code>.
 
 <p>If the result type is <code>void</code>, then
 <code>($r)</code> does not convert a type; it does nothing.
-Moreover, the soruce text can include a <code>return</code>
-statement with a resulting value:
+However, if the operand is a call to a <code>void</code> method,
+then <code>($r)</code> results in <code>null</code>.  For example,
+
+<ul><pre>$_ = ($r)foo();</pre></ul>
+
+<p>is a valid statement if the result type is <code>void</code>.
+Here, <code>foo()</code> is a <code>void</code> method.
+
+<p>The cast operator <code>($r)</code> is also useful in a
+<code>return</code> statement.  Even if the result type is
+<code>void</code>, the following <code>return</code> statement is valid:
 
 <ul><pre>return ($r)result;</pre></ul>
 
