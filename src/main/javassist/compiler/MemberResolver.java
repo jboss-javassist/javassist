@@ -176,6 +176,9 @@ public class MemberResolver implements TokenId {
             if (argTypes[n] == NULL) {
                 if (dim == 0 && c != 'L')
                     return NO;
+
+                if (c == 'L')
+                    i = desc.indexOf(';', i) + 1;
             }
             else if (argDims[n] != dim) {
                 if (!(dim == 0 && c == 'L'
