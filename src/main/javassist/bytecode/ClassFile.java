@@ -350,7 +350,7 @@ public final class ClassFile {
         while (it.hasNext()) {
             FieldInfo minfo = (FieldInfo)it.next();
             if (minfo.getName().equals(name))
-                throw new CannotCompileException("duplicated field: " + name);
+                throw new CannotCompileException("duplicate field: " + name);
         }
     }
 
@@ -408,7 +408,7 @@ public final class ClassFile {
             MethodInfo minfo = (MethodInfo)it.next();
             if (minfo.getName().equals(name)
                 && Descriptor.eqSignature(minfo.getDescriptor(), descriptor))
-                throw new CannotCompileException("duplicated method: " + name);
+                throw new CannotCompileException("duplicate method: " + name);
         }
     }
 
