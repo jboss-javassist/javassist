@@ -18,18 +18,15 @@ package javassist;
 import javassist.bytecode.*;
 import javassist.compiler.Javac;
 import javassist.compiler.CompileError;
-import javassist.expr.ExprEditor;
-
-/* Some methods do nothing except calling the super's method.
- * They might seem redundant but they are necessary so that javadoc
- * includes the description of those methods in the page of this class.
- */
 
 /**
  * An instance of CtConstructor represents a constructor.
  * It may represent a static constructor
  * (class initializer).  To distinguish a constructor and a class
  * initializer, call <code>isClassInitializer()</code>.
+ *
+ * <p>See the super class <code>CtBehavior</code> as well since
+ * a number of useful methods are in <code>CtBehavior</code>.
  *
  * @see CtClass#getDeclaredConstructors()
  * @see CtClass#getClassInitializer()
@@ -160,14 +157,6 @@ public final class CtConstructor extends CtBehavior {
     }
 
     /**
-     * Returns the MethodInfo representing the constructor in the
-     * class file.
-     */
-    public MethodInfo getMethodInfo() {
-        return super.getMethodInfo();
-    }
-
-    /**
      * Returns true if this object represents a constructor.
      */
     public boolean isConstructor() {
@@ -182,26 +171,6 @@ public final class CtConstructor extends CtBehavior {
     }
 
     /**
-     * Obtains the encoded modifiers of the constructor.
-     *
-     * @return          modifiers encoded with
-     *                  <code>javassist.Modifier</code>.
-     * @see Modifier
-     */
-    public int getModifiers() {
-        return super.getModifiers();
-    }
-
-    /**
-     * Sets the encoded modifiers of the constructor.
-     *
-     * @see Modifier
-     */
-    public void setModifiers(int mod) {
-        super.setModifiers(mod);
-    }
-
-    /**
      * Obtains the name of this constructor.
      * It is the same as the simple name of the class declaring this
      * constructor.  If this object represents a class initializer,
@@ -212,45 +181,6 @@ public final class CtConstructor extends CtBehavior {
             return MethodInfo.nameClinit;
         else
             return declaringClass.getName();
-    }
-
-    /**
-     * Returns the class that declares this constructor.
-     */
-    public CtClass getDeclaringClass() {
-        return super.getDeclaringClass();
-    }
-
-    /**
-     * Obtains parameter types of this constructor.
-     */
-    public CtClass[] getParameterTypes() throws NotFoundException {
-        return super.getParameterTypes();
-    }
-
-    /**
-     * Returns the character string representing the parameter types.
-     * If two constructors have the same parameter types,
-     * <code>getSignature()</code> returns the same string.
-     */
-    public String getSignature() {
-        return super.getSignature();
-    }
-
-    /**
-     * Obtains exceptions that this constructor may throw.
-     */
-    public CtClass[] getExceptionTypes() throws NotFoundException {
-        return super.getExceptionTypes();
-    }
-
-    /**
-     * Sets exceptions that this constructor may throw.
-     */
-    public void setExceptionTypes(CtClass[] types)
-        throws NotFoundException
-    {
-        super.setExceptionTypes(types);
     }
 
     /**
@@ -317,86 +247,6 @@ public final class CtConstructor extends CtBehavior {
     }
 
     /**
-     * Obtains an attribute with the given name.
-     * If that attribute is not found in the class file, this
-     * method returns null.
-     *
-     * @param name              attribute name
-     */
-    public byte[] getAttribute(String name) {
-        return super.getAttribute(name);
-    }
-
-    /**
-     * Adds an attribute. The attribute is saved in the class file.
-     *
-     * @param name      attribute name
-     * @param data      attribute value
-     */
-    public void setAttribute(String name, byte[] data) {
-        super.setAttribute(name, data);
-    }
-
-    /**
-     * Declares to use <code>$cflow</code> for this constructor.
-     * If <code>$cflow</code> is used, the class files modified
-     * with Javassist requires a support class
-     * <code>javassist.runtime.Cflow</code> at runtime
-     * (other Javassist classes are not required at runtime).
-     *
-     * <p>Every <code>$cflow</code> variable is given a unique name.
-     * For example, if the given name is <code>"Point.paint"</code>,
-     * then the variable is indicated by <code>$cflow(Point.paint)</code>.
-     *
-     * @param name      <code>$cflow</code> name.  It can include
-     *                  alphabets, numbers, <code>_</code>,
-     *                  <code>$</code>, and <code>.</code> (dot).
-     *
-     * @see javassist.runtime.Cflow
-     */
-    public void useCflow(String name) throws CannotCompileException {
-        super.useCflow(name);
-    }
-
-    /**
-     * Modifies the constructor body.
-     *
-     * @param converter         specifies how to modify.
-     */
-    public void instrument(CodeConverter converter)
-        throws CannotCompileException
-    {
-        super.instrument(converter);
-    }
-
-    /**
-     * Modifies the constructor body.
-     *
-     * @param editor            specifies how to modify.
-     */
-    public void instrument(ExprEditor editor)
-        throws CannotCompileException
-    {
-        super.instrument(editor);
-    }
-
-    /**
-     * Inserts bytecode at the beginning of the constructor body.
-     * Since the bytecode is inserted before a constructor in the super
-     * class or this class is called, the bytecode is subject
-     * to constraints described
-     * in Section 4.8.2 of The Java Virtual Machine Specification (2nd ed).
-     * For example, it cannot access instance members although it can access
-     * static members.
-     *
-     * @param src       the source code representing the inserted bytecode.
-     *                  It must be a single statement or block.
-     */
-    public void insertBefore(String src) throws CannotCompileException {
-        super.insertBefore(src);
-    }
-
-    /**
      * Inserts bytecode just after another constructor in the super class
      * or this class is called.
      * It does not work if this object represents a class initializer.
@@ -433,51 +283,5 @@ public final class CtConstructor extends CtBehavior {
         catch (BadBytecode e) {
             throw new CannotCompileException(e);
         }
-    }
-
-    /**
-     * Inserts bytecode at the end of the constructor body.
-     * The bytecode is inserted just before every return insturction.
-     * It is not executed when an exception is thrown.
-     *
-     * @param src       the source code representing the inserted bytecode.
-     *                  It must be a single statement or block.
-     */
-    public void insertAfter(String src)
-        throws CannotCompileException
-    {
-        super.insertAfter(src);
-    }
-
-    /**
-     * Inserts bytecode at the end of the constructor body.
-     * The bytecode is inserted just before every return insturction.
-     *
-     * @param src       the source code representing the inserted bytecode.
-     *                  It must be a single statement or block.
-     * @param asFinally         true if the inserted bytecode is executed
-     *                  not only when the transfer normally returns
-     *                  but also when an exception is thrown.
-     */
-    public void insertAfter(String src, boolean asFinally)
-        throws CannotCompileException
-    {
-        super.insertAfter(src, asFinally);
-    }
-
-    /**
-     * Adds a catch clause that handles an exception thrown in the
-     * constructor body.
-     * The catch clause must end with a return or throw statement.
-     *
-     * @param src       the source code representing the catch clause.
-     *                  It must be a single statement or block.
-     * @param exceptionType     the type of the exception handled by the
-     *                          catch clause.
-     */
-    public void addCatch(String src, CtClass exceptionType)
-        throws CannotCompileException
-    {
-        super.addCatch(src, exceptionType);
     }
 }

@@ -16,15 +16,12 @@
 package javassist;
 
 import javassist.bytecode.*;
-import javassist.expr.ExprEditor;
-
-/* Some methods do nothing except calling the super's method.
- * They might seem redundant but they are necessary so that javadoc
- * includes the description of those methods in the page of this class.
- */
 
 /**
  * An instance of <code>CtMethod</code> represents a method.
+ *
+ * <p>See the super class <code>CtBehavior</code> since
+ * a number of useful methods are in <code>CtBehavior</code>.
  *
  * @see CtClass#getDeclaredMethods()
  * @see CtNewMethod
@@ -189,37 +186,6 @@ public final class CtMethod extends CtBehavior {
     }
 
     /**
-     * Returns the MethodInfo representing the method in the class file.
-     */
-    public MethodInfo getMethodInfo() {
-        return super.getMethodInfo();
-    }
-
-    /**
-     * Obtains the modifiers of the method.
-     *
-     * @return          modifiers encoded with
-     *                  <code>javassist.Modifier</code>.
-     * @see Modifier
-     */
-    public int getModifiers() {
-        return super.getModifiers();
-    }
-
-    /**
-     * Sets the encoded modifiers of the method.
-     *
-     * <p>Changing the modifiers may cause a problem.
-     * For example, if a non-static method is changed to static,
-     * the method will be rejected by the bytecode verifier.
-     *
-     * @see Modifier
-     */
-    public void setModifiers(int mod) {
-        super.setModifiers(mod);
-    }
-
-    /**
      * Obtains the name of this method.
      */
     public String getName() {
@@ -235,50 +201,10 @@ public final class CtMethod extends CtBehavior {
     }
 
     /**
-     * Returns the class that declares this method.
-     */
-    public CtClass getDeclaringClass() {
-        return super.getDeclaringClass();
-    }
-
-    /**
-     * Obtains parameter types of this method.
-     */
-    public CtClass[] getParameterTypes() throws NotFoundException {
-        return super.getParameterTypes();
-    }
-
-    /**
      * Obtains the type of the returned value.
      */
     public CtClass getReturnType() throws NotFoundException {
         return getReturnType0();
-    }
-
-    /**
-     * Returns the character string representing the parameter types
-     * and the return type.  If two methods have the same parameter types
-     * and the return type, <code>getSignature()</code> returns the
-     * same string.
-     */
-    public String getSignature() {
-        return super.getSignature();
-    }
-
-    /**
-     * Obtains exceptions that this method may throw.
-     */
-    public CtClass[] getExceptionTypes() throws NotFoundException {
-        return super.getExceptionTypes();
-    }
-
-    /**
-     * Sets exceptions that this method may throw.
-     *
-     * @param types     exception types (or null)
-     */
-    public void setExceptionTypes(CtClass[] types) throws NotFoundException {
-        super.setExceptionTypes(types);
     }
 
     /**
@@ -297,37 +223,6 @@ public final class CtMethod extends CtBehavior {
         }
         catch (BadBytecode e) {}
         return false;
-    }
-
-    /**
-     * Sets a method body.
-     *
-     * @param src       the source code representing the method body.
-     *                  It must be a single statement or block.
-     *                  If it is <code>null</code>, the substituted method
-     *                  body does nothing except returning zero or null.
-     */
-    public void setBody(String src) throws CannotCompileException {
-        super.setBody(src);
-    }
-
-    /**
-     * Sets a method body.
-     *
-     * @param src       the source code representing the method body.
-     *                  It must be a single statement or block.
-     *                  If it is <code>null</code>, the substituted method
-     *                  body does nothing except returning zero or null.
-     * @param delegateObj       the source text specifying the object
-     *                          that is called on by <code>$proceed()</code>.
-     * @param delegateMethod    the name of the method
-     *                          that is called by <code>$proceed()</code>.
-     */
-    public void setBody(String src,
-                        String delegateObj, String delegateMethod)
-        throws CannotCompileException
-    {
-        super.setBody(src, delegateObj, delegateMethod);
     }
 
     /**
@@ -387,126 +282,6 @@ public final class CtMethod extends CtBehavior {
         methodInfo.setCodeAttribute(cattr);
         methodInfo.setAccessFlags(methodInfo.getAccessFlags()
                                   & ~AccessFlag.ABSTRACT);
-    }
-
-    /**
-     * Obtains an attribute with the given name.
-     * If that attribute is not found in the class file, this
-     * method returns null.
-     *
-     * @param name              attribute name
-     */
-    public byte[] getAttribute(String name) {
-        return super.getAttribute(name);
-    }
-
-    /**
-     * Adds an attribute. The attribute is saved in the class file.
-     *
-     * @param name      attribute name
-     * @param data      attribute value
-     */
-    public void setAttribute(String name, byte[] data) {
-        super.setAttribute(name, data);
-    }
-
-    /**
-     * Declares to use <code>$cflow</code> for this method.
-     * If <code>$cflow</code> is used, the class files modified
-     * with Javassist requires a support class
-     * <code>javassist.runtime.Cflow</code> at runtime
-     * (other Javassist classes are not required at runtime).
-     *
-     * <p>Every <code>$cflow</code> variable is given a unique name.
-     * For example, if the given name is <code>"Point.paint"</code>,
-     * then the variable is indicated by <code>$cflow(Point.paint)</code>.
-     *
-     * @param name      <code>$cflow</code> name.  It can include
-     *                  alphabets, numbers, <code>_</code>,
-     *                  <code>$</code>, and <code>.</code> (dot).
-     *
-     * @see javassist.runtime.Cflow
-     */
-    public void useCflow(String name) throws CannotCompileException {
-        super.useCflow(name);
-    }
-
-    /**
-     * Modifies the method body.
-     *
-     * @param converter         specifies how to modify.
-     */
-    public void instrument(CodeConverter converter)
-        throws CannotCompileException
-    {
-        super.instrument(converter);
-    }
-
-    /**
-     * Modifies the method body.
-     *
-     * @param editor            specifies how to modify.
-     */
-    public void instrument(ExprEditor editor)
-        throws CannotCompileException
-    {
-        super.instrument(editor);
-    }
-
-    /**
-     * Inserts bytecode at the beginning of the method body.
-     *
-     * @param src       the source code representing the inserted bytecode.
-     *                  It must be a single statement or block.
-     */
-    public void insertBefore(String src) throws CannotCompileException {
-        super.insertBefore(src);
-    }
-
-    /**
-     * Inserts bytecode at the end of the method body.
-     * The bytecode is inserted just before every return insturction.
-     * It is not executed when an exception is thrown.
-     *
-     * @param src       the source code representing the inserted bytecode.
-     *                  It must be a single statement or block.
-     */
-    public void insertAfter(String src)
-        throws CannotCompileException
-    {
-        super.insertAfter(src);
-    }
-
-    /**
-     * Inserts bytecode at the end of the method body.
-     * The bytecode is inserted just before every return insturction.
-     *
-     * @param src       the source code representing the inserted bytecode.
-     *                  It must be a single statement or block.
-     * @param asFinally         true if the inserted bytecode is executed
-     *                  not only when the transfer normally returns
-     *                  but also when an exception is thrown.
-     */
-    public void insertAfter(String src, boolean asFinally)
-        throws CannotCompileException
-    {
-        super.insertAfter(src, asFinally);
-    }
-
-    /**
-     * Adds a catch clause that handles an exception thrown in the
-     * method body.
-     * The catch clause must end with a return or throw statement.
-     *
-     * @param src       the source code representing the catch clause.
-     *                  It must be a single statement or block.
-     * @param exceptionType     the type of the exception handled by the
-     *                          catch clause.
-     */
-    public void addCatch(String src, CtClass exceptionType)
-        throws CannotCompileException
-    {
-        super.addCatch(src, exceptionType);
     }
 
     // inner classes

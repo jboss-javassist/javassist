@@ -11,6 +11,17 @@
 
 <div align="left"><a href="tutorial.html">Previous page</a></div>
 
+<p>
+<a href="#intro">5. Introspection and customization</a>
+<ul>
+<li><a href="#before">Inserting source text at the beginning/end of a method body</a>
+<br><li><a href="#alter">Altering a method body</a>
+<br><li><a href="#add">Adding a new method or field</a>
+<br><li><a href="#limit">Limitations</a>
+</ul>
+
+<p><br>
+
 <a name="intro">
 <h2>5. Introspection and customization</h2>
 
@@ -101,6 +112,7 @@ of the <code>javassist.runtime</code> package.
 
 <p><br>
 
+<a name="before">
 <h3>5.1 Inserting source text at the beginning/end of a method body</h3>
 
 <p><code>CtMethod</code> and <code>CtConstructor</code> provide
@@ -113,8 +125,18 @@ text.  It receives source text
 written in Java and compiles it into Java bytecode, which will be
 <em>inlined</em> into a method body.
 
-<p>The methods <code>insertBefore()</code>, <code>insertAfter()</code>, and
-<code>addCatch()</code> receives a <code>String</code> object representing
+<p>
+Inserting a code fragment at the position specified by a line number
+is also possible
+(if the line number table is contained in the class file).
+<code>insertAt()</code> in <code>CtMethod</code> and
+<code>CtConstructor</code> takes source text and a line number in the source
+file of the original class definition.
+It compiles the source text and inserts the compiled code at the line number.
+
+<p>The methods <code>insertBefore()</code>, <code>insertAfter()</code>,
+<code>addCatch()</code>, and <code>insertAt()</code>
+receive a <code>String</code> object representing
 a statement or a block.  A statement is a single control structure like
 <code>if</code> and <code>while</code> or an expression ending with
 a semi colon (<code>;</code>).  A block is a set of
@@ -520,7 +542,8 @@ catch (java.io.IOException e) {
 
 <p><br>
 
-<h3>5.2 Modifying a method body</h3>
+<a name="alter">
+<h3>5.2 Altering a method body</h3>
 
 <p><code>CtMethod</code> and <code>CtConstructor</code> provide
 <code>setBody()</code> for substituting a whole
@@ -590,6 +613,7 @@ the class currently edited.</td>
 
 Note that <code>$_</code> is not available.
 
+<h4>Substituting source text for an existing expression</h4>
 
 <p>Javassist allows modifying only an expression included in a method body.
 <code>javassist.expr.ExprEditor</code> is a class
@@ -1107,6 +1131,7 @@ exception.
 
 <p><br>
 
+<a name="add">
 <h3>5.3 Adding a new method or field</h3>
 
 <h4>Adding a method</h4>
@@ -1230,6 +1255,7 @@ does not end with a semi colon (<code>;</code>).
 
 <p><br>
 
+<a name="limit">
 <h3>5.4 Limitations</h3>
 
 <p>In the current implementation, the Java compiler included in Javassist

@@ -21,7 +21,9 @@ import javassist.compiler.CompileError;
 import javassist.expr.ExprEditor;
 
 /**
- * <code>CtBehavior</code> is the abstract super class of
+ * <code>CtBehavior</code> represents a method, a constructor,
+ * or a static constructor (class initializer). 
+ * It is the abstract super class of
  * <code>CtMethod</code> and <code>CtConstructor</code>.
  */
 public abstract class CtBehavior extends CtMember {
@@ -40,7 +42,7 @@ public abstract class CtBehavior extends CtMember {
     }
 
     /**
-     * Returns the MethodInfo representing this member in the
+     * Returns the MethodInfo representing this method/constructor in the
      * class file.
      */
     public MethodInfo getMethodInfo() {
@@ -54,7 +56,7 @@ public abstract class CtBehavior extends CtMember {
     public MethodInfo getMethodInfo2() { return methodInfo; }
 
     /**
-     * Obtains the modifiers of the member.
+     * Obtains the modifiers of the method/constructor.
      *
      * @return          modifiers encoded with
      *                  <code>javassist.Modifier</code>.
@@ -65,7 +67,11 @@ public abstract class CtBehavior extends CtMember {
     }
 
     /**
-     * Sets the encoded modifiers of the member.
+     * Sets the encoded modifiers of the method/constructor.
+     *
+     * <p>Changing the modifiers may cause a problem.
+     * For example, if a non-static method is changed to static,
+     * the method will be rejected by the bytecode verifier.
      *
      * @see Modifier
      */
@@ -75,14 +81,7 @@ public abstract class CtBehavior extends CtMember {
     }
 
     /**
-     * Obtains the name of this member.
-     *
-     * @see CtConstructor#getName()
-     */
-    public abstract String getName();
-
-    /**
-     * Obtains parameter types of this member.
+     * Obtains parameter types of this method/constructor.
      */
     public CtClass[] getParameterTypes() throws NotFoundException {
         return Descriptor.getParameterTypes(methodInfo.getDescriptor(),
@@ -99,16 +98,17 @@ public abstract class CtBehavior extends CtMember {
 
     /**
      * Returns the character string representing the parameter types
-     * and the return type.  If two members have the same parameter types
+     * and the return type.  If two methods/constructors have
+     * the same parameter types
      * and the return type, <code>getSignature()</code> returns the
-     * same string.
+     * same string (the return type of constructors is <code>void</code>).
      */
     public String getSignature() {
         return methodInfo.getDescriptor();
     }
 
     /**
-     * Obtains exceptions that this member may throw.
+     * Obtains exceptions that this method/constructor may throw.
      */
     public CtClass[] getExceptionTypes() throws NotFoundException {
         String[] exceptions;
@@ -122,7 +122,7 @@ public abstract class CtBehavior extends CtMember {
     }
 
     /**
-     * Sets exceptions that this member may throw.
+     * Sets exceptions that this method/constructor may throw.
      */
     public void setExceptionTypes(CtClass[] types) throws NotFoundException {
         declaringClass.checkModify();
@@ -150,11 +150,11 @@ public abstract class CtBehavior extends CtMember {
     public abstract boolean isEmpty();
 
     /**
-     * Sets a member body.
+     * Sets a method/constructor body.
      *
-     * @param src       the source code representing the member body.
+     * @param src       the source code representing the body.
      *                  It must be a single statement or block.
-     *                  If it is <code>null</code>, the substituted member
+     *                  If it is <code>null</code>, the substituted
      *                  body does nothing except returning zero or null.
      */
     public void setBody(String src) throws CannotCompileException {
@@ -162,11 +162,11 @@ public abstract class CtBehavior extends CtMember {
     }
 
     /**
-     * Sets a member body.
+     * Sets a method/constructor body.
      *
-     * @param src       the source code representing the member body.
+     * @param src       the source code representing the body.
      *                  It must be a single statement or block.
-     *                  If it is <code>null</code>, the substituted member
+     *                  If it is <code>null</code>, the substituted
      *                  body does nothing except returning zero or null.
      * @param delegateObj       the source text specifying the object
      *                          that is called on by <code>$proceed()</code>.
@@ -250,7 +250,7 @@ public abstract class CtBehavior extends CtMember {
     }
 
     /**
-     * Declares to use <code>$cflow</code> for this member;
+     * Declares to use <code>$cflow</code> for this method/constructor.
      * If <code>$cflow</code> is used, the class files modified
      * with Javassist requires a support class
      * <code>javassist.runtime.Cflow</code> at runtime
@@ -298,7 +298,7 @@ public abstract class CtBehavior extends CtMember {
     }
 
     /**
-     * Modifies the member body.
+     * Modifies the method/constructor body.
      *
      * @param converter         specifies how to modify.
      */
@@ -311,7 +311,7 @@ public abstract class CtBehavior extends CtMember {
     }
 
     /**
-     * Modifies the member body.
+     * Modifies the method/constructor body.
      *
      * @param editor            specifies how to modify.
      */
@@ -330,8 +330,18 @@ public abstract class CtBehavior extends CtMember {
     /**
      * Inserts bytecode at the beginning of the body.
      *
+     * <p>If this object represents a constructor,
+     * the bytecode is inserted before
+     * a constructor in the super class or this class is called.
+     * Therefore, the inserted bytecode is subject to constraints described
+     * in Section 4.8.2 of The Java Virtual Machine Specification (2nd ed).
+     * For example, it cannot access instance fields or methods
+     * although it can access static fields and methods.
+     * Use <code>insertBeforeBody()</code> in <code>CtConstructor</code>.
+     *
      * @param src       the source code representing the inserted bytecode.
      *                  It must be a single statement or block.
+     * @see CtConstructor#insertBeforeBody(String)
      */
     public void insertBefore(String src) throws CannotCompileException {
         declaringClass.checkModify();
@@ -674,12 +684,21 @@ public abstract class CtBehavior extends CtMember {
     }
 
     /**
-     * Inserts bytecode at the specified line in the body.  It is equivalent
-     * to insertAt(lineNum, true, src).
+     * Inserts bytecode at the specified line in the body.
+     * It is equivalent to:
      *
-     * @param lineNum   the line number.
+     * <br><code>insertAt(lineNum, true, src)</code>
+     *
+     * <br>See this method as well.
+     *
+     * @param lineNum   the line number.  The bytecode is inserted at the
+     *                  beginning of the code at the line specified by this
+     *                  line number.
      * @param src       the source code representing the inserted bytecode.
      *                  It must be a single statement or block.
+     * @return      the line number at which the bytecode has been inserted.
+     *
+     * @see CtBehavior#insertAt(int,boolean,String)
      */
     public int insertAt(int lineNum, String src)
         throws CannotCompileException
@@ -690,13 +709,24 @@ public abstract class CtBehavior extends CtMember {
     /**
      * Inserts bytecode at the specified line in the body.
      *
-     * @param lineNum   the line number.
+     * <p>If there is not
+     * a statement at the specified line, the bytecode might be inserted
+     * at the line including the first statement after that line specified.
+     * For example, if there is only a closing brace at that line, the
+     * bytecode would be inserted at another line below.
+     * To know exactly where the bytecode will be inserted, call with
+     * <code>modify</code> set to <code>false</code>. 
+     *
+     * @param lineNum   the line number.  The bytecode is inserted at the
+     *                  beginning of the code at the line specified by this
+     *                  line number.
      * @param modify    if false, this method does not insert the bytecode.
      *                  It instead only returns the line number at which
      *                  the bytecode would be inserted.
      * @param src       the source code representing the inserted bytecode.
      *                  It must be a single statement or block.
      *                  If modify is false, the value of src can be null.
+     * @return      the line number at which the bytecode has been inserted.
      */
     public int insertAt(int lineNum, boolean modify, String src)
         throws CannotCompileException

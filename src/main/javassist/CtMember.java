@@ -67,6 +67,11 @@ public abstract class CtMember {
 
     /**
      * Obtains the name of the member.
+     *
+     * <p>As for constructor names, see <code>getName()</code>
+     * in <code>CtConstructor</code>.
+     *
+     * @see CtConstructor#getName()
      */
     public abstract String getName();
 
