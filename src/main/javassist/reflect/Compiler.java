@@ -122,9 +122,8 @@ public class Compiler {
         }
 
         for (int i = 0; i < n; ++i) {
-            CtClass c = pool.get(entries[i].classname);
-            implementor.onWrite(pool, c);
-            c.writeFile();
+            implementor.onLoad(pool, entries[i].classname);
+            pool.get(entries[i].classname).writeFile();
         }
     }
 

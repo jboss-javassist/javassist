@@ -337,10 +337,10 @@ public class Webserver {
         String classname
             = filename.substring(0, length - 6).replace('/', '.');
         try {
-            CtClass c = classPool.get(classname);
             if (translator != null)
-                translator.onWrite(classPool, c);
+                translator.onLoad(classPool, classname);
 
+            CtClass c = classPool.get(classname);
             classfile = c.toBytecode();
             if (debugDir != null)
                 c.writeFile(debugDir);

@@ -20,7 +20,7 @@ import java.util.Hashtable;
 import java.util.Vector;
 
 /**
- * The class loader for Javassist (JDK 1.2 or later only).
+ * The class loader for Javassist.
  *
  * <p>This is a sample class loader using <code>ClassPool</code>.
  * Unlike a regular class loader, this class loader obtains bytecode
@@ -61,7 +61,7 @@ import java.util.Vector;
  * </pre></ul>
  *
  * <p>It modifies the class <code>MyApp</code> with a <code>MyTranslator</code>
- * object before loading it into the JVM.
+ * object before the JVM loads it.
  * Then it calls <code>main()</code> in <code>MyApp</code> with arguments
  * <i>arg1</i>, <i>arg2</i>, ...
  *
@@ -74,20 +74,20 @@ import java.util.Vector;
  * <p>except that classes are translated by <code>MyTranslator</code>
  * at load time.
  *
- * <p>If only a particular class is modified when it is loaded,
- * a program like the following can be used:
+ * <p>If only a particular class must be modified when it is loaded,
+ * the startup program can be simpler; <code>MyTranslator</code> is
+ * unnecessary.  For example, if only a class <code>test.Rectangle</code>
+ * is modified, the <code>main()</code> method above will be the following:
  *
- * <ul><pre>ClassPool cp = ClassPool.getDefault();
+ * <ul><pre>
+ * ClassPool cp = ClassPool.getDefault();
  * Loader cl = new Loader(cp);
- *
  * CtClass ct = cp.get("test.Rectangle");
  * ct.setSuperclass(cp.get("test.Point"));
+ * cl.run("MyApp", args);</pre></ul>
  *
- * Class c = cl.loadClass("test.Rectangle");
- * Object rect = c.newInstance();</pre></ul>
- *
- * <p>This program modifies the super class of the <code>Rectangle</code>
- * class and loads it into the JVM with a class loader <code>cl</code>.
+ * <p>This program changes the super class of the <code>test.Rectangle</code>
+ * class.
  *
  * <p><b>Note 1:</b>
  *
@@ -128,8 +128,8 @@ import java.util.Vector;
  * @see javassist.Translator
  */
 public class Loader extends ClassLoader {
-    private Hashtable notDefinedHere;   // must be atomic.
-    private Vector notDefinedPackages;  // must be atomic.
+    private Hashtable notDefinedHere; // must be atomic.
+    private Vector notDefinedPackages; // must be atomic.
     private ClassPool source;
     private Translator translator;
 
@@ -212,8 +212,7 @@ public class Loader extends ClassLoader {
      * @param t         a translator.
      */
     public void addTranslator(ClassPool cp, Translator t)
-        throws NotFoundException, CannotCompileException
-    {
+        throws NotFoundException, CannotCompileException {
         source = cp;
         translator = t;
         t.start(cp);
@@ -269,8 +268,9 @@ public class Loader extends ClassLoader {
     public void run(String classname, String[] args) throws Throwable {
         Class c = loadClass(classname);
         try {
-            c.getDeclaredMethod("main", new Class[] { String[].class })
-                .invoke(null, new Object[] { args });
+            c.getDeclaredMethod("main", new Class[] { String[].class }).invoke(
+                null,
+                new Object[] { args });
         }
         catch (java.lang.reflect.InvocationTargetException e) {
             throw e.getTargetException();
@@ -281,8 +281,7 @@ public class Loader extends ClassLoader {
      * Requests the class loader to load a class.
      */
     protected Class loadClass(String name, boolean resolve)
-        throws ClassFormatError, ClassNotFoundException
-    {
+        throws ClassFormatError, ClassNotFoundException {
         Class c = findLoadedClass(name);
         if (c == null)
             c = loadClassByDelegation(name);
@@ -310,11 +309,10 @@ public class Loader extends ClassLoader {
         byte[] classfile;
         try {
             if (source != null) {
-                CtClass c = source.get(name);
                 if (translator != null)
-                    translator.onWrite(source, c);
+                    translator.onLoad(source, name);
 
-                classfile = c.toBytecode();
+                classfile = source.get(name).toBytecode();
             }
             else {
                 String jarname = "/" + name.replace('.', '/') + ".class";
@@ -327,13 +325,13 @@ public class Loader extends ClassLoader {
             return null;
         }
 
-	int i = name.lastIndexOf('.');
-	if (i != -1) {
-	    String pname = name.substring(0, i);
+        int i = name.lastIndexOf('.');
+        if (i != -1) {
+            String pname = name.substring(0, i);
             if (getPackage(pname) == null)
                 try {
-                    definePackage(pname, null, null, null,
-                                  null, null, null, null);
+                    definePackage(
+                        pname, null, null, null, null, null, null, null);
                 }
                 catch (IllegalArgumentException e) {
                     // ignore.  maybe the package object for the same
@@ -359,8 +357,10 @@ public class Loader extends ClassLoader {
 
         Class c = null;
         if (doDelegation)
-            if (name.startsWith("java.") || name.startsWith("javax.")
-                || name.startsWith("sun.") || name.startsWith("com.sun.")
+            if (name.startsWith("java.")
+                || name.startsWith("javax.")
+                || name.startsWith("sun.")
+                || name.startsWith("com.sun.")
                 || notDelegated(name))
                 c = delegateToParent(name);
 

@@ -23,7 +23,7 @@ import java.net.URL;
  * representing a class search path.
  * <code>ClassPool</code> uses those objects for reading class files.
  *
- * <code>The users can define a class implementing this interface so that
+ * <p>The users can define a class implementing this interface so that
  * a class file is obtained from a non-standard source.
  *
  * @see ClassPool#insertClassPath(ClassPath)
@@ -42,7 +42,6 @@ public interface ClassPath {
      * so that the search will be terminated.
      *
      * <p>This method should not modify the contents of the class file.
-     * Use <code>javassist.Translator</code> for modification.
      *
      * @param classname         a fully-qualified class name
      * @return          the input stream for reading a class file

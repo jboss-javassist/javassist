@@ -43,22 +43,23 @@ public class Evolution implements Translator {
 	trapMethod = _pool.getMethod("sample.evolve.Sample", "make");
     }
 
-    public void onWrite(ClassPool _pool, CtClass clazz)
+    public void onLoad(ClassPool _pool, String classname)
 	throws NotFoundException, CannotCompileException
     {
-	onWriteUpdatable(clazz.getName());
+	onLoadUpdatable(classname);
 
 	/*
 	 * Replaces all the occurrences of the new operator with a call
 	 * to _makeInstance().
 	 */
+	CtClass clazz = _pool.get(classname);
 	CtClass absClass = updatableClass;
 	CodeConverter converter = new CodeConverter();
 	converter.replaceNew(absClass, absClass, handlerMethod);
 	clazz.instrument(converter);
     }
 
-    private void onWriteUpdatable(String classname)
+    private void onLoadUpdatable(String classname)
 	throws NotFoundException, CannotCompileException
     {
 	// if the class is a concrete class,
@@ -79,7 +80,6 @@ public class Evolution implements Translator {
 	catch (NumberFormatException e) {
 	    throw new NotFoundException(classname, e);
 	}
-
 
 	CtClass clazz = pool.getAndRename(orgname, classname);
 	makeConcreteClass(clazz, updatableClass, version);

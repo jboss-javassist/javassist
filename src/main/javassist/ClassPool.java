@@ -20,53 +20,13 @@ import java.net.URL;
 import java.util.Hashtable;
 
 /**
- * A driver class for controlling bytecode editing with Javassist.
- * It manages where a class file is obtained and how it is modified.
- *
- * <p>A <code>ClassPool</code> object can be regarded as a container
- * of <code>CtClass</code> objects.  It reads class files on demand
- * from various
- * sources represented by <code>ClassPath</code> and create
- * <code>CtClass</code> objects representing those class files.
- *
- * <p>A <code>CtClass</code>
- * object contained in a <code>ClassPool</code> is written to an
- * output stream (or a file) if <code>write()</code>
- * (or <code>writeFile()</code>) is called on the 
- * <code>ClassPool</code>.
- * <code>write()</code> is typically called by a class loader,
- * which obtains the bytecode image to be loaded.
- *
- * <p>The users can modify <code>CtClass</code> objects
- * before those objects are written out.
- * To obtain a reference
- * to a <code>CtClass</code> object contained in a
- * <code>ClassPool</code>, <code>get()</code> should be
- * called on the <code>ClassPool</code>.  If a <code>CtClass</code>
- * object is modified, then the modification is reflected on the resulting
- * class file returned by <code>write()</code> in <code>ClassPool</code>.
- *
- * <p>In summary,
- *
- * <ul>
- * <li><code>get()</code> returns a reference to a <code>CtClass</code>
- *     object contained in a <code>ClassPool</code>.
- *
- * <li><code>write()</code> translates a <code>CtClass</code>
- * object contained in a <code>ClassPool</code> into a class file
- * and writes it to an output stream.
- * </ul>
- *
- * <p>The users can add a listener object receiving an event from a
- * <code>ClassPool</code>.  An event occurs when a listener is
- * added to a <code>ClassPool</code> and when <code>write()</code>
- * is called on a <code>ClassPool</code> (not when <code>get()</code>
- * is called!).  The listener class
- * must implement <code>Translator</code>.  A typical listener object
- * is used for modifying a <code>CtClass</code> object <i>on demand</i>
- * when it is written to an output stream.
- *
- * <p>The implementation of this class is thread-safe.
+ * A container of <code>CtClass</code> objects.
+ * A <code>CtClass</code> object must be obtained from this object.
+ * If <code>get()</code> is called on this object,
+ * it searches various sources represented by <code>ClassPath</code>
+ * to find a class file and then it creates a <code>CtClass</code> object
+ * representing that class file.  The created object is returned to the
+ * caller.
  *
  * <p><b>Memory consumption memo:</b>
  *
@@ -74,14 +34,22 @@ import java.util.Hashtable;
  * that have been created so that the consistency among modified classes
  * can be guaranteed.  Thus if a large number of <code>CtClass</code>es
  * are processed, the <code>ClassPool</code> will consume a huge amount
- * of memory.  To avoid this, multiple <code>ClassPool</code> objects
- * must be used.  Note that <code>getDefault()</code> is a singleton
- * factory.
+ * of memory.  To avoid this, a <code>ClassPool</code> object
+ * should be recreated, for example, every hundred classes processed.
+ * Note that <code>getDefault()</code> is a singleton factory.
  *
+ * <p><b><code>ClassPool</code> hierarchy:</b>
+ *
+ * <p><code>ClassPool</code>s can make a parent-child hierarchy as
+ * <code>java.lang.ClassLoader</code>s.  If a <code>ClassPool</code> has
+ * a parent pool, <code>get()</code> first asks the parent pool to find
+ * a class file.  Only if the parent could not find the class file,
+ * <code>get()</code> searches the <code>ClassPath</code>s of
+ * the child <code>ClassPool</code>.  This search order is reversed if
+ * <code>ClassPath.childFirstLookup</code> is <code>true</code>. 
  *
  * @see javassist.CtClass
  * @see javassist.ClassPath
- * @see javassist.Translator
  */
 public class ClassPool {
 
@@ -108,9 +76,17 @@ public class ClassPool {
     private Hashtable cflow = null;     // should be synchronous.
 
     /**
+     * Creates a root class pool.  No parent class pool is specified.
+     *
+     */
+    public ClassPool() {
+        this(null);
+    }
+
+    /**
      * Creates a class pool.
      *
-     * @param p         the parent of this class pool.  If this is a root
+     * @param parent    the parent of this class pool.  If this is a root
      *                  class pool, this parameter must be <code>null</code>.
      * @see javassist.ClassPool#getDefault()
      */
@@ -148,7 +124,6 @@ public class ClassPool {
      * <p>If the default class pool cannot find any class files,
      * try <code>ClassClassPath</code> and <code>LoaderClassPath</code>.
      *
-     * @param t         null or the translator linked to the class pool.
      * @see ClassClassPath
      * @see LoaderClassPath
      */

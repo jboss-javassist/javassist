@@ -91,7 +91,7 @@ public class Reflection implements Translator {
     }
 
     /**
-     * Initializes.
+     * Initializes the object.
      */
     public void start(ClassPool pool) throws NotFoundException {
         classPool = pool;
@@ -115,9 +115,10 @@ public class Reflection implements Translator {
      * Inserts hooks for intercepting accesses to the fields declared
      * in reflective classes.
      */
-    public void onWrite(ClassPool pool, CtClass clazz)
+    public void onLoad(ClassPool pool, String classname)
         throws CannotCompileException, NotFoundException
     {
+        CtClass clazz = pool.get(classname);
         clazz.instrument(converter);
     }
 

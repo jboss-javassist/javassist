@@ -62,7 +62,8 @@ public class StubGenerator implements Translator {
     }
 
     /**
-     * Is a method declared in javassist.Translator.
+     * Initializes the object.
+     * This is a method declared in javassist.Translator.
      *
      * @see javassist.Translator#start(ClassPool)
      */
@@ -82,7 +83,12 @@ public class StubGenerator implements Translator {
             = new CtClass[] { pool.get("javassist.rmi.RemoteException") };
     }
 
-    public void onWrite(ClassPool pool, CtClass clazz) {}
+    /**
+     * Does nothing.
+     * This is a method declared in javassist.Translator.
+     * @see javassist.Translator#onLoad(ClassPool,String)
+     */
+    public void onLoad(ClassPool pool, String classname) {}
 
     /**
      * Returns <code>true</code> if the specified class is a proxy class

@@ -22,7 +22,7 @@ package javassist;
  * <code>Loader</code> object so that it can translate a class file
  * when the class file is loaded into the JVM.
  *
- * @see Loader
+ * @see Loader#addTranslator(ClassPool, Translator)
  */
 public interface Translator {
     /**
@@ -38,13 +38,22 @@ public interface Translator {
 
     /**
      * Is invoked by a <code>Loader</code> for notifying that
-     * a class is loaded.
+     * a class is loaded.  The <code>Loader</code> calls
+     *
+     * <ul><pre>
+     * pool.get(classname).toBytecode()</pre></ul>
+     *
+     * to read the class file after <code>onLoad()</code> returns.
+     *
+     * <p>The class specified by <code>classname</code> may not exist.
+     * If so, <code>onLoad()</code> should create that class so that
+     * the <code>Loader</code> can read it.
      *
      * @param pool      the <code>ClassPool</code> that this translator
      *                          should use.
-     * @param clazz     the class that is being loaded.
+     * @param classname     the name of the class being loaded.
      * @see Loader
      */
-    void onWrite(ClassPool pool, CtClass clazz)
+    void onLoad(ClassPool pool, String classname)
         throws NotFoundException, CannotCompileException;
 }

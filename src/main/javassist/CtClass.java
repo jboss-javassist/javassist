@@ -843,7 +843,7 @@ public abstract class CtClass {
      *
      * @return the <code>Class</code> object representing the loaded class.  
      * @see CtClass#forName(String)
-     * @see ClassPool.SimpleClassLoader
+     * @see ClassPool.SimpleLoader
      * @see Loader
      */
     public Class toClass()
@@ -859,7 +859,7 @@ public abstract class CtClass {
      * been loaded by an internal class loader of Javassist.
      *
      * @see CtClass#toClass()
-     * @see ClassPool.SimpleClassLoader
+     * @see ClassPool.SimpleLoader
      */
     public static Class forName(String name) throws ClassNotFoundException {
         return ClassPool.forName(name);
