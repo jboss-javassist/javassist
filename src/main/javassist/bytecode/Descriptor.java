@@ -512,6 +512,35 @@ public class Descriptor {
     }
 
     /**
+     * Computes the dimension of the array represented by the given
+     * descriptor.  For example, if the descriptor is <code>"[[I"</code>,
+     * then this method returns 2.
+     *
+     * @param desc      the descriptor.
+     * @return 0        if the descriptor does not represent an array type.
+     */
+    public static int arrayDimension(String desc) {
+        int dim = 0;
+        while (desc.charAt(dim) == '[')
+            ++dim;
+
+        return dim;
+    }
+
+    /**
+     * Returns the descriptor of the type of the array component.
+     * For example, if the given descriptor is
+     * <code>"[[Ljava/lang/String;"</code> and the given dimension is 2, 
+     * then this method returns <code>"Ljava/lang/String;"</code>.
+     *
+     * @param desc      the descriptor.
+     * @param dim       the array dimension.
+     */
+    public static String toArrayComponent(String desc, int dim) {
+        return desc.substring(dim);
+    }
+
+    /**
      * Computes the data size specified by the given descriptor.
      * For example, if the descriptor is "D", this method returns 2.
      *

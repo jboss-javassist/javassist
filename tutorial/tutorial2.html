@@ -516,6 +516,7 @@ variable is available only in <code>insertAfter()</code> in
 
 <p>The value of <code>$class</code> is an <code>java.lang.Class</code>
 object representing the class in which the edited method is declared.
+This represents the type of <code>$0</code>.
 
 <h4>addCatch()</h4>
 
@@ -613,9 +614,12 @@ the formal result type.</td>
 
 <tr>
 <td><code>$class</code></td>
-<td>A <code>java.lang.Class</code> object representing
-the class currently edited.</td>
+<td rowspan=2>A <code>java.lang.Class</code> object representing
+the class that declares the method<br>
+currently edited (the type of $0).</td>
 </tr>
+
+<tr><td>&nbsp</td></tr>
 
 </table>
 </ul>
@@ -795,8 +799,9 @@ The method <code>replace()</code> in
 source text representing the substitued statement or
 block for the field access.
 
+<p>
 In the source text, the identifiers starting with <code>$</code>
-have also special meaning:
+have special meaning:
 
 <ul><table border=0>
 <tr>
@@ -875,7 +880,7 @@ is the type of the field.
 <h4>javassist.expr.NewExpr</h4>
 
 <p>A <code>NewExpr</code> object represents object creation
-with the <code>new</code> operator.
+with the <code>new</code> operator (not including array creation).
 The method <code>edit()</code> in <code>ExprEditor</code>
 receives this object if object creation is found.
 The method <code>replace()</code> in
@@ -883,8 +888,9 @@ The method <code>replace()</code> in
 source text representing the substitued statement or
 block for the object creation.
 
+<p>
 In the source text, the identifiers starting with <code>$</code>
-have also special meaning:
+have special meaning:
 
 <ul><table border=0>
 
@@ -919,15 +925,15 @@ The type of the created object.
 </td>
 </tr>
 
-<tr><td><code>$class</code> &nbsp &nbsp</td>
-<td>A <code>java.lang.Class</code> object representing
-the class of the created object.
-</td></tr>
-
 <tr><td><code>$sig</code> &nbsp &nbsp</td>
 <td>An array of <code>java.lang.Class</code> objects representing
 the formal parameter types.</td>
 </tr>
+
+<tr><td><code>$type</code> &nbsp &nbsp</td>
+<td>A <code>java.lang.Class</code> object representing
+the class of the created object.
+</td></tr>
 
 <tr><td><code>$proceed</code> &nbsp &nbsp</td>
 <td>The name of a virtual method executing the original
@@ -942,6 +948,88 @@ object creation.
 <code>$args</code> and <code>$$</code>
 are also available.
 
+<h4>javassist.expr.NewArray</h4>
+
+<p>A <code>NewArray</code> object represents array creation
+with the <code>new</code> operator.
+The method <code>edit()</code> in <code>ExprEditor</code>
+receives this object if array creation is found.
+The method <code>replace()</code> in
+<code>NewArray</code> receives
+source text representing the substitued statement or
+block for the array creation.
+
+<p>
+In the source text, the identifiers starting with <code>$</code>
+have special meaning:
+
+<ul><table border=0>
+
+<tr>
+<td><code>$0</code></td>
+<td>
+<code>null</code>.
+</td>
+</tr>
+
+<tr>
+<td><code>$1</code>, <code>$2</code>, ... &nbsp &nbsp</td>
+<td>
+The size of each dimension.
+</td>
+</tr>
+
+<tr>
+<td><code>$_</code></td>
+<td rowspan=2>
+The resulting value of the array creation.
+<br>A newly created array must be stored in this variable.
+</td>
+</tr>
+
+<tr><td>&nbsp</td></tr>
+
+<tr>
+<td><code>$r</code></td>
+<td>
+The type of the created array.
+</td>
+</tr>
+
+<tr><td><code>$type</code> &nbsp &nbsp</td>
+<td>A <code>java.lang.Class</code> object representing
+the class of the created array.
+</td></tr>
+
+<tr><td><code>$proceed</code> &nbsp &nbsp</td>
+<td>The name of a virtual method executing the original
+array creation.
+.</td>
+</tr>
+
+</table>
+</ul>
+
+<p>The other identifiers such as <code>$w</code>,
+<code>$args</code> and <code>$$</code>
+are also available.
+
+<p>For example, if the array creation is the following expression,
+
+<ul><pre>
+String[][] s = new String[3][4];
+</pre></ul>
+
+then the value of $1 and $2 are 3 and 4, respectively.  $3 is not available.
+
+<p>If the array creation is the following expression,
+
+<ul><pre>
+String[][] s = new String[3][];
+</pre></ul>
+
+then the value of $1 is 3 but $2 is not available.
+
 <h4>javassist.expr.Instanceof</h4>
 
 <p>A <code>Instanceof</code> object represents an <code>instanceof</code>
@@ -953,8 +1041,9 @@ The method <code>replace()</code> in
 source text representing the substitued statement or
 block for the expression.
 
+<p>
 In the source text, the identifiers starting with <code>$</code>
-have also special meaning:
+have special meaning:
 
 <ul><table border=0>
 
@@ -1028,8 +1117,9 @@ The method <code>replace()</code> in
 source text representing the substitued statement or
 block for the expression.
 
+<p>
 In the source text, the identifiers starting with <code>$</code>
-have also special meaning:
+have special meaning:
 
 <ul><table border=0>
 
@@ -1103,8 +1193,9 @@ The method <code>insertBefore()</code> in
 <code>Handler</code> compiles the received
 source text and inserts it at the beginning of the <code>catch</code> clause.
 
+<p>
 In the source text, the identifiers starting with <code>$</code>
-have special meaning:
+have meaning:
 
 <ul><table border=0>
 

@@ -458,7 +458,7 @@ public class JvstCodeGen extends MemberCodeGen {
     }
 
     /**
-     * Makes method parameters $0, $1, ..., $args, and $$ available.
+     * Makes method parameters $0, $1, ..., $args, $$, and $class available.
      * $0 is equivalent to THIS if the method is not static.  Otherwise,
      * if the method is static, then $0 is not available.
      */
@@ -472,15 +472,20 @@ public class JvstCodeGen extends MemberCodeGen {
     }
 
     /**
-     * Makes method parameters $0, $1, ..., $args, and $$ available.
+     * Makes method parameters $0, $1, ..., $args, $$, and $class available.
      * $0 is available only if use0 is true.  It might not be equivalent
      * to THIS.
      *
-     * @paaram use0     true if $0 is used.
+     * @param params    the parameter types (the types of $1, $2, ..)
+     * @param prefix    it must be "$" (the first letter of $0, $1, ...)
+     * @param paramVarName      it must be "$args"
+     * @param paramsName        it must be "$$"
+     * @param use0      true if $0 is used.
      * @param paramBase the register number of $0 (use0 is true)
      *                          or $1 (otherwise).
      * @param target    the class of $0.  If use0 is false, target
-     *                  can be null.
+     *                  can be null.  The value of "target" is also used
+     *                  as the name of the type represented by $class.
      * @param isStatic  true if the method in which the compiled bytecode
      *                  is embedded is static.
      */
@@ -499,7 +504,8 @@ public class JvstCodeGen extends MemberCodeGen {
         paramVarBase = paramBase;
         useParam0 = use0;
 
-        param0Type = MemberResolver.jvmToJavaName(target);
+        if (target != null)
+            param0Type = MemberResolver.jvmToJavaName(target);
 
         inStaticMethod = isStatic;
         varNo = paramBase;

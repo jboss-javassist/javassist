@@ -108,44 +108,57 @@ public class ExprEditor {
                 int pos = iterator.next();
                 int c = iterator.byteAt(pos);
 
-                if (c == Opcode.INVOKESTATIC || c == Opcode.INVOKEINTERFACE
-                    || c == Opcode.INVOKEVIRTUAL) {
-                    expr = new MethodCall(pos, iterator, clazz, minfo);
-                    edit((MethodCall)expr);
-                }
-                else if (c == Opcode.GETFIELD || c == Opcode.GETSTATIC
-                        || c == Opcode.PUTFIELD || c == Opcode.PUTSTATIC) {
-                    expr = new FieldAccess(pos, iterator, clazz, minfo, c);
-                    edit((FieldAccess)expr);
-                }
-                else if (c == Opcode.NEW) {
-                    int index = iterator.u16bitAt(pos + 1);
-                    newList = new NewOp(newList, pos,
-                                        cp.getClassInfo(index));
-                }
-                else if (c == Opcode.INVOKESPECIAL) {
-                    if (newList != null && cp.isConstructor(newList.type,
-                                iterator.u16bitAt(pos + 1)) > 0) {
-                        expr = new NewExpr(pos, iterator, clazz, minfo,
-                                           newList.type, newList.pos);
-                        edit((NewExpr)expr);
-                        newList = newList.next;
-                    }
-                    else {
+                if (c < Opcode.GETSTATIC)   // c < 178
+                    /* skip */;
+                else if (c < Opcode.NEWARRAY) { // c < 188
+                    if (c == Opcode.INVOKESTATIC
+                        || c == Opcode.INVOKEINTERFACE
+                        || c == Opcode.INVOKEVIRTUAL) {
                         expr = new MethodCall(pos, iterator, clazz, minfo);
-                        MethodCall mcall = (MethodCall)expr;
-                        if (!mcall.getMethodName().equals(
+                        edit((MethodCall)expr);
+                    }
+                    else if (c == Opcode.GETFIELD || c == Opcode.GETSTATIC
+                             || c == Opcode.PUTFIELD
+                             || c == Opcode.PUTSTATIC) {
+                        expr = new FieldAccess(pos, iterator, clazz, minfo, c);
+                        edit((FieldAccess)expr);
+                    }
+                    else if (c == Opcode.NEW) {
+                        int index = iterator.u16bitAt(pos + 1);
+                        newList = new NewOp(newList, pos,
+                                            cp.getClassInfo(index));
+                    }
+                    else if (c == Opcode.INVOKESPECIAL) {
+                        if (newList != null && cp.isConstructor(newList.type,
+                                iterator.u16bitAt(pos + 1)) > 0) {
+                            expr = new NewExpr(pos, iterator, clazz, minfo,
+                                               newList.type, newList.pos);
+                            edit((NewExpr)expr);
+                            newList = newList.next;
+                        }
+                        else {
+                            expr = new MethodCall(pos, iterator, clazz, minfo);
+                            MethodCall mcall = (MethodCall)expr;
+                            if (!mcall.getMethodName().equals(
                                                 MethodInfo.nameInit))
-                            edit(mcall);
+                                edit(mcall);
+                        }
                     }
                 }
-                else if (c == Opcode.INSTANCEOF) {
-                    expr = new Instanceof(pos, iterator, clazz, minfo);
-                    edit((Instanceof)expr);
-                }
-                else if (c == Opcode.CHECKCAST) {
-                    expr = new Cast(pos, iterator, clazz, minfo);
-                    edit((Cast)expr);
+                else {  // c >= 188
+                    if (c == Opcode.NEWARRAY || c == Opcode.ANEWARRAY
+                        || c == Opcode.MULTIANEWARRAY) {
+                        expr = new NewArray(pos, iterator, clazz, minfo, c);
+                        edit((NewArray)expr);
+                    }
+                    else if (c == Opcode.INSTANCEOF) {
+                        expr = new Instanceof(pos, iterator, clazz, minfo);
+                        edit((Instanceof)expr);
+                    }
+                    else if (c == Opcode.CHECKCAST) {
+                        expr = new Cast(pos, iterator, clazz, minfo);
+                        edit((Cast)expr);
+                    }
                 }
 
                 if (expr != null && expr.edited()) {
@@ -186,6 +199,15 @@ public class ExprEditor {
      * @param e         the <tt>new</tt> expression creating an object.
      */
     public void edit(NewExpr e) throws CannotCompileException {}
+
+    /**
+     * Edits an expression for array creation (overridable).
+     * The default implementation performs nothing.
+     *
+     * @param a         the <tt>new</tt> expression for creating an array.
+     * @throws CannotCompileException
+     */
+    public void edit(NewArray a) throws CannotCompileException {}
 
     /**
      * Edits a method call (overridable).

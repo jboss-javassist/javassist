@@ -323,6 +323,7 @@ public class Javac {
      * parameters.  $args represents an array of all the parameters.
      * It also makes $$ available as a parameter list of method call.
      * $0 can represent a local variable other than THIS (variable 0).
+     * $class is also made available.
      *
      * <p>This must be called before calling <code>compileStmnt()</code> and
      * <code>compileExpr()</code>.  The correct value of
@@ -332,6 +333,8 @@ public class Javac {
      * @param varNo     the register number of $0 (use0 is true)
      *                          or $1 (otherwise).
      * @param target    the type of $0 (it can be null if use0 is false).
+     *                  It is used as the name of the type represented
+     *                  by $class.
      * @param isStatic  true if the method in which the compiled bytecode
      *                  is embedded is static.
      */
@@ -345,14 +348,17 @@ public class Javac {
 
     /**
      * Prepares to use cast $r, $w, $_, and $type.
+     * $type is made to represent the specified return type.
      * It also enables to write a return statement with a return value
      * for void method.
      *
      * <p>If the return type is void, ($r) does nothing.
      * The type of $_ is java.lang.Object.
      *
+     * @param type              the return type.
      * @param useResultVar      true if $_ is used.
      * @return          -1 or the variable index assigned to $_.
+     * @see #recordType(CtClass)
      */
     public int recordReturnType(CtClass type, boolean useResultVar)
         throws CompileError
@@ -365,6 +371,8 @@ public class Javac {
     /**
      * Prepares to use $type.  Note that recordReturnType() overwrites
      * the value of $type.
+     *
+     * @param t     the type represented by $type.
      */
     public void recordType(CtClass t) {
         gen.recordType(t);
