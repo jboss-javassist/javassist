@@ -99,7 +99,7 @@ public class AppletServer extends Webserver {
      * the proxy class and call a method on the exported object.
      *
      * @param name      the name used for looking the object up.
-     * @param object    the exported object.
+     * @param obj       the exported object.
      * @return          the object identifier
      *
      * @see javassist.rmi.ObjectImporter#lookupObject(String)

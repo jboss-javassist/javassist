@@ -36,7 +36,7 @@ public class Dump {
     /**
      * Main method.
      *
-     * @param args[0]           class file name.
+     * @param args           <code>args[0]</code> is the class file name.
      */
     public static void main(String[] args) throws Exception {
         if (args.length != 1) {

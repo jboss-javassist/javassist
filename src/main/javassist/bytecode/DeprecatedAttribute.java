@@ -38,7 +38,6 @@ public class DeprecatedAttribute extends AttributeInfo {
      * Constructs a Deprecated attribute.
      *
      * @param cp                a constant pool table.
-     * @param filename          the name of the source file.
      */
     public DeprecatedAttribute(ConstPool cp) {
         super(cp, tag, new byte[0]);

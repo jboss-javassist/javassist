@@ -78,6 +78,7 @@ to ${build.classes.dir}.</echo>
            version="true"
            use="true"
            Locale="en_US"
+           charset="iso-8859-1"
            Public="true"
            nohelp="true"
            windowtitle="Javassist API">

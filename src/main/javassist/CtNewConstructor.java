@@ -79,8 +79,6 @@ public class CtNewConstructor {
     /**
      * Creates a public constructor.
      *
-     * @param returnType        the type of the returned value.
-     * @param mname             the method name.
      * @param parameters        a list of the parameter types.
      * @param exceptions        a list of the exception types.
      * @param body              the source text of the constructor body.

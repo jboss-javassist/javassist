@@ -409,8 +409,8 @@ public class CtNewMethod {
      *
      * @param returnType        the type of the returned value.
      * @param mname             the method name.
-     * @param parameters        a list of the parameter types.
-     * @param exceptions        a list of the exception types.
+     * @param parameterTypes    a list of the parameter types.
+     * @param exceptionTypes    a list of the exception types.
      * @param body              the method body
      *                          (must not be a static method).
      * @param constParam        the constant parameter

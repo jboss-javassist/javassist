@@ -684,7 +684,7 @@ public final class ConstPool {
      * Adds a new <code>CONSTANT_Fieldref_info</code> structure.
      *
      * @param classInfo         <code>class_index</code>
-     * @param nameandtypeinfo   <code>name_and_type_index</code>.
+     * @param nameAndTypeInfo   <code>name_and_type_index</code>.
      * @return          the index of the added entry.
      */
     public int addFieldrefInfo(int classInfo, int nameAndTypeInfo) {
@@ -713,7 +713,7 @@ public final class ConstPool {
      * Adds a new <code>CONSTANT_Methodref_info</code> structure.
      *
      * @param classInfo         <code>class_index</code>
-     * @param nameandtypeinfo   <code>name_and_type_index</code>.
+     * @param nameAndTypeInfo   <code>name_and_type_index</code>.
      * @return          the index of the added entry.
      */
     public int addMethodrefInfo(int classInfo, int nameAndTypeInfo) {
@@ -745,7 +745,7 @@ public final class ConstPool {
      * structure.
      *
      * @param classInfo         <code>class_index</code>
-     * @param nameandtypeinfo   <code>name_and_type_index</code>.
+     * @param nameAndTypeInfo   <code>name_and_type_index</code>.
      * @return          the index of the added entry.
      */
     public int addInterfaceMethodrefInfo(int classInfo,

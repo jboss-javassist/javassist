@@ -207,8 +207,12 @@ public class Loader extends ClassLoader {
      *
      * <p>This method calls <code>run()</code>.
      *
-     * @param args[0]           class name to be loaded.
-     * @param args[1-n]         parameters passed to <code>main()</code>.
+     * @param args              command line parameters.
+     * <ul>
+     * <code>args[0]</code> is the class name to be loaded.
+     * <br><code>args[1..n]</code> are parameters passed
+     *                      to the target <code>main()</code>.
+     * </ul>
      *
      * @see javassist.Loader#run(String[])
      */
@@ -220,8 +224,12 @@ public class Loader extends ClassLoader {
     /**
      * Loads a class and calls <code>main()</code> in that class.
      *
-     * @param args[0]           the name of the loaded class.
-     * @param args[1-n]         parameters passed to <code>main()</code>.
+     * @param args              command line parameters.
+     * <ul>
+     * <code>args[0]</code> is the class name to be loaded.
+     * <br><code>args[1..n]</code> are parameters passed
+     *                      to the target <code>main()</code>.
+     * </ul>
      */
     public void run(String[] args) throws Throwable {
         int n = args.length - 1;

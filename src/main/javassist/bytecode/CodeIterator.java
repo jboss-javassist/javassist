@@ -496,7 +496,7 @@ public class CodeIterator implements Opcode {
     /**
      * Appends a gap at the end of the bytecode sequence.
      *
-     * @param length            gap length
+     * @param gapLength            gap length
      */
     public void appendGap(int gapLength) {
         byte[] code = bytecode;

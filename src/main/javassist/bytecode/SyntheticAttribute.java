@@ -38,7 +38,6 @@ public class SyntheticAttribute extends AttributeInfo {
      * Constructs a Synthetic attribute.
      *
      * @param cp                a constant pool table.
-     * @param filename          the name of the source file.
      */
     public SyntheticAttribute(ConstPool cp) {
         super(cp, tag, new byte[0]);

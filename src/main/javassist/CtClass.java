@@ -321,7 +321,7 @@ public abstract class CtClass {
      * @param oldName           replaced class name
      * @param newName           substituted class name
      */
-    public void replaceClassName(String oldname, String newname) {
+    public void replaceClassName(String oldName, String newName) {
         checkModify();
     }
 
@@ -538,7 +538,6 @@ public abstract class CtClass {
      * For details of the method descriptor, see the JVM specification
      * or <code>javassist.bytecode.Descriptor</code>.
      *
-     * @param name      method name
      * @param desc      method descriptor
      * @see javassist.bytecode.Descriptor
      */

@@ -64,7 +64,7 @@ import javassist.ClassPool;
  *
  * <p>This program is run as follows:
  *
- * <ul><pre>% java Main2 arg1, ...</code>
+ * <ul><pre>% java Main2 arg1, ...</pre></ul>
  *
  * <p>The difference from the former one is that the class <code>Main</code>
  * is loaded by <code>javassist.reflect.Loader</code> whereas the class
@@ -113,8 +113,12 @@ public class Loader extends javassist.Loader {
      * Loads a class with an instance of <code>Loader</code>
      * and calls <code>main()</code> in that class.
      *
-     * @param args[0]           class name to be loaded.
-     * @param args[1-n]         parameters passed to <code>main()</code>.
+     * @param args              command line parameters.
+     * <ul>
+     * <code>args[0]</code> is the class name to be loaded.
+     * <br><code>args[1..n]</code> are parameters passed
+     *                      to the target <code>main()</code>.
+     * </ul>
      */
     public static void main(String[] args) throws Throwable {
         Loader cl = new Loader();
