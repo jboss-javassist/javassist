@@ -262,6 +262,9 @@ see javassist.Dump.
       changed.
   <li>javassist.expr.NewArray has been implemented.  It enables modifying
       an expression for array creation.
+  <li><code>.class</code> notation has been supported.  The modified class
+      file needs javassist.runtime.DotClass at runtime.
+  <li>a bug in <code>CtClass.getMethods()</code> has been fixed.
 </ul>
 
 <p>- version 3.0 beta in May 18th, 2004.
@@ -565,7 +568,7 @@ Andreas Salathe, Dante Torres estrada, S. Pam, Nuno Santos,
 Denis Taye, Colin Sampaleanu, Robert Bialek, Asato Shimotaki,
 Howard Lewis Ship, Richard Jones, Marjan Sterjev,
 Bruce McDonald, Mark Brennan, Vlad Skarzhevskyy,
-Brett Randall, and Tsuyoshi Murakami
+Brett Randall, Tsuyoshi Murakami, and Nathan Meyers
 for their contributions.
 
 <p><br>

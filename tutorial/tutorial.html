@@ -18,19 +18,18 @@ Shigeru Chiba
 
 <p><div align="right"><a href="tutorial2.html">Next page</a></div>
 
-<ul>1. <a href="#read">Reading bytecode</a>
-<br>2. <a href="#def">Defining a new class</a>
-<br>3. <a href="#pool">ClassPool</a>
-<br>4. <a href="#load">Class loader</a>
-<br>5. <a href="tutorial2.html#intro">Introspection and customization</a>
-<br>6. <a href="tutorial3.html#intro">Bytecode level API</a>
+<ul>1. <a href="#read">Reading and writing bytecode</a>
+<br>2. <a href="#pool">ClassPool</a>
+<br>3. <a href="#load">Class loader</a>
+<br>4. <a href="tutorial2.html#intro">Introspection and customization</a>
+<br>5. <a href="tutorial3.html#intro">Bytecode level API</a>
 
 </ul>
 
 <p><br>
 
 <a name="read">
-<h2>1. Reading bytecode</h2>
+<h2>1. Reading and writing bytecode</h2>
 
 <p>Javassist is a class library for dealing with Java bytecode.
 Java bytecode is stored in a binary file called a class file.
@@ -90,6 +89,59 @@ modified bytecode.  To obtain the bytecode, call <code>toBytecode()</code>:
 <ul><pre>
 byte[] b = cc.toBytecode();
 </pre></ul>
+
+<a name="def">
+<h4>Defining a new class</h4>
+
+<p>To define a new class from scratch, <code>makeClass()</code>
+must be called on a <code>ClassPool</code>.
+
+<ul><pre>
+ClassPool pool = ClassPool.getDefault();
+CtClass cc = pool.makeClass("Point");
+</pre></ul>
+
+<p>This program defines a class <code>Point</code>
+including no members.
+
+<h4>Frozen classes</h4>
+
+<p>If a <code>CtClass</code> object is converted into a class file by
+<code>writeFile()</code>, <code>toClass()</code>, or
+<code>toBytecode()</code>, Javassist freezes that <code>CtClass</code>
+object.  Further modifications of that <code>CtClass</code> object are
+not permitted.
+
+<p>When Javassist freezes a <code>CtClass</code> object, it also
+prunes the data structure contained in that object.  To reduce memory
+consumption, Javassist discards some part of data structure, for
+example, the data of method bodies.  Thus, after a
+<code>CtClass</code> object is pruned, the bytecode of a method is not
+accessible although method names and signatures are accessible.
+
+<p>To disallow pruning a <code>CtClass</code>, <code>stopPruning()</code>
+must be called in advance:
+
+<ul><pre>
+CtClasss cc = ...;
+cc.stopPruning(true);
+    :
+cc.writeFile();                             // convert to a class file.
+// cc is not pruned.
+</pre></ul>
+
+<p>If a <code>CtClass</code> is not pruned, it can be defrost so that
+modifications of the class definition can be permitted.  For example,
+
+<ul><pre>
+CtClasss cc = ...;
+cc.stopPruning(true);
+    :
+cc.writeFile();
+cc.defrost();
+cc.setSuperclass(...);    // OK since the class is not frozen.
+</pre></ul>
+
 
 <h4>Class search path</h4>
 
@@ -187,21 +239,106 @@ included in the search path.
 
 <p><br>
 
-<a name="def">
-<h2>2. Defining a new class</h2>
+<a name="pool">
+<h2>2. ClassPool</h2>
 
-<p>To define a new class from scratch, <code>makeClass()</code>
-must be called on a <code>ClassPool</code>.
+<p>
+A <code>ClassPool</code> object is a container of <code>CtClass</code>
+objects.  Once a <code>CtClass</code> object is created, it is
+recorded in a <code>ClassPool</code> for ever.  This is because a
+compiler may need to access the <code>CtClass</code> object later when
+it compiles source code that refers to the class represented by that
+<code>CtClass</code>.
+
+<p>
+For example, suppose that a new method <code>getter()</code> is added
+to a <code>CtClass</code> object representing <code>Point</code>
+class.  Later, the program attempts to compile source code including a
+method call to <code>getter()</code> in <code>Point</code> and use the
+compiled code as the body of a method, which will be added to another
+class <code>Line</code>.  If the <code>CtClass</code> object representing
+<code>Point</code> is lost, the compiler cannot compile the method call
+to <code>getter()</code>.  Note that the original class definition does
+not include <code>getter()</code>.  Therefore, to correctly compile
+such a method call, the <code>ClassPool</code>
+must contain all the instances of <code>CtClass</code> all the time of
+program execution.
+
+<h4>Avoid out of memory</h4>
+
+<p>
+This specification of <code>ClassPool</code> may cause huge memory
+consumption if the number of <code>CtClass</code> objects becomes
+amazingly large (this rarely happens since Javassist tries to reduce
+memory consumption in various ways).  To avoid this problem, you
+can explicitly remove an unnecessary <code>CtClass</code> object from
+the <code>ClassPool</code>.  If you call <code>detach()</code> on a
+<code>CtClass</code> object, then that <code>CtClass</code> object is
+removed from the <code>ClassPool</code>.  For example,
 
 <ul><pre>
-ClassPool pool = ClassPool.getDefault();
-CtClass cc = pool.makeClass("Point");
+CtClass cc = ... ;
+cc.writeFile();
+cc.detach();
 </pre></ul>
 
-<p>This program defines a class <code>Point</code>
-including no members.
+<p>You must not call any method on that
+<code>CtClass</code> object after <code>detach()</code> is called.
 
-<p>A new class can be also defined as a copy of an existing class.
+<p>
+Another idea is to occasionally replace a <code>ClassPool</code> with
+a new one and discard the old one.  If an old <code>ClassPool</code>
+is garbage collected, the <code>CtClass</code> objects included in
+that <code>ClassPool</code> are also garbage collected.
+To create a new instance of <code>ClassPool</code>, execute the following
+code snippet:
+
+<ul><pre>
+ClassPool cp = new ClassPool();
+cp.appendSystemPath();	// or append another path by appendClassPath()
+</pre></ul>
+
+<p>This creates a <code>ClassPool</code> object that behaves as the
+default <code>ClassPool</code> returned by
+<code>ClassPool.getDefault()</code> does.
+Note that <code>ClassPool.getDefault()</code> is a singleton factory method
+provided for convenience.  Therefore, the default <code>ClassPool</code>
+is never garbage-collected.
+
+<h4>Cascaded ClassPools.</h4>
+
+<p>
+<code>ClassPool</code> objects can be cascaded like
+<code>java.lang.ClassLoader</code>.  For example,
+
+<ul><pre>
+ClassPool parent = ClassPool.getDefault();
+ClassPool child = new ClassPool(parent);
+child.insertClassPath("./classes");
+</pre></ul>
+
+<p>
+If <code>child.get()</code> is called, the child <code>ClassPool</code>
+first delegates to the parent <code>ClassPool</code>.  If the parent
+<code>ClassPool</code> fails to find a class file, then the child
+<code>ClassPool</code> attempts to find a class file
+under the <code>./classes</code> directory.
+
+<p>
+If <code>child.childFirstLookup</code> is true, the child
+<code>ClassPool</code> attempts to find a class file before delegating
+to the parent <code>ClassPool</code>.  For example,
+
+<ul><pre>
+ClassPool parent = ClassPool.getDefault();
+ClassPool child = new ClassPool(parent);
+child.appendSystemPath();         // the same class path as the default one.
+child.childFirstLookup = true;    // changes the behavior of the child.
+</pre></ul>
+
+<h4>Changing a class name for defining a new class</h4>
+
+<p>A new class can be defined as a copy of an existing class.
 The program below does that:
 
 <ul><pre>
@@ -258,25 +395,25 @@ mapping between classes and <code>CtClass</code> objects.  Javassist
 never allows two distinct <code>CtClass</code> objects to represent
 the same class unless two independent <code>ClassPool</code> are created.
 This is a significant feature for consistent program
-transformation.  To create multiple
-instances of <code>ClassPool</code>, write the following code:
+transformation.
+
+<p>To create another copy of the default instance of
+<code>ClassPool</code>, which is returned by
+<code>ClassPool.getDefault()</code>, execute the following code
+snippet (this code was already shown above):
 
 <ul><pre>
 ClassPool cp = new ClassPool();
 cp.appendSystemPath();	// or append another path by appendClassPath()
 </pre></ul>
 
-<p>This creates a <code>ClassPool</code> object that behaves as the
-default <code>ClassPool</code> returned by
-<code>ClassPool.getDefault()</code> does.
-<code>ClassPool.getDefault()</code> is a singleton factory method
-provided for convenience.
-
 <p>If you have two <code>ClassPool</code> objects, then you can
 obtain, from each <code>ClassPool</code>, a distinct
 <code>CtClass</code> object representing the same class file.  You can
 differently modify these <code>CtClass</code> objects to generate
 different versions of the class.
+
+<h4>Renaming a frozen class for defining a new class</h4>
 
 <p>Once a <code>CtClass</code> object is converted into a class file
 by <code>writeFile()</code> or <code>toBytecode()</code>, Javassist
@@ -314,67 +451,10 @@ can be executed after <code>writeFile()</code> or <code>toBytecode()</code>
 is called on the the <code>CtClass</code> object representing <code>Point</code>
 class.
 
-
-<p><br>
-
-<a name="pool">
-<h2>3. ClassPool</h2>
-
-<p>
-A <code>ClassPool</code> object is a container of <code>CtClass</code>
-objects.  Once a <code>CtClass</code> object is created, it is
-recorded in a <code>ClassPool</code> for ever.  This is because a
-compiler may need to access the <code>CtClass</code> object later when
-it compiles source code that refers to the class represented by that
-<code>CtClass</code>.  If the class definition represented by that
-<code>CtClass</code> object is different from that of the original class
-file, the compiler cannot correctly compile the source code without
-the <code>CtClass</code> object.
-
-<p>
-This specification of <code>ClassPool</code> may cause huge memory
-consumption if the number of <code>CtClass</code> objects becomes large.
-To avoid this problem, you can explicitly remove an unnecessary
-<code>CtClass</code> object from the <code>ClassPool</code>.  If you
-call <code>detach()</code> on a <code>CtClass</code> object, then that
-<code>CtClass</code> object is removed from the <code>ClassPool</code>.
-For example,
-
-<ul><pre>
-CtClass cc = ... ;
-cc.writeFile();
-cc.detach();
-</pre></ul>
-
-<p>You must not call any method on that
-<code>CtClass</code> object after <code>detach()</code> is called.
-
-<p><code>ClassPool</code> objects can be cascaded like
-<code>java.lang.ClassLoader</code>.  For example,
-
-<ul><pre>
-ClassPool parent = ClassPool.getDefault();
-ClassPool child = new ClassPool(parent);
-</pre></ul>
-
-<p>If <code>child.get()</code> is called, the child <code>ClassPool</code>
-first delegates to the parent <code>ClassPool</code>.  If the parent
-<code>ClassPool</code> fails to find a class file, then the child
-<code>ClassPool</code> attempts to find a class file.
-If <code>child.childFirstLookup</code> is true, the child
-<code>ClassPool</code> attempts to find a class file before delegating
-to the parent <code>ClassPool</code>.  For example,
-
-<ul><pre>
-ClassPool parent = ClassPool.getDefault();
-ClassPool child = new ClassPool(parent);
-child.childFirstLookup = true;    // changes the behavior of the child.
-</pre></ul>
-
 <p><br>
 
 <a name="load">
-<h2>4. Class loader</h2>
+<h2>3. Class loader</h2>
 
 <p>If what classes must be modified is known in advance,
 the easiest way for modifying the classes is as follows:
@@ -396,7 +476,7 @@ by Javassist.
 
 <p><br>
 
-<h3>4.1 The <code>toClass</code> method in <code>CtClass</code></h3>
+<h3>3.1 The <code>toClass</code> method in <code>CtClass</code></h3>
 
 <p>The <code>CtClass</code> provides a convenience method
 <code>toClass()</code>, which requests the context class loader for
@@ -475,7 +555,7 @@ more complex functionality, you should write your own class loader.
 
 <p><br>
 
-<h3>4.2 Class loading in Java</h3>
+<h3>3.2 Class loading in Java</h3>
 
 <p>In Java, multiple class loaders can coexist and
 each class loader creates its own name space.
@@ -655,7 +735,7 @@ be helpful:
 
 <p><br>
 
-<h3>4.3 Using <code>javassist.Loader</code></h3>
+<h3>3.3 Using <code>javassist.Loader</code></h3>
 
 <p>Javassist provides a class loader
 <code>javassist.Loader</code>.  This class loader uses a
@@ -792,7 +872,7 @@ make sure whether all the classes using that class have been loaded by
 
 <p><br>
 
-<h3>4.4 Writing a class loader</h3>
+<h3>3.4 Writing a class loader</h3>
 
 <p>A simple class loader using Javassist is as follows:
 
@@ -863,7 +943,7 @@ Hence, the
 
 <p><br>
 
-<h3>4.5 Modifying a system class</h3>
+<h3>3.5 Modifying a system class</h3>
 
 <p>The system classes like <code>java.lang.String</code> cannot be
 loaded by a class loader other than the system class loader.

@@ -12,7 +12,7 @@
 <div align="left"><a href="tutorial2.html">Previous page</a></div>
 
 <p>
-<a href="#intro">6. Bytecode level API</a>
+<a href="#intro">5. Bytecode level API</a>
 <ul>
 <li><a href="#classfile">Obtaining a <code>ClassFile</code> object</a>
 <br><li><a href="#member">Adding and removing a member</a>
@@ -25,7 +25,7 @@
 <p><br>
 
 <a name="intro">
-<h2>6. Bytecode level API</h2>
+<h2>5. Bytecode level API</h2>
 
 <p>
 Javassist also provides lower-level API for directly editing
@@ -35,7 +35,7 @@ while this level of API allows you any kind of modification
 of class files.
 
 <a name="classfile">
-<h3>6.1 Obtaining a <code>ClassFile</code> object</h3>
+<h3>5.1 Obtaining a <code>ClassFile</code> object</h3>
 
 <p>A <code>javassist.bytecode.ClassFile</code> object represents
 a class file.  To obtian this object, <code>getClassFile()</code>
@@ -64,7 +64,7 @@ writes the contents of the class file to a given
 <p><br>
 
 <a name="member">
-<h3>6.2 Adding and removing a member</h3>
+<h3>5.2 Adding and removing a member</h3>
 
 <p>
 <code>ClassFile</code> provides <code>addField()</code> and
@@ -98,7 +98,7 @@ and remove one from the list.
 <p><br>
 
 <a name="traverse">
-<h3>6.3 Traversing a method body</h3>
+<h3>5.3 Traversing a method body</h3>
 
 <p>
 To examine every bytecode instruction in a method body,
@@ -143,7 +143,7 @@ Branch offsets etc. are automatically adjusted.<br>
 <p><br>
 
 <a name="bytecode">
-<h3>6.4 Producing a bytecode sequence</h3>
+<h3>5.4 Producing a bytecode sequence</h3>
 
 <p>
 A <code>Bytecode</code> object represents a sequence of bytecode

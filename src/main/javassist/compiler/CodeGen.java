@@ -199,28 +199,20 @@ public abstract class CodeGen extends Visitor implements Opcode, TokenId {
     }
 
     public void compileExpr(ASTree expr) throws CompileError {
-        expr = doTypeCheck(expr);
+        doTypeCheck(expr);
         expr.accept(this);
     }
 
     public boolean compileBooleanExpr(boolean branchIf, ASTree expr)
         throws CompileError
     {
-        expr = doTypeCheck(expr);
+        doTypeCheck(expr);
         return booleanExpr(branchIf, expr);
     }
 
-    /* This returns a different expression from the given one
-     * if the given expression has been modified.
-     */
-    private ASTree doTypeCheck(ASTree expr) throws CompileError {
-        if (typeChecker != null) {
+    public void doTypeCheck(ASTree expr) throws CompileError {
+        if (typeChecker != null)
             expr.accept(typeChecker);
-            ASTree expr2 = typeChecker.modifiedExpr; 
-            return expr2 == null ? expr : expr2;
-        }
-        else
-            return expr;
     }
 
     public void atASTList(ASTList n) throws CompileError { fatal(); }
@@ -308,7 +300,7 @@ public abstract class CodeGen extends Visitor implements Opcode, TokenId {
         int op = st.getOperator();
         if (op == EXPR) {
             ASTree expr = st.getLeft();
-            expr = doTypeCheck(expr);
+            doTypeCheck(expr);
             if (expr instanceof AssignExpr)
                 atAssignExpr((AssignExpr)expr, false);
             else if (isPlusPlusExpr(expr)) {
@@ -568,7 +560,7 @@ public abstract class CodeGen extends Visitor implements Opcode, TokenId {
          */
         ASTree init = d.getInitializer();
         if (init != null) {
-            init = doTypeCheck(init);        
+            doTypeCheck(init);        
             atVariableAssign(null, '=', null, d, init, false);
         }
     }
@@ -798,10 +790,13 @@ public abstract class CodeGen extends Visitor implements Opcode, TokenId {
         int k = lookupBinOp(token);
         if (k >= 0) {
             expr.oprand1().accept(this);
+            ASTree right = expr.oprand2();
+            if (right == null)
+                return;     // see TypeChecker.atBinExpr().
+
             int type1 = exprType;
             int dim1 = arrayDim;
             String cname1 = className;
-            ASTree right = expr.oprand2();
             right.accept(this);
             if (dim1 != arrayDim)
                 throw new CompileError("incompatible array types");
