@@ -322,6 +322,23 @@ public class Descriptor {
     }
 
     /**
+     * Returns true if desc1 and desc2 has the same signature.
+     */
+    public static boolean eqSignature(String desc1, String desc2) {
+        if (desc1.charAt(0) != '(')
+            return false;
+
+        for (int i = 0; true; ++i) {
+            char c = desc1.charAt(i);
+            if (c != desc2.charAt(i))
+                return false;
+
+            if (c == ')')
+                return true;
+        }
+    }
+
+    /**
      * Returns the <code>CtClass</code> object representing the return
      * type specified by the given descriptor.
      *

@@ -131,7 +131,7 @@ class CtNewWrappedMethod {
     private static String addBodyMethod(CtClassType clazz,
                                         ClassFile classfile,
                                         CtMethod src)
-        throws BadBytecode
+        throws BadBytecode, CannotCompileException
     {
         Hashtable bodies = clazz.getHiddenMethods();
         String bodyname = (String)bodies.get(src);

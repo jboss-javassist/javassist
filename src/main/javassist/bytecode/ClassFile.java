@@ -20,6 +20,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.Map;
 import java.util.LinkedList;
+import java.util.ListIterator;
 import java.util.List;
 import javassist.CannotCompileException;
 
@@ -333,8 +334,24 @@ public final class ClassFile {
     /**
      * Appends a field to the class.
      */
-    public void addField(FieldInfo finfo) {
+    public void addField(FieldInfo finfo) throws CannotCompileException {
+        testExistingField(finfo.getName(), finfo.getDescriptor());
         fields.add(finfo);
+    }
+
+    private void addField0(FieldInfo finfo) {
+        fields.add(finfo);
+    }
+
+    private void testExistingField(String name, String descriptor)
+        throws CannotCompileException
+    {
+        ListIterator it = fields.listIterator(0);
+        while (it.hasNext()) {
+            FieldInfo minfo = (FieldInfo)it.next();
+            if (minfo.getName().equals(name))
+                throw new CannotCompileException("duplicated field: " + name);
+        }
     }
 
     /**
@@ -374,8 +391,25 @@ public final class ClassFile {
     /**
      * Appends a method to the class.
      */
-    public void addMethod(MethodInfo minfo) {
+    public void addMethod(MethodInfo minfo) throws CannotCompileException {
+        testExistingMethod(minfo.getName(), minfo.getDescriptor());
         methods.add(minfo);
+    }
+
+    private void addMethod0(MethodInfo minfo) {
+        methods.add(minfo);
+    }
+        
+    private void testExistingMethod(String name, String descriptor)
+        throws CannotCompileException
+    {
+        ListIterator it = methods.listIterator(0);
+        while (it.hasNext()) {
+            MethodInfo minfo = (MethodInfo)it.next();
+            if (minfo.getName().equals(name)
+                && Descriptor.eqSignature(minfo.getDescriptor(), descriptor))
+                throw new CannotCompileException("duplicated method: " + name);
+        }
     }
 
     /**
@@ -452,12 +486,12 @@ public final class ClassFile {
         n = in.readUnsignedShort();
         fields = new LinkedList();
         for (i = 0; i < n; ++i)
-            addField(new FieldInfo(cp, in));
+            addField0(new FieldInfo(cp, in));
 
         n = in.readUnsignedShort();
         methods = new LinkedList();
         for (i = 0; i < n; ++i)
-            addMethod(new MethodInfo(cp, in));
+            addMethod0(new MethodInfo(cp, in));
 
         attributes = new LinkedList();
         n = in.readUnsignedShort();
