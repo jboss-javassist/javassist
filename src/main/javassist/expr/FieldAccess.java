@@ -174,6 +174,8 @@ public class FieldAccess extends Expr {
             /* Is $_ included in the source code?
              */
             boolean included = checkResultValue(retType, statement);
+            if (read)
+                included = true;
 
             int retVar = jc.recordReturnType(retType, included);
             if (read)
@@ -189,6 +191,17 @@ public class FieldAccess extends Expr {
             Bytecode bytecode = jc.getBytecode();
             storeStack(params, isStatic(), paramVar, bytecode);
             jc.recordLocalVariables(ca, pos);
+
+            if (included)
+                if (retType == CtClass.voidType) {
+                    bytecode.addOpcode(ACONST_NULL);
+                    bytecode.addAstore(retVar);
+                }
+                else {
+                    bytecode.addConstZero(retType);
+                    bytecode.addStore(retVar, retType);     // initialize $_
+                }
+
             jc.compileStmnt(statement);
             if (read)
                 bytecode.addLoad(retVar, retType);

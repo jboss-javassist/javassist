@@ -46,22 +46,20 @@ public class Descriptor {
         return classname.replace('/', '.');
     }
 
-   /**
-    *  Converts to a classname from a descriptor
-    */
-   public static String fromDescriptor(String descriptor)
-   {
-       String newname = toJavaName(descriptor).substring(1);
-       return newname.substring(0, newname.length() - 1);
-   }
+    /**
+     *  Converts to a classname from a descriptor
+     */
+    public static String fromDescriptor(String descriptor) {
+        String newname = toJavaName(descriptor).substring(1);
+        return newname.substring(0, newname.length() - 1);
+    }
 
-   /**
-    *  Converts to a descriptor from a classname
-    */
-   public static String toDescriptor(String classname)
-   {
-       return "L" + toJvmName(classname) + ";";
-   }
+    /**
+     *  Converts to a descriptor from a classname
+     */
+    public static String toDescriptor(String classname) {
+        return "L" + toJvmName(classname) + ";";
+    }
 
     /**
      * Returns the internal representation of the class name in the
@@ -178,8 +176,6 @@ public class Descriptor {
         toDescriptor(sbuf, type);
         return sbuf.toString();
     }
-
-
 
     private static void toDescriptor(StringBuffer desc, CtClass type) {
         if (type.isArray()) {

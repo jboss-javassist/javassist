@@ -178,6 +178,10 @@ public class NewExpr extends Expr {
             Bytecode bytecode = jc.getBytecode();
             storeStack(params, true, paramVar, bytecode);
             jc.recordLocalVariables(ca, pos);
+
+            bytecode.addConstZero(newType);
+            bytecode.addStore(retVar, newType);     // initialize $_
+
             jc.compileStmnt(statement);
             bytecode.addAload(retVar);
 

@@ -442,6 +442,29 @@ public class Bytecode implements Opcode {
     }
 
     /**
+     * Appends an instruction for pushing zero or null on the stack.
+     * If the type is void, this method does not append any instruction.
+     *
+     * @param type      the type of the zero value (or null).
+     */
+    public void addConstZero(CtClass type) {
+        if (type.isPrimitive()) {
+            if (type == CtClass.longType)
+                addOpcode(LCONST_0);
+            else if (type == CtClass.floatType)
+                addOpcode(FCONST_0);
+            else if (type == CtClass.doubleType)
+                addOpcode(DCONST_0);
+            else if (type == CtClass.voidType)
+                throw new RuntimeException("void type?");
+            else
+                addOpcode(ICONST_0);
+        }
+        else
+            addOpcode(ACONST_NULL);
+    }
+
+    /**
      * Appends ILOAD or (WIDE) ILOAD_&lt;n&gt;
      *
      * @param n         an index into the local variable array.
@@ -680,9 +703,9 @@ public class Bytecode implements Opcode {
                 addLstore(n);
                 return 2;
             }
-            else if(type == CtClass.floatType)
+            else if (type == CtClass.floatType)
                 addFstore(n);
-            else if(type == CtClass.doubleType) {
+            else if (type == CtClass.doubleType) {
                 addDstore(n);
                 return 2;
             }

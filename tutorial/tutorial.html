@@ -106,7 +106,27 @@ byte[] b = cc.toBytecode();
 <p>The default <code>ClassPool</code> returned
 by a static method <code>ClassPool.getDefault()</code>
 searches the same path that the underlying JVM (Java virtual machine) has.
-The users can expand this class search path if needed.
+<em>If a program is running on a web application server such as JBoss and Tomcat,
+the <code>ClassPool</code> object may not be able to find user classes</em>
+since such a web application server uses multiple class loaders as well as
+the system class loader.  In that case, an additional class path must be
+registered to the <code>ClassPool</code>.  Suppose that <code>pool</code>
+refers to a <code>ClassPool</code> object:
+
+<ul><pre>
+pool.insertClassPath(new ClassClassPath(this.getClass()));
+</pre></ul>
+
+<p>
+This statement registers the class path that was used for loading
+the class of the object that <code>this</code> referes to.
+You can use any <code>Class</code> object as an argument instead of
+<code>this.getClass()</code>.  The class path used for loading the
+class represented by that <code>Class</code> object is registered.
+
+
+<p>
+You can register a directory name as the class search path.
 For example, the following code adds a directory
 <code>/usr/local/javalib</code>
 to the search path:
