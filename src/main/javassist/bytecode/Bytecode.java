@@ -78,6 +78,19 @@ public class Bytecode implements Opcode {
         stackDepth = 0;
     }
 
+    /**
+     * Constructs a <code>Bytecode</code> object with an empty bytecode
+     * sequence.  The initial values of <code>max_stack</code> and
+     * <code>max_locals</code> are zero.
+     * 
+     * @param cp            constant pool table.
+     * @see Bytecode#setMaxStack(int)
+     * @see Bytecode#setMaxLocals(int)
+     */
+    public Bytecode(ConstPool cp) {
+        this(cp, 0, 0);
+    }
+
     /* used in add().
      */
     private Bytecode() {

@@ -204,6 +204,13 @@ public abstract class CtClass {
     public ClassFile getClassFile2() { return null; }
 
     /**
+     * Undocumented method.  Do not use; internal-use only.
+     */
+    public javassist.compiler.AccessorMaker getAccessorMaker() {
+        return null;
+    }
+
+    /**
      * Returns the uniform resource locator (URL) of the class file.
      */
     public URL getURL() throws NotFoundException {
@@ -227,7 +234,7 @@ public abstract class CtClass {
 
     void checkModify() throws RuntimeException {
         if (isFrozen())
-            throw new RuntimeException("the class is frozen");
+            throw new RuntimeException(getName() + " class is frozen");
 
         // isModified() must return true after this method is invoked.
     }

@@ -351,6 +351,16 @@ public class MemberCodeGen extends CodeGen {
             throw new CompileError(msg);
         }
 
+        atMethodCallCore2(targetClass, mname, isStatic, isSpecial,
+                          aload0pos, count, found);
+    }
+
+    private void atMethodCallCore2(CtClass targetClass, String mname,
+                                   boolean isStatic, boolean isSpecial,
+                                   int aload0pos, int count,
+                                   MemberResolver.Method found)
+        throws CompileError
+    {
         CtClass declClass = found.declaring;
         MethodInfo minfo = found.info;
         String desc = minfo.getDescriptor();
@@ -362,11 +372,24 @@ public class MemberCodeGen extends CodeGen {
                 throw new CompileError("no such a constructor");
         }
         else if ((acc & AccessFlag.PRIVATE) != 0) {
-            isSpecial = true;
-            String orgName = mname;
-            mname = getAccessiblePrivate(mname, declClass);
-            if (mname == null)
-                throw new CompileError("Method " + orgName + " is private");
+            if (declClass == thisClass)
+                isSpecial = true;
+            else {
+                String orgName = mname;
+                isSpecial = false;
+                isStatic = true;
+                String origDesc = desc;
+                if ((acc & AccessFlag.STATIC) == 0)
+                    desc = Descriptor.insertParameter(declClass.getName(),
+                                                      origDesc);
+
+                acc = AccessFlag.setPackage(acc) | AccessFlag.STATIC;
+                mname = getAccessiblePrivate(mname, origDesc, desc,
+                                             minfo, declClass);
+                if (mname == null)
+                    throw new CompileError("Method " + orgName
+                                           + " is private");
+            }
         }
 
         boolean popTarget = false;
@@ -386,7 +409,7 @@ public class MemberCodeGen extends CodeGen {
 
             bytecode.addInvokestatic(declClass, mname, desc);
         }
-        else if (isSpecial)
+        else if (isSpecial)    // if (isSpecial && notStatic(acc))
             bytecode.addInvokespecial(declClass, mname, desc);
         else if (declClass.isInterface())
             bytecode.addInvokeinterface(declClass, mname, desc, count);
@@ -399,12 +422,26 @@ public class MemberCodeGen extends CodeGen {
         setReturnType(desc, isStatic, popTarget);
     }
 
-    protected String getAccessiblePrivate(String methodName,
-                                          CtClass declClass) {
-        if (declClass == thisClass)
-            return methodName;
-        else if (isEnclosing(declClass, thisClass))
-            return null;
+    /*
+     * Finds (or adds if necessary) a hidden accessor if the method
+     * is in an enclosing class.
+     *
+     * @param desc          the descriptor of the method.
+     * @param declClass     the class declaring the method.
+     */
+    protected String getAccessiblePrivate(String methodName, String desc,
+                                          String newDesc, MethodInfo minfo,
+                                          CtClass declClass)
+        throws CompileError
+    {
+        if (isEnclosing(declClass, thisClass)) {
+            AccessorMaker maker = declClass.getAccessorMaker();
+            if (maker == null)
+                return null;
+            else
+                return maker.getMethodAccessor(methodName, desc, newDesc,
+                                               minfo);
+        }
         else
             return null;    // cannot access this private method.
     }

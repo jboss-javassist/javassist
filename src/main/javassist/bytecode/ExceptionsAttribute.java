@@ -64,7 +64,7 @@ public class ExceptionsAttribute extends AttributeInfo {
      *
      * @param newCp     the constant pool table used by the new copy.
      * @param classnames        pairs of replaced and substituted
-     *                          class names.
+     *                          class names.  It can be <code>null</code>.
      */
     public AttributeInfo copy(ConstPool newCp, Map classnames) {
         return new ExceptionsAttribute(newCp, this, classnames);

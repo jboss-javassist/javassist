@@ -18,6 +18,7 @@ package javassist;
 import javassist.bytecode.*;
 import javassist.compiler.Javac;
 import javassist.compiler.CompileError;
+import javassist.compiler.AccessorMaker;
 import javassist.expr.ExprEditor;
 import java.io.InputStream;
 import java.io.BufferedInputStream;
@@ -44,6 +45,8 @@ class CtClassType extends CtClass {
     private CtConstructor classInitializerCache;
     private CtMethod methodsCache;
 
+    private AccessorMaker accessors;
+
     private FieldInitLink fieldInitializers;
     private Hashtable hiddenMethods;    // must be synchronous
     private int uniqueNumberSeed;
@@ -53,6 +56,7 @@ class CtClassType extends CtClass {
         classPool = cp;
         wasChanged = wasFrozen = false;
         classfile = null;
+        accessors = null;
         fieldInitializers = null;
         hiddenMethods = null;
         uniqueNumberSeed = 0;
@@ -102,6 +106,13 @@ class CtClassType extends CtClass {
         constructorsCache = null;
         classInitializerCache = null;
         methodsCache = null;
+    }
+
+    public AccessorMaker getAccessorMaker() {
+        if (accessors == null)
+            accessors = new AccessorMaker(this);
+
+        return accessors;
     }
 
     public ClassFile getClassFile2() {

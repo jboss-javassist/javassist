@@ -15,6 +15,9 @@
 
 package javassist.compiler;
 
+import javassist.CannotCompileException;
+import javassist.NotFoundException;
+
 public class CompileError extends Exception {
     private Lex lex;
     private String reason;
@@ -27,6 +30,14 @@ public class CompileError extends Exception {
     public CompileError(String s) {
         reason = s;
         lex = null;
+    }
+
+    public CompileError(CannotCompileException e) {
+        this(e.getReason());
+    }
+
+    public CompileError(NotFoundException e) {
+        this("cannot find " + e.getMessage());
     }
 
     public String getMessage() {
