@@ -83,6 +83,8 @@ public class AttributeInfo {
             return new LineNumberAttribute(cp, name, in);
         else if (nameStr.equals(SyntheticAttribute.tag))
             return new SyntheticAttribute(cp, name, in);
+        else if (nameStr.equals(DeprecatedAttribute.tag))
+            return new DeprecatedAttribute(cp, name, in);
         else if (nameStr.equals(InnerClassesAttribute.tag))
             return new InnerClassesAttribute(cp, name, in);
         else
