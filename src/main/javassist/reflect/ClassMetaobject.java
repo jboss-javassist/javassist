@@ -16,6 +16,7 @@
 package javassist.reflect;
 
 import java.lang.reflect.*;
+import java.util.Arrays;
 import java.io.Serializable;
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -28,7 +29,14 @@ import java.io.ObjectOutputStream;
  * class of reflective objects.  It can be used to hold values
  * shared among the reflective objects of the same class.
  *
+ * <p>To obtain a class metaobject, calls <code>_getClass()</code>
+ * on a reflective object.  For example,
+ *
+ * <ul><pre>ClassMetaobject cm = ((Metalevel)reflectiveObject)._getClass();
+ * </pre></ul>
+ *
  * @see javassist.reflect.Metaobject
+ * @see javassist.reflect.Metalevel
  */
 public class ClassMetaobject implements Serializable {
     /**
@@ -267,6 +275,22 @@ public class ClassMetaobject implements Serializable {
     }
 
     /**
+     * Returns the <code>java.lang.reflect.Method</code> object representing
+     * the method specified by <code>identifier</code>.
+     *
+     * <p>Note that the actual method returned will be have an altered,
+     * reflective name i.e. <code>_m_2_..</code>.
+     *
+     * @param identifier        the identifier index
+     *                          given to <code>trapMethodcall()</code> etc.
+     * @see Metaobject#trapMethodcall(int,Object[])
+     * @see #trapMethodcall(int,Object[])
+     */
+    public final Method getMethod(int identifier) {
+        return getReflectiveMethods()[identifier];
+    }
+
+    /**
      * Returns the name of the method specified
      * by <code>identifier</code>.
      */
@@ -297,5 +321,41 @@ public class ClassMetaobject implements Serializable {
      */
     public final Class getReturnType(int identifier) {
         return getReflectiveMethods()[identifier].getReturnType();
+    }
+
+    /**
+     * Returns the identifier index of the method, as identified by its
+     * original name.
+     *
+     * <p>This method is useful, in conjuction with
+     * <link>ClassMetaobject#getMethod()</link>, to obtain a quick reference
+     * to the original method in the reflected class (i.e. not the proxy
+     * method), using the original name of the method.
+     *
+     * @param originalName      The original name of the reflected method
+     * @param argTypes          array of Class specifying the method signature
+     * @return      the identifier index of the original method
+     * @throws NoSuchMethodException    if the method does not exist
+     * 
+     * @see ClassMetaobject#getMethod(int)
+     * @author Brett Randall
+     * @author Shigeru Chiba
+     */
+    public final int getMethodIndex(String originalName, Class[] argTypes)
+        throws NoSuchMethodException
+    {
+        Method[] mthds = getReflectiveMethods();
+        for (int i = 0; i < mthds.length; i++) {
+            if (mthds[i] == null)
+                continue;
+
+            // check name and parameter types match
+            if (getMethodName(i).equals(originalName)
+                && Arrays.equals(argTypes, mthds[i].getParameterTypes()))
+                return i;
+        }
+
+        throw new NoSuchMethodException("Method " + originalName
+                                        + " not found");
     }
 }

@@ -33,7 +33,14 @@ import java.io.ObjectOutputStream;
  * of the method calls, a subclass of <code>Metaobject</code>
  * should be defined.
  *
+ * <p>To obtain a metaobject, calls <code>_getMetaobject()</code>
+ * on a reflective object.  For example,
+ *
+ * <ul><pre>Metaobject m = ((Metalevel)reflectiveObject)._getMetaobject();
+ * </pre></ul>
+ *
  * @see javassist.reflect.ClassMetaobject
+ * @see javassist.reflect.Metalevel
  */
 public class Metaobject implements Serializable {
     protected ClassMetaobject classmetaobject;

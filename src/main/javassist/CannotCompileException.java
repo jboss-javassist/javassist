@@ -22,6 +22,7 @@ import javassist.compiler.CompileError;
  */
 public class CannotCompileException extends Exception {
     private String message;
+    private Throwable cause;
 
     public String getReason() {
         if (message != null)
@@ -36,6 +37,7 @@ public class CannotCompileException extends Exception {
     public CannotCompileException(String msg) {
         super(msg);
         message = msg;
+        cause = null;
     }
 
     /**
@@ -44,6 +46,12 @@ public class CannotCompileException extends Exception {
     public CannotCompileException(Throwable e) {
         super("by " + e.toString());
         message = null;
+        cause = e;
+    }
+
+    public CannotCompileException(String msg, Throwable e) {
+        this(msg);
+        cause = e;
     }
 
     /**
@@ -51,14 +59,14 @@ public class CannotCompileException extends Exception {
      * <code>NotFoundException</code>.
      */
     public CannotCompileException(NotFoundException e) {
-        this("cannot find " + e.getMessage());
+        this("cannot find " + e.getMessage(), e);
     }
 
     /**
      * Constructs a CannotCompileException with an <code>CompileError</code>.
      */
     public CannotCompileException(CompileError e) {
-        super("[source error] " + e.getMessage());
+        super("[source error] " + e.getMessage(), e);
         message = null;
     }
 
@@ -67,13 +75,22 @@ public class CannotCompileException extends Exception {
      * with a <code>ClassNotFoundException</code>.
      */
     public CannotCompileException(ClassNotFoundException e, String name) {
-        this("cannot find " + name);
+        this("cannot find " + name, e);
     }
 
     /**
      * Constructs a CannotCompileException with a ClassFormatError.
      */
     public CannotCompileException(ClassFormatError e, String name) {
-        this("invalid class format: " + name);
+        this("invalid class format: " + name, e);
+    }
+
+    /**
+     * Prints this exception and its backtrace.
+     */
+    public void printStackTrace(java.io.PrintWriter w) {
+        super.printStackTrace(w);
+        w.println("Caused by:");
+        cause.printStackTrace(w);
     }
 }
