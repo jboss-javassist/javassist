@@ -47,8 +47,18 @@ public class ClassFileWriter {
                                     & ~AccessFlag.SYNCHRONIZED);
         out.println(Modifier.toString(mod) + " class "
                     + cf.getName() + " extends " + cf.getSuperclass());
-        out.println();
 
+        String[] infs = cf.getInterfaces();
+        if (infs != null && infs.length > 0) {
+            out.print("    implements ");
+            out.print(infs[0]);
+            for (int i = 1; i < infs.length; ++i)
+                out.print(", " + infs[i]);
+
+            out.println();
+        }
+
+        out.println();
         ConstPool cp = cf.getConstPool();
         list = cf.getFields();
         n = list.size();

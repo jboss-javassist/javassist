@@ -35,7 +35,7 @@ public abstract class CtClass {
     /**
      * The version number of this release.
      */
-    public static final String version = "2.7 beta 2";
+    public static final String version = "2.7 beta 3";
 
     /**
      * Prints the version number and the copyright notice.
@@ -415,14 +415,24 @@ public abstract class CtClass {
      * It returns null if this object represents the
      * <code>java.lang.Object</code> class and thus it does not have
      * the super class.
+     *
+     * <p>If this object represents an interface, this method
+     * always returns the <code>java.lang.Object</code> class.
+     * To obtain the super interfaces
+     * extended by that interface, call <code>getInterfaces()</code>.
      */
     public CtClass getSuperclass() throws NotFoundException {
         return null;
     }
 
     /**
-     * Changes a super class.  The new super class must be compatible
-     * with the old one.
+     * Changes a super class unless this object represents an interface.
+     * The new super class must be compatible with the old one.
+     *
+     * <p>If this object represents an interface, this method is equivalent
+     * to <code>addInterface()</code>; it appends <code>clazz</code> to
+     * the list of the super interfaces extended by that interface.
+     * Note that an interface can extend multiple super interfaces.
      */
     public void setSuperclass(CtClass clazz) throws CannotCompileException {
         checkModify();
@@ -430,14 +440,16 @@ public abstract class CtClass {
 
     /**
      * Obtains the class objects representing the interfaces implemented
-     * by the class.
+     * by the class or, if this object represents an interface, the interfaces
+     * extended by that interface.
      */
     public CtClass[] getInterfaces() throws NotFoundException {
         return new CtClass[0];
     }
 
     /**
-     * Sets interfaces.
+     * Sets implemented interfaces.  If this object represents an interface,
+     * this method sets the interfaces extended by that interface.
      *
      * @param list              a list of the <code>CtClass</code> objects
      *                          representing interfaces, or

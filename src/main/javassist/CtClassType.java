@@ -260,7 +260,10 @@ class CtClassType extends CtClass {
 
     public void setSuperclass(CtClass clazz) throws CannotCompileException {
         checkModify();
-        getClassFile2().setSuperclass(clazz.getName());
+        if (isInterface())
+            addInterface(clazz);
+        else
+            getClassFile2().setSuperclass(clazz.getName());
     }
 
     public CtClass[] getInterfaces() throws NotFoundException {
