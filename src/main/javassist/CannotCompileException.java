@@ -90,7 +90,9 @@ public class CannotCompileException extends Exception {
      */
     public void printStackTrace(java.io.PrintWriter w) {
         super.printStackTrace(w);
-        w.println("Caused by:");
-        cause.printStackTrace(w);
+        if (cause != null) {
+            w.println("Caused by:");
+            cause.printStackTrace(w);
+        }
     }
 }

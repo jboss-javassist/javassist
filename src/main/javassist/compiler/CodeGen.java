@@ -1279,11 +1279,11 @@ public abstract class CodeGen extends Visitor implements Opcode, TokenId {
                 atFieldRead(expr);
         }
         else if (token == MEMBER) {     // field read
-            String member = ((Symbol)expr.oprand2()).get();
-            if (member.equals("class"))                
-                atClassObject(expr);  // .class
-            else
-                atFieldRead(expr);
+            /* MEMBER ('#') is an extension by Javassist.
+             * The compiler internally uses # for compiling .class
+             * expressions such as "int.class". 
+             */
+            atFieldRead(expr);
         }
         else if (token == ARRAY)
             atArrayRead(oprand, expr.oprand2());
@@ -1354,14 +1354,73 @@ public abstract class CodeGen extends Visitor implements Opcode, TokenId {
 
     public void atClassObject(Expr expr) throws CompileError {
         ASTree op1 = expr.oprand1();
-        String cname;
-        if (op1 instanceof ASTList)
-            cname = Declarator.astToClassName((ASTList)op1, '/');
-        else
-            cname = ((Symbol)op1).get();
+        if (!(op1 instanceof Symbol))
+            throw new CompileError("fatal error: badly parsed .class expr");
 
-        cname = resolveClassName(cname);
-        throw new CompileError(".class is not supported: " + cname);
+        String cname = ((Symbol)op1).get();
+        if (cname.startsWith("[")) {
+            int i = cname.indexOf("[L");
+            if (i >= 0) {
+                String name = cname.substring(i + 2, cname.length() - 1);
+                String name2 = resolveClassName(name);
+                if (!name.equals(name2)) {
+                    /* For example, to obtain String[].class,
+                     * "[Ljava.lang.String;" (not "[Ljava/lang/String"!)
+                     * must be passed to Class.forName().
+                     */
+                    name2 = MemberResolver.jvmToJavaName(name2);
+                    StringBuffer sbuf = new StringBuffer();
+                    while (i-- >= 0)
+                        sbuf.append('[');
+
+                    sbuf.append('L').append(name2).append(';');
+                    cname = sbuf.toString();
+                }
+            }
+        }
+        else {
+            cname = resolveClassName(MemberResolver.javaToJvmName(cname));
+            cname = MemberResolver.jvmToJavaName(cname);
+        }
+
+        int start = bytecode.currentPc();
+        bytecode.addLdc(cname);
+        bytecode.addInvokestatic("java.lang.Class", "forName",
+                                 "(Ljava/lang/String;)Ljava/lang/Class;");
+        int end = bytecode.currentPc();
+        bytecode.addOpcode(Opcode.GOTO);
+        int pc = bytecode.currentPc();
+        bytecode.addIndex(0);   // correct later
+
+        bytecode.addExceptionHandler(start, end, bytecode.currentPc(),
+                                     "java.lang.ClassNotFoundException");
+
+        /* -- the following code is for inlining a call to DotClass.fail().
+
+        int var = getMaxLocals();
+        incMaxLocals(1);
+        bytecode.growStack(1);
+        bytecode.addAstore(var);
+
+        bytecode.addNew("java.lang.NoClassDefFoundError");
+        bytecode.addOpcode(DUP);
+        bytecode.addAload(var);
+        bytecode.addInvokevirtual("java.lang.ClassNotFoundException",
+                                  "getMessage", "()Ljava/lang/String;");
+        bytecode.addInvokespecial("java.lang.NoClassDefFoundError", "<init>",
+                                  "(Ljava/lang/String;)V");
+        */
+
+        bytecode.growStack(1);
+        bytecode.addInvokestatic("javassist.runtime.DotClass", "fail",
+                                 "(Ljava/lang/ClassNotFoundException;)"
+                                 + "Ljava/lang/NoClassDefFoundError;");
+        bytecode.addOpcode(ATHROW);
+        bytecode.write16bit(pc, bytecode.currentPc() - pc + 1);
+
+        exprType = CLASS;
+        arrayDim = 0;
+        className = "java/lang/Class";
     }
 
     public void atArrayLength(Expr expr) throws CompileError {

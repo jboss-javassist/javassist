@@ -236,6 +236,17 @@ public class Bytecode implements Opcode {
 
     /**
      * Adds a new entry of <code>exception_table</code>.
+     *
+     * @param type      the fully-qualified name of a throwable class.
+     */
+    public void addExceptionHandler(int start, int end,
+                                    int handler, String type) {
+        addExceptionHandler(start, end, handler,
+                            constPool.addClassInfo(type));
+    }
+
+    /**
+     * Adds a new entry of <code>exception_table</code>.
      */
     public void addExceptionHandler(int start, int end,
                                     int handler, int type) {

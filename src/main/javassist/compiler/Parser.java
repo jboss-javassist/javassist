@@ -865,10 +865,12 @@ public final class Parser implements TokenId {
 
        unary.expr2 is a unary.expr begining with "(", NULL, StringL,
        Identifier, THIS, SUPER, or NEW.
+
+       Either "(int.class)" or "(String[].class)" is a not cast expression.
      */
     private ASTree parseCast(SymbolTable tbl) throws CompileError {
         int t = lex.lookAhead(1);
-        if (isBuiltinType(t)) {
+        if (isBuiltinType(t) && nextIsBuiltinCast()) {
             lex.get();  // '('
             lex.get();  // primitive type
             int dim = parseArrayDimension();
@@ -888,6 +890,16 @@ public final class Parser implements TokenId {
         }
         else
             return parsePostfix(tbl);
+    }
+
+    private boolean nextIsBuiltinCast() {
+        int t;
+        int i = 2;
+        while ((t = lex.lookAhead(i++)) == '[')
+            if (lex.lookAhead(i++) != ']')
+                return false;
+
+        return lex.lookAhead(i - 1) == ')';
     }
 
     private boolean nextIsClassCast() {
@@ -958,6 +970,7 @@ public final class Parser implements TokenId {
      *              | postfix.expr "++" | "--"
      *              | postfix.expr "[" array.size "]"
      *              | postfix.expr "." Identifier
+     *              | postfix.expr ( "[" "]" )* "." CLASS
      *              | postfix.expr "#" Identifier
      *
      * "#" is not an operator of regular Java.  It separates
@@ -993,11 +1006,20 @@ public final class Parser implements TokenId {
                 expr = parseMethodCall(tbl, expr);
                 break;
             case '[' :
-                index = parseArrayIndex(tbl);
-                if (index == null)
-                    throw new SyntaxError(lex);
+                if (lex.lookAhead(1) == ']') {
+                    int dim = parseArrayDimension();
+                    if (lex.get() != '.' || lex.get() != CLASS)
+                        throw new SyntaxError(lex);
 
-                expr = Expr.make(ARRAY, expr, index);
+                    expr = parseDotClass(expr, dim);
+                }
+                else {
+                    index = parseArrayIndex(tbl);
+                    if (index == null)
+                        throw new SyntaxError(lex);
+
+                    expr = Expr.make(ARRAY, expr, index);
+                }
                 break;
             case PLUSPLUS :
             case MINUSMINUS :
@@ -1007,31 +1029,99 @@ public final class Parser implements TokenId {
             case '.' :
                 lex.get();
                 t = lex.get();
-                if (t == CLASS)
-                    str = "class";
-                else if (t == Identifier)
+                if (t == CLASS) {
+                    expr = parseDotClass(expr, 0);
+                }
+                else if (t == Identifier) {
                     str = lex.getString();
+                    expr = Expr.make('.', expr, new Member(str));
+                }
                 else
                     throw new CompileError("missing member name", lex);
-
-                expr = Expr.make('.', expr, new Member(str));
                 break;
             case '#' :
                 lex.get();
                 t = lex.get();
-                if (t == CLASS)
-                    str = "class";
-                else if (t == Identifier)
-                    str = lex.getString();
-                else
+                if (t != Identifier)
                     throw new CompileError("missing static member name", lex);
 
+                str = lex.getString();
                 expr = Expr.make(MEMBER, new Symbol(toClassName(expr)),
                                  new Member(str));
                 break;
             default :
                 return expr;
             }
+        }
+    }
+
+    /* Parse a .class expression on a class type.  For example,
+     * String.class   => ('.' "String" "class")
+     * String[].class => ('.' "[LString;" "class")
+     */
+    private ASTree parseDotClass(ASTree className, int dim)
+        throws CompileError
+    {
+        String cname = toClassName(className);
+        if (dim > 0) {
+            StringBuffer sbuf = new StringBuffer();
+            while (dim-- > 0)
+                sbuf.append('[');
+
+            sbuf.append('L').append(cname.replace('.', '/')).append(';');
+            cname = sbuf.toString();
+        }
+
+        return Expr.make('.', new Symbol(cname), new Member("class"));
+    }
+
+    /* Parses a .class expression on a built-in type.  For example,
+     * int.class   => ('#' "java.lang.Integer" "TYPE")
+     * int[].class => ('.' "[I", "class")
+     */
+    private ASTree parseDotClass(int builtinType, int dim)
+        throws CompileError
+    {
+        if (dim > 0) {
+            String cname = CodeGen.toJvmTypeName(builtinType, dim);
+            return Expr.make('.', new Symbol(cname), new Member("class"));
+        }
+        else {
+            String cname;
+            switch(builtinType) {
+            case BOOLEAN :
+                cname = "java.lang.Boolean";
+                break;
+            case BYTE :
+                cname = "java.lang.Byte";
+                break;
+            case CHAR :
+                cname = "java.lang.Character";
+                break;
+            case SHORT :
+                cname = "java.lang.Short";
+                break;
+            case INT :
+                cname = "java.lang.Integer";
+                break;
+            case LONG :
+                cname = "java.lang.Long";
+                break;
+            case FLOAT :
+                cname = "java.lang.Float";
+                break;
+            case DOUBLE :
+                cname = "java.lang.Double";
+                break;
+            case VOID :
+                cname = "java.lang.Void";
+                break;
+            default :
+                throw new CompileError("invalid builtin type: "
+                                       + builtinType);
+            }
+
+            return Expr.make(MEMBER, new Symbol(cname), new Member("TYPE"));
         }
     }
 
@@ -1092,6 +1182,7 @@ public final class Parser implements TokenId {
      *              | Identifier
      *              | NEW new.expr
      *              | "(" expression ")"
+     *              | builtin.type ( "[" "]" )* "." CLASS
      *
      * Identifier represents either a local variable name, a member name,
      * or a class name.
@@ -1127,6 +1218,12 @@ public final class Parser implements TokenId {
             else
                 throw new CompileError(") is missing", lex);
         default :
+            if (isBuiltinType(t) || t == VOID) {
+                int dim = parseArrayDimension();
+                if (lex.get() == '.' && lex.get() == CLASS)
+                    return parseDotClass(t, dim);
+            }
+
             throw new SyntaxError(lex);
         }
     }

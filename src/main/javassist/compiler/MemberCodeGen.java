@@ -776,7 +776,10 @@ public class MemberCodeGen extends CodeGen {
             Expr e = (Expr)expr;
             int op = e.getOperator();
             if (op == MEMBER) {
-                // static member by # (extension by Javassist)
+                /* static member by # (extension by Javassist)
+                 * For example, if int.class is parsed, the resulting tree
+                 * is (# "java.lang.Integer" "TYPE"). 
+                 */
                 CtField f = resolver.lookupField(((Symbol)e.oprand1()).get(),
                                          (Symbol)e.oprand2());
                 resultStatic = true;
