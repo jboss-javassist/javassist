@@ -72,7 +72,9 @@ public class AttributeInfo {
         int name = in.readUnsignedShort();
         String nameStr = cp.getUtf8Info(name);
         if (nameStr.charAt(0) < 'L') {
-            if (nameStr.equals(CodeAttribute.tag))
+            if (nameStr.equals(AnnotationDefaultAttribute.tag))
+                return new AnnotationDefaultAttribute(cp, name, in);
+            else if (nameStr.equals(CodeAttribute.tag))
                 return new CodeAttribute(cp, name, in);
             else if (nameStr.equals(ConstantAttribute.tag))
                 return new ConstantAttribute(cp, name, in);

@@ -77,7 +77,10 @@ public class CharMemberValue extends MemberValue {
         return Character.toString(getValue());
     }
 
-    void write(AnnotationsWriter writer) throws IOException {
+    /**
+     * Writes the value.
+     */
+    public void write(AnnotationsWriter writer) throws IOException {
         writer.constValueIndex(getValue());
     }
 

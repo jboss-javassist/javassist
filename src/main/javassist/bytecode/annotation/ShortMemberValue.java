@@ -77,7 +77,10 @@ public class ShortMemberValue extends MemberValue {
         return Short.toString(getValue());
     }
 
-    void write(AnnotationsWriter writer) throws IOException {
+    /**
+     * Writes the value.
+     */
+    public void write(AnnotationsWriter writer) throws IOException {
         writer.constValueIndex(getValue());
     }
 

@@ -23,7 +23,7 @@ import java.io.IOException;
  *
  * @author <a href="mailto:bill@jboss.org">Bill Burke</a>
  * @author Shigeru Chiba
- * @version $Revision: 1.4 $
+ * @version $Revision: 1.5 $
  */
 public class DoubleMemberValue extends MemberValue {
     int valueIndex;
@@ -78,7 +78,10 @@ public class DoubleMemberValue extends MemberValue {
         return Double.toString(getValue());
     }
 
-    void write(AnnotationsWriter writer) throws IOException {
+    /**
+     * Writes the value.
+     */
+    public void write(AnnotationsWriter writer) throws IOException {
         writer.constValueIndex(getValue());
     }
 

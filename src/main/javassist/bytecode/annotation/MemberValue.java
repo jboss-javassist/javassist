@@ -38,7 +38,10 @@ public abstract class MemberValue {
      */
     public abstract void accept(MemberValueVisitor visitor);
 
-    abstract void write(AnnotationsWriter w) throws IOException;
+    /**
+     * Writes the value.
+     */
+    public abstract void write(AnnotationsWriter w) throws IOException;
 }
 
 

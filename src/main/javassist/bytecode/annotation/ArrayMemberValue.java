@@ -89,7 +89,10 @@ public class ArrayMemberValue extends MemberValue {
         return buf.toString();
     }
 
-    void write(AnnotationsWriter writer) throws IOException {
+    /**
+     * Writes the value.
+     */
+    public void write(AnnotationsWriter writer) throws IOException {
         int num = values.length;
         writer.arrayValue(num);
         for (int i = 0; i < num; ++i)

@@ -76,7 +76,10 @@ public class BooleanMemberValue extends MemberValue {
         return getValue() ? "true" : "false";
     }
 
-    void write(AnnotationsWriter writer) throws IOException {
+    /**
+     * Writes the value.
+     */
+    public void write(AnnotationsWriter writer) throws IOException {
         writer.constValueIndex(getValue());
     }
 

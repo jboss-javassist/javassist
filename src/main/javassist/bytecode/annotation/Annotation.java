@@ -109,36 +109,42 @@ public class Annotation {
         }
     }
 
-    private MemberValue createMemberValue(ConstPool cp, CtClass returnType)
+    /**
+     * Makes an instance of <code>MemberValue</code>.
+     *
+     * @param cp            the constant pool table.
+     * @param type          the type of the member.
+     */
+    public static MemberValue createMemberValue(ConstPool cp, CtClass type)
         throws javassist.NotFoundException
     {
-        if (returnType == CtClass.booleanType)
+        if (type == CtClass.booleanType)
             return new BooleanMemberValue(cp);
-        else if (returnType == CtClass.byteType)
+        else if (type == CtClass.byteType)
             return new ByteMemberValue(cp);
-        else if (returnType == CtClass.charType)
+        else if (type == CtClass.charType)
             return new CharMemberValue(cp);
-        else if (returnType == CtClass.shortType)
+        else if (type == CtClass.shortType)
             return new ShortMemberValue(cp);
-        else if (returnType == CtClass.intType)
+        else if (type == CtClass.intType)
             return new IntegerMemberValue(cp);
-        else if (returnType == CtClass.longType)
+        else if (type == CtClass.longType)
             return new LongMemberValue(cp);
-        else if (returnType == CtClass.floatType)
+        else if (type == CtClass.floatType)
             return new FloatMemberValue(cp);
-        else if (returnType == CtClass.doubleType)
+        else if (type == CtClass.doubleType)
             return new DoubleMemberValue(cp);
-        else if (returnType.getName().equals("java.lang.Class"))
+        else if (type.getName().equals("java.lang.Class"))
             return new ClassMemberValue(cp);
-        else if (returnType.getName().equals("java.lang.String"))
+        else if (type.getName().equals("java.lang.String"))
             return new StringMemberValue(cp);
-        else if (returnType.isArray()) {
-            CtClass arrayType = returnType.getComponentType();
-            MemberValue type = createMemberValue(cp, arrayType);
-            return new ArrayMemberValue(type, cp);
+        else if (type.isArray()) {
+            CtClass arrayType = type.getComponentType();
+            MemberValue member = createMemberValue(cp, arrayType);
+            return new ArrayMemberValue(member, cp);
         }
-        else if (returnType.isInterface()) {
-            Annotation info = new Annotation(cp, returnType);
+        else if (type.isInterface()) {
+            Annotation info = new Annotation(cp, type);
             return new AnnotationMemberValue(info, cp);
         }
         else {
@@ -146,7 +152,7 @@ public class Annotation {
             // but JBoss has an Annotation Compiler for JDK 1.4
             // and I want it to work with that. - Bill Burke
             EnumMemberValue emv = new EnumMemberValue(cp);
-            emv.setType(returnType.getName());
+            emv.setType(type.getName());
             return emv;
         }
     }

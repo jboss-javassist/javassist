@@ -63,7 +63,10 @@ public class AnnotationMemberValue extends MemberValue {
         return value.toString();
     }
 
-    void write(AnnotationsWriter writer) throws IOException {
+    /**
+     * Writes the value.
+     */
+    public void write(AnnotationsWriter writer) throws IOException {
         writer.annotationValue();
         value.write(writer);
     }

@@ -85,7 +85,10 @@ public class ClassMemberValue extends MemberValue {
         return "<" + getValue() + " class>";
     }
 
-    void write(AnnotationsWriter writer) throws IOException {
+    /**
+     * Writes the value.
+     */
+    public void write(AnnotationsWriter writer) throws IOException {
         writer.classInfoIndex(valueIndex);
     }
 

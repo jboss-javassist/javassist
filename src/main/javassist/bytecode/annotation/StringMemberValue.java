@@ -77,7 +77,10 @@ public class StringMemberValue extends MemberValue {
         return "\"" + getValue() + "\"";
     }
 
-    void write(AnnotationsWriter writer) throws IOException {
+    /**
+     * Writes the value.
+     */
+    public void write(AnnotationsWriter writer) throws IOException {
         writer.constValueIndex(getValue());
     }
 

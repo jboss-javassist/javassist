@@ -38,18 +38,45 @@ import javassist.bytecode.annotation.*;
  * <p>For example,
  *
  * <ul><pre>
+ * import javassist.bytecode.annotation.Annotation;
+ *    :
  * CtMethod m = ... ;
  * MethodInfo minfo = m.getMethodInfo();
  * AnnotationsAttribute attr = (AnnotationsAttribute)
- *         minfo.getAttribute(AnnotationsAttribute.visibleTag);
+ *         minfo.getAttribute(AnnotationsAttribute.invisibleTag);
  * Annotation an = attr.getAnnotation("Author");
- * String s = ((StringMemberValue)a.getMemberValue("name")).getValue();
+ * String s = ((StringMemberValue)an.getMemberValue("name")).getValue();
  * System.out.println("@Author(name=" + s + ")");
  * </pre></ul>
  *
  * <p>This code snippet retrieves an annotation of the type <code>Author</code>
  * from the <code>MethodInfo</code> object specified by <code>minfo</code>.
  * Then, it prints the value of <code>name</code> in <code>Author</code>.
+ *
+ * <p>If the annotation type <code>Author</code> is annotated by a meta annotation:
+ *
+ * <ul><pre>
+ * &#64;Retention(RetentionPolicy.RUNTIME)
+ * </pre></ul>
+ *
+ * <p>Then <code>Author</code> is visible at runtime.  Therefore, the third
+ * statement of the code snippet above must be changed into:
+ *
+ * <ul><pre>
+ * AnnotationsAttribute attr = (AnnotationsAttribute)
+ *         minfo.getAttribute(AnnotationsAttribute.visibleTag);
+ * </pre></ul>
+ *
+ * <p>The attribute tag must be <code>visibleTag</code> instead of
+ * <code>invisibleTag</code>.
+ *
+ * <p>If the member value of an annotation is not specified, the default value
+ * is used as that member value.  If so, <code>getMemberValue()</code> in
+ * <code>Annotation</code> returns <code>null</code>
+ * since the default value is not included in the
+ * <code>AnnotationsAttribute</code>.  It is included in the
+ * <code>AnnotationDefaultAttribute</code> of the method declared in the
+ * annotation type.
  *
  * <p>If you want to record a new AnnotationAttribute object, execute the
  * following snippet:
@@ -65,6 +92,7 @@ import javassist.bytecode.annotation.*;
  * cf.addAttribute(attr);
  * </pre></ul>
  *
+ * @see AnnotationDefaultAttribute
  * @see javassist.bytecode.annotation.Annotation
  */
 public class AnnotationsAttribute extends AttributeInfo {
@@ -448,7 +476,7 @@ public class AnnotationsAttribute extends AttributeInfo {
         Annotation[][] allParams;   // all parameters
         Annotation[] allAnno;       // all annotations
         Annotation currentAnno;     // current annotation
-        MemberValue memberValue;
+        MemberValue currentMember;  // current member
 
         /**
          * Constructs a parser.  This parser constructs a parse tree of
@@ -470,6 +498,11 @@ public class AnnotationsAttribute extends AttributeInfo {
         Annotation[] parseAnnotations() throws Exception {
             annotationArray();
             return allAnno;
+        }
+
+        MemberValue parseMemberValue() throws Exception {
+            memberValue(0);
+            return currentMember;
         }
 
         void parameters(int numParam, int pos) throws Exception {
@@ -500,7 +533,7 @@ public class AnnotationsAttribute extends AttributeInfo {
 
         int memberValuePair(int pos, int nameIndex) throws Exception {
             pos = super.memberValuePair(pos, nameIndex);
-            currentAnno.addMemberValue(nameIndex, memberValue);
+            currentAnno.addMemberValue(nameIndex, currentMember);
             return pos;
         }
 
@@ -539,27 +572,27 @@ public class AnnotationsAttribute extends AttributeInfo {
                 throw new RuntimeException("unknown tag:" + tag);
             }
 
-            memberValue = m;
+            currentMember = m;
             super.constValueMember(tag, index);
         }
 
         void enumMemberValue(int typeNameIndex, int constNameIndex)
             throws Exception
         {
-            memberValue = new EnumMemberValue(typeNameIndex,
+            currentMember = new EnumMemberValue(typeNameIndex,
                                               constNameIndex, pool);
             super.enumMemberValue(typeNameIndex, constNameIndex);
         }
 
         void classMemberValue(int index) throws Exception {
-            memberValue = new ClassMemberValue(index, pool);
+            currentMember = new ClassMemberValue(index, pool);
             super.classMemberValue(index);
         }
 
         int annotationMemberValue(int pos) throws Exception {
             Annotation anno = currentAnno;
             pos = super.annotationMemberValue(pos);
-            memberValue = new AnnotationMemberValue(currentAnno, pool);
+            currentMember = new AnnotationMemberValue(currentAnno, pool);
             currentAnno = anno;
             return pos;
         }
@@ -569,11 +602,11 @@ public class AnnotationsAttribute extends AttributeInfo {
             MemberValue[] elements = new MemberValue[num];
             for (int i = 0; i < num; ++i) {
                 pos = memberValue(pos);
-                elements[i] = memberValue;
+                elements[i] = currentMember;
             }
 
             amv.setValue(elements);
-            memberValue = amv;
+            currentMember = amv;
             return pos;
         }
     }
