@@ -68,7 +68,7 @@ public final class ConstPool {
     /**
      * <code>CONSTANT_Float</code>
      */
-    public static final int CONST_Float = IntegerInfo.tag;
+    public static final int CONST_Float = FloatInfo.tag;
 
     /**
      * <code>CONSTANT_Long</code>

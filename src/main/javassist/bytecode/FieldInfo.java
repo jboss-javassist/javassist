@@ -60,7 +60,15 @@ public final class FieldInfo {
     }
 
     void prune(ConstPool cp) {
-        attribute = null;
+        int index = getConstantValue();
+        if (index == 0)
+            attribute = null;
+        else {
+            index = constPool.copy(index, cp, null);
+            attribute = new LinkedList();
+            attribute.add(new ConstantAttribute(cp, index));
+        }
+
         name = cp.addUtf8Info(getName());
         descriptor = cp.addUtf8Info(getDescriptor());
         constPool = cp;
@@ -123,6 +131,24 @@ public final class FieldInfo {
     public void setDescriptor(String desc) {
         if (!desc.equals(getDescriptor()))
             descriptor = constPool.addUtf8Info(desc);
+    }
+
+    /**
+     * Finds a ConstantValue attribute and returns the index into
+     * the <code>constant_pool</code> table.
+     *
+     * @return 0    if a ConstantValue attribute is not found.
+     */
+    public int getConstantValue() {
+        if ((accessFlags & AccessFlag.STATIC) == 0)
+            return 0;
+
+        ConstantAttribute attr
+            = (ConstantAttribute)getAttribute(ConstantAttribute.tag);
+        if (attr == null)
+            return 0;
+        else
+            return attr.getConstantValue();
     }
 
     /**

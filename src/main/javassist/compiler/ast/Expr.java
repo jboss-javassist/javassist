@@ -52,6 +52,10 @@ public class Expr extends ASTList implements TokenId {
 
     public ASTree oprand1() { return getLeft(); }
 
+    public void setOprand1(ASTree expr) {
+        setLeft(expr);
+    }
+
     public ASTree oprand2() { return getRight().getLeft(); }
 
     public void setOprand2(ASTree expr) {

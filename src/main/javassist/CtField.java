@@ -245,6 +245,42 @@ public class CtField extends CtMember {
     }
 
     /**
+     * Returns the value of this field if it is a constant field.
+     * This method works only if the field type is a primitive type
+     * or <code>String</code> type.  Otherwise, it returns <code>null</code>.
+     * A constant field is <code>static</code> and <code>final</code>.
+     *
+     * @return  a <code>Integer</code>, <code>Long</code>, <code>Float</code>,
+     *          <code>Double</code>, or <code>String</code> object
+     *          representing the constant value. 
+     *          <code>null</code> if it is not a constant field
+     *          or if the field type is not a primitive type
+     *          or <code>String</code>.
+     */
+    public Object getConstantValue() {
+        int index = fieldInfo.getConstantValue();
+        if (index == 0)
+            return null;
+
+        ConstPool cp = fieldInfo.getConstPool();
+        switch (cp.getTag(index)) {
+            case ConstPool.CONST_Long :
+                return new Long(cp.getLongInfo(index));
+            case ConstPool.CONST_Float :
+                return new Float(cp.getFloatInfo(index));
+            case ConstPool.CONST_Double :
+                return new Double(cp.getDoubleInfo(index));
+            case ConstPool.CONST_Integer :
+                return new Integer(cp.getIntegerInfo(index));
+            case ConstPool.CONST_String :
+                return cp.getStringInfo(index);
+            default :
+                throw new RuntimeException("bad tag: " + cp.getTag(index)
+                                           + " at " + index);
+        }
+    }
+
+    /**
      * Obtains an attribute with the given name.
      * If that attribute is not found in the class file, this
      * method returns null.

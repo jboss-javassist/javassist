@@ -27,6 +27,8 @@ public class CondExpr extends ASTList {
 
     public ASTree condExpr() { return head(); }
 
+    public void setCond(ASTree t) { setHead(t); }
+
     public ASTree thenExpr() { return tail().head(); }
 
     public void setThen(ASTree t) { tail().setHead(t); } 
