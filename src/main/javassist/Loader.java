@@ -377,6 +377,8 @@ public class Loader extends ClassLoader {
                 || name.startsWith("javax.")
                 || name.startsWith("sun.")
                 || name.startsWith("com.sun.")
+                || name.startsWith("org.w3c.")
+                || name.startsWith("org.xml.")
                 || notDelegated(name))
                 c = delegateToParent(name);
 
