@@ -115,7 +115,7 @@ to obtain the byte array written in a class file.
 
 <p>The default <code>ClassPool</code> returned
 by a static method <code>ClassPool.getDefault()</code>
-searches the same path as the underlying JVM.
+searches the same path as the underlying JVM (Java virtual machine).
 The users can expand this class search path if needed.
 For example, the following code adds a directory
 <code>/usr/local/javalib</code>
@@ -336,6 +336,26 @@ by a single class loader.  You should
 avoid loading part of the application program with the default class loader
 and the rest of the program with a user-defined class loader.
 
+<p>In Java, multiple class loaders can coexist in Java and they form a
+tree structure.  Each class loader except the bootstrap loader has a
+parent class loader, which normally loaded the class of that child
+class loader.  Since the request to load a class can be delegated along this
+hierarchy of class loaders, a class may be loaded by a class loader that
+you do not request the class loading.
+
+Furthermore, if a class loader CL requested to load a class C delegates
+to the parenet class loader, then the class loader CL is never requested
+to load any classes included in the definition of the class C.
+Instead, the parent class loader of CL is requested to load them.
+
+<p>Different class loaders can load different class files with the
+same class name.  The loaded two classes are regarded as different
+ones.  If the same class file is loaded by two distinct class loaders,
+the JVM makes two distinct classes with the same name and definition.
+Since the two classes are not identical, an instance of one class is
+not assignable to a variable of the other class.  The cast operation
+between the two classes fails and throws a <code>ClassCastException</code>.
+
 <p><br>
 
 <h3>4.1 Using <code>javassist.Loader</code></h3>
@@ -369,7 +389,7 @@ public class Main {
 <p>This program modifies a class <code>test.Rectangle</code>.  The
 superclass of <code>test.Rectangle</code> is set to a
 <code>test.Point</code> class.  Then this program loads the modified
-class into the JVM, and creates a new instance of the
+class, and creates a new instance of the
 <code>test.Rectangle</code> class.
 
 <p>The users can use a <code>javassist.Translator</code> object
@@ -409,8 +429,8 @@ are loaded by different loaders.  The application classes are loaded
 by <code>javassist.Loader</code> whereas the loader classes such as
 <code>Main</code> are by the default Java class loader.
 
-<p>In Java, for security reasons, a single class file may be loaded
-into the JVM by two distinct class loaders so that two different
+<p>In Java, for security reasons, the same class file may be loaded
+by two distinct class loaders so that two different
 classes would be created.  For example,
 
 <ul><pre>class Point {
@@ -475,8 +495,8 @@ class Window {    // loaded by L2
 a class loader <code>L1</code> are also loaded by <code>L1</code>,
 the class of the field <code>win</code> in <code>Point</code> is
 now the class <code>Window</code> loaded by <code>L1</code>.
-Thus <code>size.win = this</code> in <code>getSize()</code> raises
-a runtime exception because of type mismatch; the type of
+Thus <code>size.win = this</code> in <code>getSize()</code> throws
+a <code>ClassCastException</code> because of type mismatch; the type of
 <code>size.win</code> is the class <code>Point</code> loaded by
 <code>L1</code> whereas the type of <code>this</code> is the class
 <code>Point</code> loaded by <code>L2</code>.
@@ -516,11 +536,11 @@ all the classes using that class have been loaded by
 
 <ul><pre>import javassist.*;
 
-public class SimpleLoader extends ClassLoader {
+public class SampleLoader extends ClassLoader {
     /* Call MyApp.main().
      */
     public static void main(String[] args) throws Throwable {
-        SimpleLoader s = new SimpleLoader();
+        SampleLoader s = new SampleLoader();
         Class c = s.loadClass("MyApp");
         c.getDeclaredMethod("main", new Class[] { String[].class })
          .invoke(null, new Object[] { args });
@@ -528,7 +548,7 @@ public class SimpleLoader extends ClassLoader {
 
     private ClassPool pool;
 
-    public SimpleLoader() throws NotFoundException {
+    public SampleLoader() throws NotFoundException {
         pool = ClassPool.getDefault();
         pool.insertClassPath("./class"); // <em>MyApp.class must be there.</em>
     }
@@ -560,33 +580,74 @@ in the class search path.  The directory name is specified by
 You can choose a different name instead of <code>./class</code> if you want.
 Then do as follows:
 
-<ul><code>% java SimpleLoader</code></ul>
+<ul><code>% java SampleLoader</code></ul>
 
 <p>The class loader loads the class <code>MyApp</code>
 (<code>./class/MyApp.class</code>) and calls
 <code>MyApp.main()</code> with the command line parameters.
 Note that <code>MyApp.class</code> must not be under the directory
 that the system class loader searches.  Otherwise, the system class
-loader, which is the parent loader of <code>SimpleLoader</code>,
+loader, which is the parent loader of <code>SampleLoader</code>,
 loads the class <code>MyApp</code>.
 
 <p>This is the simplest way of using Javassist.  However, if you write
 a more complex class loader, you may need detailed knowledge of
 Java's class loading mechanism.  For example, the program above puts the
 <code>MyApp</code> class in a name space separated from the name space
-that the class <code>SimpleLoader</code> belongs to because the two
+that the class <code>SampleLoader</code> belongs to because the two
 classes are loaded by different class loaders.
 Hence, the
 <code>MyApp</code> class cannot directly access the class
-<code>SimpleLoader</code>.
+<code>SampleLoader</code>.
 
 <p><br>
 
-<h3>4.3 Modifying a system class</h3>
+<h3>4.3 The <code>toClass</code> method in <code>CtClass</code></h3>
+
+<p>The <code>CtClass</code> provides a convenience method
+<code>toClass</code>, which loads the class by an internal class
+loader of Javassist.  This method first obtains the class file
+representing the modified class and loads it by an instance of
+<code>javassist.ClassPool.SimpleLoader</code>.
+The following code is the definition of this class loader:
+
+<ul><pre>
+public class SimpleLoader extends ClassLoader {
+    public Class loadClass(String classname, byte[] classfile)
+        throws ClassFormatError
+    {
+        Class c = defineClass(classname, classfile, 0, classfile.length);
+        resolveClass(c);
+        return c;
+    }
+};
+</pre></ul>
+
+<p><code>loadClass()</code> loads the class specified by
+<code>classfile</code>.
+Thus, <code>toClass()</code> is equivalent to the following code:
+
+<ul><pre>
+CtClass cc = ... ;
+ClassPool.SimpleLoader cl = new ClassPool.SimpleLoader();
+Class c = cl.loadClass(cc.getName(), cc.toBytecode());
+</pre></ul>
+
+<p>Note that this class loader might be too simple for realistic use.
+It delegates to the parent class loader unless the class is explicitly
+loaded by <code>loadClass()</code>.  If you encounter an unexpected
+<code>ClassCastException</code>, you should check the class loader
+of the class by calling <code>getClassLoader()</code>
+in <code>java.lang.Class</code>.
+
+
+<p><br>
+
+<h3>4.4 Modifying a system class</h3>
 
 <p>The system classes like <code>java.lang.String</code> cannot be
 loaded by a class loader other than the system class loader.
-Therefore, <code>SimpleLoader</code> or <code>javassist.Loader</code>
+Therefore, <code>SampleLoader</code> or <code>javassist.Loader</code>
 shown above cannot modify the system classes at loading time.
 
 <p>If your application needs to do that, the system classes must be

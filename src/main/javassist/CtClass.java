@@ -785,6 +785,7 @@ public abstract class CtClass {
      *
      * @see javassist.ClassPool#writeAsClass(String)
      * @see javassist.ClassPool#forName(String)
+     * @see javassist.Loader
      */
     public Class toClass()
         throws NotFoundException, IOException, CannotCompileException

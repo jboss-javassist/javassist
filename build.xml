@@ -6,14 +6,16 @@
 
 <project name="javassist" default="jar" basedir=".">
 
-    <property environment="env"/>
-    <property name="src.dir" value="${basedir}/src/main"/>
-    <property name="build.dir" value="${basedir}/build"/>
-    <property name="build.classes.dir" value="${build.dir}/classes"/>
+  <property name="dist-version" value="javassist-2.7"/>
+
+  <property environment="env"/>
+  <property name="src.dir" value="${basedir}/src/main"/>
+  <property name="build.dir" value="${basedir}/build"/>
+  <property name="build.classes.dir" value="${build.dir}/classes"/>
 
   <!-- Build classpath -->
   <path id="classpath">
-	<pathelement location="${build.classes.dir}"/>
+    <pathelement location="${build.classes.dir}"/>
   </path>
 
   <property name="build.classpath" refid="classpath"/>
@@ -67,15 +69,14 @@ Copyright (C) 1999-2003 Shigeru Chiba. All Rights Reserved.</i>]]></bottom>
     </javadoc>
   </target>
 
-
   <target name="dist" depends="jar,javadocs">
-    <delete file="javassist-dist.zip"/>
-    <zip zipfile="javassist-dist.zip">
-       <zipfileset dir="${basedir}" prefix="javassist">
+    <delete file="${dist-version}.zip"/>
+    <zip zipfile="${dist-version}.zip">
+       <zipfileset dir="${basedir}" prefix="${dist-version}">
           <include name="**"/>
           <exclude name="build/**"/>
           <exclude name="local/**"/>
-          <exclude name="javassist-dist.zip"/>
+          <exclude name="${dist-version}.zip"/>
        </zipfileset>
     </zip>
   </target>
@@ -84,7 +85,7 @@ Copyright (C) 1999-2003 Shigeru Chiba. All Rights Reserved.</i>]]></bottom>
     <delete dir="build"/>
     <delete dir="html"/>
     <delete file="javassist.jar"/>
-    <delete file="javassist-dist.zip"/>
+    <delete file="${dist-version}.zip"/>
   </target>
 </project>
 

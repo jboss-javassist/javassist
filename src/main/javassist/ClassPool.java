@@ -358,7 +358,23 @@ public class ClassPool {
         }
     }
 
-    static class LocalClassLoader extends ClassLoader {
+    /**
+     * A simple class loader used by <code>writeAsClass()</code>
+     * in <code>ClassPool</code>.
+     * This class loader is provided for convenience.  If you need more
+     * complex functionality, you should write your own class loader.
+     *
+     * @see ClassPool#writeAsClass(String)
+     * @see CtClass#toClass()
+     */
+    public static class SimpleLoader extends ClassLoader {
+        /**
+         * Loads a class.
+         *
+         * @param name		the fully qualified class name.
+         * @param classfile	the class file.
+         * @throws ClassFormatError	if the class file is wrong.
+         */
         public Class loadClass(String name, byte[] classfile)
             throws ClassFormatError
         {
@@ -368,7 +384,7 @@ public class ClassPool {
         }
     };
 
-    private static LocalClassLoader classLoader = new LocalClassLoader();
+    private static SimpleLoader classLoader = new SimpleLoader();
 
     /**
      * Returns a <code>java.lang.Class</code> object that has been loaded
@@ -392,7 +408,8 @@ public class ClassPool {
      * <p>This method is provided for convenience.  If you need more
      * complex functionality, you should write your own class loader.
      *
-     * <p>To load a class file, this method uses an internal class loader.
+     * <p>To load a class file, this method uses an internal class loader,
+     * which is an instance of <code>ClassPool.SimpleLoader</code>.
      * Thus, that class file is not loaded by the system class loader,
      * which should have loaded this <code>ClassPool</code> class.
      * The internal class loader
