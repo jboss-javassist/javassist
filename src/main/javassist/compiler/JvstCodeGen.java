@@ -306,15 +306,15 @@ public class JvstCodeGen extends MemberCodeGen {
     }
 
     /*
-    public int atMethodArgsLength(ASTList args) {
+    public int getMethodArgsLength(ASTList args) {
         if (!isParamListName(args))
-            return super.atMethodArgsLength(args);
+            return super.getMethodArgsLength(args);
 
         return paramTypeList.length;
     }
     */
 
-    public int atMethodArgsLength(ASTList args) {
+    public int getMethodArgsLength(ASTList args) {
         String pname = paramListName;
         int n = 0;
         while (args != null) {
@@ -390,6 +390,22 @@ public class JvstCodeGen extends MemberCodeGen {
         }
     }
     */
+
+    /* called by Javac#recordSpecialProceed().
+     */
+    void compileInvokeSpecial(ASTree target, String classname,
+                              String methodname, String descriptor,
+                              ASTList args)
+        throws CompileError
+    {
+        target.accept(this);
+        int nargs = getMethodArgsLength(args);
+        atMethodArgs(args, new int[nargs], new int[nargs],
+                     new String[nargs]);
+        bytecode.addInvokespecial(classname, methodname, descriptor);
+        setReturnType(descriptor, false, false);
+        addNullIfVoid();
+    }
 
     /*
      * Makes it valid to write "return <expr>;" for a void method.

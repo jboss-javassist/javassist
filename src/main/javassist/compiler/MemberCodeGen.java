@@ -315,7 +315,7 @@ public class MemberCodeGen extends CodeGen {
                         int aload0pos)
         throws CompileError
     {
-        int nargs = atMethodArgsLength(args);
+        int nargs = getMethodArgsLength(args);
         int[] types = new int[nargs];
         int[] dims = new int[nargs];
         String[] cnames = new String[nargs];
@@ -386,7 +386,7 @@ public class MemberCodeGen extends CodeGen {
         setReturnType(desc, isStatic, popTarget);
     }
 
-    public int atMethodArgsLength(ASTList args) {
+    public int getMethodArgsLength(ASTList args) {
         return ASTList.length(args);
     }
 
@@ -404,8 +404,7 @@ public class MemberCodeGen extends CodeGen {
         }
     }
 
-    private void setReturnType(String desc, boolean isStatic,
-                               boolean popTarget)
+    void setReturnType(String desc, boolean isStatic, boolean popTarget)
         throws CompileError
     {
         int i = desc.indexOf(')');

@@ -384,6 +384,39 @@ public class Javac {
     }
 
     /**
+     * Prepares to use $proceed() representing a private/super's method.
+     * If the return type of $proceed() is void, null is pushed on the
+     * stack.  This method is for methods invoked by INVOKESPECIAL.
+     *
+     * @param target    an expression specifying the target object.
+     *                          if null, "this" is the target.
+     * @param classname	    the class name declaring the method.
+     * @param methodname    the method name.
+     * @param descriptor    the method descriptor.
+     */
+    public void recordSpecialProceed(String target, String classname,
+                                     String methodname, String descriptor)
+        throws CompileError
+    {
+        Parser p = new Parser(new Lex(target));
+        final ASTree texpr = p.parseExpression(stable);
+        final String cname = classname;
+        final String method = methodname;
+        final String desc = descriptor;
+
+        ProceedHandler h = new ProceedHandler() {
+                public void doit(JvstCodeGen gen, Bytecode b, ASTList args)
+                    throws CompileError
+                {
+                    gen.compileInvokeSpecial(texpr,
+                                             cname, method, desc, args);
+                }
+            };
+
+        gen.setProceedHandler(h, proceedName);
+    }
+
+    /**
      * Prepares to use $proceed().
      */
     public void recordProceed(ProceedHandler h) {

@@ -198,6 +198,9 @@ public class MethodCall extends Expr {
             int retVar = jc.recordReturnType(retType, true);
             if (c == INVOKESTATIC)
                 jc.recordStaticProceed(classname, methodname);
+            else if (c == INVOKESPECIAL)
+                jc.recordSpecialProceed(Javac.param0Name, classname,
+                                        methodname, signature);
             else
                 jc.recordProceed(Javac.param0Name, methodname);
 

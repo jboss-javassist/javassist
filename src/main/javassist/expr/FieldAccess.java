@@ -260,7 +260,7 @@ public class FieldAccess extends Expr {
         public void doit(JvstCodeGen gen, Bytecode bytecode, ASTList args)
             throws CompileError
         {
-            if (gen.atMethodArgsLength(args) != 1)
+            if (gen.getMethodArgsLength(args) != 1)
                 throw new CompileError(Javac.proceedName
                         + "() cannot take more than one parameter "
                         + "for field writing");
