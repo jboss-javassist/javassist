@@ -672,4 +672,82 @@ public abstract class CtBehavior extends CtMember {
             throw new CannotCompileException(e);
         }
     }
+
+    /**
+     * Inserts bytecode at the specified line in the body.  It is equivalent
+     * to insertAt(lineNum, true, src).
+     *
+     * @param lineNum   the line number.
+     * @param src       the source code representing the inserted bytecode.
+     *                  It must be a single statement or block.
+     */
+    public int insertAt(int lineNum, String src)
+        throws CannotCompileException
+    {
+        return insertAt(lineNum, true, src);
+    }
+
+    /**
+     * Inserts bytecode at the specified line in the body.
+     *
+     * @param lineNum   the line number.
+     * @param modify    if false, this method does not insert the bytecode.
+     *                  It instead only returns the line number at which
+     *                  the bytecode would be inserted.
+     * @param src       the source code representing the inserted bytecode.
+     *                  It must be a single statement or block.
+     *                  If modify is false, the value of src can be null.
+     */
+    public int insertAt(int lineNum, boolean modify, String src)
+        throws CannotCompileException
+    {
+        CodeAttribute ca = methodInfo.getCodeAttribute();
+        if (ca == null)
+            throw new CannotCompileException("no method body");
+
+        LineNumberAttribute ainfo
+            = (LineNumberAttribute)ca.getAttribute(LineNumberAttribute.tag);
+        if (ainfo == null)
+            throw new CannotCompileException("no line number info");
+
+        LineNumberAttribute.Pc pc = ainfo.toNearPc(lineNum);
+        lineNum = pc.line;
+        int index = pc.index;
+        if (!modify)
+            return lineNum;
+
+        declaringClass.checkModify();
+        CodeIterator iterator = ca.iterator();
+        Javac jv = new Javac(declaringClass);
+        try {
+            jv.recordParams(getParameterTypes(),
+                            Modifier.isStatic(getModifiers()));
+            jv.compileStmnt(src);
+            Bytecode b = jv.getBytecode();
+            int stack = b.getMaxStack();
+            int locals = b.getMaxLocals();
+
+            /* We assume that there is no values in the operand stack
+             * at the position where the bytecode is inserted.
+             */
+            if (stack > ca.getMaxStack())
+                ca.setMaxStack(stack);
+
+            if (locals > ca.getMaxLocals())
+                ca.setMaxLocals(locals);
+
+            iterator.insert(index, b.get());
+            iterator.insert(b.getExceptionTable(), index);
+            return lineNum;
+        }
+        catch (NotFoundException e) {
+            throw new CannotCompileException(e);
+        }
+        catch (CompileError e) {
+            throw new CannotCompileException(e);
+        }
+        catch (BadBytecode e) {
+            throw new CannotCompileException(e);
+        }
+    }
 }

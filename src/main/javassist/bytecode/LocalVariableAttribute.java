@@ -69,6 +69,22 @@ public class LocalVariableAttribute extends AttributeInfo {
     }
 
     /**
+     * Adjusts start_pc and length if bytecode is inserted in a method body.
+     */
+    void shiftPc(int where, int gapLength, boolean exclusive) {
+        int n = tableLength();
+        for (int i = 0; i < n; ++i) {
+            int pos = i * 10 + 2;
+            int pc = ByteArray.readU16bit(info, pos);
+            int len = ByteArray.readU16bit(info, pos + 2);
+            if (pc > where || (exclusive && pc == where))
+                ByteArray.write16bit(pc + gapLength, info, pos);
+            else if (pc + len > where)
+                ByteArray.write16bit(len + gapLength, info, pos + 2);
+        }
+    }
+
+    /**
      * Returns <code>local_variable_table[i].name_index</code>.
      * This represents the name of the local variable.
      *

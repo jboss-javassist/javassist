@@ -295,7 +295,7 @@ public class CodeAttribute extends AttributeInfo implements Opcode {
 
         LdcEntry ldc = copyCode(this.info, 0, len, this.getConstPool(),
                                 newCode, destCp, classnames);
-        return LdcEntry.doit(newCode, ldc, etable);
+        return LdcEntry.doit(newCode, ldc, etable, this);
     }
 
     private static LdcEntry copyCode(byte[] code, int beginPos, int endPos,
@@ -377,12 +377,13 @@ final class LdcEntry {
     int where;
     int index;
 
-    static byte[] doit(byte[] code, LdcEntry ldc, ExceptionTable etable)
+    static byte[] doit(byte[] code, LdcEntry ldc, ExceptionTable etable,
+                       CodeAttribute ca)
         throws BadBytecode
     {
         while (ldc != null) {
             int where = ldc.where;
-            code = CodeIterator.insertGap(code, where, 1, false, etable);
+            code = CodeIterator.insertGap(code, where, 1, false, etable, ca);
             code[where] = (byte)Opcode.LDC_W;
             ByteArray.write16bit(ldc.index, code, where + 1);
             ldc = ldc.next;

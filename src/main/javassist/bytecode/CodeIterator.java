@@ -450,7 +450,7 @@ public class CodeIterator implements Opcode {
 
         int cur = currentPos;
         byte[] c = insertGap(bytecode, pos, length, exclusive,
-                             get().getExceptionTable());
+                             get().getExceptionTable(), codeAttr);
         int length2 = c.length - bytecode.length;
         if (cur >= pos)
             currentPos = cur + length2;
@@ -599,19 +599,19 @@ public class CodeIterator implements Opcode {
      * a multiple of 4.
      */
     static byte[] insertGap(byte[] code, int where, int gapLength,
-                        boolean exclusive, ExceptionTable etable)
+                boolean exclusive, ExceptionTable etable, CodeAttribute ca)
         throws BadBytecode
     {
         if (gapLength <= 0)
             return code;
 
         try {
-            return insertGap0(code, where, gapLength, exclusive, etable);
+            return insertGap0(code, where, gapLength, exclusive, etable, ca);
         }
         catch (AlignmentException e) {
             try {
                 return insertGap0(code, where, (gapLength + 3) & ~3,
-                                  exclusive, etable);
+                                  exclusive, etable, ca);
             }
             catch (AlignmentException e2) {
                 throw new RuntimeException("fatal error?");
@@ -620,13 +620,24 @@ public class CodeIterator implements Opcode {
     }
 
     private static byte[] insertGap0(byte[] code, int where, int gapLength,
-                                boolean exclusive, ExceptionTable etable)
+                                boolean exclusive, ExceptionTable etable,
+                                CodeAttribute ca)
         throws BadBytecode, AlignmentException
     {
         int codeLength = code.length;
         byte[] newcode = new byte[codeLength + gapLength];
         insertGap2(code, where, gapLength, codeLength, newcode, exclusive);
         etable.shiftPc(where, gapLength, exclusive);
+        LineNumberAttribute na
+            = (LineNumberAttribute)ca.getAttribute(LineNumberAttribute.tag);
+        if (na != null)
+            na.shiftPc(where, gapLength, exclusive);
+
+        LocalVariableAttribute va = (LocalVariableAttribute)ca.getAttribute(
+                                                LocalVariableAttribute.tag);
+        if (va != null)
+            va.shiftPc(where, gapLength, exclusive);
+
         return newcode;
     }
 

@@ -103,6 +103,53 @@ public class LineNumberAttribute extends AttributeInfo {
     }
 
     /**
+     * Used as a return type of <code>toNearPc()</code>.
+     */
+    static public class Pc {
+        /**
+         * The index into the code array.
+         */ 
+        public int index;
+        /**
+         * The line number.
+         */
+        public int line;
+    }
+
+    /**
+     * Returns the index into the code array at which the code for
+     * the specified line (or the nearest line after the specified one)
+     * begins.
+     *
+     * @param line      the line number.
+     * @return          a pair of the index and the line number of the
+     *                  bytecode at that index.
+     */
+    public Pc toNearPc(int line) {
+        int n = tableLength();
+        int nearPc = 0;
+        int distance = 0;
+        if (n > 0) {
+            distance = lineNumber(0) - line;
+            nearPc = startPc(0);
+        }
+
+        for (int i = 1; i < n; ++i) {
+            int d = lineNumber(i) - line;
+            if ((d < 0 && d > distance)
+                || (d >= 0 && (d < distance || distance < 0))) { 
+                    distance = d;
+                    nearPc = startPc(i);
+            }
+        }
+
+        Pc res = new Pc();
+        res.index = nearPc;
+        res.line = line + distance;
+        return res;
+    }
+
+    /**
      * Makes a copy.
      *
      * @param newCp     the constant pool table used by the new copy.
@@ -117,5 +164,18 @@ public class LineNumberAttribute extends AttributeInfo {
 
         LineNumberAttribute attr = new LineNumberAttribute(newCp, dest);
         return attr;
+    }
+
+    /**
+     * Adjusts start_pc if bytecode is inserted in a method body.
+     */
+    void shiftPc(int where, int gapLength, boolean exclusive) {
+        int n = tableLength();
+        for (int i = 0; i < n; ++i) {
+            int pos = i * 4 + 2;
+            int pc = ByteArray.readU16bit(info, pos);
+            if (pc > where || (exclusive && pc == where))
+                ByteArray.write16bit(pc + gapLength, info, pos);
+        }
     }
 }
