@@ -74,6 +74,13 @@ public class AnnotationsWriter {
     }
 
     /**
+     * Obtains the constant pool given to the constructor.
+     */
+    public ConstPool getConstPool() {
+        return pool;
+    }
+
+    /**
      * Closes the output stream.
      *
      */
@@ -328,8 +335,8 @@ public class AnnotationsWriter {
     /**
      * Writes <code>tag</code> and <code>array_value</code> 
      * in <code>member_value</code>.
-     * This method must be followed by a <code>numValues</code>
-     * call to <code>constValueIndex()</code>, <code>enumConstValue()</code>,
+     * This method must be followed by <code>numValues</code> calls
+     * to <code>constValueIndex()</code>, <code>enumConstValue()</code>,
      * etc.
      *
      * @param numValues     <code>num_values</code>

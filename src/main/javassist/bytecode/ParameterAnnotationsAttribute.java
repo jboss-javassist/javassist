@@ -15,16 +15,29 @@
 
 package javassist.bytecode;
 
+import java.util.Map;
 import java.io.IOException;
 import java.io.DataInputStream;
+import java.io.ByteArrayOutputStream;
 
+import javassist.bytecode.AnnotationsAttribute.Copier;
+import javassist.bytecode.AnnotationsAttribute.Parser;
 import javassist.bytecode.annotation.*;
 
 /**
  * A class representing <code>RuntimeVisibleAnnotations_attribute</code> and
  * <code>RuntimeInvisibleAnnotations_attribute</code>.
+ *
+ * <p>To obtain an ParameterAnnotationAttribute object, invoke
+ * <code>getAttribute(ParameterAnnotationsAttribute.invisibleTag)</code>
+ * in <code>MethodInfo</code>.
+ * The obtained attribute is a
+ * runtime invisible annotations attribute.  
+ * If the parameter is
+ * <code>ParameterAnnotationAttribute.visibleTag</code>, then the obtained
+ * attribute is a runtime visible one.
  */
-public class ParameterAnnotationsAttribute extends AnnotationsAttribute {
+public class ParameterAnnotationsAttribute extends AttributeInfo {
     /**
      * The name of the <code>RuntimeVisibleParameterAnnotations</code>
      * attribute.
@@ -57,10 +70,13 @@ public class ParameterAnnotationsAttribute extends AnnotationsAttribute {
     /**
      * Constructs an empty
      * <code>Runtime(In)VisisbleParameterAnnotations_attribute</code>.
+     * A new annotation can be later added to the created attribute
+     * by <code>setAnnotations()</code>.
      *
      * @param cp            constant pool
      * @param attrname      attribute name (<code>visibleTag</code> or
      *                      <code>invisibleTag</code>).
+     * @see #setAnnotations(Annotation[][])
      */
     public ParameterAnnotationsAttribute(ConstPool cp, String attrname) {
         this(cp, attrname, new byte[] { 0 });
@@ -82,29 +98,70 @@ public class ParameterAnnotationsAttribute extends AnnotationsAttribute {
         return info[0] & 0xff;
     }
 
-    AnnotationsAttribute makeCopy(ConstPool newCp, byte[] info) {
-        return new ParameterAnnotationsAttribute(newCp, getName(), info);
+    /**
+     * Copies this attribute and returns a new copy.
+     */
+    public AttributeInfo copy(ConstPool newCp, Map classnames) {
+        Copier copier = new Copier(info, constPool, newCp, classnames);
+        try {
+            copier.parameters();
+            return new ParameterAnnotationsAttribute(newCp, getName(),
+                                                     copier.close());
+        }
+        catch (Exception e) {
+            throw new RuntimeException(e.toString());
+        }
     }
 
     /**
-     * Runs the parser to analyze this annotation.
+     * Parses the annotations and returns a data structure representing
+     * that parsed annotations.  Note that changes of the node values of the
+     * returned tree are not reflected on the annotations represented by
+     * this object unless the tree is copied back to this object by
+     * <code>setAnnotations()</code>.
      *
-     * @see AnnotationsWriter
+     * @return Each element of the returned array represents an array of
+     * annotations that are associated with each method parameter.
+     *      
+     * @see #setAnnotations()
      */
-    public void accept(AnnotationsVisitor visitor) throws Exception {
-        int numParam = numParameters();
-        int pos = 1;
-        visitor.beginParameters(numParam);
-        for (int i = 0; i < numParam; ++i) {
-            int num= ByteArray.readU16bit(info, pos);
-            visitor.beginAnnotationsArray(num);
-            for (int j = 0; j < num; ++j) {
-                pos = readAnnotation(visitor, pos);
+    public Annotation[][] getAnnotations() {
+        try {
+            return new Parser(info, constPool).parseParameters();
+        }
+        catch (Exception e) {
+            throw new RuntimeException(e.toString());
+        }
+    }
+
+    /**
+     * Changes the annotations represented by this object according to
+     * the given array of <code>Annotation</code> objects.
+     *
+     * @param params        the data structure representing the
+     *                      new annotations. Every element of this array
+     *                      is an array of <code>Annotation</code> and
+     *                      it represens annotations of each method parameter.
+     */
+    public void setAnnotations(Annotation[][] params) {
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
+        AnnotationsWriter writer = new AnnotationsWriter(output, constPool);
+        try {
+            int n = params.length;
+            writer.numParameters(n);
+            for (int i = 0; i < n; ++i) {
+                Annotation[] anno = params[i];
+                writer.numAnnotations(anno.length);
+                for (int j = 0; j < anno.length; ++j)
+                    anno[j].write(writer);
             }
 
-            visitor.endAnnotationsArray();
+            writer.close();
+        }
+        catch (IOException e) {
+            throw new RuntimeException(e);      // should never reach here.
         }
 
-        visitor.endParameters();
+        set(output.toByteArray());
     }
 }

@@ -15,101 +15,91 @@
 package javassist.bytecode.annotation;
 
 import javassist.bytecode.ConstPool;
-
-import java.io.DataInput;
-import java.io.DataOutputStream;
 import java.io.IOException;
-import java.util.ArrayList;
 
 /**
- * Comment
+ * Array member.
  *
  * @author <a href="mailto:bill@jboss.org">Bill Burke</a>
- * @version $Revision: 1.3 $
- *
- **/
-public class ArrayMemberValue extends MemberValue
-{
-   MemberValue[] values;
-   MemberValue type;
+ * @author Shigeru Chiba
+ */
+public class ArrayMemberValue extends MemberValue {
+    MemberValue type;
+    MemberValue[] values;
 
-   private ArrayMemberValue(ConstPool cp)
-   {
-      super('[', cp);
+    /**
+     * Constructs an array.  The initial value or type are not specified.
+     */
+    public ArrayMemberValue(ConstPool cp) {
+        super('[', cp);
+        type = null;
+        values = null;
+    }
 
-   }
+    /**
+     * Constructs an array.  The initial value is not specified.
+     *
+     * @param t         the type of the array elements.
+     */
+    public ArrayMemberValue(MemberValue t, ConstPool cp) {
+        super('[', cp);
+        type = t;
+        values = null;
+    }
 
-   public ArrayMemberValue(MemberValue type, ConstPool cp)
-   {
-      this(cp);
-      this.type = type;
-   }
+    /**
+     * Obtains the type of the elements.
+     *
+     * @return null if the type is not specified.
+     */
+    public MemberValue getType() {
+        return type;
+    }
 
-   public MemberValue[] getValue()
-   {
-      return values;
-   }
+    /**
+     * Obtains the elements of the array.
+     */
+    public MemberValue[] getValue() {
+        return values;
+    }
 
-   public void setValue(MemberValue[] values)
-   {
-      if (values != null && values.length > 0) type = values[0];
-      this.values = values;
-   }
+    /**
+     * Sets the elements of the array.
+     */
+    public void setValue(MemberValue[] elements) {
+        values = elements;
+        if (elements != null && elements.length > 0)
+            type = elements[0];
+    }
 
-   public MemberValue getType()
-   {
-      return type;
-   }
+    /**
+     * Obtains the string representation of this object.
+     */
+    public String toString() {
+        StringBuffer buf = new StringBuffer("{");
+        if (values != null) {
+            for (int i = 0; i < values.length; i++) {
+                buf.append(values[i].toString());
+                if (i + 1 < values.length)
+                    buf.append(", ");
+                }
+        }
 
+        buf.append("}");
+        return buf.toString();
+    }
 
-   public static ArrayMemberValue readArray(ConstPool cp, DataInput di) throws java.io.IOException
-   {
-      ArrayMemberValue rtn = new ArrayMemberValue(cp);
-      int length = di.readShort();
-      ArrayList values = new ArrayList(length);
-      for (int i = 0; i < length; i++)
-      {
-         MemberValue type = MemberValue.readMemberValue(cp, di);
-         rtn.type = type;
-         values.add(type);
-      }
-      rtn.values = (MemberValue[]) values.toArray(new MemberValue[length]);
-      return rtn;
+    void write(AnnotationsWriter writer) throws IOException {
+        int num = values.length;
+        writer.arrayValue(num);
+        for (int i = 0; i < num; ++i)
+            values[i].write(writer);
+    }
 
-   }
-
-   public void write(DataOutputStream dos) throws IOException
-   {
-      super.write(dos);
-      if (values == null)
-      {
-         dos.writeShort(0);
-         return;
-      }
-      dos.writeShort(values.length);
-      for (int i = 0; i < values.length; i++)
-      {
-         values[i].write(dos);
-      }
-   }
-
-   public String toString()
-   {
-      StringBuffer buf = new StringBuffer("{");
-      if (values != null)
-      {
-         for (int i = 0; i < values.length; i++)
-         {
-            buf.append(values[i].toString());
-            if (i + 1 < values.length) buf.append(", ");
-         }
-      }
-      buf.append("}");
-      return buf.toString();
-   }
-
-   public void accept(MemberValueVisitor visitor)
-   {
-      visitor.visitArrayMemberValue(this);
-   }
+    /**
+     * Accepts a visitor.
+     */
+    public void accept(MemberValueVisitor visitor) {
+        visitor.visitArrayMemberValue(this);
+    }
 }

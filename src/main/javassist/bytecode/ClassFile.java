@@ -25,7 +25,6 @@ import java.util.ListIterator;
 import java.util.List;
 
 import javassist.CannotCompileException;
-import javassist.bytecode.annotation.AnnotationGroup;
 
 /**
  * <code>ClassFile</code> represents a Java <code>.class</code> file,
@@ -43,8 +42,6 @@ public final class ClassFile {
     ArrayList fields;
     ArrayList methods;
     LinkedList attributes;
-    AnnotationGroup runtimeInvisible;
-    AnnotationGroup runtimeVisible;
 
     String thisclassname;       // not JVM-internal name
 
@@ -432,64 +429,6 @@ public final class ClassFile {
      */
     public List getAttributes() {
         return attributes;
-    }
-
-    /**
-     * Create an empty (null) attribute "RuntimeInvisibleAnnotations"
-     * Usually used so that you can start adding annotations to a particular thing
-     */
-    public void createRuntimeInvisibleGroup() {
-        if (runtimeInvisible == null) {
-            AttributeInfo attr =
-                new AttributeInfo(constPool, "RuntimeInvisibleAnnotations");
-            addAttribute(attr);
-            runtimeInvisible = new AnnotationGroup(attr);
-        }
-    }
-
-    /**
-     * Create an empty (null) attribute "RuntimeVisibleAnnotations"
-     * Usually used so that you can start adding annotations to a particular thing
-     */
-    public void createRuntimeVisibleGroup() {
-        if (runtimeVisible == null) {
-            AttributeInfo attr =
-                new AttributeInfo(constPool, "RuntimeVisibleAnnotations");
-            addAttribute(attr);
-            runtimeVisible = new AnnotationGroup(attr);
-        }
-    }
-
-    /**
-     * Return access object for getting info about annotations
-     * This returns runtime invisible annotations as pertains to the
-     * CLASS RetentionPolicy
-     * @return
-     */
-    public AnnotationGroup getRuntimeInvisibleAnnotations() {
-        if (runtimeInvisible != null)
-            return runtimeInvisible;
-        AttributeInfo invisible = getAttribute("RuntimeInvisibleAnnotations");
-        if (invisible == null)
-            return null;
-        runtimeInvisible = new AnnotationGroup(invisible);
-        return runtimeInvisible;
-    }
-
-    /**
-     * Return access object for getting info about annotations
-     * This returns runtime visible annotations as pertains to the
-     * RUNTIME RetentionPolicy
-     * @return
-     */
-    public AnnotationGroup getRuntimeVisibleAnnotations() {
-        if (runtimeVisible != null)
-            return runtimeVisible;
-        AttributeInfo visible = getAttribute("RuntimeVisibleAnnotations");
-        if (visible == null)
-            return null;
-        runtimeVisible = new AnnotationGroup(visible);
-        return runtimeVisible;
     }
 
     /**

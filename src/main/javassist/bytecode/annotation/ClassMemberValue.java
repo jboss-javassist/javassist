@@ -12,60 +12,85 @@
  * for the specific language governing rights and limitations under the
  * License.
  */
+
 package javassist.bytecode.annotation;
 
 import javassist.bytecode.ConstPool;
 import javassist.bytecode.Descriptor;
-
-import java.io.DataOutputStream;
 import java.io.IOException;
 
 /**
- * Comment
+ * String constant value.
  *
  * @author <a href="mailto:bill@jboss.org">Bill Burke</a>
- * @version $Revision: 1.5 $
- *
- **/
-public class ClassMemberValue extends MemberValue
-{
-   short class_info_index;
+ * @author Shigeru Chiba
+ */
+public class ClassMemberValue extends MemberValue {
+    int valueIndex;
 
-   public ClassMemberValue(short cii, ConstPool cp)
-   {
-      super('c', cp);
-      this.class_info_index = cii;
-   }
+    /**
+     * Constructs a string constant value.  The initial value is specified
+     * by the constant pool entry at the given index.
+     *
+     * @param index     the index of a CONSTANT_Utf8_info structure.
+     */
+    public ClassMemberValue(int index, ConstPool cp) {
+        super('c', cp);
+        this.valueIndex = index;
+    }
 
-   public ClassMemberValue(ConstPool cp)
-   {
-      super('c', cp);
-      setClassName("java.lang.Class");
-   }
+    /**
+     * Constructs a string constant value.
+     *
+     * @param className         the initial value.
+     */
+    public ClassMemberValue(String className, ConstPool cp) {
+        super('c', cp);
+        setValue(className);
+    }
 
-   public String getClassName()
-   {
-      // beta1 return cp.getClassInfo(class_info_index);
-      return Descriptor.toClassName(cp.getUtf8Info(class_info_index));
-   }
+    /**
+     * Constructs a string constant value.
+     * The initial value is java.lang.Class.
+     */
+    public ClassMemberValue(ConstPool cp) {
+        super('c', cp);
+        setValue("java.lang.Class");
+    }
 
-   public void setClassName(String name)
-   {
-      // beta1 class_info_index = (short)cp.addClassInfo(name);
-      class_info_index = (short)cp.addUtf8Info(Descriptor.of(name));
-   }
+    /**
+     * Obtains the value of the member.
+     *
+     * @return fully-qualified class name.
+     */
+    public String getValue() {
+        return Descriptor.toClassName(cp.getUtf8Info(valueIndex));
+    }
 
-   public String toString()
-   {
-       return getClassName();
-   }
-   public void write(DataOutputStream dos) throws IOException
-   {
-      super.write(dos);
-      dos.writeShort(class_info_index);
-   }
-   public void accept(MemberValueVisitor visitor)
-   {
-      visitor.visitClassMemberValue(this);
-   }
+    /**
+     * Sets the value of the member.
+     *
+     * @param newClassName      fully-qualified class name.
+     */
+    public void setValue(String newClassName) {
+        valueIndex = cp.addUtf8Info(Descriptor.of(newClassName));
+    }
+
+    /**
+     * Obtains the string representation of this object.
+     */
+    public String toString() {
+        return "<" + getValue() + " class>";
+    }
+
+    void write(AnnotationsWriter writer) throws IOException {
+        writer.constValueIndex(getValue());
+    }
+
+    /**
+     * Accepts a visitor.
+     */
+    public void accept(MemberValueVisitor visitor) {
+        visitor.visitClassMemberValue(this);
+    }
 }

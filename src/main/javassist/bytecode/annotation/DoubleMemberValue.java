@@ -16,53 +16,76 @@
 package javassist.bytecode.annotation;
 
 import javassist.bytecode.ConstPool;
-
-import java.io.DataOutputStream;
 import java.io.IOException;
 
 /**
- * Comment
+ * Double floating-point number constant value.
  *
  * @author <a href="mailto:bill@jboss.org">Bill Burke</a>
- * @version $Revision: 1.3 $
- *
- **/
-public class DoubleMemberValue extends MemberValue
-{
-   short const_value_index;
+ * @author Shigeru Chiba
+ * @version $Revision: 1.4 $
+ */
+public class DoubleMemberValue extends MemberValue {
+    int valueIndex;
 
-   public DoubleMemberValue(short cvi, ConstPool cp)
-   {
-      super('D', cp);
-      this.const_value_index = cvi;
-   }
+    /**
+     * Constructs a double constant value.  The initial value is specified
+     * by the constant pool entry at the given index.
+     *
+     * @param index     the index of a CONSTANT_Double_info structure.
+     */
+    public DoubleMemberValue(int index, ConstPool cp) {
+        super('D', cp);
+        this.valueIndex = index;
+    }
 
-   public DoubleMemberValue(ConstPool cp)
-   {
-      super('D', cp);
-      setValue(0);
-   }
+    /**
+     * Constructs a double constant value.
+     *
+     * @param d     the initial value.
+     */
+    public DoubleMemberValue(double d, ConstPool cp) {
+        super('D', cp);
+        setValue(d);
+    }
 
-   public double getValue()
-   {
-      return cp.getDoubleInfo(const_value_index);
-   }
-   public void setValue(double newVal)
-   {
-      const_value_index = (short)cp.addDoubleInfo(newVal);
-   }
+    /**
+     * Constructs a double constant value.  The initial value is 0.0.
+     */
+    public DoubleMemberValue(ConstPool cp) {
+        super('D', cp);
+        setValue(0.0);
+    }
 
-   public String toString()
-   {
-       return "" + getValue();
-   }
-   public void write(DataOutputStream dos) throws IOException
-   {
-      super.write(dos);
-      dos.writeShort(const_value_index);
-   }
-   public void accept(MemberValueVisitor visitor)
-   {
-      visitor.visitDoubleMemberValue(this);
-   }
+    /**
+     * Obtains the value of the member.
+     */
+    public double getValue() {
+        return cp.getDoubleInfo(valueIndex);
+    }
+
+    /**
+     * Sets the value of the member.
+     */
+    public void setValue(double newValue) {
+        valueIndex = cp.addDoubleInfo(newValue);
+    }
+
+    /**
+     * Obtains the string representation of this object.
+     */
+    public String toString() {
+        return Double.toString(getValue());
+    }
+
+    void write(AnnotationsWriter writer) throws IOException {
+        writer.constValueIndex(getValue());
+    }
+
+    /**
+     * Accepts a visitor.
+     */
+    public void accept(MemberValueVisitor visitor) {
+        visitor.visitDoubleMemberValue(this);
+    }
 }

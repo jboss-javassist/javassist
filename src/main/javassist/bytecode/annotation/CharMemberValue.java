@@ -16,53 +16,75 @@
 package javassist.bytecode.annotation;
 
 import javassist.bytecode.ConstPool;
-
-import java.io.DataOutputStream;
 import java.io.IOException;
 
 /**
- * Comment
+ * Char constant value.
  *
  * @author <a href="mailto:bill@jboss.org">Bill Burke</a>
- * @version $Revision: 1.3 $
- *
- **/
-public class CharMemberValue extends MemberValue
-{
-   short const_value_index;
+ * @author Shigeru Chiba
+ */
+public class CharMemberValue extends MemberValue {
+    int valueIndex;
 
-   public CharMemberValue(short cvi, ConstPool cp)
-   {
-      super('C', cp);
-      this.const_value_index = cvi;
-   }
+    /**
+     * Constructs a char constant value.  The initial value is specified
+     * by the constant pool entry at the given index.
+     *
+     * @param index     the index of a CONSTANT_Integer_info structure.
+     */
+    public CharMemberValue(int index, ConstPool cp) {
+        super('C', cp);
+        this.valueIndex = index;
+    }
 
-   public CharMemberValue(ConstPool cp)
-   {
-      super('C', cp);
-      setValue('\0');
-   }
+    /**
+     * Constructs a char constant value.
+     *
+     * @param c     the initial value.
+     */
+    public CharMemberValue(char c, ConstPool cp) {
+        super('C', cp);
+        setValue(c);
+    }
 
-   public char getValue()
-   {
-      return (char)cp.getIntegerInfo(const_value_index);
-   }
-   public void setValue(char newVal)
-   {
-      const_value_index = (short)cp.addIntegerInfo(newVal);
-   }
+    /**
+     * Constructs a char constant value.  The initial value is '\0'.
+     */
+    public CharMemberValue(ConstPool cp) {
+        super('C', cp);
+        setValue('\0');
+    }
 
-   public String toString()
-   {
-       return "" + getValue();
-   }
-   public void write(DataOutputStream dos) throws IOException
-   {
-      super.write(dos);
-      dos.writeShort(const_value_index);
-   }
-   public void accept(MemberValueVisitor visitor)
-   {
-      visitor.visitCharMemberValue(this);
-   }
+    /**
+     * Obtains the value of the member.
+     */
+    public char getValue() {
+        return (char)cp.getIntegerInfo(valueIndex);
+    }
+
+    /**
+     * Sets the value of the member.
+     */
+    public void setValue(char newValue) {
+        valueIndex = cp.addIntegerInfo(newValue);
+    }
+
+    /**
+     * Obtains the string representation of this object.
+     */
+    public String toString() {
+        return Character.toString(getValue());
+    }
+
+    void write(AnnotationsWriter writer) throws IOException {
+        writer.constValueIndex(getValue());
+    }
+
+    /**
+     * Accepts a visitor.
+     */
+    public void accept(MemberValueVisitor visitor) {
+        visitor.visitCharMemberValue(this);
+    }
 }

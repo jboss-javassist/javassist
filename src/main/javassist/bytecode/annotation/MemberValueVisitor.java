@@ -16,12 +16,10 @@
 package javassist.bytecode.annotation;
 
 /**
- * Comment
+ * Visitor for traversing member values included in an annotation.
  *
  * @author <a href="mailto:bill@jboss.org">Bill Burke</a>
- * @version $Revision: 1.2 $
- *
- **/
+ */
 public interface MemberValueVisitor
 {
    public void visitAnnotationMemberValue(AnnotationMemberValue node);

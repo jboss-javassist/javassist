@@ -16,53 +16,75 @@
 package javassist.bytecode.annotation;
 
 import javassist.bytecode.ConstPool;
-
-import java.io.DataOutputStream;
 import java.io.IOException;
 
 /**
- * Comment
+ * Long integer constant value.
  *
  * @author <a href="mailto:bill@jboss.org">Bill Burke</a>
- * @version $Revision: 1.3 $
- *
- **/
-public class LongMemberValue extends MemberValue
-{
-   short const_value_index;
+ * @author Shigeru Chiba
+ */
+public class LongMemberValue extends MemberValue {
+    int valueIndex;
 
-   public LongMemberValue(short cvi, ConstPool cp)
-   {
-      super('J', cp);
-      this.const_value_index = cvi;
-   }
+    /**
+     * Constructs a long constant value.  The initial value is specified
+     * by the constant pool entry at the given index.
+     *
+     * @param index     the index of a CONSTANT_Long_info structure.
+     */
+    public LongMemberValue(int index, ConstPool cp) {
+        super('J', cp);
+        this.valueIndex = index;
+    }
 
-   public LongMemberValue(ConstPool cp)
-   {
-      super('J', cp);
-      setValue(0);
-   }
+    /**
+     * Constructs a long constant value.
+     *
+     * @param j         the initial value.
+     */
+    public LongMemberValue(long j, ConstPool cp) {
+        super('J', cp);
+        setValue(j);
+    }
 
-   public long getValue()
-   {
-      return cp.getLongInfo(const_value_index);
-   }
-   public void setValue(long newVal)
-   {
-      const_value_index = (short)cp.addLongInfo(newVal);
-   }
+    /**
+     * Constructs a long constant value.  The initial value is 0.
+     */
+    public LongMemberValue(ConstPool cp) {
+        super('J', cp);
+        setValue(0L);
+    }
 
-   public String toString()
-   {
-       return "" + getValue();
-   }
-   public void write(DataOutputStream dos) throws IOException
-   {
-      super.write(dos);
-      dos.writeShort(const_value_index);
-   }
-   public void accept(MemberValueVisitor visitor)
-   {
-      visitor.visitLongMemberValue(this);
-   }
+    /**
+     * Obtains the value of the member.
+     */
+    public long getValue() {
+        return cp.getLongInfo(valueIndex);
+    }
+
+    /**
+     * Sets the value of the member.
+     */
+    public void setValue(long newValue) {
+        valueIndex = cp.addLongInfo(newValue);
+    }
+
+    /**
+     * Obtains the string representation of this object.
+     */
+    public String toString() {
+        return Long.toString(getValue());
+    }
+
+    void write(AnnotationsWriter writer) throws IOException {
+        writer.constValueIndex(getValue());
+    }
+
+    /**
+     * Accepts a visitor.
+     */
+    public void accept(MemberValueVisitor visitor) {
+        visitor.visitLongMemberValue(this);
+    }
 }

@@ -16,54 +16,81 @@
 package javassist.bytecode.annotation;
 
 import javassist.bytecode.ConstPool;
-
-import java.io.DataOutputStream;
 import java.io.IOException;
 
 /**
- * Comment
+ * Integer constant value.
  *
  * @author <a href="mailto:bill@jboss.org">Bill Burke</a>
- * @version $Revision: 1.3 $
- *
- **/
-public class IntegerMemberValue extends MemberValue
-{
-   short const_value_index;
+ * @author Shigeru Chiba
+ */
+public class IntegerMemberValue extends MemberValue {
+    int valueIndex;
 
-   public IntegerMemberValue(short cvi, ConstPool cp)
-   {
-      super('I', cp);
-      this.const_value_index = cvi;
-   }
+    /**
+     * Constructs an int constant value.  The initial value is specified
+     * by the constant pool entry at the given index.
+     *
+     * @param index     the index of a CONSTANT_Integer_info structure.
+     */
+    public IntegerMemberValue(int index, ConstPool cp) {
+        super('I', cp);
+        this.valueIndex = index;
+    }
 
-   public IntegerMemberValue(ConstPool cp)
-   {
-      super('I', cp);
-      setValue(0);
-   }
+    /**
+     * Constructs an int constant value.
+     * Note that this constructor receives <b>the initial value
+     * as the second parameter</b>
+     * unlike the corresponding constructors in the sibling classes.
+     * This is for making a difference from the constructor that receives
+     * an index into the constant pool table as the first parameter.
+     * Note that the index is also int type.
+     *
+     * @param value         the initial value.
+     */
+    public IntegerMemberValue(ConstPool cp, int value) {
+        super('I', cp);
+        setValue(value);
+    }
 
-   public int getValue()
-   {
-      return cp.getIntegerInfo(const_value_index);
-   }
+    /**
+     * Constructs an int constant value.  The initial value is 0.
+     */
+    public IntegerMemberValue(ConstPool cp) {
+        super('I', cp);
+        setValue(0);
+    }
 
-   public void setValue(int newVal)
-   {
-      const_value_index = (short)cp.addIntegerInfo(newVal);
-   }
+    /**
+     * Obtains the value of the member.
+     */
+    public int getValue() {
+        return cp.getIntegerInfo(valueIndex);
+    }
 
-   public String toString()
-   {
-       return "" + getValue();
-   }
-   public void write(DataOutputStream dos) throws IOException
-   {
-      super.write(dos);
-      dos.writeShort(const_value_index);
-   }
-   public void accept(MemberValueVisitor visitor)
-   {
-      visitor.visitIntegerMemberValue(this);
-   }
+    /**
+     * Sets the value of the member.
+     */
+    public void setValue(int newValue) {
+        valueIndex = cp.addIntegerInfo(newValue);
+    }
+
+    /**
+     * Obtains the string representation of this object.
+     */
+    public String toString() {
+        return Integer.toString(getValue());
+    }
+
+    void write(AnnotationsWriter writer) throws IOException {
+        writer.constValueIndex(getValue());
+    }
+
+    /**
+     * Accepts a visitor.
+     */
+    public void accept(MemberValueVisitor visitor) {
+        visitor.visitIntegerMemberValue(this);
+    }
 }

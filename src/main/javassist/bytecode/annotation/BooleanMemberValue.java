@@ -15,54 +15,75 @@
 package javassist.bytecode.annotation;
 
 import javassist.bytecode.ConstPool;
-
-import java.io.DataOutputStream;
 import java.io.IOException;
 
 /**
- * Comment
+ * Boolean constant value.
  *
  * @author <a href="mailto:bill@jboss.org">Bill Burke</a>
- * @version $Revision: 1.3 $
- *
- **/
-public class BooleanMemberValue extends MemberValue
-{
-   short const_value_index;
+ * @author Shigeru Chiba
+ */
+public class BooleanMemberValue extends MemberValue {
+    int valueIndex;
 
-   public BooleanMemberValue(short cvi, ConstPool cp)
-   {
-      super('Z', cp);
-      this.const_value_index = cvi;
-   }
+    /**
+     * Constructs a boolean constant value.  The initial value is specified
+     * by the constant pool entry at the given index.
+     *
+     * @param index     the index of a CONSTANT_Integer_info structure.
+     */
+    public BooleanMemberValue(int index, ConstPool cp) {
+        super('Z', cp);
+        this.valueIndex = index;
+    }
 
-   public BooleanMemberValue(ConstPool cp)
-   {
-      super('Z', cp);
-      setValue(false);
-   }
+    /**
+     * Constructs a boolean constant value.
+     *
+     * @param b         the initial value.
+     */
+    public BooleanMemberValue(boolean b, ConstPool cp) {
+        super('Z', cp);
+        setValue(b);
+    }
 
-   public boolean getValue()
-   {
-      return cp.getIntegerInfo(const_value_index) == 1;
-   }
+    /**
+     * Constructs a boolean constant value.  The initial value is false.
+     */
+    public BooleanMemberValue(ConstPool cp) {
+        super('Z', cp);
+        setValue(false);
+    }
 
-   public void setValue(boolean newVal)
-   {
-      const_value_index = (short)cp.addIntegerInfo(newVal ? 1 : 0);
-   }
+    /**
+     * Obtains the value of the member.
+     */
+    public boolean getValue() {
+        return cp.getIntegerInfo(valueIndex) != 0;
+    }
 
-   public String toString()
-   {
-       return "" + getValue();
-   }
-   public void write(DataOutputStream dos) throws IOException
-   {
-      super.write(dos);
-      dos.writeShort(const_value_index);
-   }
-   public void accept(MemberValueVisitor visitor)
-   {
-      visitor.visitBooleanMemberValue(this);
-   }
+    /**
+     * Sets the value of the member.
+     */
+    public void setValue(boolean newValue) {
+        valueIndex = cp.addIntegerInfo(newValue ? 1 : 0);
+    }
+
+    /**
+     * Obtains the string representation of this object.
+     */
+    public String toString() {
+        return getValue() ? "true" : "false";
+    }
+
+    void write(AnnotationsWriter writer) throws IOException {
+        writer.constValueIndex(getValue());
+    }
+
+    /**
+     * Accepts a visitor.
+     */
+    public void accept(MemberValueVisitor visitor) {
+        visitor.visitBooleanMemberValue(this);
+    }
 }

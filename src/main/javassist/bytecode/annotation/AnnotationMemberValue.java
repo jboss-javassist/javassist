@@ -12,59 +12,66 @@
  * for the specific language governing rights and limitations under the
  * License.
  */
-
 package javassist.bytecode.annotation;
 
 import javassist.bytecode.ConstPool;
-
-import java.io.DataOutputStream;
 import java.io.IOException;
 
 /**
- * Comment
+ * Nested annotation.
  *
  * @author <a href="mailto:bill@jboss.org">Bill Burke</a>
- * @version $Revision: 1.3 $
- *
- **/
-public class AnnotationMemberValue extends MemberValue
-{
-   AnnotationInfo annotation;
-   public AnnotationMemberValue(AnnotationInfo a, ConstPool cp)
-   {
-      super('@', cp);
-      this.annotation = a;
-   }
+ * @author Shigeru Chiba
+ */
+public class AnnotationMemberValue extends MemberValue {
+    Annotation value;
 
-   public AnnotationMemberValue(ConstPool cp)
-   {
-      super('@', cp);
-   }
+    /**
+     * Constructs an annotation member.  The initial value is not specified.
+     */
+    public AnnotationMemberValue(ConstPool cp) {
+        this(null, cp);
+    }
 
-   public AnnotationInfo getNestedAnnotation()
-   {
-      return annotation;
-   }
+    /**
+     * Constructs an annotation member.  The initial value is specified by
+     * the first parameter.
+     */
+    public AnnotationMemberValue(Annotation a, ConstPool cp) {
+        super('@', cp);
+        value = a;
+    }
 
-   public void setNestedAnnotation(AnnotationInfo info)
-   {
-      annotation = info;
-   }
+    /**
+     * Obtains the value.
+     */
+    public Annotation getValue() {
+        return value;
+    }
 
-   public String toString()
-   {
-      return annotation.toString();
-   }
+    /**
+     * Sets the value of this member.
+     */
+    public void setValue(Annotation newValue) {
+        value = newValue;
+    }
 
-   public void write(DataOutputStream dos) throws IOException
-   {
-      super.write(dos);
-      annotation.write(dos);
-   }
+    /**
+     * Obtains the string representation of this object.
+     */
+    public String toString() {
+        return value.toString();
+    }
 
-   public void accept(MemberValueVisitor visitor)
-   {
-      visitor.visitAnnotationMemberValue(this);
-   }
+    void write(AnnotationsWriter writer) throws IOException {
+        writer.annotationValue();
+        value.write(writer);
+    }
 
+    /**
+     * Accepts a visitor.
+     */
+    public void accept(MemberValueVisitor visitor) {
+        visitor.visitAnnotationMemberValue(this);
+    }
 }

@@ -17,82 +17,85 @@ package javassist.bytecode.annotation;
 
 import javassist.bytecode.ConstPool;
 import javassist.bytecode.Descriptor;
-
-import java.io.DataOutputStream;
 import java.io.IOException;
 
 /**
- * Comment
+ * Enum constant value.
  *
  * @author <a href="mailto:bill@jboss.org">Bill Burke</a>
- * @version $Revision: 1.5 $
- *
- **/
-public class EnumMemberValue extends MemberValue
-{
-   short type_name_index;
-   short const_name_index;
+ * @author Shigeru Chiba
+ */
+public class EnumMemberValue extends MemberValue {
+    int typeIndex, valueIndex;
 
-   public EnumMemberValue(short type, short cni, ConstPool cp)
-   {
-      super('e', cp);
-      this.type_name_index = type;
-      this.const_name_index = cni;
-   }
+    /**
+     * Constructs an enum constant value.  The initial value is specified
+     * by the constant pool entries at the given indexes.
+     *
+     * @param type      the index of a CONSTANT_Utf8_info structure
+     *                  representing the enum type.
+     * @param value     the index of a CONSTANT_Utf8_info structure.
+     *                  representing the enum value.
+     */
+    public EnumMemberValue(int type, int value, ConstPool cp) {
+        super('e', cp);
+        this.typeIndex = type;
+        this.valueIndex = value;
+    }
 
-   public EnumMemberValue(String type, ConstPool cp)
-   {
-      super('e', cp);
-      setEnumType(type);
-   }
+    /**
+     * Constructs an enum constant value.
+     * The initial value is not specified.
+     */
+    public EnumMemberValue(ConstPool cp) {
+        super('e', cp);
+        typeIndex = valueIndex = 0;
+    }
 
-   public EnumMemberValue(ConstPool cp)
-   {
-      super('e', cp);
-   }
+    /**
+     * Obtains the enum type name.
+     *
+     * @return a fully-qualified type name.
+     */
+    public String getType() {
+        return Descriptor.toClassName(cp.getUtf8Info(typeIndex));
+    }
 
-   /**
-    * @return tring representing the classname
-    */
-   public String getEnumType()
-   {
-      return Descriptor.toClassName(cp.getUtf8Info(type_name_index));
-   }
+    /**
+     * Changes the enum type name.
+     *
+     * @param classname a fully-qualified type name. 
+     */
+    public void setType(String typename) {
+        typeIndex = cp.addUtf8Info(Descriptor.of(typename));
+    }
 
-   /**
-    *
-    * @param classname FQN classname
-    */
-   public void setEnumType(String classname)
-   {
-      type_name_index = (short)cp.addUtf8Info(Descriptor.of(classname));
-   }
+    /**
+     * Obtains the name of the enum constant value.
+     */
+    public String getValue() {
+        return cp.getUtf8Info(valueIndex);
+    }
 
-   public String getEnumVal()
-   {
-      return cp.getUtf8Info(const_name_index);
-   }
+    /**
+     * Changes the name of the enum constant value.
+     */
+    public void setValue(String name) {
+        valueIndex = cp.addUtf8Info(name);
+    }
 
-   public void setEnumVal(String name)
-   {
-      const_name_index = (short)cp.addUtf8Info(name);
-   }
+    public String toString() {
+        return getType() + "." + getValue();
+    }
 
+    void write(AnnotationsWriter writer) throws IOException {
+        writer.enumConstValue(getType(), getValue());
+    }
 
-
-   public String toString()
-   {
-      return getEnumType() + "." + getEnumVal();
-   }
-
-   public void write(DataOutputStream dos) throws IOException
-   {
-      super.write(dos);
-      dos.writeShort(type_name_index);
-      dos.writeShort(const_name_index);
-   }
-   public void accept(MemberValueVisitor visitor)
-   {
-      visitor.visitEnumMemberValue(this);
-   }
+    /**
+     * Accepts a visitor.
+     */
+    public void accept(MemberValueVisitor visitor) {
+        visitor.visitEnumMemberValue(this);
+    }
 }

@@ -15,54 +15,75 @@
 package javassist.bytecode.annotation;
 
 import javassist.bytecode.ConstPool;
-
-import java.io.DataOutputStream;
 import java.io.IOException;
 
 /**
- * Comment
+ * Byte constant value.
  *
  * @author <a href="mailto:bill@jboss.org">Bill Burke</a>
- * @version $Revision: 1.3 $
- *
- **/
-public class ByteMemberValue extends MemberValue
-{
-   short const_value_index;
+ * @author Shigeru Chiba
+ */
+public class ByteMemberValue extends MemberValue {
+    int valueIndex;
 
-   public ByteMemberValue(short const_value_index, ConstPool cp)
-   {
-      super('B', cp);
-      this.const_value_index = const_value_index;
-   }
+    /**
+     * Constructs a byte constant value.  The initial value is specified
+     * by the constant pool entry at the given index.
+     *
+     * @param index     the index of a CONSTANT_Integer_info structure.
+     */
+    public ByteMemberValue(int index, ConstPool cp) {
+        super('B', cp);
+        this.valueIndex = index;
+    }
 
-   public ByteMemberValue(ConstPool cp)
-   {
-      super('B', cp);
-      setValue((byte)0);
-   }
+    /**
+     * Constructs a byte constant value.
+     *
+     * @param b         the initial value.
+     */
+    public ByteMemberValue(byte b, ConstPool cp) {
+        super('B', cp);
+        setValue(b);
+    }
 
-   public byte getValue()
-   {
-      return (byte)cp.getIntegerInfo(const_value_index);
-   }
+    /**
+     * Constructs a byte constant value.  The initial value is 0.
+     */
+    public ByteMemberValue(ConstPool cp) {
+        super('B', cp);
+        setValue((byte)0);
+    }
 
-   public void setValue(byte newVal)
-   {
-      const_value_index = (short)cp.addIntegerInfo(newVal);
-   }
+    /**
+     * Obtains the value of the member.
+     */
+    public byte getValue() {
+        return (byte)cp.getIntegerInfo(valueIndex);
+    }
 
-   public String toString()
-   {
-       return "" + getValue();
-   }
-   public void write(DataOutputStream dos) throws IOException
-   {
-      super.write(dos);
-      dos.writeShort(const_value_index);
-   }
-   public void accept(MemberValueVisitor visitor)
-   {
-      visitor.visitByteMemberValue(this);
-   }
+    /**
+     * Sets the value of the member.
+     */
+    public void setValue(byte newValue) {
+        valueIndex = cp.addIntegerInfo(newValue);
+    }
+
+    /**
+     * Obtains the string representation of this object.
+     */
+    public String toString() {
+        return Byte.toString(getValue());
+    }
+
+    void write(AnnotationsWriter writer) throws IOException {
+        writer.constValueIndex(getValue());
+    }
+
+    /**
+     * Accepts a visitor.
+     */
+    public void accept(MemberValueVisitor visitor) {
+        visitor.visitByteMemberValue(this);
+    }
 }

@@ -26,6 +26,29 @@ import javassist.bytecode.annotation.*;
  * A class representing
  * <code>RuntimeVisibleAnnotations_attribute</code> and
  * <code>RuntimeInvisibleAnnotations_attribute</code>.
+ *
+ * <p>To obtain an AnnotationAttribute object, invoke
+ * <code>getAttribute(AnnotationsAttribute.invisibleTag)</code>
+ * in <code>ClassFile</code>, <code>MethodInfo</code>,
+ * or <code>FieldInfo</code>.  The obtained attribute is a
+ * runtime invisible annotations attribute.  
+ * If the parameter is
+ * <code>AnnotationAttribute.visibleTag</code>, then the obtained
+ * attribute is a runtime visible one.
+ *
+ * <p>If you want to record a new AnnotationAttribute object, execute the
+ * following snippet:
+ *
+ * <ul><pre>
+ * ClassFile cf = ... ;
+ * ConstPool cp = cf.getConstPool();
+ * AnnotationsAttribute attr
+ *     = new AnnotationsAttribute(cp, AnnotationsAttribute.invisibleTag);
+ * Annotation a = new Annotation("Author", cp);
+ * a.addMemberValue("name", new StringMemberValue("Chiba", cp));
+ * attr.setAnnotation(a);
+ * cf.addAttribute(attr);
+ * </pre></ul>
  */
 public class AnnotationsAttribute extends AttributeInfo {
     /**
@@ -36,7 +59,7 @@ public class AnnotationsAttribute extends AttributeInfo {
     /**
      * The name of the <code>RuntimeInvisibleAnnotations</code> attribute.
      */
-    public static final String invisibleTag = "RuntimeInvisibleAnnotations"; 
+    public static final String invisibleTag = "RuntimeInvisibleAnnotations";
 
     /**
      * Constructs a <code>Runtime(In)VisisbleAnnotations_attribute</code>.
@@ -55,10 +78,13 @@ public class AnnotationsAttribute extends AttributeInfo {
     /**
      * Constructs an empty
      * <code>Runtime(In)VisisbleAnnotations_attribute</code>.
+     * A new annotation can be later added to the created attribute
+     * by <code>setAnnotations()</code>.
      *
      * @param cp            constant pool
      * @param attrname      attribute name (<code>visibleTag</code> or
      *                      <code>invisibleTag</code>).
+     * @see #setAnnotations(Annotations[])
      */
     public AnnotationsAttribute(ConstPool cp, String attrname) {
         this(cp, attrname, new byte[] { 0, 0 });
@@ -82,114 +108,266 @@ public class AnnotationsAttribute extends AttributeInfo {
 
     /**
      * Copies this attribute and returns a new copy.
-     * This method works even if this object is an instance of
-     * <code>ParameterAnnotationsAttribute</code>.
      */
     public AttributeInfo copy(ConstPool newCp, Map classnames) {
-        return new Copier(newCp, classnames).copy(this);
-    }
-
-    AnnotationsAttribute makeCopy(ConstPool newCp, byte[] info) {
-        return new AnnotationsAttribute(newCp, getName(), info);
+        Copier copier = new Copier(info, constPool, newCp, classnames);
+        try {
+            copier.annotationArray();
+            return new AnnotationsAttribute(newCp, getName(), copier.close());
+        }
+        catch (Exception e) {
+            throw new RuntimeException(e.toString());
+        }
     }
 
     /**
-     * Runs the parser to analyze this annotation.
-     * It invokes methods on the given visitor object while parsing.
+     * Parses the annotations and returns a data structure representing
+     * that parsed annotations.  Note that changes of the node values of the
+     * returned tree are not reflected on the annotations represented by
+     * this object unless the tree is copied back to this object by
+     * <code>setAnnotations()</code>.
      *
-     * @see AnnotationsWriter
+     * @see #setAnnotations()
      */
-    public void accept(AnnotationsVisitor visitor) throws Exception {
-        int num = numAnnotations();
-        int pos = 2;
-        visitor.beginAnnotationsArray(num);
-        for (int i = 0; i < num; ++i)
-            pos = readAnnotation(visitor, pos);
-
-        visitor.endAnnotationsArray();
-    }
-
-    int readAnnotation(AnnotationsVisitor visitor, int pos) throws Exception {
-        int type = ByteArray.readU16bit(info, pos);
-        int numPairs = ByteArray.readU16bit(info, pos + 2);
-        visitor.beginAnnotation(constPool, type, numPairs);
-        pos += 4;
-        for (int j = 0; j < numPairs; ++j)
-            pos = readMemberValuePair(visitor, pos);
-
-        visitor.endAnnotation();
-        return pos;
-    }
-
-    private int readMemberValuePair(AnnotationsVisitor visitor, int pos)
-        throws Exception
-    {
-        int nameIndex = ByteArray.readU16bit(info, pos);
-        visitor.beginMemberValuePair(constPool, nameIndex);
-        pos = readMemberValue(visitor, pos + 2);
-        visitor.endMemberValuePair();
-        return pos;
-    }
-
-    private int readMemberValue(AnnotationsVisitor visitor, int pos)
-        throws Exception
-    {
-        int tag = info[pos] & 0xff;
-        if (tag == 'e') {
-            int typeNameIndex = ByteArray.readU16bit(info, pos + 1);
-            int constNameIndex = ByteArray.readU16bit(info, pos + 3);
-            visitor.enumConstValue(constPool, typeNameIndex, constNameIndex);
-            return pos + 5;
+    public Annotation[] getAnnotations() {
+        try {
+            return new Parser(info, constPool).parseAnnotations();
         }
-        else if (tag == 'c') {
-            int index = ByteArray.readU16bit(info, pos + 1);
-            visitor.classInfoIndex(constPool, index);
-            return pos + 3;
+        catch (Exception e) {
+            throw new RuntimeException(e.toString());
         }
-        else if (tag == '@') {
-            visitor.beginAnnotationValue();
-            pos = readAnnotation(visitor, pos + 1);
-            visitor.endAnnotationValue();
+    }
+
+    /**
+     * Changes the annotations represented by this object according to
+     * the given array of <code>Annotation</code> objects.
+     *
+     * @param annotations           the data structure representing the
+     *                              new annotations. 
+     */
+    public void setAnnotations(Annotation[] annotations) {
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
+        AnnotationsWriter writer = new AnnotationsWriter(output, constPool);
+        try {
+            int n = annotations.length;
+            writer.numAnnotations(n);
+            for (int i = 0; i < n; ++i)
+                annotations[i].write(writer);
+
+            writer.close();
+        }
+        catch (IOException e) {
+            throw new RuntimeException(e);      // should never reach here.
+        }
+
+        set(output.toByteArray());
+    }
+
+    /**
+     * Changes the annotations.  A call to this method is equivalent to:
+     * <ul><pre>setAnnotations(new Annotation[] { annotation })</pre></ul>
+     *
+     * @param annotation    the data structure representing
+     *                      the new annotation.
+     */
+    public void setAnnotation(Annotation annotation) {
+        setAnnotations(new Annotation[] { annotation });
+    }
+
+    /**
+     * Returns a string representation of this object.
+     */
+    public String toString() {
+        Annotation[] a = getAnnotations();
+        StringBuffer sbuf = new StringBuffer();
+        int i = 0;
+        while (i < a.length) {
+            sbuf.append(a[i++].toString());
+            if (i != a.length)
+                sbuf.append(", ");
+        }
+
+        return sbuf.toString();
+    }
+
+    static class Walker {
+        byte[] info;
+
+        Walker(byte[] attrInfo) {
+            info = attrInfo;
+        }
+
+        final void parameters() throws Exception {
+            int numParam = info[0] & 0xff;
+            parameters(numParam, 1);
+        }
+
+        void parameters(int numParam, int pos) throws Exception {
+            for (int i = 0; i < numParam; ++i)
+                pos = annotationArray(pos);
+        }
+
+        final void annotationArray() throws Exception {
+            annotationArray(0);
+        }
+
+        final int annotationArray(int pos) throws Exception {
+            int num = ByteArray.readU16bit(info, pos);
+            return annotationArray(pos + 2, num);
+        }
+
+        int annotationArray(int pos, int num) throws Exception {
+            for (int i = 0; i < num; ++i)
+                pos = annotation(pos);
+
             return pos;
         }
-        else if (tag == '[') {
-            int num = ByteArray.readU16bit(info, pos + 1);
-            pos += 3;
-            visitor.beginArrayValue(num);
+
+        final int annotation(int pos) throws Exception {
+            int type = ByteArray.readU16bit(info, pos);
+            int numPairs = ByteArray.readU16bit(info, pos + 2);
+            return annotation(pos + 4, type, numPairs);
+        }
+
+        int annotation(int pos, int type, int numPairs) throws Exception {
+            for (int j = 0; j < numPairs; ++j)
+                pos = memberValuePair(pos);
+
+            return pos;
+        }
+
+        final int memberValuePair(int pos) throws Exception {
+            int nameIndex = ByteArray.readU16bit(info, pos);
+            return memberValuePair(pos + 2, nameIndex);
+        }
+
+        int memberValuePair(int pos, int nameIndex) throws Exception {
+            return memberValue(pos);
+        }
+
+        final int memberValue(int pos) throws Exception {
+            int tag = info[pos] & 0xff;
+            if (tag == 'e') {
+                int typeNameIndex = ByteArray.readU16bit(info, pos + 1);
+                int constNameIndex = ByteArray.readU16bit(info, pos + 3);
+                enumMemberValue(typeNameIndex, constNameIndex);
+                return pos + 5;
+            }
+            else if (tag == 'c') {
+                int index = ByteArray.readU16bit(info, pos + 1);
+                classMemberValue(index);
+                return pos + 3;
+            }
+            else if (tag == '@')
+                return annotationMemberValue(pos + 1);
+            else if (tag == '[') {
+                int num = ByteArray.readU16bit(info, pos + 1);
+                return arrayMemberValue(pos + 3, num);
+            }
+            else { // primitive types or String.
+                int index = ByteArray.readU16bit(info, pos + 1);
+                constValueMember(tag, index);
+                return pos + 3;
+            }
+        }
+
+        void constValueMember(int tag, int index) throws Exception {} 
+
+        void enumMemberValue(int typeNameIndex, int constNameIndex)
+            throws Exception {}
+
+        void classMemberValue(int index) throws Exception {}
+
+        int annotationMemberValue(int pos) throws Exception {
+            return annotation(pos);
+        }
+
+        int arrayMemberValue(int pos, int num) throws Exception {
             for (int i = 0; i < num; ++i) {
-                pos = readMemberValue(visitor, pos);
-                visitor.arrayElement(i);
+                pos = memberValue(pos);
             }
 
-            visitor.endArrayValue();
             return pos;
-        }
-        else { // primitive types or String.
-            int index = ByteArray.readU16bit(info, pos + 1);
-            visitor.constValueIndex(constPool, tag, index);
-            return pos + 3;
         }
     }
 
-    /**
-     * A visitor for copying the contents of an
-     * <code>AnnotationsAttribute</code>.
-     *
-     * <p>This class is typically used as following:
-     * <ul><pre>
-     * new Copier(dest, map).copy(src)
-     * </pre></ul>
-     *
-     * <p>This expression returns a copy of the source annotations attribute.
-     *
-     * @see AnnotationsAttribute#accept(AnnotationsVisitor)
-     * @see AnnotationsWriter
-     */
-    public static class Copier extends AnnotationsVisitor {
-        protected ByteArrayOutputStream output; 
-        protected AnnotationsWriter writer;
-        protected ConstPool destPool;
-        protected Map classnames;
+    static class Copier extends Walker {
+        ByteArrayOutputStream output; 
+        AnnotationsWriter writer;
+        ConstPool srcPool, destPool;
+        Map classnames;
+
+        /**
+         * Constructs a copier.  This copier renames some class names
+         * into the new names specified by <code>map</code> when it copies
+         * an annotation attribute.
+         *
+         * @param info       the source attribute.
+         * @param src        the constant pool of the source class.
+         * @param dest       the constant pool of the destination class.
+         * @param map        pairs of replaced and substituted class names.
+         *                   It can be null.
+         */
+        Copier(byte[] info, ConstPool src, ConstPool dest, Map map) {
+            super(info);
+            output = new ByteArrayOutputStream();
+            writer = new AnnotationsWriter(output, dest);
+            srcPool = src;
+            destPool = dest;
+            classnames = map;
+        }
+
+        byte[] close() throws IOException {
+            writer.close();
+            return output.toByteArray();
+        }
+
+        void parameters(int numParam, int pos) throws Exception {
+            writer.numParameters(numParam);
+            super.parameters(numParam, pos);
+        }
+
+        int annotationArray(int pos, int num) throws Exception {
+            writer.numAnnotations(num);
+            return super.annotationArray(pos, num);
+        }
+
+        int annotation(int pos, int type, int numPairs) throws Exception {
+            writer.annotation(copy(type), numPairs);
+            return super.annotation(pos, type, numPairs);
+        }
+
+        int memberValuePair(int pos, int nameIndex) throws Exception {
+            writer.memberValuePair(copy(nameIndex));
+            return super.memberValuePair(pos, nameIndex);
+        }
+
+        void constValueMember(int tag, int index) throws Exception {
+            writer.constValueIndex(tag, copy(index));
+            super.constValueMember(tag, index);
+        } 
+
+        void enumMemberValue(int typeNameIndex, int constNameIndex)
+            throws Exception
+        {
+            writer.enumConstValue(copy(typeNameIndex), copy(constNameIndex));
+            super.enumMemberValue(typeNameIndex, constNameIndex);
+        }
+
+        void classMemberValue(int index) throws Exception {
+            writer.classInfoIndex(copy(index));
+            super.classMemberValue(index);
+        }
+
+        int annotationMemberValue(int pos) throws Exception {
+            writer.annotationValue();
+            return super.annotationMemberValue(pos);
+        }
+
+        int arrayMemberValue(int pos, int num) throws Exception {
+            writer.arrayValue(num);
+            return super.arrayMemberValue(pos, num);
+        }
 
         /**
          * Copies a constant pool entry into the destination constant pool
@@ -200,266 +378,143 @@ public class AnnotationsAttribute extends AttributeInfo {
          * @return the index of the copied item into the destination
          *          constant pool. 
          */
-        protected int copy(ConstPool srcPool, int srcIndex) {
+        int copy(int srcIndex) {
             return srcPool.copy(srcIndex, destPool, classnames);
         }
+    }
+
+    static class Parser extends Walker {
+        ConstPool pool;
+        Annotation[][] allParams;   // all parameters
+        Annotation[] allAnno;       // all annotations
+        Annotation currentAnno;     // current annotation
+        MemberValue memberValue;
 
         /**
-         * Constructs a copier.  This copier renames some class names
-         * into the new names specified by <code>map</code> when it copies
-         * an annotation attribute.
+         * Constructs a parser.  This parser constructs a parse tree of
+         * the annotations.
          *
-         * @param src        the constant pool of the source class.
-         * @param dest       the constant pool of the destination class.
-         * @param map        pairs of replaced and substituted class names.
-         *                   It can be null.
+         * @param info       the attribute.
+         * @param src        the constant pool.
          */
-        public Copier(ConstPool dest, Map map) {
-            output = new ByteArrayOutputStream();
-            writer = new AnnotationsWriter(output, dest);
-            destPool = dest;
-            classnames = map;
+        Parser(byte[] info, ConstPool cp) {
+            super(info);
+            pool = cp;
         }
 
-        /**
-         * Does copying.  This calls <code>accept()</code>
-         * on <code>src</code> with this visitor object.
-         *
-         * @param src       the source attribute.  It can be an instance
-         *                  of <code>ParameterAnnotationsAttribute</code>.
-         * @return a copy of the source attribute.
-         */
-        public AnnotationsAttribute copy(AnnotationsAttribute src) {
-            try {
-                src.accept(this);
-                writer.close();
-            }
-            catch (Exception e) {
-                throw new RuntimeException(e.toString());
+        Annotation[][] parseParameters() throws Exception {
+            parameters();
+            return allParams;
+        }
+
+        Annotation[] parseAnnotations() throws Exception {
+            annotationArray();
+            return allAnno;
+        }
+
+        void parameters(int numParam, int pos) throws Exception {
+            Annotation[][] params = new Annotation[numParam][];
+            for (int i = 0; i < numParam; ++i) {
+                pos = annotationArray(pos);
+                params[i] = allAnno;
             }
 
-            return src.makeCopy(destPool, output.toByteArray());
+            allParams = params;
         }
 
-        /**
-         * Writes <code>num_parameters</code>.
-         */
-        public void beginParameters(int num) throws IOException {
-            writer.numParameters(num);
-        }
-
-        /**
-         * Does nothing.
-         */
-        public void endParameters() {}
-
-        /**
-         * Writes <code>num_annotations</code>.
-         */
-        public void beginAnnotationsArray(int num) throws IOException {
-            writer.numAnnotations(num);
-        }
-
-        /**
-         * Does nothing.
-         */
-        public void endAnnotationsArray() {}
-
-        /**
-         * Writes <code>type_index</code> and
-         * <code>num_member_value_pairs</code>.
-         */
-        public void beginAnnotation(ConstPool cp,
-                                    int typeIndex, int numMemberValuePairs)
-            throws IOException
-        {
-            writer.annotation(copy(cp, typeIndex), numMemberValuePairs);
-        }
-
-        /**
-         * Does nothing.
-         */
-        public void endAnnotation() {}
-
-        /**
-         * Writes <code>member_name_index</code>.
-         */
-        public void beginMemberValuePair(ConstPool cp, int memberNameIndex)
-            throws IOException
-        {
-            writer.memberValuePair(copy(cp, memberNameIndex));
-        }
-
-        /**
-         * Does nothing.
-         */
-        public void endMemberValuePair() {}
-
-        /**
-         * Writes <code>tag</code> and <code>const_value_index</code>.
-         */
-        public void constValueIndex(ConstPool cp, int tag, int index)
-            throws IOException
-        {
-            writer.constValueIndex(tag, copy(cp, index));
-        }
-
-        /**
-         * Writes <code>tag</code> and <code>enum_const_value</code>.
-         */
-        public void enumConstValue(ConstPool cp, int typeNameIndex,
-                                   int constNameIndex)
-            throws IOException
-        {
-            writer.enumConstValue(copy(cp, typeNameIndex),
-                                  copy(cp, constNameIndex));
-        }
-
-        /**
-         * Writes <code>tag</code> and <code>class_info_index</code>.
-         */
-        public void classInfoIndex(ConstPool cp, int index) throws IOException {
-            writer.classInfoIndex(copy(cp, index));
-        }
-
-        /**
-         * Writes <code>tag</code>.
-         */
-        public void beginAnnotationValue() throws IOException {
-            writer.annotationValue();
-        }
-
-        /**
-         * Does nothing.
-         */
-        public void endAnnotationValue() {}
-
-        /**
-         * Writes <code>num_values</code> in <code>array_value</code>.
-         */
-        public void beginArrayValue(int numValues) throws IOException {
-            writer.arrayValue(numValues);
-        }
-
-        /**
-         * Does nothing.
-         */
-        public void arrayElement(int i) {}
-
-        /**
-         * Invoked when the parser ends parsing <code>array_value</code>
-         * in <code>member_value</code>.
-         */
-        public void endArrayValue() {}
-    }
-
-    /**
-     * Returns a string representation of this object.
-     */
-    public String toString() {
-        return getName() + ":" + new Printer().toString(this);
-    }
-
-    static class Printer extends AnnotationsVisitor {
-        private StringBuffer sbuf;
-
-        public Printer() {
-            sbuf = new StringBuffer();
-        }
-
-        public String toString(AnnotationsAttribute src) {
-            try {
-                src.accept(this);
-                return sbuf.toString();
+        int annotationArray(int pos, int num) throws Exception {
+            Annotation[] array = new Annotation[num];
+            for (int i = 0; i < num; ++i) {
+                pos = annotation(pos);
+                array[i] = currentAnno;
             }
-            catch (RuntimeException e) {
-                throw e;
+
+            allAnno = array;
+            return pos;
+        }
+
+        int annotation(int pos, int type, int numPairs) throws Exception {
+            currentAnno = new Annotation(type, pool);
+            return super.annotation(pos, type, numPairs);
+        }
+
+        int memberValuePair(int pos, int nameIndex) throws Exception {
+            pos = super.memberValuePair(pos, nameIndex);
+            currentAnno.addMemberValue(nameIndex, memberValue);
+            return pos;
+        }
+
+        void constValueMember(int tag, int index) throws Exception {
+            MemberValue m;
+            ConstPool cp = pool;
+            switch (tag) {
+            case 'B' :
+                m = new ByteMemberValue(index, cp);
+                break;
+            case 'C' :
+                m = new CharMemberValue(index, cp);
+                break;
+            case 'D' :
+                m = new DoubleMemberValue(index, cp);
+                break;
+            case 'F' :
+                m = new FloatMemberValue(index, cp);
+                break;
+            case 'I' :
+                m = new IntegerMemberValue(index, cp);
+                break;
+            case 'J' :
+                m = new LongMemberValue(index, cp);
+                break;
+            case 'S' :
+                m = new ShortMemberValue(index, cp);
+                break;
+            case 'Z' :
+                m = new BooleanMemberValue(index, cp);
+                break;
+            case 's' :
+                m = new StringMemberValue(index, cp);
+                break;
+            default :
+                throw new RuntimeException("unknown tag:" + tag);
             }
-            catch (Exception e) {
-                throw new RuntimeException(e.toString());
-            }
-        }
 
-        public void beginParameters(int num) {
-            sbuf.append("parameters[").append(num).append("]{");
-        }
+            memberValue = m;
+            super.constValueMember(tag, index);
+        } 
 
-        public void endParameters() {
-            sbuf.append('}');
-        }
-
-        public void beginAnnotationsArray(int num) {
-            sbuf.append("annotations[").append(num).append("]{");
-        }
-
-        public void endAnnotationsArray() {
-            sbuf.append('}');
-        }
-
-        public void beginAnnotation(ConstPool cp,
-                                    int typeIndex, int numMemberValuePairs) {
-            String name = Descriptor.toClassName(cp.getUtf8Info(typeIndex));
-            sbuf.append('@').append(name).append('{');
-        }
-
-        public void endAnnotation() {
-            sbuf.append('}');
-        }
-
-        public void beginMemberValuePair(ConstPool cp, int memberNameIndex) {
-            sbuf.append(cp.getUtf8Info(memberNameIndex)).append('=');
-        }
-
-        public void endMemberValuePair() {
-            sbuf.append(", ");
-        }
-
-        public void constValueIndex(ConstPool cp, int tag, int index) {
-            if (tag == 'Z' || tag == 'B' || tag == 'C' || tag == 'S'
-                || tag == 'I')
-                sbuf.append(cp.getIntegerInfo(index));
-            else if (tag == 'J')
-                sbuf.append(cp.getLongInfo(index));
-            else if (tag == 'F')
-                sbuf.append(cp.getFloatInfo(index));
-            else if (tag == 'D')
-                sbuf.append(cp.getDoubleInfo(index));
-            else if (tag == 's')
-                sbuf.append('"').append(cp.getUtf8Info(index)).append('"');
-            else
-                throw new RuntimeException("unknown tag:" + tag );
-        }
-
-        public void enumConstValue(ConstPool cp, int typeNameIndex,
-                                   int constNameIndex) {
-            String name
-                = Descriptor.toClassName(cp.getUtf8Info(typeNameIndex));
-            sbuf.append(name)
-                .append('.').append(cp.getUtf8Info(constNameIndex));
-        }
-
-        public void classInfoIndex(ConstPool cp, int index)
-            throws IOException
+        void enumMemberValue(int typeNameIndex, int constNameIndex)
+            throws Exception
         {
-            sbuf.append(Descriptor.toClassName(cp.getUtf8Info(index)))
-                .append(" class");
+            memberValue = new EnumMemberValue(typeNameIndex,
+                                              constNameIndex, pool);
+            super.enumMemberValue(typeNameIndex, constNameIndex);
         }
 
-        public void beginAnnotationValue() {}
-
-        public void endAnnotationValue() {}
-
-        public void beginArrayValue(int numValues) {
-            sbuf.append("array[").append(numValues).append("]{");
+        void classMemberValue(int index) throws Exception {
+            memberValue = new ClassMemberValue(index, pool);
+            super.classMemberValue(index);
         }
 
-        public void arrayElement(int i) {
-            sbuf.append(", ");
+        int annotationMemberValue(int pos) throws Exception {
+            Annotation anno = currentAnno;
+            pos = super.annotationMemberValue(pos);
+            memberValue = new AnnotationMemberValue(currentAnno, pool);
+            currentAnno = anno;
+            return pos;
         }
 
-        public void endArrayValue() {
-            sbuf.append('}');
+        int arrayMemberValue(int pos, int num) throws Exception {
+            ArrayMemberValue amv = new ArrayMemberValue(pool);
+            MemberValue[] elements = new MemberValue[num];
+            for (int i = 0; i < num; ++i) {
+                pos = memberValue(pos);
+                elements[i] = memberValue;
+            }
+
+            amv.setValue(elements);
+            memberValue = amv;
+            return pos;
         }
     }
-
 }

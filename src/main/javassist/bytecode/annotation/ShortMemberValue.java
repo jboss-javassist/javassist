@@ -16,53 +16,75 @@
 package javassist.bytecode.annotation;
 
 import javassist.bytecode.ConstPool;
-
-import java.io.DataOutputStream;
 import java.io.IOException;
 
 /**
- * Comment
+ * Short integer constant value.
  *
  * @author <a href="mailto:bill@jboss.org">Bill Burke</a>
- * @version $Revision: 1.3 $
- *
- **/
-public class ShortMemberValue extends MemberValue
-{
-   short const_value_index;
+ * @author Shigeru Chiba
+ */
+public class ShortMemberValue extends MemberValue {
+    int valueIndex;
 
-   public ShortMemberValue(short cvi, ConstPool cp)
-   {
-      super('S', cp);
-      this.const_value_index = cvi;
-   }
+    /**
+     * Constructs a short constant value.  The initial value is specified
+     * by the constant pool entry at the given index.
+     *
+     * @param index     the index of a CONSTANT_Integer_info structure.
+     */
+    public ShortMemberValue(int index, ConstPool cp) {
+        super('S', cp);
+        this.valueIndex = index;
+    }
 
-   public ShortMemberValue(ConstPool cp)
-   {
-      super('S', cp);
-      setValue((short)0);
-   }
+    /**
+     * Constructs a short constant value.
+     *
+     * @param s         the initial value.
+     */
+    public ShortMemberValue(short s, ConstPool cp) {
+        super('S', cp);
+        setValue(s);
+    }
 
-   public short getValue()
-   {
-      return (short)cp.getIntegerInfo(const_value_index);
-   }
-   public void setValue(short newVal)
-   {
-      const_value_index = (short)cp.addIntegerInfo(newVal);
-   }
+    /**
+     * Constructs a short constant value.  The initial value is 0.
+     */
+    public ShortMemberValue(ConstPool cp) {
+        super('S', cp);
+        setValue((short)0);
+    }
 
-   public String toString()
-   {
-       return "" + getValue();
-   }
-   public void write(DataOutputStream dos) throws IOException
-   {
-      super.write(dos);
-      dos.writeShort(const_value_index);
-   }
-   public void accept(MemberValueVisitor visitor)
-   {
-      visitor.visitShortMemberValue(this);
-   }
+    /**
+     * Obtains the value of the member.
+     */
+    public short getValue() {
+        return (short)cp.getIntegerInfo(valueIndex);
+    }
+
+    /**
+     * Sets the value of the member.
+     */
+    public void setValue(short newValue) {
+        valueIndex = cp.addIntegerInfo(newValue);
+    }
+
+    /**
+     * Obtains the string representation of this object.
+     */
+    public String toString() {
+        return Short.toString(getValue());
+    }
+
+    void write(AnnotationsWriter writer) throws IOException {
+        writer.constValueIndex(getValue());
+    }
+
+    /**
+     * Accepts a visitor.
+     */
+    public void accept(MemberValueVisitor visitor) {
+        visitor.visitShortMemberValue(this);
+    }
 }
