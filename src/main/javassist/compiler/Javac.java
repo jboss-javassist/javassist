@@ -519,18 +519,17 @@ public class Javac {
      * this method.
      *
      * <p>Local variables that are not declared
-     * in the compiled source text are not accessible within that
-     * source text.  Fields and method parameters
-     * ($0, $1, ..) are available.
+     * in the compiled source text might not be accessible within that
+     * source text.  Fields and method parameters ($0, $1, ..) are available.
      */
     public void compileStmnt(String src) throws CompileError {
         Parser p = new Parser(new Lex(src));
         SymbolTable stb = new SymbolTable(stable);
-     // while (p.hasMore()) {
+        while (p.hasMore()) {
             Stmnt s = p.parseStatement(stb);
             if (s != null)
                 s.accept(gen);
-     // }
+        }
     }
 
     /**
