@@ -210,6 +210,7 @@ public class MethodCall extends Expr {
 
             Bytecode bytecode = jc.getBytecode();
             storeStack(params, c == INVOKESTATIC, paramVar, bytecode);
+            jc.recordLocalVariables(ca, pos);
             jc.compileStmnt(statement);
             if (retType != CtClass.voidType)
                 bytecode.addLoad(retVar, retType);

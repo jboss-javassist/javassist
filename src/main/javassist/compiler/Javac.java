@@ -25,6 +25,8 @@ import javassist.CtConstructor;
 import javassist.CannotCompileException;
 import javassist.Modifier;
 import javassist.bytecode.Bytecode;
+import javassist.bytecode.CodeAttribute;
+import javassist.bytecode.LocalVariableAttribute;
 import javassist.bytecode.Opcode;
 import javassist.NotFoundException;
 
@@ -242,6 +244,66 @@ public class Javac {
     }
 
     /**
+     * Records local variables available at the specified program counter.
+     * If the LocalVariableAttribute is not available, this method does not
+     * record any local variable.  It only returns false.
+     *
+     * @param pc    program counter (&gt;= 0)
+     * @return false if the CodeAttribute does not include a
+     *              LocalVariableAttribute.
+     */
+    public boolean recordLocalVariables(CodeAttribute ca, int pc)
+        throws CompileError
+    {
+        LocalVariableAttribute va
+            = (LocalVariableAttribute)
+              ca.getAttribute(LocalVariableAttribute.tag);
+        if (va == null)
+            return false;
+
+        int n = va.tableLength();
+        for (int i = 0; i < n; ++i) {
+            int start = va.startPc(i);
+            int len = va.codeLength(i);
+            if (start <= pc && pc < start + len)
+                gen.recordVariable(va.descriptor(i), va.variableName(i),
+                                   va.index(i), stable);
+        }
+
+        return true;
+    }
+
+    /**
+     * Records parameter names if the LocalVariableAttribute is available.
+     * It returns false unless the LocalVariableAttribute is available.
+     *
+     * @param numOfLocalVars    the number of local variables used
+     *                          for storing the parameters.
+     * @return false if the CodeAttribute does not include a
+     *              LocalVariableAttribute.
+     */
+    public boolean recordParamNames(CodeAttribute ca, int numOfLocalVars)
+        throws CompileError
+    {
+        LocalVariableAttribute va
+            = (LocalVariableAttribute)
+              ca.getAttribute(LocalVariableAttribute.tag);
+        if (va == null)
+            return false;
+
+        int n = va.tableLength();
+        for (int i = 0; i < n; ++i) {
+            int index = va.index(i);
+            if (index < numOfLocalVars)
+                gen.recordVariable(va.descriptor(i), va.variableName(i),
+                                   index, stable);
+        }
+
+        return true;
+    }
+
+
+    /**
      * Makes variables $0 (this), $1, $2, ..., and $args represent method
      * parameters.  $args represents an array of all the parameters.
      * It also makes $$ available as a parameter list of method call.
@@ -250,10 +312,10 @@ public class Javac {
      * <code>compileExpr()</code>.  The correct value of
      * <code>isStatic</code> must be recorded before compilation.
      */
-    public void recordParams(CtClass[] params, boolean isStatic)
+    public int recordParams(CtClass[] params, boolean isStatic)
         throws CompileError
     {
-        gen.recordParams(params, isStatic, "$", "$args", "$$", stable);
+        return gen.recordParams(params, isStatic, "$", "$args", "$$", stable);
     }
 
     /**
@@ -273,12 +335,12 @@ public class Javac {
      * @param isStatic  true if the method in which the compiled bytecode
      *                  is embedded is static.
      */
-    public void recordParams(String target, CtClass[] params,
+    public int recordParams(String target, CtClass[] params,
                              boolean use0, int varNo, boolean isStatic)
         throws CompileError
     {
-        gen.recordParams(params, isStatic, "$", "$args", "$$",
-                         use0, varNo, target, stable);
+        return gen.recordParams(params, isStatic, "$", "$args", "$$",
+                                use0, varNo, target, stable);
     }
 
     /**

@@ -462,13 +462,13 @@ public class JvstCodeGen extends MemberCodeGen {
      * $0 is equivalent to THIS if the method is not static.  Otherwise,
      * if the method is static, then $0 is not available.
      */
-    public void recordParams(CtClass[] params, boolean isStatic,
+    public int recordParams(CtClass[] params, boolean isStatic,
                              String prefix, String paramVarName,
                              String paramsName, SymbolTable tbl)
         throws CompileError
     {
-        recordParams(params, isStatic, prefix, paramVarName,
-                     paramsName, !isStatic, 0, getThisName(), tbl);
+        return recordParams(params, isStatic, prefix, paramVarName,
+                            paramsName, !isStatic, 0, getThisName(), tbl);
     }
 
     /**
@@ -484,11 +484,11 @@ public class JvstCodeGen extends MemberCodeGen {
      * @param isStatic  true if the method in which the compiled bytecode
      *                  is embedded is static.
      */
-    public void recordParams(CtClass[] params, boolean isStatic,
-                             String prefix, String paramVarName,
-                             String paramsName, boolean use0,
-                             int paramBase, String target,
-                             SymbolTable tbl)
+    public int recordParams(CtClass[] params, boolean isStatic,
+                            String prefix, String paramVarName,
+                            String paramsName, boolean use0,
+                            int paramBase, String target,
+                            SymbolTable tbl)
         throws CompileError
     {
         int varNo;
@@ -516,6 +516,8 @@ public class JvstCodeGen extends MemberCodeGen {
 
         if (getMaxLocals() < varNo)
             setMaxLocals(varNo);
+
+        return varNo;
     }
 
     /**
@@ -574,9 +576,9 @@ public class JvstCodeGen extends MemberCodeGen {
         String cname = null;
         if (type == CLASS) {
             if (dim == 0)
-                cname = typeDesc;
+                cname = typeDesc.substring(1, typeDesc.length() - 1);
             else
-                cname = typeDesc.substring(dim);
+                cname = typeDesc.substring(dim + 1, typeDesc.length() - 1);
         }
 
         Declarator decl

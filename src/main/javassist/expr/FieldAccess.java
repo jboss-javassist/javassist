@@ -188,6 +188,7 @@ public class FieldAccess extends Expr {
 
             Bytecode bytecode = jc.getBytecode();
             storeStack(params, isStatic(), paramVar, bytecode);
+            jc.recordLocalVariables(ca, pos);
             jc.compileStmnt(statement);
             if (read)
                 bytecode.addLoad(retVar, retType);

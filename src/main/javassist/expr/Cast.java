@@ -112,6 +112,7 @@ public class Cast extends Expr {
 
             Bytecode bytecode = jc.getBytecode();
             storeStack(params, true, paramVar, bytecode);
+            jc.recordLocalVariables(ca, pos);
             jc.compileStmnt(statement);
             bytecode.addLoad(retVar, retType);
 

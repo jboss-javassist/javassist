@@ -149,12 +149,20 @@ if (i < 0) { i = -i; }
 </pre></ul>
 
 <p>The statement and the block can refer to fields and methods.
-However, they <em>cannot refer to local variables</em> declared in the
-method that they are inserted into.
-They can refer to the parameters
-to the method although they must use different names
-<code>$0</code>, <code>$1</code>, <code>$2</code>, ... described
-below.  Declaring a local variable in the block is allowed.
+They can also refer to the parameters
+to the method that they are inserted into
+if that method was compiled with the -g option
+(to include a local variable attribute in the class file).
+Otherwise, they must access the method parameters through the special
+variables <code>$0</code>, <code>$1</code>, <code>$2</code>, ... described
+below.  
+<em>Accessing local variables declared in the method is not allowed</em>
+although declaring a new local variable in the block is allowed.
+However, <code>insertAt()</code> allows the statement and the block
+to access local variables
+if these variables are available at the specified line number
+and the target method was compiled with the -g option.
+
 
 <!--
 <p><center><table border=8 cellspacing=0 bordercolor="#cfcfcf">
@@ -166,8 +174,8 @@ below.  Declaring a local variable in the block is allowed.
 -->
 
 <p>The <code>String</code> object passed to the methods
-<code>insertBefore()</code>, <code>insertAfter()</code>, and
-<code>addCatch()</code> are compiled by
+<code>insertBefore()</code>, <code>insertAfter()</code>,
+<code>addCatch()</code>, and <code>insertAt()</code> are compiled by
 the compiler included in Javassist.
 Since the compiler supports language extensions,
 several identifiers starting with <code>$</code>
@@ -239,8 +247,7 @@ the class currently edited.</td>
 
 <h4>$0, $1, $2, ...</h4>
 
-<p>The parameters passed to the methods <code>insertBefore()</code>,
-<code>insertAfter()</code>, and <code>addCatch()</code>
+<p>The parameters passed to the target method
 are accessible with
 <code>$0</code>, <code>$1</code>, <code>$2</code>, ... instead of
 the original parameter names.
@@ -684,6 +691,12 @@ object creation, or others.  The second statement could be:
 <ul><pre>$proceed($$);</pre></ul>
 
 <p>if the expression is write access.
+
+<p>Local variables available in the target expression is
+also available in the source text passed to <code>replace()</code>
+if the method searched by <code>instrument()</code> was compiled
+with the -g option (the class file includes a local variable
+attribute).
 
 <h4>javassist.expr.MethodCall</h4>
 
@@ -1318,6 +1331,6 @@ write:
 
 <hr>
 Java(TM) is a trademark of Sun Microsystems, Inc.<br>
-Copyright (C) 2000-2003 by Shigeru Chiba, All rights reserved.
+Copyright (C) 2000-2004 by Shigeru Chiba, All rights reserved.
 </body>
 </html>

@@ -352,8 +352,9 @@ public abstract class CtBehavior extends CtMember {
         CodeIterator iterator = ca.iterator();
         Javac jv = new Javac(declaringClass);
         try {
-            jv.recordParams(getParameterTypes(),
-                            Modifier.isStatic(getModifiers()));
+            int nvars = jv.recordParams(getParameterTypes(),
+                                        Modifier.isStatic(getModifiers()));
+            jv.recordParamNames(ca, nvars);
             jv.compileStmnt(src);
             Bytecode b = jv.getBytecode();
             int stack = b.getMaxStack();
@@ -418,8 +419,9 @@ public abstract class CtBehavior extends CtMember {
         b.setStackDepth(ca.getMaxStack() + 1);
         Javac jv = new Javac(b, declaringClass);
         try {
-            jv.recordParams(getParameterTypes(),
-                            Modifier.isStatic(getModifiers()));
+            int nvars = jv.recordParams(getParameterTypes(),
+                                        Modifier.isStatic(getModifiers()));
+            jv.recordParamNames(ca, nvars);
             CtClass rtype = getReturnType0();
             int varNo = jv.recordReturnType(rtype, true);
 
@@ -750,6 +752,7 @@ public abstract class CtBehavior extends CtMember {
         CodeIterator iterator = ca.iterator();
         Javac jv = new Javac(declaringClass);
         try {
+            jv.recordLocalVariables(ca, index);
             jv.recordParams(getParameterTypes(),
                             Modifier.isStatic(getModifiers()));
             jv.compileStmnt(src);
