@@ -35,7 +35,7 @@ public abstract class Expr implements Opcode {
 
     static final String javaLangObject = "java.lang.Object";
 
-    Expr(int pos, CodeIterator i, CtClass declaring, MethodInfo m) {
+    protected Expr(int pos, CodeIterator i, CtClass declaring, MethodInfo m) {
         currentPos = pos;
         iterator = i;
         thisClass = declaring;
@@ -122,6 +122,16 @@ public abstract class Expr implements Opcode {
                 return;
 
         list.add(c);
+    }
+
+    /**
+     * Returns the index of the bytecode corresponding to the
+     * expression.
+     * It is the index into the byte array containing the Java bytecode
+     * that implements the method.
+     */
+    public int indexOfBytecode() {
+        return currentPos;
     }
 
     /**

@@ -137,7 +137,7 @@ public class CodeIterator implements Opcode {
 
     /**
      * Returns the index of the next instruction
-     * (not the next opcode).
+     * (not the operand following the current opcode).
      *
      * <p>Note that the index is into the byte array returned by
      * <code>get().getCode()</code>.
