@@ -57,6 +57,7 @@ public final class MethodInfo {
 
     /**
      * Constructs a <code>method_info</code> structure.
+     * The initial value of <code>access_flags</code> is zero.
      *
      * @param cp                a constant pool table
      * @param methodname        method name

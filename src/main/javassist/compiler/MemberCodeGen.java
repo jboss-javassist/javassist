@@ -331,6 +331,7 @@ public class MemberCodeGen extends CodeGen {
 
         int stack = bytecode.getStackDepth();
 
+        // generate code for evaluating arguments.
         atMethodArgs(args, types, dims, cnames);
 
         // used by invokeinterface
@@ -370,12 +371,16 @@ public class MemberCodeGen extends CodeGen {
             isSpecial = true;
             if (declClass != targetClass)
                 throw new CompileError("no such a constructor");
+
+            if (declClass != thisClass && AccessFlag.isPrivate(acc)) {
+                desc = getAccessibleConstructor(desc, declClass, minfo);
+                bytecode.addOpcode(Opcode.ACONST_NULL); // the last parameter
+            }
         }
         else if (AccessFlag.isPrivate(acc))
             if (declClass == thisClass)
                 isSpecial = true;
             else {
-                String orgName = mname;
                 isSpecial = false;
                 isStatic = true;
                 String origDesc = desc;
@@ -386,9 +391,6 @@ public class MemberCodeGen extends CodeGen {
                 acc = AccessFlag.setPackage(acc) | AccessFlag.STATIC;
                 mname = getAccessiblePrivate(mname, origDesc, desc,
                                              minfo, declClass);
-                if (mname == null)
-                    throw new CompileError("Method " + orgName
-                                           + " is private");
             }
 
         boolean popTarget = false;
@@ -435,14 +437,36 @@ public class MemberCodeGen extends CodeGen {
     {
         if (isEnclosing(declClass, thisClass)) {
             AccessorMaker maker = declClass.getAccessorMaker();
-            if (maker == null)
-                return null;
-            else
+            if (maker != null)
                 return maker.getMethodAccessor(methodName, desc, newDesc,
                                                minfo);
         }
-        else
-            return null;    // cannot access this private method.
+
+        throw new CompileError("Method " + methodName
+                               + " is private");
+    }
+
+    /*
+     * Finds (or adds if necessary) a hidden constructor if the given
+     * constructor is in an enclosing class.
+     *
+     * @param desc          the descriptor of the constructor.
+     * @param declClass     the class declaring the constructor.
+     * @param minfo         the method info of the constructor.
+     * @return the descriptor of the hidden constructor.
+     */
+    protected String getAccessibleConstructor(String desc, CtClass declClass,
+                                              MethodInfo minfo)
+        throws CompileError
+    {
+        if (isEnclosing(declClass, thisClass)) {
+            AccessorMaker maker = declClass.getAccessorMaker();
+            if (maker != null)
+                return maker.getConstructor(declClass, desc, minfo);
+        }
+        
+        throw new CompileError("the called constructor is private in "
+                               + declClass.getName());
     }
 
     private boolean isEnclosing(CtClass outer, CtClass inner) {

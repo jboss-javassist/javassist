@@ -28,10 +28,57 @@ public class AccessorMaker {
     private int uniqueNumber;
     private HashMap accessors;
 
+    static final String lastParamType = "javassist.runtime.Inner";
+
     public AccessorMaker(CtClass c) {
         clazz = c;
         uniqueNumber = 1;
         accessors = new HashMap();
+    }
+
+    public String getConstructor(CtClass c, String desc, MethodInfo orig)
+        throws CompileError
+    {
+        String key = "<init>:" + desc;
+        String consDesc = (String)accessors.get(key);
+        if (consDesc != null)
+            return consDesc;     // already exists.
+
+        consDesc = Descriptor.appendParameter(lastParamType, desc);
+        ClassFile cf = clazz.getClassFile();    // turn on the modified flag. 
+        try {
+            ConstPool cp = cf.getConstPool();
+            ClassPool pool = clazz.getClassPool();
+            MethodInfo minfo
+                = new MethodInfo(cp, MethodInfo.nameInit, consDesc);
+            minfo.setAccessFlags(0);
+            minfo.addAttribute(new SyntheticAttribute(cp));
+            ExceptionsAttribute ea = orig.getExceptionsAttribute();
+            if (ea != null)  
+                minfo.addAttribute(ea.copy(cp, null));
+
+            CtClass[] params = Descriptor.getParameterTypes(desc, pool);
+            Bytecode code = new Bytecode(cp);
+            code.addAload(0);
+            int regno = 1;
+            for (int i = 0; i < params.length; ++i)
+                regno += code.addLoad(regno, params[i]);
+            code.setMaxLocals(regno + 1);    // the last parameter is added.
+            code.addInvokespecial(clazz, MethodInfo.nameInit, desc);
+
+            code.addReturn(null);
+            minfo.setCodeAttribute(code.toCodeAttribute());
+            cf.addMethod(minfo);
+        }
+        catch (CannotCompileException e) {
+            throw new CompileError(e);
+        }
+        catch (NotFoundException e) {
+            throw new CompileError(e);
+        }
+
+        accessors.put(key, consDesc);
+        return consDesc;
     }
 
     /**
