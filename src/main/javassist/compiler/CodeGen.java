@@ -339,6 +339,14 @@ public abstract class CodeGen extends Visitor implements Opcode, TokenId {
             atThrowStmnt(st);
         else if (op == TRY)
             atTryStmnt(st);
+        else if (op == SYNCHRONIZED) {
+            hasReturned = false;
+            throw new CompileError("sorry, synchronized is not supported");
+        }
+        else if (op == SWITCH) {
+            hasReturned = false;
+            throw new CompileError("sorry, switch is not supported");
+        }
         else {
             // LABEL, SWITCH label stament might be null?.
             hasReturned = false;

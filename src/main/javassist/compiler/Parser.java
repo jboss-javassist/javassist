@@ -302,13 +302,7 @@ public final class Parser implements TokenId {
      */
     private Stmnt parseIf(SymbolTable tbl) throws CompileError {
         int t = lex.get();      // IF
-        if (lex.get() != '(')
-            throw new SyntaxError(lex);
-
-        ASTree expr = parseExpression(tbl);
-        if (lex.get() != ')')
-            throw new SyntaxError(lex);
-
+        ASTree expr = parseParExpression(tbl);
         Stmnt thenp = parseStatement(tbl);
         Stmnt elsep;
         if (lex.lookAhead() == ELSE) {
@@ -327,13 +321,7 @@ public final class Parser implements TokenId {
         throws CompileError
     {
         int t = lex.get();      // WHILE
-        if (lex.get() != '(')
-            throw new SyntaxError(lex);
-
-        ASTree expr = parseExpression(tbl);
-        if (lex.get() != ')')
-            throw new SyntaxError(lex);
-
+        ASTree expr = parseParExpression(tbl);
         Stmnt body = parseStatement(tbl);
         return new Stmnt(t, expr, body);
     }
@@ -396,20 +384,82 @@ public final class Parser implements TokenId {
 
     /* switch.statement : SWITCH "(" expression ")" "{" switch.block "}"
      *
-     * swtich.block : ( switch.label* statement )*
+     * swtich.block : ( switch.label statement* )*
      *
      * swtich.label : DEFAULT ":"
      *              | CASE const.expression ":"
      */
     private Stmnt parseSwitch(SymbolTable tbl) throws CompileError {
-        throw new CompileError("switch is not supported", lex);
+        int t = lex.get();	// SWITCH
+        ASTree expr = parseParExpression(tbl);
+        Stmnt body = parseSwitchBlock(tbl);
+        return new Stmnt(t, expr, body);
+    }
+
+    private Stmnt parseSwitchBlock(SymbolTable tbl) throws CompileError {
+        if (lex.get() != '{')
+            throw new SyntaxError(lex);
+
+        SymbolTable tbl2 = new SymbolTable(tbl);
+        Stmnt s = parseStmntOrCase(tbl2);
+        if (s == null)
+            throw new CompileError("empty switch block", lex);
+
+        int op = s.getOperator();
+        if (op != CASE && op != DEFAULT)
+            throw new CompileError("no case or default in a switch block",
+                                   lex);
+
+        Stmnt body = new Stmnt(BLOCK, s);
+        while (lex.lookAhead() != '}') {
+            Stmnt s2 = parseStmntOrCase(tbl2);
+            if (s2 != null) {
+                int op2 = s2.getOperator();
+                if (op2 == CASE || op2 == DEFAULT) {
+                    body = (Stmnt)ASTList.concat(body, new Stmnt(BLOCK, s2));
+                    s = s2;
+                }
+                else
+                    s = (Stmnt)ASTList.concat(s, new Stmnt(BLOCK, s2));
+            }
+        }
+
+        lex.get();      // '}'
+        return body;
+    }
+
+    private Stmnt parseStmntOrCase(SymbolTable tbl) throws CompileError {
+        int t = lex.lookAhead();
+        if (t != CASE && t != DEFAULT)
+            return parseStatement(tbl);
+
+        lex.get();
+        Stmnt s;
+        if (t == CASE)
+            s = new Stmnt(t, parseExpression(tbl));
+        else
+            s = new Stmnt(DEFAULT);
+
+        if (lex.get() != ':')
+            throw new CompileError(": is missing", lex);
+
+        return s;
     }
 
     /* synchronized.statement :
      *     SYNCHRONIZED "(" expression ")" block.statement
      */
     private Stmnt parseSynchronized(SymbolTable tbl) throws CompileError {
-        throw new CompileError("synchronized is not supported", lex);
+        int t = lex.get();	// SYNCHRONIZED
+        if (lex.get() != '(')
+            throw new SyntaxError(lex);
+
+        ASTree expr = parseExpression(tbl);
+        if (lex.get() != ')')
+            throw new SyntaxError(lex);
+
+        Stmnt body = parseBlock(tbl);
+        return new Stmnt(t, expr, body);
     }
 
     /* try.statement
@@ -615,6 +665,19 @@ public final class Parser implements TokenId {
     {
         lex.get();      // '{'
         throw new CompileError("array initializer is not supported", lex);
+    }
+
+    /* par.expression : '(' expression ')'
+     */
+    private ASTree parseParExpression(SymbolTable tbl) throws CompileError {
+        if (lex.get() != '(')
+            throw new SyntaxError(lex);
+
+        ASTree expr = parseExpression(tbl);
+        if (lex.get() != ')')
+            throw new SyntaxError(lex);
+
+        return expr;
     }
 
     /* expression : conditional.expr
