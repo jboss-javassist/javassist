@@ -35,7 +35,7 @@ public abstract class CtClass {
     /**
      * The version number of this release.
      */
-    public static final String version = "2.7 beta 3";
+    public static final String version = "2.7 beta 4";
 
     /**
      * Prints the version number and the copyright notice.
@@ -636,7 +636,7 @@ public abstract class CtClass {
     }
 
     /**
-     * Makes a class initializer (static constructor).
+     * Makes an empty class initializer (static constructor).
      * If the class already includes a class initializer,
      * this method returns it.
      *
@@ -649,7 +649,10 @@ public abstract class CtClass {
     }
 
     /**
-     * Adds a constructor.
+     * Adds a constructor.  To add a class initializer (static constructor),
+     * call <code>makeClassInitializer()</code>.
+     *
+     * @see #makeClassInitializer()
      */
     public void addConstructor(CtConstructor c)
         throws CannotCompileException

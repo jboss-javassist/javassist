@@ -537,7 +537,7 @@ public class ClassPool {
     void checkNotFrozen(String classname, String errmsg)
         throws RuntimeException
     {
-        CtClass c = (CtClass)classes.get(classname);
+        CtClass c = getCached(classname);
         if (c != null && c.isFrozen())
             throw new RuntimeException(errmsg);
     }
@@ -576,7 +576,7 @@ public class ClassPool {
     public synchronized CtClass get(String classname)
         throws NotFoundException
     {
-        CtClass clazz = (CtClass)classes.get(classname);
+        CtClass clazz = getCached(classname);
         if (clazz == null) {
             clazz = get0(classname);
             classes.put(classname, clazz);

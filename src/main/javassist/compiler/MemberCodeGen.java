@@ -263,7 +263,7 @@ public class MemberCodeGen extends CodeGen {
             int op = e.getOperator();
             if (op == MEMBER) {                 // static method
                 targetClass
-                    = resolver.lookupClass(((Symbol)e.oprand1()).get());
+                    = resolver.lookupClass(((Symbol)e.oprand1()).get(), false);
                 isStatic = true;
             }
             else if (op == '.') {
@@ -287,7 +287,7 @@ public class MemberCodeGen extends CodeGen {
                 }
 
                 if (arrayDim > 0)
-                    targetClass = resolver.lookupClass(javaLangObject);
+                    targetClass = resolver.lookupClass(javaLangObject, true);
                 else if (exprType == CLASS /* && arrayDim == 0 */)
                     targetClass = resolver.lookupClassByJvmName(className);
                 else
@@ -618,6 +618,7 @@ public class MemberCodeGen extends CodeGen {
             Expr e = (Expr)expr;
             int op = e.getOperator();
             if (op == MEMBER) {
+                // static member by # (extension by Javassist)
                 f = resolver.lookupField(((Symbol)e.oprand1()).get(),
                                          (Symbol)e.oprand2());
                 is_static = true;
@@ -639,18 +640,14 @@ public class MemberCodeGen extends CodeGen {
                     if (nfe.getExpr() != e.oprand1())
                         throw nfe;
 
+                    /* EXPR should be a static field.
+                     * If EXPR might be part of a qualified class name,
+                     * lookupFieldByJvmName2() throws NoFieldException.
+                     */
                     Symbol fname = (Symbol)e.oprand2();
-                    // it should be a static field.
-                    try {
-                        f = resolver.lookupFieldByJvmName(nfe.getField(),
-                                                          fname);
-                        is_static = true;
-                    }
-                    catch (CompileError ce) {
-                        // EXPR might be part of a qualified class name.
-                        throw new NoFieldException(nfe.getField() + "/"
-                                                   + fname.get(), expr);
-                    }
+                    f = resolver.lookupFieldByJvmName2(nfe.getField(),
+                                                       fname, expr);
+                    is_static = true;
                 }
             }
             else

@@ -24,6 +24,11 @@ import javassist.CtMethod.ConstParameter;
  * A collection of static methods for creating a <code>CtConstructor</code>.
  * An instance of this class does not make any sense.
  *
+ * <p>A class initializer (static constructor) cannot be created by the
+ * methods in this class.  Call <code>makeClassInitializer()</code> in
+ * <code>CtClass</code> and append code snippet to the body of the class
+ * initializer obtained by <code>makeClassInitializer()</code>.
+ *
  * @see CtClass#addConstructor(CtConstructor)
  */
 public class CtNewConstructor {

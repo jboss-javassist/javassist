@@ -171,9 +171,7 @@ final class ClassPoolTail extends ClassPool {
         throw new RuntimeException("fatal error");
     }
 
-    void checkClassName(String classname)
-        throws NotFoundException
-    {
+    void checkClassName(String classname) throws NotFoundException {
         InputStream fin = openClassfile(classname);
         try {
             fin.close();

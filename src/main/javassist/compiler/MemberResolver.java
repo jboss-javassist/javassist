@@ -208,6 +208,34 @@ public class MemberResolver implements TokenId {
     }
 
     /**
+     * Only used by fieldAccess() in MemberCodeGen.
+     *
+     * @param jvmClassName  a JVM class name.  e.g. java/lang/String
+     */
+    public CtField lookupFieldByJvmName2(String jvmClassName, Symbol fieldSym,
+                                         ASTree expr) throws NoFieldException
+    {
+        String field = fieldSym.get();
+        CtClass cc = null;
+        try {
+            cc = lookupClass(jvmToJavaName(jvmClassName), true);
+        }
+        catch (CompileError e) {
+            // EXPR might be part of a qualified class name.
+            throw new NoFieldException(jvmClassName + "/" + field, expr);
+        }
+
+        try {
+            return cc.getField(field);
+        }
+        catch (NotFoundException e) {
+            // maybe an inner class.
+            jvmClassName = javaToJvmName(cc.getName());
+            throw new NoFieldException(jvmClassName + "$" + field, expr);
+        }
+    }
+
+    /**
      * @param jvmClassName  a JVM class name.  e.g. java/lang/String
      */
     public CtField lookupFieldByJvmName(String jvmClassName, Symbol fieldName)
@@ -216,21 +244,13 @@ public class MemberResolver implements TokenId {
         return lookupField(jvmToJavaName(jvmClassName), fieldName);
     }
 
-    // never used??
-    private CtField lookupField2(ASTList className, Symbol fieldName)
-        throws CompileError
-    {
-        return lookupField(Declarator.astToClassName(className, '.'),
-                            fieldName);
-    }
-
     /**
      * @param name      a qualified class name. e.g. java.lang.String
      */
     public CtField lookupField(String className, Symbol fieldName)
         throws CompileError
     {
-        CtClass cc = lookupClass(className);
+        CtClass cc = lookupClass(className, false);
         try {
             return cc.getField(fieldName.get());
         }
@@ -239,11 +259,11 @@ public class MemberResolver implements TokenId {
     }
 
     public CtClass lookupClassByName(ASTList name) throws CompileError {
-        return lookupClass(Declarator.astToClassName(name, '.'));
+        return lookupClass(Declarator.astToClassName(name, '.'), false);
     }
 
     public CtClass lookupClassByJvmName(String jvmName) throws CompileError {
-        return lookupClass(jvmToJavaName(jvmName));
+        return lookupClass(jvmToJavaName(jvmName), false);
     }
 
     public CtClass lookupClass(Declarator decl) throws CompileError {
@@ -302,15 +322,17 @@ public class MemberResolver implements TokenId {
         while (dim-- > 0)
             cname += "[]";
 
-        return lookupClass(cname);
+        return lookupClass(cname, false);
     }
 
     /**
      * @param name      a qualified class name. e.g. java.lang.String
      */
-    public CtClass lookupClass(String name) throws CompileError {
+    public CtClass lookupClass(String name, boolean notCheckInner)
+        throws CompileError
+    {
         try {
-            return classPool.get(name);
+            return lookupClass0(name, notCheckInner);
         }
         catch (NotFoundException e) {}
 
@@ -321,6 +343,28 @@ public class MemberResolver implements TokenId {
         catch (NotFoundException e) {}
 
         throw new CompileError("no such class: " + name);
+    }
+
+    private CtClass lookupClass0(String classname, boolean notCheckInner)
+        throws NotFoundException
+    {
+        CtClass cc = null;
+        do {
+            try {
+                cc = classPool.get(classname);
+            }
+            catch (NotFoundException e) {
+                int i = classname.lastIndexOf('.');
+                if (notCheckInner || i < 0)
+                    throw e;
+                else {
+                    StringBuffer sbuf = new StringBuffer(classname);
+                    sbuf.setCharAt(i, '$');
+                    classname = sbuf.toString();
+                }
+            }
+        } while (cc == null);
+        return cc;
     }
 
     /* Converts a class name into a JVM-internal representation.

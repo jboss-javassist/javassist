@@ -441,7 +441,8 @@ public class TypeChecker extends Visitor implements Opcode, TokenId {
             int op = e.getOperator();
             if (op == MEMBER)                // static method
                 targetClass
-                        = resolver.lookupClass(((Symbol)e.oprand1()).get());
+                        = resolver.lookupClass(((Symbol)e.oprand1()).get(),
+                                               false);
             else if (op == '.') {
                 ASTree target = e.oprand1();
                 try {
@@ -458,7 +459,7 @@ public class TypeChecker extends Visitor implements Opcode, TokenId {
                 }
 
                 if (arrayDim > 0)
-                    targetClass = resolver.lookupClass(javaLangObject);
+                    targetClass = resolver.lookupClass(javaLangObject, true);
                 else if (exprType == CLASS /* && arrayDim == 0 */)
                     targetClass = resolver.lookupClassByJvmName(className);
                 else
@@ -610,17 +611,13 @@ public class TypeChecker extends Visitor implements Opcode, TokenId {
                     if (nfe.getExpr() != e.oprand1())
                         throw nfe;
 
+                    /* EXPR should be a static field.
+                     * If EXPR might be part of a qualified class name,
+                     * lookupFieldByJvmName2() throws NoFieldException.
+                     */
                     Symbol fname = (Symbol)e.oprand2();
-                    // it should be a static field.
-                    try {
-                        return resolver.lookupFieldByJvmName(nfe.getField(),
-                                                             fname);
-                    }
-                    catch (CompileError ce) {
-                        // EXPR might be part of a qualified class name.
-                        throw new NoFieldException(nfe.getField() + "/"
-                                                   + fname.get(), expr);
-                    }
+                    return resolver.lookupFieldByJvmName2(nfe.getField(),
+                                                          fname, expr);
                 }
         }
 
