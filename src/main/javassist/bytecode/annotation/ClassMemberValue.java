@@ -17,6 +17,7 @@ package javassist.bytecode.annotation;
 
 import javassist.bytecode.ConstPool;
 import javassist.bytecode.Descriptor;
+
 import java.io.IOException;
 
 /**
@@ -25,72 +26,83 @@ import java.io.IOException;
  * @author <a href="mailto:bill@jboss.org">Bill Burke</a>
  * @author Shigeru Chiba
  */
-public class ClassMemberValue extends MemberValue {
-    int valueIndex;
+public class ClassMemberValue extends MemberValue
+{
+   int valueIndex;
 
-    /**
-     * Constructs a string constant value.  The initial value is specified
-     * by the constant pool entry at the given index.
-     *
-     * @param index     the index of a CONSTANT_Utf8_info structure.
-     */
-    public ClassMemberValue(int index, ConstPool cp) {
-        super('c', cp);
-        this.valueIndex = index;
-    }
+   /**
+    * Constructs a string constant value.  The initial value is specified
+    * by the constant pool entry at the given index.
+    *
+    * @param index the index of a CONSTANT_Utf8_info structure.
+    */
+   public ClassMemberValue(int index, ConstPool cp)
+   {
+      super('c', cp);
+      this.valueIndex = index;
+   }
 
-    /**
-     * Constructs a string constant value.
-     *
-     * @param className         the initial value.
-     */
-    public ClassMemberValue(String className, ConstPool cp) {
-        super('c', cp);
-        setValue(className);
-    }
+   /**
+    * Constructs a string constant value.
+    *
+    * @param className the initial value.
+    */
+   public ClassMemberValue(String className, ConstPool cp)
+   {
+      super('c', cp);
+      setValue(className);
+   }
 
-    /**
-     * Constructs a string constant value.
-     * The initial value is java.lang.Class.
-     */
-    public ClassMemberValue(ConstPool cp) {
-        super('c', cp);
-        setValue("java.lang.Class");
-    }
+   /**
+    * Constructs a string constant value.
+    * The initial value is java.lang.Class.
+    */
+   public ClassMemberValue(ConstPool cp)
+   {
+      super('c', cp);
+      setValue("java.lang.Class");
+   }
 
-    /**
-     * Obtains the value of the member.
-     *
-     * @return fully-qualified class name.
-     */
-    public String getValue() {
-        return Descriptor.toClassName(cp.getUtf8Info(valueIndex));
-    }
+   /**
+    * Obtains the value of the member.
+    *
+    * @return fully-qualified class name.
+    */
+   public String getValue()
+   {
+      String v = cp.getUtf8Info(valueIndex);
+      return Descriptor.toClassName(v);
+   }
 
-    /**
-     * Sets the value of the member.
-     *
-     * @param newClassName      fully-qualified class name.
-     */
-    public void setValue(String newClassName) {
-        valueIndex = cp.addUtf8Info(Descriptor.of(newClassName));
-    }
+   /**
+    * Sets the value of the member.
+    *
+    * @param newClassName fully-qualified class name.
+    */
+   public void setValue(String newClassName)
+   {
+      String setTo = Descriptor.of(newClassName);
+      valueIndex = cp.addUtf8Info(setTo);
+   }
 
-    /**
-     * Obtains the string representation of this object.
-     */
-    public String toString() {
-        return "<" + getValue() + " class>";
-    }
+   /**
+    * Obtains the string representation of this object.
+    */
+   public String toString()
+   {
+      return "<" + getValue() + " class>";
+   }
 
-    void write(AnnotationsWriter writer) throws IOException {
-        writer.constValueIndex(getValue());
-    }
+   void write(AnnotationsWriter writer) throws IOException
+   {
+      writer.classInfoIndex(valueIndex);
+   }
 
-    /**
-     * Accepts a visitor.
-     */
-    public void accept(MemberValueVisitor visitor) {
-        visitor.visitClassMemberValue(this);
-    }
+   /**
+    * Accepts a visitor.
+    */
+   public void accept(MemberValueVisitor visitor)
+   {
+      visitor.visitClassMemberValue(this);
+   }
 }
