@@ -34,6 +34,14 @@ public class LocalVariableAttribute extends AttributeInfo {
      */
     public static final String typeTag = "LocalVariableTypeTable";
 
+    /**
+     * Constructs an empty LocalVariableTable.
+     */
+    public LocalVariableAttribute(ConstPool cp) {
+        super(cp, tag, new byte[2]);
+        ByteArray.write16bit(0, info, 0);
+    }
+
     LocalVariableAttribute(ConstPool cp, int n, DataInputStream in)
         throws IOException
     {
@@ -42,6 +50,31 @@ public class LocalVariableAttribute extends AttributeInfo {
 
     private LocalVariableAttribute(ConstPool cp, byte[] i) {
         super(cp, tag, i);
+    }
+
+    /**
+     * Appends a new entry to <code>local_variable_table</code>.
+     *
+     * @param startPc           <code>start_pc</code>
+     * @param length            <code>length</code>
+     * @param nameIndex         <code>name_index</code>
+     * @param descriptorIndex   <code>descriptor_index</code>
+     * @param index             <code>index</code>
+     */
+    public void addEntry(int startPc, int length, int nameIndex,
+                         int descriptorIndex, int index) {
+        int size = info.length;
+        byte[] newInfo = new byte[size + 10];
+        ByteArray.write16bit(tableLength() + 1, newInfo, 0);
+        for (int i = 2; i < size; ++i)
+            newInfo[i] = info[i];
+
+        ByteArray.write16bit(startPc, newInfo, size);
+        ByteArray.write16bit(length, newInfo, size + 2);
+        ByteArray.write16bit(nameIndex, newInfo, size + 4);
+        ByteArray.write16bit(descriptorIndex, newInfo, size + 6);
+        ByteArray.write16bit(index, newInfo, size + 8);
+        info = newInfo;
     }
 
     /**
@@ -83,7 +116,10 @@ public class LocalVariableAttribute extends AttributeInfo {
             int pos = i * 10 + 2;
             int pc = ByteArray.readU16bit(info, pos);
             int len = ByteArray.readU16bit(info, pos + 2);
-            if (pc > where || (exclusive && pc == where))
+
+            /* if pc == 0, then the local variable is a method parameter.
+             */
+            if (pc > where || (exclusive && pc == where && pc != 0))
                 ByteArray.write16bit(pc + gapLength, info, pos);
             else if (pc + len > where)
                 ByteArray.write16bit(len + gapLength, info, pos + 2);

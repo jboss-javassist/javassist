@@ -300,6 +300,40 @@ public abstract class CtBehavior extends CtMember {
     }
 
     /**
+     * Declares a new local variable.  The scope of this variable is the
+     * whole method body.  The initial value of that variable is not set.
+     * The declared variable can be accessed in the code snippet inserted
+     * by <code>insertBefore()</code>, <code>insertAfter()</code>, etc.
+     *
+     * @param name      the name of the variable
+     * @param type      the type of the variable
+     * @see #insertBefore(String)
+     * @see #insertAfter(String)
+     */
+    public void addLocalVariable(String name, CtClass type)
+        throws CannotCompileException
+    {
+        declaringClass.checkModify();
+        ConstPool cp = methodInfo.getConstPool();
+        CodeAttribute ca = methodInfo.getCodeAttribute();
+        if (ca == null)
+            throw new CannotCompileException("no method body");
+
+        LocalVariableAttribute va = (LocalVariableAttribute)ca.getAttribute(
+                                                LocalVariableAttribute.tag);
+        if (va == null) {
+            va = new LocalVariableAttribute(cp);
+            ca.getAttributes().add(va);
+        }
+
+        int maxLocals = ca.getMaxLocals();
+        String desc = Descriptor.of(type);
+        va.addEntry(0, ca.getCodeLength(),
+                    cp.addUtf8Info(name), cp.addUtf8Info(desc), maxLocals);
+        ca.setMaxLocals(maxLocals + Descriptor.dataSize(desc));
+    }
+
+    /**
      * Modifies the method/constructor body.
      *
      * @param converter         specifies how to modify.
@@ -357,6 +391,7 @@ public abstract class CtBehavior extends CtMember {
             int nvars = jv.recordParams(getParameterTypes(),
                                         Modifier.isStatic(getModifiers()));
             jv.recordParamNames(ca, nvars);
+            jv.recordLocalVariables(ca, 0);
             jv.compileStmnt(src);
             Bytecode b = jv.getBytecode();
             int stack = b.getMaxStack();
@@ -426,6 +461,7 @@ public abstract class CtBehavior extends CtMember {
             jv.recordParamNames(ca, nvars);
             CtClass rtype = getReturnType0();
             int varNo = jv.recordReturnType(rtype, true);
+            jv.recordLocalVariables(ca, 0);
 
             int handlerLen = insertAfterHandler(asFinally, b, rtype, varNo);
 
@@ -675,7 +711,7 @@ public abstract class CtBehavior extends CtMember {
 
             int len = iterator.getCodeLength();
             int pos = iterator.append(b.get());
-            ca.getExceptionTable().add(0, len, len,
+            ca.getExceptionTable().add(getStartPosOfBody(ca), len, len,
                                        cp.addClassInfo(exceptionType));
             iterator.append(b.getExceptionTable(), pos);
         }
@@ -685,6 +721,12 @@ public abstract class CtBehavior extends CtMember {
         catch (CompileError e) {
             throw new CannotCompileException(e);
         }
+    }
+
+    /* CtConstructor overrides this method.
+     */
+    int getStartPosOfBody(CodeAttribute ca) throws CannotCompileException {
+        return 0;
     }
 
     /**

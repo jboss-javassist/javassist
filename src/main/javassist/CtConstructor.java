@@ -284,4 +284,18 @@ public final class CtConstructor extends CtBehavior {
             throw new CannotCompileException(e);
         }
     }
+
+    /* This method is called by addCatch() in CtBehavior.
+     * super() and this() must not be in a try statement.
+     */
+    int getStartPosOfBody(CodeAttribute ca) throws CannotCompileException {
+        CodeIterator ci = ca.iterator();
+        try {
+            ci.skipConstructor();
+            return ci.next();
+        }
+        catch (BadBytecode e) {
+            throw new CannotCompileException(e);
+        }
+    }
 }
