@@ -24,8 +24,11 @@ import javassist.CtMethod.ConstParameter;
  * <p>If a class is reflective,
  * then all the method invocations on every
  * instance of that class are intercepted by the runtime
- * metaobject controlling that instance.
- * To do this, the original class file representing a reflective class:
+ * metaobject controlling that instance.  The methods inherited from the
+ * super classes are also intercepted except final methods.  To intercept
+ * a final method in a super class, that super class must be also reflective.
+ *
+ * <p>To do this, the original class file representing a reflective class:
  *
  * <ul><pre>
  * class Person {
@@ -298,6 +301,10 @@ public class Reflection implements Translator {
                 return;
 
             m2 = m;
+            if (Modifier.isFinal(mod)) {
+                mod &= ~Modifier.FINAL;
+                m2.setModifiers(mod);
+            }
         }
         else {
             if (Modifier.isFinal(mod))

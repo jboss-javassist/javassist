@@ -337,9 +337,11 @@ public class Descriptor {
     }
 
     /**
-     * Returns true if desc1 and desc2 has the same signature.
+     * Returns true if the list of the parameter types of desc1 is equal to
+     * that of desc2.  
+     * For example, "(II)V" and "(II)I" are equal.
      */
-    public static boolean eqSignature(String desc1, String desc2) {
+    public static boolean eqParamTypes(String desc1, String desc2) {
         if (desc1.charAt(0) != '(')
             return false;
 
@@ -351,6 +353,15 @@ public class Descriptor {
             if (c == ')')
                 return true;
         }
+    }
+
+    /**
+     * Returns the signature of the given descriptor.  The signature does
+     * not include the return type.  For example, the signature of "(I)V"
+     * is "(I)".
+     */
+    public static String getParamDescriptor(String decl) {
+        return decl.substring(0, decl.indexOf(')') + 1);
     }
 
     /**

@@ -249,25 +249,23 @@ public class ClassMetaobject implements Serializable {
             return methods;
 
         Class baseclass = getJavaClass();
-        Method[] allmethods = baseclass.getMethods();
+        Method[] allmethods = baseclass.getDeclaredMethods();
         int n = allmethods.length;
         methods = new Method[n];
         for (int i = 0; i < n; ++i) {
             Method m = allmethods[i];
-            if (m.getDeclaringClass() == baseclass) {
-                String mname = m.getName();
-                if (mname.startsWith(methodPrefix)) {
-                    int k = 0;
-                    for (int j = methodPrefixLen;; ++j) {
-                        char c = mname.charAt(j);
-                        if ('0' <= c && c <= '9')
-                            k = k * 10 + c - '0';
-                        else
-                            break;
-                    }
-
-                    methods[k] = m;
+            String mname = m.getName();
+            if (mname.startsWith(methodPrefix)) {
+                int k = 0;
+                for (int j = methodPrefixLen;; ++j) {
+                    char c = mname.charAt(j);
+                    if ('0' <= c && c <= '9')
+                        k = k * 10 + c - '0';
+                    else
+                        break;
                 }
+
+                methods[k] = m;
             }
         }
 

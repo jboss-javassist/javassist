@@ -28,12 +28,12 @@ import javassist.bytecode.*;
  */
 public final class CtMethod extends CtBehavior {
     protected CtMethod next;
-    protected int cachedHashCode;
+    protected String cachedStringRep;
 
     CtMethod(MethodInfo minfo, CtClass declaring) {
         super(declaring, minfo);
         next = null;
-        cachedHashCode = 0;
+        cachedStringRep = null;
     }
 
     /**
@@ -163,17 +163,17 @@ public final class CtMethod extends CtBehavior {
      * the hash codes for the two methods are equal.
      */
     public int hashCode() {
-        /* This method is overridden in ExistingMethod for optimization.
-         */
-        if (cachedHashCode == 0) {
-            String signature
-                = methodInfo.getName() + ':' + methodInfo.getDescriptor();
+        return getStringRep().hashCode();
+    }
 
-            // System.identityHashCode() returns 0 only for null.
-            cachedHashCode = System.identityHashCode(signature.intern());
-        }
+    /* This method is also called by CtClassType.getMethods0(). 
+     */
+    final String getStringRep() {
+        if (cachedStringRep == null)
+            cachedStringRep = methodInfo.getName()
+                + Descriptor.getParamDescriptor(methodInfo.getDescriptor());
 
-        return cachedHashCode;
+        return cachedStringRep;
     }
 
     /**
@@ -182,7 +182,7 @@ public final class CtMethod extends CtBehavior {
      */
     public boolean equals(Object obj) {
         return obj != null && obj instanceof CtMethod
-               && obj.hashCode() == hashCode();
+               && ((CtMethod)obj).getStringRep().equals(getStringRep());
     }
 
     /**

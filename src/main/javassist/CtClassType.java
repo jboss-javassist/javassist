@@ -666,7 +666,7 @@ class CtClassType extends CtClass {
             CtMethod cm = ((CtClassType)cc).getMethodsCache();
             while (cm != null) {
                 if (Modifier.isPublic(cm.getModifiers()))
-                    h.put(cm, cm);
+                    h.put(cm.getStringRep(), cm);
 
                 cm = cm.next;
             }

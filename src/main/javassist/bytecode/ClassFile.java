@@ -452,7 +452,7 @@ public final class ClassFile {
         while (it.hasNext()) {
             MethodInfo minfo = (MethodInfo)it.next();
             if (minfo.getName().equals(name)
-                && Descriptor.eqSignature(minfo.getDescriptor(), descriptor))
+                && Descriptor.eqParamTypes(minfo.getDescriptor(), descriptor))
                 throw new CannotCompileException("duplicate method: " + name);
         }
     }
