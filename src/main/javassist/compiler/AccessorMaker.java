@@ -57,10 +57,7 @@ public class AccessorMaker {
             return accName;     // already exists.
 
         ClassFile cf = clazz.getClassFile();    // turn on the modified flag. 
-        do {
-            accName = "access$" + uniqueNumber++;
-        } while (cf.getMethod(accName) != null);
-
+        accName = findAccessorName(cf);
         try {
             ConstPool cp = cf.getConstPool();
             ClassPool pool = clazz.getClassPool();
@@ -96,6 +93,120 @@ public class AccessorMaker {
         }
 
         accessors.put(key, accName);
+        return accName;
+    }
+
+    /**
+     * Returns the method_info representing the added getter.
+     */
+    public MethodInfo getFieldGetter(FieldInfo finfo, boolean is_static)
+        throws CompileError
+    {
+        String fieldName = finfo.getName();
+        String key = fieldName + ":getter";
+        Object res = accessors.get(key);
+        if (res != null)
+            return (MethodInfo)res;     // already exists.
+
+        ClassFile cf = clazz.getClassFile();    // turn on the modified flag. 
+        String accName = findAccessorName(cf);
+        try {
+            ConstPool cp = cf.getConstPool();
+            ClassPool pool = clazz.getClassPool();
+            String fieldType = finfo.getDescriptor();
+            String accDesc;
+            if (is_static)
+                accDesc = "()" + fieldType;
+            else
+                accDesc = "(" + Descriptor.of(clazz) + ")" + fieldType;
+
+            MethodInfo minfo = new MethodInfo(cp, accName, accDesc);
+            minfo.setAccessFlags(AccessFlag.STATIC);
+            minfo.addAttribute(new SyntheticAttribute(cp));
+            Bytecode code = new Bytecode(cp);
+            if (is_static) {
+                code.addGetstatic(Bytecode.THIS, fieldName, fieldType);
+            }
+            else {
+                code.addAload(0);
+                code.addGetfield(Bytecode.THIS, fieldName, fieldType);
+                code.setMaxLocals(1);
+            }
+
+            code.addReturn(Descriptor.toCtClass(fieldType, pool));
+            minfo.setCodeAttribute(code.toCodeAttribute());
+            cf.addMethod(minfo);
+            accessors.put(key, minfo);
+            return minfo;
+        }
+        catch (CannotCompileException e) {
+            throw new CompileError(e);
+        }
+        catch (NotFoundException e) {
+            throw new CompileError(e);
+        }
+    }
+
+    /**
+     * Returns the method_info representing the added setter.
+     */
+    public MethodInfo getFieldSetter(FieldInfo finfo, boolean is_static)
+        throws CompileError
+    {
+        String fieldName = finfo.getName();
+        String key = fieldName + ":setter";
+        Object res = accessors.get(key);
+        if (res != null)
+            return (MethodInfo)res;     // already exists.
+
+        ClassFile cf = clazz.getClassFile();    // turn on the modified flag. 
+        String accName = findAccessorName(cf);
+        try {
+            ConstPool cp = cf.getConstPool();
+            ClassPool pool = clazz.getClassPool();
+            String fieldType = finfo.getDescriptor();
+            String accDesc;
+            if (is_static)
+                accDesc = "(" + fieldType + ")V";
+            else
+                accDesc = "(" + Descriptor.of(clazz) + fieldType + ")V";
+
+            MethodInfo minfo = new MethodInfo(cp, accName, accDesc);
+            minfo.setAccessFlags(AccessFlag.STATIC);
+            minfo.addAttribute(new SyntheticAttribute(cp));
+            Bytecode code = new Bytecode(cp);
+            int reg;
+            if (is_static) {
+                reg = code.addLoad(0, Descriptor.toCtClass(fieldType, pool));
+                code.addPutstatic(Bytecode.THIS, fieldName, fieldType);
+            }
+            else {
+                code.addAload(0);
+                reg = code.addLoad(1, Descriptor.toCtClass(fieldType, pool))
+                      + 1;
+                code.addPutfield(Bytecode.THIS, fieldName, fieldType);
+            }
+
+            code.addReturn(null);
+            code.setMaxLocals(reg);
+            minfo.setCodeAttribute(code.toCodeAttribute());
+            cf.addMethod(minfo);
+            accessors.put(key, minfo);
+            return minfo;
+        }
+        catch (CannotCompileException e) {
+            throw new CompileError(e);
+        }
+        catch (NotFoundException e) {
+            throw new CompileError(e);
+        }
+    }
+
+    private String findAccessorName(ClassFile cf) {
+        String accName;
+        do {
+            accName = "access$" + uniqueNumber++;
+        } while (cf.getMethod(accName) != null);
         return accName;
     }
 }

@@ -1269,13 +1269,20 @@ public abstract class CodeGen extends Visitor implements Opcode, TokenId {
 
         int token = expr.getOperator();
         ASTree oprand = expr.oprand1();
-        if (token == '.')
-            if (((Symbol)expr.oprand2()).get().equals("length"))
+        if (token == '.') {
+            String member = ((Symbol)expr.oprand2()).get();
+            if (member.equals("length"))
                 atArrayLength(expr);
+            else if (member.equals("class"))                
+                atClassObject(expr);  // .class
             else
                 atFieldRead(expr);
+        }
         else if (token == MEMBER) {     // field read
-            if (!atClassObject(expr))   // .class
+            String member = ((Symbol)expr.oprand2()).get();
+            if (member.equals("class"))                
+                atClassObject(expr);  // .class
+            else
                 atFieldRead(expr);
         }
         else if (token == ARRAY)
@@ -1345,14 +1352,16 @@ public abstract class CodeGen extends Visitor implements Opcode, TokenId {
 
     protected abstract void atFieldRead(ASTree expr) throws CompileError;
 
-    public boolean atClassObject(Expr expr) throws CompileError {
-        if (!((Symbol)expr.oprand2()).get().equals("class"))
-            return false;
+    public void atClassObject(Expr expr) throws CompileError {
+        ASTree op1 = expr.oprand1();
+        String cname;
+        if (op1 instanceof ASTList)
+            cname = Declarator.astToClassName((ASTList)op1, '/');
+        else
+            cname = ((Symbol)op1).get();
 
-        if (resolveClassName((ASTList)expr.oprand1()) == null)
-            return false;
-
-        throw new CompileError(".class is not supported");
+        cname = resolveClassName(cname);
+        throw new CompileError(".class is not supported: " + cname);
     }
 
     public void atArrayLength(Expr expr) throws CompileError {

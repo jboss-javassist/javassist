@@ -26,6 +26,7 @@ public class TypeChecker extends Visitor implements Opcode, TokenId {
     static final String javaLangObject = "java.lang.Object";
     static final String jvmJavaLangObject = "java/lang/Object";
     static final String jvmJavaLangString = "java/lang/String";
+    static final String jvmJavaLangClass = "java/lang/Class";
 
     /* The following fields are used by atXXX() methods
      * for returning the type of the compiled expression.
@@ -393,13 +394,20 @@ public class TypeChecker extends Visitor implements Opcode, TokenId {
 
         int token = expr.getOperator();
         ASTree oprand = expr.oprand1();
-        if (token == '.')
-            if (((Symbol)expr.oprand2()).get().equals("length"))
+        if (token == '.') {
+            String member = ((Symbol)expr.oprand2()).get();
+            if (member.equals("length"))
                 atArrayLength(expr);
+            else if (member.equals("class"))                
+                atClassObject(expr);  // .class
             else
                 atFieldRead(expr);
+        }
         else if (token == MEMBER) {     // field read
-            if (!atClassObject(expr))   // .class
+            String member = ((Symbol)expr.oprand2()).get();
+            if (member.equals("class"))                
+                atClassObject(expr);  // .class
+            else
                 atFieldRead(expr);
         }
         else if (token == ARRAY)
@@ -624,14 +632,10 @@ public class TypeChecker extends Visitor implements Opcode, TokenId {
         throw new CompileError("bad filed access");
     }
 
-    public boolean atClassObject(Expr expr) throws CompileError {
-        if (!((Symbol)expr.oprand2()).get().equals("class"))
-            return false;
-
-        if (resolveClassName((ASTList)expr.oprand1()) == null)
-            return false;
-
-        return true;
+    public void atClassObject(Expr expr) throws CompileError {
+        exprType = CLASS;
+        arrayDim = 0;
+        className =jvmJavaLangClass;
     }
 
     public void atArrayLength(Expr expr) throws CompileError {

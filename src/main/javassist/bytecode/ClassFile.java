@@ -34,6 +34,7 @@ import javassist.bytecode.annotation.AnnotationGroup;
  * @see javassist.CtClass#getClassFile()
  */
 public final class ClassFile {
+    int major, minor;           // version number
     ConstPool constPool;
     int thisClass;
     int accessFlags;
@@ -64,6 +65,8 @@ public final class ClassFile {
      */
     public ClassFile(boolean isInterface,
                      String classname, String superclass) {
+        major = 45;
+        minor = 3;      // JDK 1.1 or later
         constPool = new ConstPool(classname);
         thisClass = constPool.getThisClassInfo();
         if (isInterface)
@@ -535,8 +538,8 @@ public final class ClassFile {
         if (magic != 0xCAFEBABE)
             throw new IOException("non class file");
 
-        int major = in.readUnsignedShort();
-        int minor = in.readUnsignedShort();
+        minor = in.readUnsignedShort();
+        major = in.readUnsignedShort();
         constPool = new ConstPool(in);
         accessFlags = in.readUnsignedShort();
         thisClass = in.readUnsignedShort();
@@ -578,8 +581,8 @@ public final class ClassFile {
         int i, n;
 
         out.writeInt(0xCAFEBABE);       // magic
-        out.writeShort(3);              // major version
-        out.writeShort(45);             // minor version
+        out.writeShort(minor);          // minor version
+        out.writeShort(major);          // major version
         constPool.write(out);           // constant pool
         out.writeShort(accessFlags);
         out.writeShort(thisClass);

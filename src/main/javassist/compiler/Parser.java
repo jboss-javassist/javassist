@@ -1006,10 +1006,15 @@ public final class Parser implements TokenId {
                 break;
             case '.' :
                 lex.get();
-                if (lex.get() != Identifier)
+                t = lex.get();
+                if (t == CLASS)
+                    str = "class";
+                else if (t == Identifier)
+                    str = lex.getString();
+                else
                     throw new CompileError("missing member name", lex);
 
-                expr = Expr.make('.', expr, new Member(lex.getString()));
+                expr = Expr.make('.', expr, new Member(str));
                 break;
             case '#' :
                 lex.get();

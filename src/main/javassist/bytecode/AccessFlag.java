@@ -69,6 +69,35 @@ public class AccessFlag {
     }
 
     /**
+     * Returns true if the access flags include the public bit.
+     */
+    public static boolean isPublic(int accflags) {
+        return (accflags & PUBLIC) != 0;
+    }
+
+    /**
+     * Returns true if the access flags include the protected bit.
+     */
+    public static boolean isProtected(int accflags) {
+        return (accflags & PROTECTED) != 0;
+    }
+
+    /**
+     * Returns true if the access flags include the private bit.
+     */
+    public static boolean isPrivate(int accflags) {
+        return (accflags & PRIVATE) != 0;
+    }
+
+    /**
+     * Returns true if the access flags include neither public, protected,
+     * or private.
+     */
+    public static boolean isPackage(int accflags) {
+        return (accflags & (PROTECTED | PUBLIC | PRIVATE)) == 0;
+    }
+
+    /**
      * Clears a specified bit in <code>accflags</code>.
      */
     public static int clear(int accflags, int clearBit) {

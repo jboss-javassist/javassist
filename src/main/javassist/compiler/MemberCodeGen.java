@@ -371,7 +371,7 @@ public class MemberCodeGen extends CodeGen {
             if (declClass != targetClass)
                 throw new CompileError("no such a constructor");
         }
-        else if ((acc & AccessFlag.PRIVATE) != 0) {
+        else if (AccessFlag.isPrivate(acc))
             if (declClass == thisClass)
                 isSpecial = true;
             else {
@@ -390,7 +390,6 @@ public class MemberCodeGen extends CodeGen {
                     throw new CompileError("Method " + orgName
                                            + " is private");
             }
-        }
 
         boolean popTarget = false;
         if ((acc & AccessFlag.STATIC) != 0) {
@@ -530,7 +529,19 @@ public class MemberCodeGen extends CodeGen {
         if (op != '=' && !is_static)
             bytecode.addOpcode(DUP);
 
-        int fi = atFieldRead(f, is_static, op == '=');
+        int fi;
+        if (op == '=') {
+            FieldInfo finfo = f.getFieldInfo2();
+            setFieldType(finfo);
+            AccessorMaker maker = isAccessibleField(f, finfo);            
+            if (maker == null)
+                fi = addFieldrefInfo(f, finfo);
+            else
+                fi = 0;
+        }
+        else
+            fi = atFieldRead(f, is_static);
+
         int fType = exprType;
         int fDim = arrayDim;
         String cname = className;
@@ -548,19 +559,38 @@ public class MemberCodeGen extends CodeGen {
             bytecode.addOpcode(dup_code);
         }
 
-        if (is_static) {
-            bytecode.add(PUTSTATIC);
-            bytecode.growStack(is2w ? -2 : -1);
-        }
-        else {
-            bytecode.add(PUTFIELD);
-            bytecode.growStack(is2w ? -3 : -2);
-        }
+        atFieldAssignCore(f, is_static, fi, is2w);
 
-        bytecode.addIndex(fi);
         exprType = fType;
         arrayDim = fDim;
         className = cname;
+    }
+
+    /* If fi == 0, the field must be a private field in an enclosing class.
+     */
+    private void atFieldAssignCore(CtField f, boolean is_static, int fi,
+                                   boolean is2byte) throws CompileError {
+        if (fi != 0) {
+            if (is_static) {
+               bytecode.add(PUTSTATIC);
+               bytecode.growStack(is2byte ? -2 : -1);
+            }
+            else {
+                bytecode.add(PUTFIELD);
+                bytecode.growStack(is2byte ? -3 : -2);
+            }
+        
+            bytecode.addIndex(fi);
+        }
+        else {
+            CtClass declClass = f.getDeclaringClass();
+            AccessorMaker maker = declClass.getAccessorMaker();
+            // make should be non null.
+            FieldInfo finfo = f.getFieldInfo2();
+            MethodInfo minfo = maker.getFieldSetter(finfo, is_static);
+            bytecode.addInvokestatic(declClass, minfo.getName(),
+                                     minfo.getDescriptor());
+        }
     }
 
     /* overwritten in JvstCodeGen.
@@ -573,16 +603,73 @@ public class MemberCodeGen extends CodeGen {
     {
         CtField f = fieldAccess(expr);
         boolean is_static = resultStatic;
-        atFieldRead(f, is_static, false);
+        atFieldRead(f, is_static);
     }
 
-    private int atFieldRead(CtField f, boolean isStatic, boolean noRead)
+    /**
+     * Generates bytecode for reading a field value.
+     * It returns a fieldref_info index or zero if the field is a private
+     * one declared in an enclosing class. 
+     */
+    private int atFieldRead(CtField f, boolean isStatic) throws CompileError {
+        FieldInfo finfo = f.getFieldInfo2();
+        boolean is2byte = setFieldType(finfo);
+        AccessorMaker maker = isAccessibleField(f, finfo);
+        if (maker != null) {
+            MethodInfo minfo = maker.getFieldGetter(finfo, isStatic);
+            bytecode.addInvokestatic(f.getDeclaringClass(), minfo.getName(),
+                                     minfo.getDescriptor());
+            return 0;
+        }
+        else {
+            int fi = addFieldrefInfo(f, finfo);
+            if (isStatic) {
+                bytecode.add(GETSTATIC);
+                bytecode.growStack(is2byte ? 2 : 1);
+            }
+            else {
+                bytecode.add(GETFIELD);
+                bytecode.growStack(is2byte ? 1 : 0);
+            }
+
+            bytecode.addIndex(fi);
+            return fi;
+        }
+    }
+
+    /**
+     * Returns null if the field is accessible.  Otherwise, it throws
+     * an exception or it returns AccessorMaker if the field is a private
+     * one declared in an enclosing class.
+     */
+    private AccessorMaker isAccessibleField(CtField f, FieldInfo finfo)
         throws CompileError
     {
-        FieldInfo finfo = f.getFieldInfo2();
-        String type = finfo.getDescriptor();
+        if (AccessFlag.isPrivate(finfo.getAccessFlags())
+            && f.getDeclaringClass() != thisClass) {
+            CtClass declClass = f.getDeclaringClass(); 
+            if (isEnclosing(declClass, thisClass)) {
+                AccessorMaker maker = declClass.getAccessorMaker();
+                if (maker != null)
+                    return maker;
+                else
+                    throw new CompileError("fatal error.  bug?");
+            }
+            else
+                throw new CompileError("Field " + f.getName() + " in "
+                                       + declClass.getName() + " is private.");
+        }
 
-        int fi = addFieldrefInfo(f, finfo, type);
+        return null;    // accessible field
+    }
+
+    /**
+     * Sets exprType, arrayDim, and className.
+     *
+     * @return true if the field type is long or double. 
+     */
+    private boolean setFieldType(FieldInfo finfo) throws CompileError {
+        String type = finfo.getDescriptor();
 
         int i = 0;
         int dim = 0;
@@ -593,7 +680,6 @@ public class MemberCodeGen extends CodeGen {
         }
 
         arrayDim = dim;
-        boolean is2byte = (c == 'J' || c == 'D');
         exprType = MemberResolver.descToType(c);
 
         if (c == 'L')
@@ -601,27 +687,16 @@ public class MemberCodeGen extends CodeGen {
         else
             className = null;
 
-        if (noRead)
-            return fi;
-
-        if (isStatic) {
-            bytecode.add(GETSTATIC);
-            bytecode.growStack(is2byte ? 2 : 1);
-        }
-        else {
-            bytecode.add(GETFIELD);
-            bytecode.growStack(is2byte ? 1 : 0);
-        }
-
-        bytecode.addIndex(fi);
-        return fi;
+        boolean is2byte = (c == 'J' || c == 'D');
+        return is2byte;
     }
 
-    protected int addFieldrefInfo(CtField f, FieldInfo finfo, String type) {
+    private int addFieldrefInfo(CtField f, FieldInfo finfo) {
         ConstPool cp = bytecode.getConstPool();
         String cname = f.getDeclaringClass().getName();
         int ci = cp.addClassInfo(cname);
         String name = finfo.getName();
+        String type = finfo.getDescriptor();
         return cp.addFieldrefInfo(ci, name, type);
     }
 
@@ -634,7 +709,7 @@ public class MemberCodeGen extends CodeGen {
         if (!is_static)
             bytecode.addOpcode(DUP);
 
-        int fi = atFieldRead(f, is_static, false);
+        int fi = atFieldRead(f, is_static);
         int t = exprType;
         boolean is2w = is2word(t, arrayDim);
 
@@ -645,17 +720,7 @@ public class MemberCodeGen extends CodeGen {
             dup_code = (is2w ? DUP2_X1 : DUP_X1);
 
         atPlusPlusCore(dup_code, doDup, token, isPost, expr);
-
-        if (is_static) {
-            bytecode.add(PUTSTATIC);
-            bytecode.growStack(is2w ? -2 : -1);
-        }
-        else {
-            bytecode.add(PUTFIELD);
-            bytecode.growStack(is2w ? -3 : -2);
-        }
-
-        bytecode.addIndex(fi);
+        atFieldAssignCore(f, is_static, fi, is2w);
     }
 
     /* This method also returns a value in resultStatic.
