@@ -198,6 +198,7 @@ public class CtField extends CtMember {
      * Changes the name of the field.
      */
     public void setName(String newName) {
+        declaringClass.checkModify();
         fieldInfo.setName(newName);
     }
 
@@ -216,6 +217,7 @@ public class CtField extends CtMember {
      * @see Modifier
      */
     public void setModifiers(int mod) {
+        declaringClass.checkModify();
         fieldInfo.setAccessFlags(AccessFlag.of(mod));
     }
 
