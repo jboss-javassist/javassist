@@ -21,7 +21,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.PrintWriter;
 import java.io.IOException;
 import java.util.Map;
-import java.util.Hashtable;
+import java.util.HashMap;
 import javassist.CtClass;
 
 /**
@@ -30,10 +30,9 @@ import javassist.CtClass;
 public final class ConstPool {
     LongVector items;
     int       numOfItems;
-    Hashtable classes;
-    Hashtable strings;
+    HashMap classes;
+    HashMap strings;
     int       thisClassInfo;
-    private static final int SIZE = 128;
 
     /**
      * <code>CONSTANT_Class</code>
@@ -103,7 +102,11 @@ public final class ConstPool {
      *                          pool table
      */
     public ConstPool(String thisclass) {
-        this();
+        items = new LongVector();
+        numOfItems = 0;
+        addItem(null);          // index 0 is reserved by the JVM.
+        classes = new HashMap();
+        strings = new HashMap();
         thisClassInfo = addClassInfo(thisclass);
     }
 
@@ -113,17 +116,12 @@ public final class ConstPool {
      * @param in        byte stream.
      */
     public ConstPool(DataInputStream in) throws IOException {
-        this();
-        read(in);
-    }
-
-    private ConstPool() {
-        items = new LongVector(SIZE);
-        numOfItems = 0;
-        addItem(null);          // index 0 is reserved by the JVM.
-        classes = new Hashtable();
-        strings = new Hashtable();
+        classes = new HashMap();
+        strings = new HashMap();
         thisClassInfo = 0;
+        /* read() initializes items and numOfItems, and do addItem(null).
+         */
+        read(in);
     }
 
     /**
@@ -861,6 +859,12 @@ public final class ConstPool {
 
     private void read(DataInputStream in) throws IOException {
         int n = in.readUnsignedShort();
+
+        int size = (n / LongVector.SIZE + 1) * LongVector.SIZE;
+        items = new LongVector(size);
+        numOfItems = 0;
+        addItem(null);          // index 0 is reserved by the JVM.
+
         while (--n > 0) {       // index 0 is reserved by JVM
             int tag = readOne(in);
             if ((tag == LongInfo.tag) || (tag == DoubleInfo.tag)) {

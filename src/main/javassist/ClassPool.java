@@ -440,10 +440,10 @@ public class ClassPool {
 
     /* for CtClassType.getClassFile2().  Don't delegate to the parent.
      */
-    byte[] readSource(String classname)
-        throws NotFoundException, IOException, CannotCompileException
+    InputStream openClassfile(String classname)
+        throws NotFoundException
     {
-        return source.readSource(classname);
+        return source.openClassfile(classname);
     }
 
     void writeClassfile(String classname, OutputStream out)

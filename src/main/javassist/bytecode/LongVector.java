@@ -16,9 +16,14 @@
 package javassist.bytecode;
 
 final class LongVector {
+    static final int SIZE = 128;
     private int num;
     private Object[] objects;
     private LongVector next;
+
+    public LongVector() {
+        this(SIZE);
+    }
 
     public LongVector(int initialSize) {
         num = 0;
@@ -34,7 +39,7 @@ final class LongVector {
         if (p.num < p.objects.length)
             p.objects[p.num++] = obj;
         else {
-            LongVector q = p.next = new LongVector(p.objects.length);
+            LongVector q = p.next = new LongVector(SIZE);
             q.objects[q.num++] = obj;
         }
     }

@@ -225,20 +225,6 @@ final class ClassPoolTail {
     }
 
     /**
-     * @return the contents of the class file. 
-     * @throws NotFoundException    if the file could not be found.
-     */
-    byte[] readSource(String classname)
-        throws NotFoundException, IOException, CannotCompileException
-    {
-        byte[] b = readClassfile(classname);
-        if (b == null)
-            throw new NotFoundException(classname);
-        else
-            return b;
-    }
-
-    /**
      * This method does not close the output stream.
      */
     void writeClassfile(String classname, OutputStream out)
@@ -276,32 +262,6 @@ final class ClassPoolTail {
 
 
     /**
-     * Obtains the contents of the class file for the class
-     * specified by <code>classname</code>.
-     *
-     * @param classname         a fully-qualified class name
-     * @return null                 if the file has not been found.
-     * @throws NotFoundException    if any error is reported by ClassPath.
-     */
-    private byte[] readClassfile(String classname)
-        throws NotFoundException, IOException
-    {
-        InputStream fin = openClassfile(classname);
-        if (fin == null)
-            return null;
-
-        byte[] b;
-        try {
-            b = readStream(fin);
-        }
-        finally {
-            fin.close();
-        }
-
-        return b;
-    }
-
-    /**
      * Opens the class file for the class specified by
      * <code>classname</code>.
      *
@@ -309,7 +269,7 @@ final class ClassPoolTail {
      * @return null                 if the file has not been found.
      * @throws NotFoundException    if any error is reported by ClassPath.
      */
-    private InputStream openClassfile(String classname)
+    InputStream openClassfile(String classname)
         throws NotFoundException
     {
         if (packages.get(classname) != null)

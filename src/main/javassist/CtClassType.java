@@ -19,7 +19,6 @@ import javassist.bytecode.*;
 import javassist.compiler.Javac;
 import javassist.compiler.CompileError;
 import javassist.expr.ExprEditor;
-import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -108,11 +107,14 @@ class CtClassType extends CtClass {
         if (classfile != null)
             return classfile;
 
+        InputStream fin = null;
         try {
-            byte[] b = classPool.readSource(getName());
-            DataInputStream dis
-                = new DataInputStream(new ByteArrayInputStream(b));
-            return (classfile = new ClassFile(dis));
+            fin = classPool.openClassfile(getName());
+            if (fin == null)
+                throw new NotFoundException(getName());
+
+            classfile = new ClassFile(new DataInputStream(fin));
+            return classfile;
         }
         catch (NotFoundException e) {
             throw new RuntimeException(e.toString());
@@ -120,8 +122,12 @@ class CtClassType extends CtClass {
         catch (IOException e) {
             throw new RuntimeException(e.toString());
         }
-        catch (CannotCompileException e) {
-            throw new RuntimeException(e.toString());
+        finally {
+            if (fin != null)
+                try {
+                    fin.close();
+                }
+                catch (IOException e) {}
         }
     }
 
