@@ -59,6 +59,13 @@ public final class FieldInfo {
         read(in);
     }
 
+    void prune(ConstPool cp) {
+        attribute = null;
+        name = cp.addUtf8Info(getName());
+        descriptor = cp.addUtf8Info(getDescriptor());
+        constPool = cp;
+    }
+
     /**
      * Returns the constant pool table used
      * by this <code>field_info</code>.

@@ -61,6 +61,7 @@ class CtNewClass extends CtClassType {
         if (!hasConstructor)
             try {
                 inheritAllConstructors();
+                hasConstructor = true;
             }
             catch (NotFoundException e) {
                 throw new CannotCompileException(e);

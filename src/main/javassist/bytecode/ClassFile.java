@@ -99,6 +99,42 @@ public final class ClassFile {
     }
 
     /**
+     * Discards all attributes, associated with both the class file and
+     * the members such as a code attribute and exceptions attribute.
+     * The unused constant pool entries are also discarded (a new packed
+     * constant pool is constructed).
+     */
+    public void prune() {
+        ConstPool cp = new ConstPool(thisclassname);
+        superClass = cp.addClassInfo(getSuperclass());
+
+        if (interfaces != null) {
+            int n = interfaces.length;
+            for (int i = 0; i < n; ++i)
+                interfaces[i]
+                    = cp.addClassInfo(constPool.getClassInfo(interfaces[i]));
+        }
+
+        ArrayList list = methods;
+        int n = list.size();
+        for (int i = 0; i < n; ++i) {
+            MethodInfo minfo = (MethodInfo)list.get(i);
+            minfo.prune(cp);
+        }
+
+        list = fields;
+        n = list.size();
+        for (int i = 0; i < n; ++i) {
+            FieldInfo finfo = (FieldInfo)list.get(i);
+            finfo.prune(cp);
+        }
+
+        attributes = new LinkedList();
+        cp.prune();
+        constPool = cp;
+    }
+
+    /**
      * Returns a constant pool table.
      */
     public ConstPool getConstPool() {

@@ -64,7 +64,7 @@ public class EnumMemberValue extends MemberValue {
     /**
      * Changes the enum type name.
      *
-     * @param classname a fully-qualified type name. 
+     * @param typename a fully-qualified type name. 
      */
     public void setType(String typename) {
         typeIndex = cp.addUtf8Info(Descriptor.of(typename));

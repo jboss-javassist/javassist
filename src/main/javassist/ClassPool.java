@@ -37,6 +37,8 @@ import java.util.Hashtable;
  * of memory.  To avoid this, a <code>ClassPool</code> object
  * should be recreated, for example, every hundred classes processed.
  * Note that <code>getDefault()</code> is a singleton factory.
+ * Otherwise, <code>detach()</code> in <code>CtClass</code> should be used
+ * to avoid huge memory consumption.
  *
  * <p><b><code>ClassPool</code> hierarchy:</b>
  *
@@ -75,6 +77,8 @@ public class ClassPool {
      */
     private Hashtable cflow = null;     // should be synchronous.
 
+    private static final int INIT_HASH_SIZE = 191; 
+
     /**
      * Creates a root class pool.  No parent class pool is specified.
      *
@@ -91,7 +95,7 @@ public class ClassPool {
      * @see javassist.ClassPool#getDefault()
      */
     public ClassPool(ClassPool parent) {
-        this.classes = new Hashtable();
+        this.classes = new Hashtable(INIT_HASH_SIZE);
         this.source = new ClassPoolTail();
         this.parent = parent;
         if (parent == null) {
@@ -289,8 +293,10 @@ public class ClassPool {
 
         if (clazz == null)
             throw new NotFoundException(classname);
-        else
+        else {
+            clazz.incGetCounter();
             return clazz;
+        }
     }
 
     /**

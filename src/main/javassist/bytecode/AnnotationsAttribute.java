@@ -84,7 +84,7 @@ public class AnnotationsAttribute extends AttributeInfo {
      * @param cp            constant pool
      * @param attrname      attribute name (<code>visibleTag</code> or
      *                      <code>invisibleTag</code>).
-     * @see #setAnnotations(Annotations[])
+     * @see #setAnnotations(Annotation[])
      */
     public AnnotationsAttribute(ConstPool cp, String attrname) {
         this(cp, attrname, new byte[] { 0, 0 });
@@ -127,7 +127,7 @@ public class AnnotationsAttribute extends AttributeInfo {
      * this object unless the tree is copied back to this object by
      * <code>setAnnotations()</code>.
      *
-     * @see #setAnnotations()
+     * @see #setAnnotations(Annotation[])
      */
     public Annotation[] getAnnotations() {
         try {

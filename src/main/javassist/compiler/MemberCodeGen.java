@@ -464,7 +464,7 @@ public class MemberCodeGen extends CodeGen {
             if (maker != null)
                 return maker.getConstructor(declClass, desc, minfo);
         }
-        
+
         throw new CompileError("the called constructor is private in "
                                + declClass.getName());
     }

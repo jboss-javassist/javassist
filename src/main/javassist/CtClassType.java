@@ -29,6 +29,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Hashtable;
+import java.util.Enumeration;
 import java.util.List;
 
 /**
@@ -37,7 +38,8 @@ import java.util.List;
 class CtClassType extends CtClass {
     ClassPool classPool;
     boolean wasChanged;
-    boolean wasFrozen;
+    private boolean wasFrozen;
+    boolean wasPruned;
     ClassFile classfile;
 
     private CtField fieldsCache;
@@ -51,16 +53,22 @@ class CtClassType extends CtClass {
     private Hashtable hiddenMethods;    // must be synchronous
     private int uniqueNumberSeed;
 
+    private boolean doPruning = true;
+    int getCounter;
+    private static int readCounter = 0;
+    private static final int READ_THRESHOLD = 100;  // see getClassFile2()
+
     CtClassType(String name, ClassPool cp) {
         super(name);
         classPool = cp;
-        wasChanged = wasFrozen = false;
+        wasChanged = wasFrozen = wasPruned = false;
         classfile = null;
         accessors = null;
         fieldInitializers = null;
         hiddenMethods = null;
         uniqueNumberSeed = 0;
         eraseCache();
+        getCounter = 0;
     }
 
     CtClassType(InputStream ins, ClassPool cp) throws IOException {
@@ -75,6 +83,9 @@ class CtClassType extends CtClass {
 
         if (wasFrozen)
             buffer.append("frozen ");		
+
+        if (wasPruned)
+            buffer.append("pruned ");
 
         buffer.append(Modifier.toString(getModifiers()));
         buffer.append(" class ");
@@ -149,6 +160,11 @@ class CtClassType extends CtClass {
         if (classfile != null)
             return classfile;
 
+        if (readCounter++ > READ_THRESHOLD) {
+            doCompaction();
+            readCounter = 0;
+        }
+
         InputStream fin = null;
         try {
             fin = classPool.openClassfile(getName());
@@ -171,6 +187,28 @@ class CtClassType extends CtClass {
                     fin.close();
                 }
                 catch (IOException e) {}
+        }
+    }
+
+    /* Inherited from CtClass.  Called by get() in ClassPool.
+     *
+     * @see javassist.CtClass#incGetCounter()
+     */
+    void incGetCounter() { ++getCounter; }
+
+    private void doCompaction() {
+        Enumeration e = classPool.classes.elements();
+        while (e.hasMoreElements()) {
+            Object obj = e.nextElement();
+            if (obj instanceof CtClassType) {
+                CtClassType cct = (CtClassType)obj;
+                if (cct.getCounter < 2 && !cct.isModified()) {
+                    cct.eraseCache();
+                    cct.classfile = null;
+                }
+
+                cct.getCounter = 0;
+            }
         }
     }
 
@@ -197,7 +235,10 @@ class CtClassType extends CtClass {
         wasChanged = true;
     }
 
-    public void defrost() { wasFrozen = false; }
+    public void defrost() {
+        checkPruned("defrost");
+        wasFrozen = false;
+    }
 
     public boolean subtypeOf(CtClass clazz) throws NotFoundException {
         int i;
@@ -855,15 +896,25 @@ class CtClassType extends CtClass {
     {
         try {
             if (isModified()) {
+                checkPruned("toBytecode");
                 ClassFile cf = getClassFile2();
                 modifyClassConstructor(cf);
                 modifyConstructors(cf);
                 cf.write(out);
                 out.flush();
                 fieldInitializers = null;
+                if (doPruning) {
+                    // to save memory
+                    cf.prune();
+                    wasPruned = true;
+                }
             }
-            else 
+            else {
                 classPool.writeClassfile(getName(), out);
+                // to save memory
+                eraseCache();
+                classfile = null;
+            }
 
             wasFrozen = true;
         }
@@ -873,6 +924,16 @@ class CtClassType extends CtClass {
         catch (IOException e) {
             throw new CannotCompileException(e);
         }
+    }
+
+    private void checkPruned(String method) {
+        if (wasPruned)
+            throw new RuntimeException(method + "(): " + getName()
+                                       + " was pruned.");
+    }
+
+    public void stopPruning(boolean stop) {
+        doPruning = !stop;
     }
 
     private void modifyClassConstructor(ClassFile cf)

@@ -123,7 +123,7 @@ public class ParameterAnnotationsAttribute extends AttributeInfo {
      * @return Each element of the returned array represents an array of
      * annotations that are associated with each method parameter.
      *      
-     * @see #setAnnotations()
+     * @see #setAnnotations(Annotation[][])
      */
     public Annotation[][] getAnnotations() {
         try {

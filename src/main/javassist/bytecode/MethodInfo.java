@@ -95,6 +95,13 @@ public final class MethodInfo {
         read(src, methodname, classnameMap);
     }
 
+    void prune(ConstPool cp) {
+        attribute = null;
+        name = cp.addUtf8Info(getName());
+        descriptor = cp.addUtf8Info(getDescriptor());
+        constPool = cp;
+    }
+
     /**
      * Returns a method name.
      */

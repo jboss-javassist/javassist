@@ -241,16 +241,47 @@ public abstract class CtClass {
     /**
      * Defrosts the class so that the class can be modified again.
      *
-     * To avoid changes that will be never reflected,
+     * <p>To avoid changes that will be never reflected,
      * the class is frozen to be unmodifiable if it is loaded or
      * written out.  This method should be called only in a case
      * that the class will be reloaded or written out later again.
      *
+     * <p>If <code>defrost()</code> will be called later, pruning
+     * must be disallowed in advance.
+     *
      * @see #isFrozen()
+     * @see #stopPruning(boolean)
      */
     public void defrost() {
         throw new RuntimeException("cannot defrost " + getName());
     }
+
+    /**
+     * Disallows (or allows) pruning the data structure on memory
+     * when this <code>CtClass</code> object is converted into a class file.
+     * Pruning saves memory space since a <code>ClassPool</code> holds
+     * all instances of <code>CtClass</code>
+     * all the time of program execution.
+     * However, pruning discards the data representing part of the
+     * class definition, such as method bodies.
+     * Therefore, once it is pruned, <code>toBytecode()</code>,
+     * <code>writeFile()</code>, or <code>toClass()</code> cannot
+     * be called again.
+     *
+     * <p>Initially, pruning is allowed.
+     *
+     * @param stop      disallow pruning if true.  Otherwise, allow.
+     * @see #detach()
+     * @see #toBytecode()
+     * @see #toClass()
+     * @see #writeFile()
+     */
+    public void stopPruning(boolean stop) {}
+
+    /* Called by get() in ClassPool.
+     * CtClassType overrides this method.
+     */
+    void incGetCounter() {}
 
     /**
      * Returns <code>true</code> if this object represents a primitive
@@ -904,11 +935,13 @@ public abstract class CtClass {
     }
 
     /**
-     * Removes this <code>CtClass</code> from the <code>ClassPool</code>.
+     * Removes this <code>CtClass</code> object from the
+     * <code>ClassPool</code>.
      * After this method is called, any method cannot be called on the
      * removed <code>CtClass</code> object.
      *
-     * <p>If needed,
+     * <p>If <code>get()</code> in <code>ClassPool</code> is called
+     * with the name of the removed method,
      * the <code>ClassPool</code> will read the class file again
      * and constructs another <code>CtClass</code> object representing
      * the same class.

@@ -332,14 +332,14 @@ public class ClassMetaobject implements Serializable {
      * to the original method in the reflected class (i.e. not the proxy
      * method), using the original name of the method.
      *
+     * <p>Written by Brett Randall and Shigeru Chiba. 
+     *
      * @param originalName      The original name of the reflected method
      * @param argTypes          array of Class specifying the method signature
      * @return      the identifier index of the original method
      * @throws NoSuchMethodException    if the method does not exist
      * 
      * @see ClassMetaobject#getMethod(int)
-     * @author Brett Randall
-     * @author Shigeru Chiba
      */
     public final int getMethodIndex(String originalName, Class[] argTypes)
         throws NoSuchMethodException

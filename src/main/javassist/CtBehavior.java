@@ -355,7 +355,7 @@ public abstract class CtBehavior extends CtMember {
         throws CannotCompileException
     {
         // if the class is not frozen,
-        // does not trun the modified flag on.
+        // does not turn the modified flag on.
         if (declaringClass.isFrozen())
             declaringClass.checkModify();
 

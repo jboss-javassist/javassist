@@ -23,7 +23,6 @@ import javassist.bytecode.ConstPool;
 /**
  * A convenience class for constructing a
  * <code>..Annotations_attribute</code>.
- * It is typically used together with <code>AnnotationsVisitor</code>.
  * See the source code of the <code>AnnotationsAttribute.Copier</code> class.
  *
  * <p>The following code snippet is an example of use of this class:
@@ -51,12 +50,11 @@ import javassist.bytecode.ConstPool;
  * corresponding to this annotation:
  *
  * <ul><pre>
- * @Author(name = "chiba", address = "tokyo")
+ * &nbsp;@Author(name = "chiba", address = "tokyo")
  * </pre></ul>
  *
- * @see AnnotationsAttribute
- * @see ParameterAnnotationsAttribute
- * @see AnnotationsVisitor
+ * @see javassist.bytecode.AnnotationsAttribute
+ * @see javassist.bytecode.ParameterAnnotationsAttribute
  */
 public class AnnotationsWriter {
     private OutputStream output;

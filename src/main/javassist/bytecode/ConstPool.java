@@ -124,6 +124,11 @@ public final class ConstPool {
         read(in);
     }
 
+    void prune() {
+        classes = new HashMap();
+        strings = new HashMap();
+    }
+
     /**
      * Returns the name of the class using this constant pool table.
      */
