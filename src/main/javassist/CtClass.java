@@ -225,7 +225,7 @@ public abstract class CtClass {
     /**
      * Returns <code>true</code> if this class extends or implements
      * <code>clazz</code>.  It also returns <code>true</code> if
-     * this class is the same as <code>clazz<code>.
+     * this class is the same as <code>clazz</code>.
      */
     public boolean subtypeOf(CtClass clazz) throws NotFoundException {
         return this == clazz || getName().equals(clazz.getName());

@@ -673,20 +673,21 @@ public class MemberCodeGen extends CodeGen {
         int fi = addFieldrefInfo(f, finfo, type);
 
         int i = 0;
+        int dim = 0;
         char c = type.charAt(i);
+        while (c == '[') {
+            ++dim;
+            c = type.charAt(++i);
+        }
+
+        arrayDim = dim;
         boolean is2byte = (c == 'J' || c == 'D');
         exprType = descToType(c);
-        arrayDim = 0;
-        if (c == '[') {
-            i = 1;
-            while ((c = type.charAt(i)) == '[')
-                ++i;
-
-            arrayDim = i;
-        }
 
         if (c == 'L')
             className = type.substring(i + 1, type.indexOf(';', i + 1));
+        else
+            className = null;
 
         if (noRead)
             return fi;
