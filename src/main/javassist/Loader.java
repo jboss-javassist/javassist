@@ -80,7 +80,7 @@ import java.util.Vector;
  * Loader cl = new Loader(cp);
  *
  * CtClass ct = cp.get("test.Rectangle");
- * ct.setSuperclass(loader.get("test.Point"));
+ * ct.setSuperclass(cp.get("test.Point"));
  *
  * Class c = cl.loadClass("test.Rectangle");
  * Object rect = c.newInstance();</pre></ul>
