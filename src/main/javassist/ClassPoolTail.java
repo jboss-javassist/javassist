@@ -16,7 +16,9 @@
 package javassist;
 
 import java.io.*;
-import java.util.zip.*;
+import java.util.jar.*;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Hashtable;
 
 final class ClassPathList {
@@ -50,6 +52,11 @@ final class SystemClassPath implements ClassPath {
         return thisClass.getResourceAsStream(jarname);
     }
 
+    public URL find(String classname) {
+        String jarname = "/" + classname.replace('.', '/') + ".class";
+        return thisClass.getResource(jarname);
+    }
+
     public void close() {}
 
     public String toString() {
@@ -77,6 +84,21 @@ final class DirClassPath implements ClassPath {
         return null;
     }
 
+    public URL find(String classname) {
+        char sep = File.separatorChar;
+        String filename = directory + sep
+            + classname.replace('.', sep) + ".class";
+        File f = new File(filename);
+        if (f.exists())
+            try {
+                return f.getCanonicalFile().toURL();
+            }
+            catch (MalformedURLException e) {}
+            catch (IOException e) {}
+
+        return null;
+    }
+
     public void close() {}
 
     public String toString() {
@@ -86,14 +108,16 @@ final class DirClassPath implements ClassPath {
 
 
 final class JarClassPath implements ClassPath {
-    ZipFile jarfile;
+    JarFile jarfile;
+    String jarfileURL;
 
     JarClassPath(String pathname) throws NotFoundException {
         try {
-            jarfile = new ZipFile(pathname);
+            jarfile = new JarFile(pathname);
+            jarfileURL = new File(pathname).getCanonicalFile()
+                                           .toURL().toString();
             return;
         }
-        catch (ZipException e) {}
         catch (IOException e) {}
         throw new NotFoundException(pathname);
     }
@@ -103,16 +127,27 @@ final class JarClassPath implements ClassPath {
     {
         try {
             String jarname = classname.replace('.', '/') + ".class";
-            ZipEntry ze = jarfile.getEntry(jarname);
-            if (ze != null)
-                return jarfile.getInputStream(ze);
+            JarEntry je = jarfile.getJarEntry(jarname);
+            if (je != null)
+                return jarfile.getInputStream(je);
             else
                 return null;    // not found
         }
-        catch (ZipException e) {}
         catch (IOException e) {}
         throw new NotFoundException("broken jar file?: "
                                     + jarfile.getName());
+    }
+
+    public URL find(String classname) {
+        String jarname = classname.replace('.', '/') + ".class";
+        JarEntry je = jarfile.getJarEntry(jarname);
+        if (je != null)
+            try {
+                return new URL("jar:" + jarfileURL + "!/" + jarname);
+            }
+            catch (MalformedURLException e) {}
+
+        return null;            // not found
     }
 
     public void close() {
@@ -183,12 +218,20 @@ final class ClassPoolTail extends ClassPool {
     }
 
     void checkClassName(String classname) throws NotFoundException {
+        if (find(classname) == null)
+            throw new NotFoundException(classname);
+    }
+
+    /* slower version.
+
+    void checkClassName(String classname) throws NotFoundException {
         InputStream fin = openClassfile(classname);
         try {
             fin.close();
         }
-        catch (IOException e) { /* ignore */ }
+        catch (IOException e) {}
     }
+    */
 
     public synchronized ClassPath insertClassPath(ClassPath cp) {
         pathList = new ClassPathList(cp, pathList);
@@ -310,6 +353,29 @@ final class ClassPoolTail extends ClassPool {
             throw error;
         else
             throw new NotFoundException(classname);
+    }
+
+    /**
+     * Obtains the URL of the class file specified by classname.
+     *
+     * @param classname     a fully-qualified class name.
+     * @return null if the class file could not be found.
+     */
+    public URL find(String classname) {
+        if (packages.get(classname) != null)
+            return null;
+
+        ClassPathList list = pathList;
+        URL url = null;
+        while (list != null) {
+            url = list.path.find(classname);
+            if (url == null)
+                list = list.next;
+            else
+                return url;
+        }
+
+        return null;
     }
 
     /**

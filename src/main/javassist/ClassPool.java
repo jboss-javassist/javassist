@@ -16,6 +16,7 @@
 package javassist;
 
 import java.io.*;
+import java.net.URL;
 import java.util.Hashtable;
 
 /**
@@ -744,6 +745,16 @@ public class ClassPool {
         throws NotFoundException
     {
         source.checkClassName(classname);
+    }
+
+    /**
+     * Obtains the URL of the class file specified by classname.
+     *
+     * @param classname     a fully-qualified class name.
+     * @return null if the class file could not be found.
+     */
+    public URL find(String classname) {
+        return source.find(classname);
     }
 
     /**

@@ -16,6 +16,8 @@
 package javassist;
 
 import java.io.*;
+import java.net.URL;
+import java.net.MalformedURLException;
 
 /**
  * A <code>ByteArrayClassPath</code> contains bytes that is served as
@@ -68,12 +70,28 @@ public class ByteArrayClassPath implements ClassPath {
     }
 
     /**
-     * Opens a class file.
+     * Opens the class file.
      */
     public InputStream openClassfile(String classname) {
         if(this.classname.equals(classname))
             return new ByteArrayInputStream(classfile);
         else
             return null;
+    }
+
+    /**
+     * Obtains the URL.
+     */
+    public URL find(String classname) {
+        if(this.classname.equals(classname)) {
+            String cname = classname.replace('.', '/') + ".class";
+            try {
+                // return new File(cname).toURL();
+                return new URL("file:/ByteArrayClassPath/" + cname);
+            }
+            catch (MalformedURLException e) {}
+        }
+
+        return null;
     }
 }

@@ -16,6 +16,7 @@
 package javassist;
 
 import java.io.InputStream;
+import java.net.URL;
 import java.lang.ref.WeakReference;
 
 /**
@@ -62,6 +63,20 @@ public class LoaderClassPath implements ClassPath {
             return null;        // not found
         else
             return cl.getResourceAsStream(cname);
+    }
+
+    /**
+     * Obtains the URL of the specified class file.
+     *
+     * @return null if the class file could not be found. 
+     */
+    public URL find(String classname) {
+        String cname = classname.replace('.', '/') + ".class";
+        ClassLoader cl = (ClassLoader)clref.get();
+        if (cl == null)
+            return null;        // not found
+        else
+            return cl.getResource(cname);
     }
 
     /**

@@ -20,6 +20,7 @@ import java.io.IOException;
 import javassist.bytecode.*;
 import java.util.Collection;
 import javassist.expr.ExprEditor;
+import java.net.URL;
 
 // Subclasses of CtClass: CtClassType, CtPrimitiveType, and CtArray
 
@@ -198,6 +199,13 @@ public abstract class CtClass {
      * Undocumented method.  Do not use; internal-use only.
      */
     public ClassFile getClassFile2() { return null; }
+
+    /**
+     * Returns the uniform resource locator (URL) of the class file.
+     */
+    public URL getURL() throws NotFoundException {
+        throw new NotFoundException(getName());
+    }
 
     /**
      * Returns true if the definition of the class has been modified.
@@ -859,7 +867,7 @@ public abstract class CtClass {
         ClassPool cp = getClassPool();
         if (cp == null)
             throw new CannotCompileException(
-                                "no ClassPool found. not a class?");
+                        getName() + ": no ClassPool found. not a class?");
         else
             return cp;
     }

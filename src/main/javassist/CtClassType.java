@@ -24,6 +24,7 @@ import java.io.InputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Hashtable;
@@ -125,6 +126,14 @@ class CtClassType extends CtClass {
     }
 
     public ClassPool getClassPool() { return classPool; }
+
+    public URL getURL() throws NotFoundException {
+        URL url = classPool.find(getName());
+        if (url == null)
+            throw new NotFoundException(getName());
+        else
+            return url;
+    }
 
     public boolean isModified() { return wasChanged; }
 

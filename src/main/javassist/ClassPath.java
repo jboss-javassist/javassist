@@ -16,6 +16,7 @@
 package javassist;
 
 import java.io.InputStream;
+import java.net.URL;
 
 /**
  * <code>ClassPath</code> is an interface implemented by objects
@@ -48,6 +49,15 @@ public interface ClassPath {
      * @see javassist.Translator
      */
     InputStream openClassfile(String classname) throws NotFoundException;
+
+    /**
+     * Returns the uniform resource locator (URL) of the class file
+     * with the specified name.
+     *
+     * @param classname         a fully-qualified class name.
+     * @return null if the specified class file could not be found.
+     */
+    URL find(String classname);
 
     /**
      * This method is invoked when the <code>ClassPath</code> object is

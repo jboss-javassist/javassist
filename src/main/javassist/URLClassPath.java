@@ -45,6 +45,7 @@ public class URLClassPath implements ClassPath {
      * @param port              port number
      * @param directory         directory name ending with "/".
      *                          It can be "/" (root directory).
+     *                          It must start with "/".
      * @param packageName       package name.
      */
     public URLClassPath(String host, int port,
@@ -62,19 +63,44 @@ public class URLClassPath implements ClassPath {
     /**
      * Opens a class file with http.
      *
-     * @return null if the class file is not found. 
+     * @return null if the class file could not be found. 
      */
     public InputStream openClassfile(String classname) {
         try {
-            if (packageName == null || classname.startsWith(packageName)) {
-                String jarname
-                    = directory + classname.replace('.', '/') + ".class";
-                URLConnection con = fetchClass0(hostname, port, jarname);
+            URLConnection con = openClassfile0(classname);
+            if (con != null)
                 return con.getInputStream();
+        }
+        catch (IOException e) {}
+        return null;        // not found
+    }
+
+    private URLConnection openClassfile0(String classname) throws IOException {
+        if (packageName == null || classname.startsWith(packageName)) {
+            String jarname
+                    = directory + classname.replace('.', '/') + ".class";
+            return fetchClass0(hostname, port, jarname);
+        }
+        else
+            return null;    // not found
+    }
+
+    /**
+     * Returns the URL.
+     *
+     * @return null if the class file could not be obtained. 
+     */
+    public URL find(String classname) {
+        try {
+            URLConnection con = openClassfile0(classname);
+            InputStream is = con.getInputStream();
+            if (is != null) {
+                is.close();
+                return con.getURL();
             }
         }
         catch (IOException e) {}
-        return null;    // not found
+        return null; 
     }
 
     /**
@@ -89,6 +115,7 @@ public class URLClassPath implements ClassPath {
      * @param port              port number
      * @param directory         directory name ending with "/".
      *                          It can be "/" (root directory).
+     *                          It must start with "/".
      * @param classname         fully-qualified class name
      */
     public static byte[] fetchClass(String host, int port,
