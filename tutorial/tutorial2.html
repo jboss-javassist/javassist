@@ -1236,6 +1236,13 @@ does not end with a semi colon (<code>;</code>).
 has several limitations with respect to the language that the compiler can
 accept.  Those limitations are:
 
+<p><li>All the class names must be fully qualified (they must include
+package names).  This is because the compiler does not support
+<code>import</code>
+declarations.  However, the <code>java.lang</code> package is an
+exception; for example, the compiler accepts <code>Object</code> as
+well as <code>java.lang.Object</code>.
+
 <p><li>The <code>.class</code> notation is not supported.  Use the
 method <code>Class.forName()</code>.
 In regular

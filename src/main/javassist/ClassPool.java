@@ -174,6 +174,9 @@ public class ClassPool {
             tail.appendSystemPath();
             defaultPool = new ClassPool(tail, t);
         }
+        else if (defaultPool.translator != t)
+            throw new RuntimeException(
+                "has been created with a different translator");
 
         return defaultPool;
     }
