@@ -18,6 +18,7 @@ package javassist.compiler;
 import javassist.*;
 import javassist.bytecode.*;
 import javassist.compiler.ast.*;
+import java.util.ArrayList;
 
 /* Code generator methods depending on javassist.* classes.
  */
@@ -68,25 +69,90 @@ public class MemberCodeGen extends CodeGen {
                                   "<init>", "()V");
     }
 
+    static class JsrHook extends ReturnHook {
+        ArrayList jsrList;
+        int var;
+
+        JsrHook(CodeGen gen) {
+            super(gen);
+            jsrList = new ArrayList();
+            var = gen.getMaxLocals();
+            gen.incMaxLocals(1);
+        }
+
+        private void jsrJmp(Bytecode b) {
+            b.addOpcode(JSR);
+            jsrList.add(new Integer(b.currentPc()));
+            b.addIndex(0);
+        }
+
+        protected void doit(Bytecode b, int opcode) {
+            switch (opcode) {
+            case Opcode.RETURN :
+                jsrJmp(b);
+                break;
+            case ARETURN :
+                b.addAstore(var);
+                jsrJmp(b);
+                b.addAload(var);
+                break;
+            case IRETURN :
+                b.addIstore(var);
+                jsrJmp(b);
+                b.addIload(var);
+                break;
+            case LRETURN :
+                b.addLstore(var);
+                jsrJmp(b);
+                b.addLload(var);
+                break;
+            case DRETURN :
+                b.addDstore(var);
+                jsrJmp(b);
+                b.addDload(var);
+                break;
+            case FRETURN :
+                b.addFstore(var);
+                jsrJmp(b);
+                b.addFload(var);
+                break;
+            default :
+                throw new RuntimeException("fatal");
+            }
+        }
+    }
+
     protected void atTryStmnt(Stmnt st) throws CompileError {
+        Bytecode bc = bytecode;
         Stmnt body = (Stmnt)st.getLeft();
         if (body == null)
             return;
 
-        int start = bytecode.currentPc();
+        ASTList catchList = (ASTList)st.getRight().getLeft();
+        Stmnt finallyBlock = (Stmnt)st.getRight().getRight().getLeft();
+        ArrayList gotoList = new ArrayList(); 
+
+        JsrHook jsrHook = null;
+        if (finallyBlock != null)
+            jsrHook = new JsrHook(this);
+
+        int start = bc.currentPc();
         body.accept(this);
-        int end = bytecode.currentPc();
+        int end = bc.currentPc();
         if (start == end)
             throw new CompileError("empty try block");
 
-        bytecode.addOpcode(Opcode.GOTO);
-        int pc = bytecode.currentPc();
-        bytecode.addIndex(0);   // correct later
+        boolean tryNotReturn = !hasReturned;
+        if (tryNotReturn) {
+            bc.addOpcode(Opcode.GOTO);
+            gotoList.add(new Integer(bc.currentPc()));
+            bc.addIndex(0);   // correct later
+        }
 
         int var = getMaxLocals();
         incMaxLocals(1);
-        ASTList catchList = (ASTList)st.getRight().getLeft();
         while (catchList != null) {
+            // catch clause
             Pair p = (Pair)catchList.head();
             catchList = catchList.tail();
             Declarator decl = (Declarator)p.getLeft();
@@ -96,24 +162,61 @@ public class MemberCodeGen extends CodeGen {
 
             CtClass type = resolver.lookupClassByJvmName(decl.getClassName());
             decl.setClassName(MemberResolver.javaToJvmName(type.getName()));
-            bytecode.addExceptionHandler(start, end, bytecode.currentPc(),
-                                         type);
-            bytecode.growStack(1);
-            bytecode.addAstore(var);
+            bc.addExceptionHandler(start, end, bc.currentPc(), type);
+            bc.growStack(1);
+            bc.addAstore(var);
+            hasReturned = false;
             if (block != null)
                 block.accept(this);
 
-            bytecode.addOpcode(Opcode.GOTO);
-            bytecode.addIndex(pc - bytecode.currentPc());
+            if (!hasReturned) {
+                bc.addOpcode(Opcode.GOTO);
+                gotoList.add(new Integer(bc.currentPc()));
+                bc.addIndex(0);   // correct later
+                tryNotReturn = true;
+            }
         }
 
-        Stmnt finallyBlock = (Stmnt)st.getRight().getRight().getLeft();
-        if (finallyBlock != null)
-            throw new CompileError(
-                        "sorry, finally has not been supported yet");
+        int pcFinally = -1;
+        if (finallyBlock != null) {
+            jsrHook.remove(this);
+            // catch (any) clause
+            int pcAnyCatch = bc.currentPc();
+            bc.addExceptionHandler(start, pcAnyCatch, pcAnyCatch, 0);
+            bc.growStack(1);
+            bc.addAstore(var);
+            bc.addOpcode(JSR);
+            int pcJsrIndex = bc.currentPc();
+            bc.addIndex(0);       // correct later
+            bc.addAload(var);
+            bc.addOpcode(ATHROW);
 
-        bytecode.write16bit(pc, bytecode.currentPc() - pc + 1);
-        hasReturned = false;
+            // finally clause
+            pcFinally = bc.currentPc();
+            bc.write16bit(pcJsrIndex, pcFinally - pcJsrIndex + 1);
+            int retAddr = getMaxLocals();
+            incMaxLocals(1);
+            bc.growStack(1);    // return address
+            bc.addAstore(retAddr);
+            hasReturned = false;
+            finallyBlock.accept(this);
+            if (!hasReturned) {
+                bc.addOpcode(RET);
+                bc.add(retAddr);
+            }
+        }
+
+        int pcEnd = bc.currentPc();
+        patchGoto(gotoList, pcEnd);
+        if (finallyBlock != null) {
+            patchGoto(jsrHook.jsrList, pcFinally);
+            if (tryNotReturn) {
+                bc.addOpcode(JSR);
+                bc.addIndex(pcFinally - pcEnd);
+            }
+        }
+
+        hasReturned = !tryNotReturn;
     }
 
     public void atNewExpr(NewExpr expr) throws CompileError {

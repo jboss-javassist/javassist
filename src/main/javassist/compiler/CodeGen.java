@@ -53,7 +53,7 @@ public abstract class CodeGen extends Visitor implements Opcode, TokenId {
      */
     protected static abstract class ReturnHook {
         ReturnHook next;
-        protected abstract void doit(Bytecode b);
+        protected abstract void doit(Bytecode b, int opcode);
         protected ReturnHook(CodeGen gen) {
             next = gen.returnHooks;
             gen.returnHooks = this;
@@ -437,7 +437,7 @@ public abstract class CodeGen extends Visitor implements Opcode, TokenId {
         hasReturned = alwaysBranch;
     }
 
-    private void patchGoto(ArrayList list, int targetPc) {
+    protected void patchGoto(ArrayList list, int targetPc) {
         int n = list.size();
         for (int i = 0; i < n; ++i) {
             int pc = ((Integer)list.get(i)).intValue();
@@ -607,7 +607,7 @@ public abstract class CodeGen extends Visitor implements Opcode, TokenId {
         }
 
         for (ReturnHook har = returnHooks; har != null; har = har.next)
-            har.doit(bytecode);
+            har.doit(bytecode, op);
 
         bytecode.addOpcode(op);
         hasReturned = true;
@@ -623,6 +623,8 @@ public abstract class CodeGen extends Visitor implements Opcode, TokenId {
         hasReturned = true;
     }
 
+    /* overridden in MemberCodeGen
+     */
     protected void atTryStmnt(Stmnt st) throws CompileError {
         hasReturned = false;
     }
@@ -643,7 +645,7 @@ public abstract class CodeGen extends Visitor implements Opcode, TokenId {
         bc.addOpcode(MONITORENTER);
 
         ReturnHook rh = new ReturnHook(this) {
-            protected void doit(Bytecode b) {
+            protected void doit(Bytecode b, int opcode) {
                 b.addAload(var);
                 b.addOpcode(MONITOREXIT);
             }
@@ -657,14 +659,14 @@ public abstract class CodeGen extends Visitor implements Opcode, TokenId {
         int pc2 = bc.currentPc();
         int pc3 = 0;
         if (!hasReturned) {
-            rh.doit(bc);
+            rh.doit(bc, 0);     // the 2nd arg is ignored.
             bc.addOpcode(Opcode.GOTO);
             pc3 = bc.currentPc();
             bc.addIndex(0);
         }
 
         int pc4 = bc.currentPc();
-        rh.doit(bc);
+        rh.doit(bc, 0);         // the 2nd arg is ignored.
         bc.addOpcode(ATHROW);
         bc.addExceptionHandler(pc, pc2, pc4, 0);
         if (!hasReturned)
