@@ -296,6 +296,20 @@ public class Loader extends ClassLoader {
             return null;
         }
 
+	int i = name.lastIndexOf('.');
+	if (i != -1) {
+	    String pname = name.substring(0, i);
+            if (getPackage(pname) == null)
+                try {
+                    definePackage(pname, null, null, null,
+                                  null, null, null, null);
+                }
+                catch (IllegalArgumentException e) {
+                    // ignore.  maybe the package object for the same
+                    // name has been created just right away.
+                }
+        }
+
         return defineClass(name, classfile, 0, classfile.length);
     }
 
@@ -343,4 +357,18 @@ public class Loader extends ClassLoader {
         else
             return findSystemClass(classname);
     }
+
+    protected Package getPackage(String name) {
+        return super.getPackage(name);
+    }
+        /*
+        // Package p = super.getPackage(name);
+        Package p = null;
+        if (p == null)
+            return definePackage(name, null, null, null,
+                                 null, null, null, null);
+        else
+            return p;
+    }
+    */
 }

@@ -23,6 +23,32 @@ the Java reflection API.  <code>CtClass</code> provides
 definition.  It allows to add a new field, constructor, and method.
 Instrumenting a method body is also possible.
 
+<p>
+Methods are represented by <code>CtMethod</code> objects. 
+<code>CtMethod</code> provides several methods for modifying
+the definition of the method.  Note that if a method is inherited
+from a super class, then 
+the same <code>CtMethod</code> object
+that represents the inherited method represents the method declared
+in that super class.
+A <code>CtMethod</code> object corresponds to every method declaration.
+
+<p>
+For example, if class <code>Point</code> declares method <code>move()</code>
+and a subclass <code>ColorPoint</code> of <code>Point</code> does
+not override <code>move()</code>, the two <code>move()</code> methods
+declared in <code>Point</code> and inherited in <code>ColorPoint</code>
+are represented by the identical <code>CtMethod</code> object.
+If the method definition represented by this 
+<code>CtMethod</code> object is modified, the modification is
+reflected on both the methods.
+If you want to modify only the <code>move()</code> method in
+<code>ColorPoint</code>, you first have to add to <code>ColorPoint</code>
+a copy of the <code>CtMethod</code> object representing <code>move()</code>
+in <code>Point</code>.  A copy of the the <code>CtMethod</code> object
+can be obtained by <code>CtNewMethod.copy()</code>.
+
+
 <p><hr width="40%">
 
 <ul>

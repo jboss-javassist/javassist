@@ -35,6 +35,9 @@ public abstract class Expr implements Opcode {
 
     static final String javaLangObject = "java.lang.Object";
 
+    /**
+     * Undocumented constructor.  Do not use; internal-use only.
+     */
     protected Expr(int pos, CodeIterator i, CtClass declaring, MethodInfo m) {
         currentPos = pos;
         iterator = i;

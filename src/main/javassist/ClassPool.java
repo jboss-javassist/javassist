@@ -372,7 +372,7 @@ public class ClassPool {
 
     /**
      * Returns a <code>java.lang.Class</code> object that has been loaded
-     * by <code>writeAsClass()</code>.  Note that such a class cannot be
+     * by <code>writeAsClass()</code>.  Note that such an object cannot be
      * obtained by <code>java.lang.Class.forName()</code> because it has
      * been loaded by an internal class loader.
      *
@@ -399,9 +399,20 @@ public class ClassPool {
      * loads only the classes explicitly specified by this method
      * <code>writeAsClass()</code>.  The other classes are loaded
      * by the parent class loader (the sytem class loader) by delegation.
-     * Thus, if a class <code>X</code> loaded by the internal class
-     * loader refers to a class <code>Y</code>, then the class
-     * <code>Y</code> is loaded by the parent class loader.
+     *
+     * <p>For example,
+     *
+     * <ul><pre>class Line { Point p1, p2; }</pre></ul>
+     *
+     * <p>If the class <code>Line</code> is loaded by the internal class
+     * loader and the class <code>Point</code> has not been loaded yet,
+     * then the class <code>Point</code> that the class <code>Line</code>
+     * refers to is loaded by the parent class loader.  There is no
+     * chance of modifying the definition of <code>Point</code> with
+     * Javassist.
+     *
+     * <p>The internal class loader is shared among all the instances
+     * of <code>ClassPool</code>.
      *
      * @param classname         a fully-qualified class name.
      *

@@ -174,8 +174,10 @@ public abstract class CtClass {
     public boolean isModified() { return false; }
 
     /**
-     * Returns true if the class has been loaded and thus it cannot be
-     * modified any more.
+     * Returns true if the class has been loaded or written out
+     * and thus it cannot be modified any more.
+     *
+     * @see #defrost()
      */
     public boolean isFrozen() { return true; }
 
@@ -189,12 +191,14 @@ public abstract class CtClass {
     }
 
     /**
-     * Defrosts the class so that the class can be modified.
+     * Defrosts the class so that the class can be modified again.
      *
-     * To avoid changes that are never reflected,
+     * To avoid changes that will be never reflected,
      * the class is frozen to be unmodifiable if it is loaded or
      * written out.  This method should be called only in a case
      * that the class will be reloaded or written out later again.
+     *
+     * @see #isFrozen()
      */
     public void defrost() {
         throw new RuntimeException("cannot defrost " + getName());
@@ -753,6 +757,8 @@ public abstract class CtClass {
      *
      * <p>See the description of <code>ClassPool.writeAsClass()</code>
      * before you use this method.
+     * This method is provided for convenience.  If you need more
+     * complex functionality, you should write your own class loader.
      *
      * @see javassist.ClassPool#writeAsClass(String)
      * @see javassist.ClassPool#forName(String)
