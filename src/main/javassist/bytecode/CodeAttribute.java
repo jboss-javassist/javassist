@@ -220,6 +220,18 @@ public class CodeAttribute extends AttributeInfo implements Opcode {
     }
 
     /**
+     * Computes the maximum stack size and sets <code>max_stack</code>
+     * to the computed size.
+     *
+     * @throws BadBytecode      if this method fails in computing.
+     * @return the newly computed value of <code>max_stack</code>
+     */
+    public int computeMaxStack() throws BadBytecode {
+        maxStack = new CodeAnalyzer(this).computeMaxStack();
+        return maxStack;
+    }
+
+    /**
      * Returns <code>max_locals</code>.
      */
     public int getMaxLocals() {
