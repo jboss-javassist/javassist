@@ -783,7 +783,7 @@ class CtClassType extends CtClass {
                 cf.write(out);
                 out.flush();
             }
-            else
+            else 
                 classPool.writeClassfile(getName(), out);
 
             wasFrozen = true;

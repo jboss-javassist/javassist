@@ -167,8 +167,8 @@ public class ClassPool {
      * @see #getCached(String)
      * @see #cacheCtClass(String,CtClass)
      */
-    protected void removeCached(String classname) {
-        classes.remove(classname);
+    protected CtClass removeCached(String classname) {
+        return (CtClass)classes.remove(classname);
     }
 
     /**

@@ -866,6 +866,21 @@ public abstract class CtClass {
     }
 
     /**
+     * Removes this <code>CtClass</code> from the <code>ClassPool</code>.
+     *
+     * <p>If needed,
+     * the <code>ClassPool</code> will read the class file again
+     * and constructs another <code>CtClass</code> object representing
+     * the same class.
+     */
+    public void detach() {
+        ClassPool cp = getClassPool();
+        CtClass obj = cp.removeCached(getName());
+        if (obj != this)
+            cp.cacheCtClass(getName(), obj);
+    }
+
+    /**
      * Converts this class to a class file.
      * Once this method is called, further modifications are not
      * possible any more.
