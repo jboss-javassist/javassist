@@ -639,13 +639,7 @@ class CtClassType extends CtClass {
         checkModify();
         ClassFile cf = getClassFile2();
         Bytecode code = new Bytecode(cf.getConstPool(), 0, 0);
-        try {
-            modifyClassConstructor(cf, b, 0, 0);
-        }
-        catch (CompileError e) {
-            throw new CannotCompileException(e);
-        }
-
+        modifyClassConstructor(cf, code, 0, 0);
         return getClassInitializer();
     }
 
