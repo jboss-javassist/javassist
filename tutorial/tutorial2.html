@@ -363,11 +363,12 @@ For example, if the result type is <code>int</code>, then
 <code>($r)</code> does not convert a type; it does nothing.
 However, if the operand is a call to a <code>void</code> method,
 then <code>($r)</code> results in <code>null</code>.  For example,
+if the result type is <code>void</code> and
+<code>foo()</code> is a <code>void</code> method, then
 
 <ul><pre>$_ = ($r)foo();</pre></ul>
 
-<p>is a valid statement if the result type is <code>void</code>.
-Here, <code>foo()</code> is a <code>void</code> method.
+<p>is a valid statement.
 
 <p>The cast operator <code>($r)</code> is also useful in a
 <code>return</code> statement.  Even if the result type is
@@ -485,7 +486,74 @@ catch (java.io.IOException e) {
 
 <h3>5.2 Modifying a method body</h3>
 
-<p><code>javassist.expr.ExprEditor</code> is a class
+<p><code>CtMethod</code> and <code>CtConstructor</code> provide
+<code>setBody()</code> for substituting a whole
+method body.  They compile the given source text into Java bytecode
+and substitutes it for the original method body.
+
+<p>In the source text given to <code>setBody()</code>, the identifiers
+starting with $ have special meaning
+
+<ul><table border=0>
+<tr>
+<td><code>$0</code>, <code>$1</code>, <code>$2</code>, ... &nbsp &nbsp</td>
+<td>Actual parameters</td>
+</tr>
+
+<tr>
+<td><code>$args</code></td>
+<td>An array of parameters.
+The type of <code>$args</code> is <code>Object[]</code>.
+</td>
+</tr>
+
+<tr>
+<td><code>$$</code></td>
+<td>All actual parameters.<br>
+</tr>
+
+<tr>
+<td><code>$cflow(</code>...<code>)</code></td>
+<td><code>cflow</code> variable</td>
+</tr>
+
+<tr>
+<td><code>$r</code></td>
+<td>The result type.  It is used in a cast expression.</td>
+</tr>
+
+<tr>
+<td><code>$w</code></td>
+<td>The wrapper type.  It is used in a cast expression.</td>
+</tr>
+
+<tr>
+<td><code>$sig</code></td>
+<td>An array of <code>java.lang.Class</code> objects representing
+the formal parameter types.
+</td>
+</tr>
+
+<tr>
+<td><code>$type</code></td>
+<td>A <code>java.lang.Class</code> object representing
+the formal result type.</td>
+</tr>
+
+<tr>
+<td><code>$class</code></td>
+<td>A <code>java.lang.Class</code> object representing
+the class currently edited.</td>
+</tr>
+
+</table>
+</ul>
+
+Note that <code>$_</code> is not available.
+
+
+<p>Javassist allows modifying only an expression included in a method body.
+<code>javassist.expr.ExprEditor</code> is a class
 for replacing an expression in a method body.
 The users can define a subclass of <code>ExprEditor</code>
 to specify how an expression is modified.
@@ -1046,6 +1114,23 @@ public int ymove(int dy) { this.move(0, dy); }
 
 <p>Note that <code>$proceed</code> has been replaced with
 <code>this.move</code>.
+
+<p>Javassist provides another way to add a new method.
+You can first create an abstract method and later give it a method body:
+
+<ul><pre>
+CtClass cc = ... ;
+CtMethod m = new CtMethod(CtClass.intType, "move",
+                          new CtClass[] { CtClass.intType }, cc);
+cc.addMethod(m);
+m.setBody("{ x += $1; }");
+cc.setModifiers(cc.getModifiers() & ~Modifier.ABSTRACT);
+</pre></ul>
+
+<p>Since Javassist makes a class abstract if an abstract method is
+added to the class, you have to explicitly change the class back to a
+non-abstract one after calling <code>setBody()</code>.
+
 
 <h4>Mutual recursive methods</h4>
 

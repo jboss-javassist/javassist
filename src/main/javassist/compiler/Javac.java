@@ -170,6 +170,8 @@ public class Javac {
 
     /**
      * Compiles a method (or constructor) body.
+     *
+     * @src	a single statement or a block.
      */
     public Bytecode compileBody(CtBehavior method, String src)
         throws CompileError

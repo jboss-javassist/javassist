@@ -267,18 +267,18 @@ public abstract class CodeGen extends Visitor implements Opcode, TokenId {
         }
     }
 
-    private boolean needsSuperCall(Stmnt body) {
-        if (body.getOperator() == BLOCK) {
-            Stmnt first = (Stmnt)body.head();
-            if (first != null && first.getOperator() == EXPR) {
-                ASTree expr = first.head();
-                if (expr != null && expr instanceof Expr
-                    && ((Expr)expr).getOperator() == CALL) {
-                    ASTree target = ((Expr)expr).head();
-                    if (target instanceof Keyword) {
-                        int token = ((Keyword)target).get();
-                        return token != THIS && token != SUPER;
-                    }
+    private boolean needsSuperCall(Stmnt body) throws CompileError {
+        if (body.getOperator() == BLOCK)
+            body = (Stmnt)body.head();
+
+        if (body != null && body.getOperator() == EXPR) {
+            ASTree expr = body.head();
+            if (expr != null && expr instanceof Expr
+                && ((Expr)expr).getOperator() == CALL) {
+                ASTree target = ((Expr)expr).head();
+                if (target instanceof Keyword) {
+                    int token = ((Keyword)target).get();
+                    return token != THIS && token != SUPER;
                 }
             }
         }
