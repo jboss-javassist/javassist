@@ -42,6 +42,24 @@
     </javac>
   </target>
 
+  <target name="sample" depends="compile">
+    <javac srcdir="${basedir}"
+           destdir="${build.classes.dir}"
+           debug="on"
+           deprecation="on"
+           optimize="off"
+           includes="sample/**">
+            <classpath refid="classpath"/>
+    </javac>
+    <copy file="sample/vector/Test.j"
+          todir="${build.classes.dir}/sample/vector"/>
+    <copy todir="${build.classes.dir}/sample/evolve">
+      <fileset dir="sample/evolve"/>
+    </copy>
+    <echo>To run the sample programs, change the current directory 
+to ${build.classes.dir}.</echo>
+  </target>
+
   <target name="jar" depends="compile">
     <jar jarfile="javassist.jar">
       <fileset dir="${build.classes.dir}">

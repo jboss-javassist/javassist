@@ -89,6 +89,16 @@ machine specification.  The users must have the knowledge about class
 files and bytecode.  For more details, the users should see the
 <code>javassist.bytecode</code> package.
 
+<p>The class files modified by Javassist requires the
+<code>javassist.runtime</code> package for runtime support
+only if some special identifiers starting with <code>$</code>
+are used.  Those special identifiers are described below.
+The class files modified without those special identifiers
+do not need the <code>javassist.runtime</code> package or any
+other Javassist packages at runtime.
+For more details, see the API documentation
+of the <code>javassist.runtime</code> package.
+
 <p><br>
 
 <h3>5.1 Inserting source text at the beginning/end of a method body</h3>

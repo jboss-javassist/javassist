@@ -72,31 +72,42 @@ other editors.
 
 <h3>1. Move to the directory where this Readme.html file is located.</h3>
 
-<p>In the description below, we assume that the platform is JDK 1.2
-(or later) for Solaris.  If the platform is JDK 1.2 (or later) for
-Windows, the class-path option is:
+<p>In the following instructions, we assume that the javassist.jar
+file is included in the class path.
+For example, the javac and java commands must receive
+the following <code>classpath</code> option:
 
 <ul><pre>
--classpath ".;javassist.jar"
+-classpath ".:javassist.jar"
 </pre></ul>
 
-<p>If you don't want to put the class-path option, copy
-<tt>./javassist.jar</tt> to
+<p>If the operating system is Windows, the path
+separator must be not <code>:</code> (colon) but
+<code>;</code> (semicolon).  The java command can receive
+the <code>-cp</code> option
+as well as <code>-classpath</code>.
 
-<ul>&lt;<i>java-home</i>&gt;<tt>/jre/lib/ext/</tt>.</ul>
+<p>If you don't want to use the class-path option, you can make
+<code>javassist.jar</code> included in the <code>CLASSPATH</code>
+environment:
+
+<ul><pre>
+export CLASSPATH=.:javassist.jar
+</pre></ul>
+
+<p>or if the operating system is Windows:
+
+<ul><pre>
+set CLASSPATH=.;javassist.jar
+</pre></ul>
+
+
+<p>Otherwise, you can copy <tt>javassist.jar</tt> to the directory
+
+<ul>&lt;<i>java-home</i>&gt;<tt>/jre/lib/ext</tt>.</ul>
 
 <p>&lt;<i>java-home</i>&gt; depends on the system.  It is usually
-<tt>/usr/local/java</tt>, <tt>c:\jdk1.2\</tt>, etc.
-
-<p>If you don't use javassist.jar, first compile Javassist:
-<ul><pre>
-% cd src
-% javac -d .. javassist/*.java javassist/*/*.java
-% cd ..
-</pre></ul>
-
-<p>Then you can compile and run the sample programs without the class-path
-option.
+<tt>/usr/local/java</tt>, <tt>c:\j2sdk1.4\</tt>, etc.
 
 <h3>2. sample/Test.java</h3>
 
@@ -105,8 +116,8 @@ option.
 <p>   To run, type the commands:
 
 <ul><pre>
-% javac -classpath ".:javassist.jar" sample/Test.java
-% java -cp ".:javassist.jar" sample.Test
+% javac sample/Test.java
+% java sample.Test
 </pre></ul>
 
 <p>   For more details, see <a type="text/plain" href="sample/Test.java">sample/Test.java</a>
@@ -121,13 +132,13 @@ option.
 <p>   To run, type the commands:
 
 <ul><pre>
-% javac -classpath ".:javassist.jar" sample/reflect/*.java
-% java -cp ".:javassist.jar" javassist.reflect.Loader sample.reflect.Main Joe
+% javac sample/reflect/*.java
+% java javassist.reflect.Loader sample.reflect.Main Joe
 </pre></ul>
 
 <p>Compare this result with that of the regular execution without reflection:
 
-<ul><pre>% java -cp ".:javassist.jar" sample.reflect.Person Joe</pre></ul>
+<ul><pre>% java sample.reflect.Person Joe</pre></ul>
 
 <p>   For more details, see <a type="text/plain" href="sample/reflect/Main.java">sample/reflect/Main.java</a>
 
@@ -136,12 +147,12 @@ option.
    To do this, type the commands:
 
 <ul><pre>
-% java -cp ".:javassist.jar" javassist.reflect.Compiler sample.reflect.Person -m sample.reflect.VerboseMetaobj
+% java javassist.reflect.Compiler sample.reflect.Person -m sample.reflect.VerboseMetaobj
 </pre></ul>
 
 <p>   Then,
 <ul><pre>
-% java -cp ".:javassist.jar" sample.reflect.Person Joe
+% java sample.reflect.Person Joe
 </pre></ul>
 
 <h3>4. sample/duplicate/*.java</h3>
@@ -151,8 +162,8 @@ option.
 <p>   To run, type the commands:
 
 <ul><pre>
-% javac -classpath ".:javassist.jar" sample/duplicate/*.java
-% java -cp ".:javassist.jar" sample.duplicate.Main
+% javac sample/duplicate/*.java
+% java sample.duplicate.Main
 </pre></ul>
 
 <p>Compare this result with that of the regular execution without reflection:
@@ -170,13 +181,16 @@ This is a demonstration of the use of <tt>javassist.preproc</tt> package.
 
 <p>   To run, type the commands:
 <ul><pre>
-% javac -classpath ".:javassist.jar" sample/vector/*.java
-% java -cp ".:javassist.jar" javassist.preproc.Compiler sample/vector/Test.j
+% javac sample/vector/*.java
+% java javassist.preproc.Compiler sample/vector/Test.j
 % javac sample/vector/Test.java
 % java sample.vector.Test
 </pre></ul>
 
-<p>For more details, see
+<p>Note: <code>javassist.jar</code> is unnecessary to compile and execute
+<code>sample/vector/Test.java</code>.
+
+For more details, see
 <a type="text/plain" href="sample/vector/Test.j">sample/vector/Test.j</a>
 and <a type="text/plain" href="sample/vector/VectorAssistant.java">sample/vector/VectorAssistant.java</a>
 
@@ -186,8 +200,8 @@ and <a type="text/plain" href="sample/vector/VectorAssistant.java">sample/vector
 
 <p>   To run, type the commands:
 <ul><pre>
-% javac -classpath ".:javassist.jar" sample/rmi/*.java
-% java -cp ".:javassist.jar" sample.rmi.Counter 5001
+% javac sample/rmi/*.java
+% java sample.rmi.Counter 5001
 </pre></ul>
 
 <p>   The second line starts a web server listening to port 5001.
@@ -200,7 +214,7 @@ with a web browser running
 <p>   Otherwise, run sample.rmi.CountApplet as an application:
 
 <ul><pre>
-% java -cp ".:javassist.jar" javassist.web.Viewer localhost 5001 sample.rmi.CountApplet
+% java javassist.web.Viewer localhost 5001 sample.rmi.CountApplet
 </pre></ul>
 
 <h3>7. sample/evolve/*.java</h3>
@@ -211,8 +225,8 @@ with a web browser running
 
 <p>   To run, type the commands:
 <ul><pre>
-% javac -classpath ".:javassist.jar" sample/evolve/*.java
-% java -cp ".:javassist.jar" sample.evolve.DemoLoader 5003
+% javac sample/evolve/*.java
+% java sample.evolve.DemoLoader 5003
 </pre></ul>
 
 <p>   The second line starts a class loader DemoLoader, which runs a web
