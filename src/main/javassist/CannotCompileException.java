@@ -33,6 +33,8 @@ public class CannotCompileException extends Exception {
 
     /**
      * Constructs a CannotCompileException with a message.
+     *
+     * @param msg       the message.
      */
     public CannotCompileException(String msg) {
         super(msg);
@@ -41,7 +43,10 @@ public class CannotCompileException extends Exception {
     }
 
     /**
-     * Constructs a CannotCompileException with an <code>Exception</code>.
+     * Constructs a CannotCompileException with an <code>Exception</code>
+     * representing the cause.
+     *
+     * @param e     the cause.
      */
     public CannotCompileException(Throwable e) {
         super("by " + e.toString());
@@ -49,6 +54,13 @@ public class CannotCompileException extends Exception {
         cause = e;
     }
 
+    /**
+     * Constructs a CannotCompileException with a detailed message
+     * and an <code>Exception</code> representing the cause.
+     *
+     * @param msg   the message.
+     * @param e     the cause.
+     */
     public CannotCompileException(String msg, Throwable e) {
         this(msg);
         cause = e;
@@ -66,8 +78,7 @@ public class CannotCompileException extends Exception {
      * Constructs a CannotCompileException with an <code>CompileError</code>.
      */
     public CannotCompileException(CompileError e) {
-        super("[source error] " + e.getMessage(), e);
-        message = null;
+        this("[source error] " + e.getMessage(), e);
     }
 
     /**

@@ -1370,7 +1370,7 @@ public abstract class CodeGen extends Visitor implements Opcode, TokenId {
             bytecode.addIconst(0);
         }
         else if (token == CALL)         // method call
-            fatal(); 
+            fatal();
         else {
             expr.oprand1().accept(this);
             int type = typePrecedence(exprType);
