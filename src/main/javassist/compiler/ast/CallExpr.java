@@ -16,26 +16,31 @@
 package javassist.compiler.ast;
 
 import javassist.compiler.CompileError;
+import javassist.compiler.TokenId;
+import javassist.compiler.MemberResolver;
 
 /**
- * Binary expression.
- *
- * <p>If the operator is +, the right node might be null.
- * See TypeChecker.atBinExpr().
+ * Method call expression.
  */
-public class BinExpr extends Expr {
-    /* operator must be either of:
-     * ||, &&, |, ^, &, ==, !=, <=, >=, <, >,
-     * <<, >>, >>>, +, -, *, /, %
-     */
+public class CallExpr extends Expr {
+    private MemberResolver.Method method;  // cached result of lookupMethod()
 
-    private BinExpr(int op, ASTree _head, ASTList _tail) {
-        super(op, _head, _tail);
+    private CallExpr(ASTree _head, ASTList _tail) {
+        super(TokenId.CALL, _head, _tail);
+        method = null;
     }
 
-    public static BinExpr makeBin(int op, ASTree oprand1, ASTree oprand2) {
-        return new BinExpr(op, oprand1, new ASTList(oprand2));
+    public void setMethod(MemberResolver.Method m) {
+        method = m;
     }
 
-    public void accept(Visitor v) throws CompileError { v.atBinExpr(this); }
+    public MemberResolver.Method getMethod() {
+        return method;
+    }
+
+    public static CallExpr makeCall(ASTree target, ASTree args) {
+        return new CallExpr(target, new ASTList(args));
+    }
+
+    public void accept(Visitor v) throws CompileError { v.atCallExpr(this); }
 }

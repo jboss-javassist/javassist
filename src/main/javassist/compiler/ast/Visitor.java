@@ -35,6 +35,7 @@ public class Visitor {
     public void atCondExpr(CondExpr n) throws CompileError {}
     public void atBinExpr(BinExpr n) throws CompileError {}
     public void atExpr(Expr n) throws CompileError {}
+    public void atCallExpr(CallExpr n) throws CompileError {}
     public void atCastExpr(CastExpr n) throws CompileError {}
     public void atInstanceOfExpr(InstanceOfExpr n) throws CompileError {}
     public void atNewExpr(NewExpr n) throws CompileError {}

@@ -205,9 +205,16 @@ public class NewExpr extends Expr {
             bytecode.addOpcode(NEW);
             bytecode.addIndex(newIndex);
             bytecode.addOpcode(DUP);
-            gen.atMethodCall2(newType, MethodInfo.nameInit,
-                              args, false, true, -1);
+            gen.atMethodCallCore(newType, MethodInfo.nameInit, args,
+                                 false, true, -1, null);
             gen.setType(newType);
+        }
+
+        public void setReturnType(JvstTypeChecker c, ASTList args)
+            throws CompileError
+        {
+            c.atMethodCallCore(newType, MethodInfo.nameInit, args);
+            c.setType(newType);
         }
     }
 }

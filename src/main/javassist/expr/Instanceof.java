@@ -151,5 +151,12 @@ public class Instanceof extends Expr {
             bytecode.addIndex(index);
             gen.setType(CtClass.booleanType);
         }
+
+        public void setReturnType(JvstTypeChecker c, ASTList args)
+            throws CompileError
+        {
+            c.atMethodArgs(args, new int[1], new int[1], new String[1]);
+            c.setType(CtClass.booleanType);
+        }
     }
 }

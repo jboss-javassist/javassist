@@ -117,9 +117,9 @@ public class Javac {
     {
         CtFieldWithInit f;
         Declarator d = fd.getDeclarator();
-        f = new CtFieldWithInit(gen.lookupClass(d), d.getVariable().get(),
-                                gen.getThisClass());
-        f.setModifiers(MemberCodeGen.getModifiers(fd.getModifiers()));
+        f = new CtFieldWithInit(gen.resolver.lookupClass(d),
+                                d.getVariable().get(), gen.getThisClass());
+        f.setModifiers(MemberResolver.getModifiers(fd.getModifiers()));
         if (fd.getInit() != null)
             f.setInit(fd.getInit());
 
@@ -129,7 +129,7 @@ public class Javac {
     private CtMember compileMethod(Parser p, MethodDecl md)
         throws CompileError
     {
-        int mod = MemberCodeGen.getModifiers(md.getModifiers());
+        int mod = MemberResolver.getModifiers(md.getModifiers());
         CtClass[] plist = gen.makeParamList(md);
         CtClass[] tlist = gen.makeThrowsList(md);
         recordParams(plist, Modifier.isStatic(mod));
@@ -147,7 +147,7 @@ public class Javac {
             }
             else {
                 Declarator r = md.getReturn();
-                CtClass rtype = gen.lookupClass(r);
+                CtClass rtype = gen.resolver.lookupClass(r);
                 recordReturnType(rtype, false);
                 CtMethod method = new CtMethod(rtype, r.getVariable().get(),
                                            plist, gen.getThisClass());
@@ -344,9 +344,21 @@ public class Javac {
                     if (texpr != null)
                         expr = Expr.make('.', texpr, expr);
 
-                    expr = Expr.make(TokenId.CALL, expr, args);
-                    expr.accept(gen);
+                    expr = CallExpr.makeCall(expr, args);
+                    gen.compileExpr(expr);
                     gen.addNullIfVoid();
+                }
+
+                public void setReturnType(JvstTypeChecker check, ASTList args)
+                    throws CompileError
+                {
+                    ASTree expr = new Member(m);
+                    if (texpr != null)
+                        expr = Expr.make('.', texpr, expr);
+
+                    expr = CallExpr.makeCall(expr, args);
+                    expr.accept(check);
+                    check.addNullIfVoid();
                 }
             };
 
@@ -374,9 +386,19 @@ public class Javac {
                 {
                     Expr expr = Expr.make(TokenId.MEMBER,
                                           new Symbol(c), new Member(m));
-                    expr = Expr.make(TokenId.CALL, expr, args);
-                    expr.accept(gen);
+                    expr = CallExpr.makeCall(expr, args);
+                    gen.compileExpr(expr);
                     gen.addNullIfVoid();
+                }
+
+                public void setReturnType(JvstTypeChecker check, ASTList args)
+                    throws CompileError
+                {
+                    Expr expr = Expr.make(TokenId.MEMBER,
+                                          new Symbol(c), new Member(m));
+                    expr = CallExpr.makeCall(expr, args);
+                    expr.accept(check);
+                    check.addNullIfVoid();
                 }
             };
 
@@ -408,9 +430,15 @@ public class Javac {
                 public void doit(JvstCodeGen gen, Bytecode b, ASTList args)
                     throws CompileError
                 {
-                    gen.compileInvokeSpecial(texpr,
-                                             cname, method, desc, args);
+                    gen.compileInvokeSpecial(texpr, cname, method, desc, args);
                 }
+
+                public void setReturnType(JvstTypeChecker c, ASTList args)
+                    throws CompileError
+                {
+                    c.compileInvokeSpecial(texpr, cname, method, desc, args);
+                }
+
             };
 
         gen.setProceedHandler(h, proceedName);

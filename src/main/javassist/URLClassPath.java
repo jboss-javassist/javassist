@@ -61,6 +61,8 @@ public class URLClassPath implements ClassPath {
 
     /**
      * Opens a class file with http.
+     *
+     * @return null if the class file is not found. 
      */
     public InputStream openClassfile(String classname) {
         try {

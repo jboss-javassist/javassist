@@ -240,6 +240,12 @@ public class FieldAccess extends Expr {
             bytecode.growStack(stack);
             gen.setType(fieldType);
         }
+
+        public void setReturnType(JvstTypeChecker c, ASTList args)
+            throws CompileError
+        {
+            c.setType(fieldType);
+        }
     }
 
     /* void $proceed(<field type>)
@@ -285,6 +291,14 @@ public class FieldAccess extends Expr {
             bytecode.growStack(stack);
             gen.setType(CtClass.voidType);
             gen.addNullIfVoid();
+        }
+
+        public void setReturnType(JvstTypeChecker c, ASTList args)
+            throws CompileError
+        {
+            c.atMethodArgs(args, new int[1], new int[1], new String[1]);
+            c.setType(CtClass.voidType);
+            c.addNullIfVoid();
         }
     }
 }

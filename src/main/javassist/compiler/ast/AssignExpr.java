@@ -25,7 +25,7 @@ public class AssignExpr extends Expr {
      * =, %=, &=, *=, +=, -=, /=, ^=, |=, <<=, >>=, >>>=
      */
 
-    public AssignExpr(int op, ASTree _head, ASTList _tail) {
+    private AssignExpr(int op, ASTree _head, ASTList _tail) {
         super(op, _head, _tail);
     }
 

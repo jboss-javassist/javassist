@@ -852,7 +852,7 @@ public final class Parser implements TokenId {
         case '!' :
         case '~' :
             t = lex.get();
-            return new Expr(t, parseUnaryExpr(tbl));
+            return Expr.make(t, parseUnaryExpr(tbl));
         case '(' :
             return parseCast(tbl);
         default :
@@ -1051,7 +1051,7 @@ public final class Parser implements TokenId {
                 throw new SyntaxError(lex);
         }
 
-        return Expr.make(CALL, expr, parseArgumentList(tbl));
+        return CallExpr.makeCall(expr, parseArgumentList(tbl));
     }
 
     private String toClassName(ASTree name)

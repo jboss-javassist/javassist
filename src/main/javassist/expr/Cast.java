@@ -148,5 +148,12 @@ public class Cast extends Expr {
             bytecode.addIndex(index);
             gen.setType(retType);
         }
+        
+        public void setReturnType(JvstTypeChecker c, ASTList args)
+            throws CompileError
+        {
+            c.atMethodArgs(args, new int[1], new int[1], new String[1]);
+            c.setType(retType);
+        }
     }
 }

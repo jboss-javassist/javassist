@@ -19,29 +19,31 @@ import javassist.*;
 import javassist.bytecode.*;
 import javassist.compiler.ast.*;
 
-/* Code generator methods for extensions by Javassist.
+/* Code generator accepting extended Java syntax for Javassist.
  */
+
 public class JvstCodeGen extends MemberCodeGen {
-    private String paramArrayName = null;
-    private String paramListName = null;
-    private CtClass[] paramTypeList = null;
+    String paramArrayName = null;
+    String paramListName = null;
+    CtClass[] paramTypeList = null;
     private int paramVarBase = 0;       // variable index for $0 or $1.
     private boolean useParam0 = false;  // true if $0 is used.
     private String param0Type = null;   // JVM name
-    private static final String sigName = "$sig";
-    private static final String dollarTypeName = "$type";
-    private static final String clazzName = "$class";
+    public static final String sigName = "$sig";
+    public static final String dollarTypeName = "$type";
+    public static final String clazzName = "$class";
     private CtClass dollarType = null;
-    private CtClass returnType = null;
-    private String returnCastName = null;
+    CtClass returnType = null;
+    String returnCastName = null;
     private String returnVarName = null;        // null if $_ is not used.
-    private static final String wrapperCastName = "$w";
-    private String proceedName = null;
-    private static final String cflowName = "$cflow";
-    private ProceedHandler procHandler = null;  // null if not used.
+    public static final String wrapperCastName = "$w";
+    String proceedName = null;
+    public static final String cflowName = "$cflow";
+    ProceedHandler procHandler = null;  // null if not used.
 
     public JvstCodeGen(Bytecode b, CtClass cc, ClassPool cp) {
         super(b, cc, cp);
+        setTypeChecker(new JvstTypeChecker(cc, cp, this));
     }
 
     /* Index of $1.
@@ -117,9 +119,6 @@ public class JvstCodeGen extends MemberCodeGen {
         className = "java/lang/Class";
     }
 
-    private void atSigOrType(String sig) throws CompileError {
-    }
-
     protected void atFieldAssign(Expr expr, int op, ASTree left,
                         ASTree right, boolean doDup) throws CompileError
     {
@@ -188,7 +187,8 @@ public class JvstCodeGen extends MemberCodeGen {
             compileUnwrapValue(returnType, bytecode);
         else if (returnType instanceof CtPrimitiveType) {
             CtPrimitiveType pt = (CtPrimitiveType)returnType;
-            int destType = jvmTypeNameToExprType(pt.getDescriptor());
+            int destType = MemberResolver.jvmTypeNameToExprType(
+                                                    pt.getDescriptor());
             atNumCastExpr(exprType, destType);
             exprType = destType;
             arrayDim = 0;
@@ -203,7 +203,7 @@ public class JvstCodeGen extends MemberCodeGen {
         if (isRefType(exprType) || arrayDim > 0)
             return;     // Object type.  do nothing.
 
-        CtClass clazz = lookupClass(exprType, arrayDim, className);
+        CtClass clazz = resolver.lookupClass(exprType, arrayDim, className);
         if (clazz instanceof CtPrimitiveType) {
             CtPrimitiveType pt = (CtPrimitiveType)clazz;
             String wrapper = pt.getWrapperName();
@@ -227,7 +227,7 @@ public class JvstCodeGen extends MemberCodeGen {
     /* Delegates to a ProcHandler object if the method call is
      * $proceed().  It may process $cflow().
      */
-    protected void atMethodCall(Expr expr) throws CompileError {
+    public void atCallExpr(CallExpr expr) throws CompileError {
         ASTree method = expr.oprand1();
         if (method instanceof Member) {
             String name = ((Member)method).get();
@@ -241,7 +241,7 @@ public class JvstCodeGen extends MemberCodeGen {
             }
         }
 
-        super.atMethodCall(expr);
+        super.atCallExpr(expr);
     }
 
     /* To support $cflow().
@@ -253,7 +253,7 @@ public class JvstCodeGen extends MemberCodeGen {
 
         makeCflowName(sbuf, cname.head());
         String name = sbuf.toString();
-        Object[] names = classPool.lookupCflow(name);
+        Object[] names = resolver.getClassPool().lookupCflow(name);
         if (names == null)
             throw new CompileError("no such a " + cflowName + ": " + name);
 
@@ -413,7 +413,7 @@ public class JvstCodeGen extends MemberCodeGen {
     protected void atReturnStmnt(Stmnt st) throws CompileError {
         ASTree result = st.getLeft();
         if (result != null && returnType == CtClass.voidType) {
-            result.accept(this);
+            compileExpr(result);
             if (is2word(exprType, arrayDim))
                 bytecode.addOpcode(POP2);
             else if (exprType != VOID)
@@ -500,15 +500,15 @@ public class JvstCodeGen extends MemberCodeGen {
         paramVarBase = paramBase;
         useParam0 = use0;
 
-        param0Type = jvmToJavaName(target);
+        param0Type = MemberResolver.jvmToJavaName(target);
 
         inStaticMethod = isStatic;
         varNo = paramBase;
         if (use0) {
             String varName = prefix + "0";
             Declarator decl
-                = new Declarator(CLASS, javaToJvmName(target), 0, varNo++,
-                                 new Symbol(varName));
+                = new Declarator(CLASS, MemberResolver.javaToJvmName(target),
+                                 0, varNo++, new Symbol(varName));
             tbl.append(varName, decl);
         }
 
@@ -640,7 +640,7 @@ public class JvstCodeGen extends MemberCodeGen {
     private void setType(CtClass type, int dim) throws CompileError {
         if (type.isPrimitive()) {
             CtPrimitiveType pt = (CtPrimitiveType)type;
-            exprType = descToType(pt.getDescriptor());
+            exprType = MemberResolver.descToType(pt.getDescriptor());
             arrayDim = dim;
             className = null;
         }
@@ -654,7 +654,7 @@ public class JvstCodeGen extends MemberCodeGen {
         else {
             exprType = CLASS;
             arrayDim = dim;
-            className = javaToJvmName(type.getName());
+            className = MemberResolver.javaToJvmName(type.getName());
         }
     }
 
@@ -664,7 +664,8 @@ public class JvstCodeGen extends MemberCodeGen {
         if (arrayDim == 0 && !isRefType(exprType))
             if (type instanceof CtPrimitiveType) {
                 CtPrimitiveType pt = (CtPrimitiveType)type;
-                atNumCastExpr(exprType, descToType(pt.getDescriptor()));
+                atNumCastExpr(exprType,
+                              MemberResolver.descToType(pt.getDescriptor()));
             }
             else
                 throw new CompileError("type mismatch");

@@ -24,18 +24,18 @@ import javassist.compiler.CompileError;
 public class Expr extends ASTList implements TokenId {
     /* operator must be either of:
      * (unary) +, (unary) -, ++, --, !, ~,
-     * CALL, ARRAY, . (dot), MEMBER (static member access).
+     * ARRAY, . (dot), MEMBER (static member access).
      * Otherwise, the object should be an instance of a subclass.
      */
 
     protected int operatorId;
 
-    public Expr(int op, ASTree _head, ASTList _tail) {
+    Expr(int op, ASTree _head, ASTList _tail) {
         super(_head, _tail);
         operatorId = op;
     }
 
-    public Expr(int op, ASTree _head) {
+    Expr(int op, ASTree _head) {
         super(_head);
         operatorId = op;
     }
@@ -44,11 +44,19 @@ public class Expr extends ASTList implements TokenId {
         return new Expr(op, oprand1, new ASTList(oprand2));
     }
 
+    public static Expr make(int op, ASTree oprand1) {
+        return new Expr(op, oprand1);
+    }
+
     public int getOperator() { return operatorId; }
 
     public ASTree oprand1() { return getLeft(); }
 
     public ASTree oprand2() { return getRight().getLeft(); }
+
+    public void setOprand2(ASTree expr) {
+        getRight().setLeft(expr);
+    }
 
     public void accept(Visitor v) throws CompileError { v.atExpr(this); }
 

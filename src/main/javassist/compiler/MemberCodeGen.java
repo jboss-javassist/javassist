@@ -15,7 +15,6 @@
 
 package javassist.compiler;
 
-import java.util.List;
 import javassist.*;
 import javassist.bytecode.*;
 import javassist.compiler.ast.*;
@@ -23,15 +22,16 @@ import javassist.compiler.ast.*;
 /* Code generator methods depending on javassist.* classes.
  */
 public class MemberCodeGen extends CodeGen {
-    protected ClassPool classPool;
+    protected MemberResolver resolver;
     protected CtClass   thisClass;
     protected MethodInfo thisMethod;
 
     protected boolean resultStatic;
 
-    public MemberCodeGen(Bytecode b, CtClass cc, ClassPool cp) {
+    public MemberCodeGen(Bytecode b, CtClass cc, ClassPool cp)
+    {
         super(b);
-        classPool = cp;
+        resolver = new MemberResolver(cp);
         thisClass = cc;
         thisMethod = null;
     }
@@ -41,6 +41,8 @@ public class MemberCodeGen extends CodeGen {
      */
     public void setThisMethod(CtMethod m) {
         thisMethod = m.getMethodInfo2();
+        if (typeChecker != null)
+            typeChecker.setThisMethod(thisMethod);
     }
 
     public CtClass getThisClass() { return thisClass; }
@@ -49,19 +51,21 @@ public class MemberCodeGen extends CodeGen {
      * Returns the JVM-internal representation of this class name.
      */
     protected String getThisName() {
-        return javaToJvmName(thisClass.getName());
+        return MemberResolver.javaToJvmName(thisClass.getName());
     }
 
     /**
      * Returns the JVM-internal representation of this super class name.
      */
     protected String getSuperName() throws CompileError {
-        return javaToJvmName(getSuperclass(thisClass).getName());
+        return MemberResolver.javaToJvmName(
+                        MemberResolver.getSuperclass(thisClass).getName());
     }
 
     protected void insertDefaultSuperCall() throws CompileError {
         bytecode.addAload(0);
-        bytecode.addInvokespecial(getSuperclass(thisClass), "<init>", "()V");
+        bytecode.addInvokespecial(MemberResolver.getSuperclass(thisClass),
+                                  "<init>", "()V");
     }
 
     protected void atTryStmnt(Stmnt st) throws CompileError {
@@ -90,8 +94,8 @@ public class MemberCodeGen extends CodeGen {
 
             decl.setLocalVar(var);
 
-            CtClass type = lookupJvmClass(decl.getClassName());
-            decl.setClassName(javaToJvmName(type.getName()));
+            CtClass type = resolver.lookupClassByJvmName(decl.getClassName());
+            decl.setClassName(MemberResolver.javaToJvmName(type.getName()));
             bytecode.addExceptionHandler(start, end, bytecode.currentPc(),
                                          type);
             bytecode.growStack(1);
@@ -116,17 +120,18 @@ public class MemberCodeGen extends CodeGen {
         if (expr.isArray())
             atNewArrayExpr(expr);
         else {
-            CtClass clazz = lookupClass(expr.getClassName());
+            CtClass clazz = resolver.lookupClassByName(expr.getClassName());
             String cname = clazz.getName();
             ASTList args = expr.getArguments();
             bytecode.addNew(cname);
             bytecode.addOpcode(DUP);
 
-            atMethodCall2(clazz, MethodInfo.nameInit, args, false, true, -1);
+            atMethodCallCore(clazz, MethodInfo.nameInit, args,
+                             false, true, -1, null);
 
             exprType = CLASS;
             arrayDim = 0;
-            className = javaToJvmName(cname);
+            className = MemberResolver.javaToJvmName(cname);
         }
     }
 
@@ -147,7 +152,7 @@ public class MemberCodeGen extends CodeGen {
         arrayDim = 1;
         if (type == CLASS) {
             className = resolveClassName(classname);
-            bytecode.addAnewarray(jvmToJavaName(className));
+            bytecode.addAnewarray(MemberResolver.jvmToJavaName(className));
         }
         else {
             className = null;
@@ -220,7 +225,7 @@ public class MemberCodeGen extends CodeGen {
         bytecode.addMultiNewarray(desc, count);
     }
 
-    protected void atMethodCall(Expr expr) throws CompileError {
+    public void atCallExpr(CallExpr expr) throws CompileError {
         String mname = null;
         CtClass targetClass = null;
         ASTree method = expr.oprand1();
@@ -229,10 +234,11 @@ public class MemberCodeGen extends CodeGen {
         boolean isSpecial = false;
         int aload0pos = -1;
 
+        MemberResolver.Method cached = expr.getMethod();
         if (method instanceof Member) {
             mname = ((Member)method).get();
             targetClass = thisClass;
-            if (inStaticMethod)
+            if (inStaticMethod || (cached != null && cached.isStatic()))
                 isStatic = true;            // should be static
             else {
                 aload0pos = bytecode.currentPc();
@@ -249,14 +255,15 @@ public class MemberCodeGen extends CodeGen {
                 bytecode.addAload(0);   // this
 
             if (((Keyword)method).get() == SUPER)
-                targetClass = getSuperclass(targetClass);
+                targetClass = MemberResolver.getSuperclass(targetClass);
         }
         else if (method instanceof Expr) {
             Expr e = (Expr)method;
             mname = ((Symbol)e.oprand2()).get();
             int op = e.getOperator();
             if (op == MEMBER) {                 // static method
-                targetClass = lookupJavaClass(((Symbol)e.oprand1()).get());
+                targetClass
+                    = resolver.lookupClass(((Symbol)e.oprand1()).get());
                 isStatic = true;
             }
             else if (op == '.') {
@@ -280,9 +287,9 @@ public class MemberCodeGen extends CodeGen {
                 }
 
                 if (arrayDim > 0)
-                    targetClass = lookupJavaClass(javaLangObject);
+                    targetClass = resolver.lookupClass(javaLangObject);
                 else if (exprType == CLASS /* && arrayDim == 0 */)
-                    targetClass = lookupJvmClass(className);
+                    targetClass = resolver.lookupClassByJvmName(className);
                 else
                     badMethod();
             }
@@ -292,33 +299,29 @@ public class MemberCodeGen extends CodeGen {
         else
             fatal();
 
-        atMethodCall2(targetClass, mname, args, isStatic, isSpecial,
-                      aload0pos);
+        atMethodCallCore(targetClass, mname, args, isStatic, isSpecial,
+                         aload0pos, cached);
     }
 
     private static void badMethod() throws CompileError {
         throw new CompileError("bad method");
     }
 
-    private static CtClass getSuperclass(CtClass c) throws CompileError {
-        try {
-            return c.getSuperclass();
-        }
-        catch (NotFoundException e) {
-            throw new CompileError("cannot find the super class of "
-                                   + c.getName());
-        }
-    }
-
-    public void atMethodCall2(CtClass targetClass, String mname,
+    // atMethodCallCore() is also called by doit() in NewExpr.ProceedForNew
+    public void atMethodCallCore(CtClass targetClass, String mname,
                         ASTList args, boolean isStatic, boolean isSpecial,
-                        int aload0pos)
+                        int aload0pos, MemberResolver.Method found)
         throws CompileError
     {
         int nargs = getMethodArgsLength(args);
         int[] types = new int[nargs];
         int[] dims = new int[nargs];
         String[] cnames = new String[nargs];
+
+        if (!isStatic && found != null && found.isStatic()) {
+            bytecode.addOpcode(POP);
+            isStatic = true;
+        }
 
         int stack = bytecode.getStackDepth();
 
@@ -327,8 +330,10 @@ public class MemberCodeGen extends CodeGen {
         // used by invokeinterface
         int count = bytecode.getStackDepth() - stack + 1;
 
-        Object[] found = lookupMethod(targetClass, thisMethod, mname,
-                                      types, dims, cnames, false);
+        if (found == null)
+            found = resolver.lookupMethod(targetClass, thisMethod, mname,
+                                          types, dims, cnames, false);
+
         if (found == null) {
             String msg;
             if (mname.equals(MethodInfo.nameInit))
@@ -340,8 +345,8 @@ public class MemberCodeGen extends CodeGen {
             throw new CompileError(msg);
         }
 
-        CtClass declClass = (CtClass)found[0];
-        MethodInfo minfo = (MethodInfo)found[1];
+        CtClass declClass = found.declaring;
+        MethodInfo minfo = found.info;
         String desc = minfo.getDescriptor();
         int acc = minfo.getAccessFlags();
 
@@ -428,7 +433,7 @@ public class MemberCodeGen extends CodeGen {
             className = desc.substring(i + 1, j);
         }
         else {
-            exprType = descToType(c);
+            exprType = MemberResolver.descToType(c);
             className = null;
         }
 
@@ -447,188 +452,6 @@ public class MemberCodeGen extends CodeGen {
                     bytecode.addOpcode(POP);
                 }
             }
-        }
-    }
-
-    private Object[] lookupMethod(CtClass clazz, MethodInfo current,
-                                  String methodName,
-                                  int[] argTypes, int[] argDims,
-                                  String[] argClassNames, boolean onlyExact)
-        throws CompileError
-    {
-        Object[] maybe = null;
-
-        if (current != null)
-            if (current.getName().equals(methodName)) {
-                int res = compareSignature(current.getDescriptor(),
-                                           argTypes, argDims, argClassNames);
-                Object[] r = new Object[] { clazz, current };
-                if (res == YES)
-                    return r;
-                else if (res == MAYBE && maybe == null)
-                    maybe = r;
-            }
-
-        List list = clazz.getClassFile2().getMethods();
-        int n = list.size();
-        for (int i = 0; i < n; ++i) {
-            MethodInfo minfo = (MethodInfo)list.get(i);
-            if (minfo.getName().equals(methodName)) {
-                int res = compareSignature(minfo.getDescriptor(),
-                                           argTypes, argDims, argClassNames);
-                Object[] r = new Object[] { clazz, minfo };
-                if (res == YES)
-                    return r;
-                else if (res == MAYBE && maybe == null)
-                    maybe = r;
-            }
-        }
-
-        try {
-            CtClass pclazz = clazz.getSuperclass();
-            if (pclazz != null) {
-                Object[] r = lookupMethod(pclazz, null, methodName, argTypes,
-                                          argDims, argClassNames,
-                                          (onlyExact || maybe != null));
-                if (r != null)
-                    return r;
-            }
-        }
-        catch (NotFoundException e) {}
-
-        /* -- not necessary to search implemented interfaces.
-        try {
-            CtClass[] ifs = clazz.getInterfaces();
-            int size = ifs.length;
-            for (int i = 0; i < size; ++i) {
-                Object[] r = lookupMethod(ifs[i], methodName, argTypes,
-                                          argDims, argClassNames);
-                if (r != null)
-                    return r;
-            }
-        }
-        catch (NotFoundException e) {}
-        */
-
-        if (onlyExact)
-            return null;
-        else
-            return maybe;
-    }
-
-    private static final int YES = 2;
-    private static final int MAYBE = 1;
-    private static final int NO = 0;
-
-    /*
-     * Returns YES if actual parameter types matches the given signature.
-     *
-     * argTypes, argDims, and argClassNames represent actual parameters.
-     *
-     * This method does not correctly implement the Java method dispatch
-     * algorithm.
-     */
-    private int compareSignature(String desc, int[] argTypes,
-                                 int[] argDims, String[] argClassNames)
-        throws CompileError
-    {
-        int result = YES;
-        int i = 1;
-        int nArgs = argTypes.length;
-        if (nArgs != Descriptor.numOfParameters(desc))
-            return NO;
-
-        int len = desc.length();
-        for (int n = 0; i < len; ++n) {
-            char c = desc.charAt(i++);
-            if (c == ')')
-                return (n == nArgs ? result : NO);
-            else if (n >= nArgs)
-                return NO;
-
-            int dim = 0;
-            while (c == '[') {
-                ++dim;
-                c = desc.charAt(i++);
-            }
-
-            if (argTypes[n] == NULL) {
-                if (dim == 0 && c != 'L')
-                    return NO;
-            }
-            else if (argDims[n] != dim) {
-                if (!(dim == 0 && c == 'L'
-                      && desc.startsWith("java/lang/Object;", i)))
-                    return NO;
-
-                // if the thread reaches here, c must be 'L'.
-                i = desc.indexOf(';', i) + 1;
-                result = MAYBE;
-                if (i <= 0)
-                    return NO;  // invalid descriptor?
-            }
-            else if (c == 'L') {        // not compare
-                int j = desc.indexOf(';', i);
-                if (j < 0 || argTypes[n] != CLASS)
-                    return NO;
-
-                String cname = desc.substring(i, j);
-                if (!cname.equals(argClassNames[n])) {
-                    CtClass clazz = lookupJvmClass(argClassNames[n]);
-                    try {
-                        if (clazz.subtypeOf(lookupJvmClass(cname)))
-                            result = MAYBE;
-                        else
-                            return NO;
-                    }
-                    catch (NotFoundException e) {
-                        result = MAYBE; // should be NO?
-                    }
-                }
-
-                i = j + 1;
-            }
-            else {
-                int t = descToType(c);
-                int at = argTypes[n];
-                if (t != at)
-                    if (t == INT
-                        && (at == SHORT || at == BYTE || at == CHAR))
-                        result = MAYBE;
-                    else
-                        return NO;
-            }
-        }
-
-        return NO;
-    }
-
-    protected static int descToType(char c) throws CompileError {
-        switch (c) {
-        case 'Z' :
-            return BOOLEAN;
-        case 'C' :
-            return CHAR;
-        case 'B' :
-            return  BYTE;
-        case 'S' :
-            return SHORT;
-        case 'I' :
-            return INT;
-        case 'J' :
-            return LONG;
-        case 'F' :
-            return FLOAT;
-        case 'D' :
-            return DOUBLE;
-        case 'V' :
-            return VOID;
-        case 'L' :
-        case '[' :
-            return CLASS;
-        default :
-            fatal();
-            return VOID;
         }
     }
 
@@ -704,7 +527,7 @@ public class MemberCodeGen extends CodeGen {
 
         arrayDim = dim;
         boolean is2byte = (c == 'J' || c == 'D');
-        exprType = descToType(c);
+        exprType = MemberResolver.descToType(c);
 
         if (c == 'L')
             className = type.substring(i + 1, type.indexOf(';', i + 1));
@@ -795,15 +618,16 @@ public class MemberCodeGen extends CodeGen {
             Expr e = (Expr)expr;
             int op = e.getOperator();
             if (op == MEMBER) {
-                f = lookupJavaField(((Symbol)e.oprand1()).get(),
-                                    (Symbol)e.oprand2());
+                f = resolver.lookupField(((Symbol)e.oprand1()).get(),
+                                         (Symbol)e.oprand2());
                 is_static = true;
             }
             else if (op == '.') {
                 try {
                     e.oprand1().accept(this);
                     if (exprType == CLASS && arrayDim == 0)
-                        f = lookupJvmField(className, (Symbol)e.oprand2());
+                        f = resolver.lookupFieldByJvmName(className,
+                                                    (Symbol)e.oprand2());
                     else
                         badLvalue();
 
@@ -818,7 +642,8 @@ public class MemberCodeGen extends CodeGen {
                     Symbol fname = (Symbol)e.oprand2();
                     // it should be a static field.
                     try {
-                        f = lookupJvmField(nfe.getField(), fname);
+                        f = resolver.lookupFieldByJvmName(nfe.getField(),
+                                                          fname);
                         is_static = true;
                     }
                     catch (CompileError ce) {
@@ -851,7 +676,7 @@ public class MemberCodeGen extends CodeGen {
             int i = 0;
             params = new CtClass[plist.length()];
             while (plist != null) {
-                params[i++] = lookupClass((Declarator)plist.head());
+                params[i++] = resolver.lookupClass((Declarator)plist.head());
                 plist = plist.tail();
             }
         }
@@ -868,54 +693,12 @@ public class MemberCodeGen extends CodeGen {
             int i = 0;
             clist = new CtClass[list.length()];
             while (list != null) {
-                clist[i++] = lookupClass((ASTList)list.head());
+                clist[i++] = resolver.lookupClassByName((ASTList)list.head());
                 list = list.tail();
             }
 
             return clist;
         }
-    }
-
-    public static int getModifiers(ASTList mods) {
-        int m = 0;
-        while (mods != null) {
-            Keyword k = (Keyword)mods.head();
-            mods = mods.tail();
-            switch (k.get()) {
-            case STATIC :
-                m |= Modifier.STATIC;
-                break;
-            case FINAL :
-                m |= Modifier.FINAL;
-                break;
-            case SYNCHRONIZED :
-                m |= Modifier.SYNCHRONIZED;
-                break;
-            case ABSTRACT :
-                m |= Modifier.ABSTRACT;
-                break;
-            case PUBLIC :
-                m |= Modifier.PUBLIC;
-                break;
-            case PROTECTED :
-                m |= Modifier.PROTECTED;
-                break;
-            case PRIVATE :
-                m |= Modifier.PRIVATE;
-                break;
-            case VOLATILE :
-                m |= Modifier.VOLATILE;
-                break;
-            case TRANSIENT :
-                m |= Modifier.TRANSIENT;
-                break;
-            case STRICT :
-                m |= Modifier.STRICT;
-                break;
-            }
-        }
-
-        return m;
     }
 
     /* Converts a class name into a JVM-internal representation.
@@ -924,136 +707,13 @@ public class MemberCodeGen extends CodeGen {
      * For example, this converts Object into java/lang/Object.
      */
     protected String resolveClassName(ASTList name) throws CompileError {
-        if (name == null)
-            return null;
-        else
-            return javaToJvmName(lookupClass(name).getName());
+        return resolver.resolveClassName(name);
     }
 
     /* Expands a simple class name to java.lang.*.
      * For example, this converts Object into java/lang/Object.
      */
     protected String resolveClassName(String jvmName) throws CompileError {
-        if (jvmName == null)
-            return null;
-        else
-            return javaToJvmName(lookupJvmClass(jvmName).getName());
-    }
-
-    protected CtClass lookupClass(Declarator decl) throws CompileError {
-        return lookupClass(decl.getType(), decl.getArrayDim(),
-                           decl.getClassName());
-    }
-
-    protected CtClass lookupClass(int type, int dim, String classname)
-        throws CompileError
-    {
-        String cname = "";
-        CtClass clazz;
-        switch (type) {
-        case CLASS :
-            clazz = lookupJvmClass(classname);
-            if (dim > 0)
-                cname = clazz.getName();
-            else
-                return clazz;
-
-            break;
-        case BOOLEAN :
-            cname = "boolean";
-            break;
-        case CHAR :
-            cname = "char";
-            break;
-        case BYTE :
-            cname = "byte";
-            break;
-        case SHORT :
-            cname = "short";
-            break;
-        case INT :
-            cname = "int";
-            break;
-        case LONG :
-            cname = "long";
-            break;
-        case FLOAT :
-            cname = "float";
-            break;
-        case DOUBLE :
-            cname = "double";
-            break;
-        case VOID :
-            cname = "void";
-            break;
-        default :
-            fatal();
-        }
-
-        while (dim-- > 0)
-            cname += "[]";
-
-        return lookupJavaClass(cname);
-    }
-
-    protected CtClass lookupClass(ASTList name) throws CompileError {
-        return lookupJavaClass(Declarator.astToClassName(name, '.'));
-    }
-
-    protected CtClass lookupJvmClass(String jvmName) throws CompileError {
-        return lookupJavaClass(jvmToJavaName(jvmName));
-    }
-
-    /**
-     * @param name      a qualified class name. e.g. java.lang.String
-     */
-    private CtClass lookupJavaClass(String name) throws CompileError {
-        try {
-            return classPool.get(name);
-        }
-        catch (NotFoundException e) {}
-
-        try {
-            if (name.indexOf('.') < 0)
-                return classPool.get("java.lang." + name);
-        }
-        catch (NotFoundException e) {}
-
-        throw new CompileError("no such class: " + name);
-    }
-
-    public CtField lookupField(ASTList className, Symbol fieldName)
-        throws CompileError
-    {
-        return lookupJavaField(Declarator.astToClassName(className, '.'),
-                            fieldName);
-    }
-
-    public CtField lookupJvmField(String className, Symbol fieldName)
-        throws CompileError
-    {
-        return lookupJavaField(jvmToJavaName(className), fieldName);
-    }
-
-    /**
-     * @param name      a qualified class name. e.g. java.lang.String
-     */
-    private CtField lookupJavaField(String className, Symbol fieldName)
-        throws CompileError
-    {
-        CtClass cc = lookupJavaClass(className);
-        try {
-            return cc.getField(fieldName.get());
-        }
-        catch (NotFoundException e) {}
-        throw new CompileError("no such field: " + fieldName.get());
-    }
-
-    protected static String javaToJvmName(String classname) {
-        return classname.replace('.', '/');
-    }
-
-    protected static String jvmToJavaName(String classname) {
-        return classname.replace('/', '.');
+        return resolver.resolveJvmClassName(jvmName);
     }
 }

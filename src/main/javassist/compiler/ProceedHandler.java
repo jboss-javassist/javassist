@@ -25,6 +25,6 @@ import javassist.compiler.ast.ASTList;
  * @see javassist.compiler.JvstCodeGen#atMethodCall(Expr)
  */
 public interface ProceedHandler {
-    void doit(JvstCodeGen gen, Bytecode b, ASTList args)
-        throws CompileError;
+    void doit(JvstCodeGen gen, Bytecode b, ASTList args) throws CompileError;
+    void setReturnType(JvstTypeChecker c, ASTList args) throws CompileError;
 }
