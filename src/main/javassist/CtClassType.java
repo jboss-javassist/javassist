@@ -34,10 +34,10 @@ import java.util.List;
  * Class types.
  */
 class CtClassType extends CtClass {
-    protected ClassPool classPool;
-    protected boolean wasChanged;
-    protected boolean wasFrozen;
-    protected ClassFile classfile;
+    ClassPool classPool;
+    boolean wasChanged;
+    boolean wasFrozen;
+    ClassFile classfile;
 
     private CtField fieldsCache;
     private CtConstructor constructorsCache;
@@ -126,6 +126,8 @@ class CtClassType extends CtClass {
     }
 
     public ClassPool getClassPool() { return classPool; }
+
+    void setClassPool(ClassPool cp) { classPool = cp; }
 
     public URL getURL() throws NotFoundException {
         URL url = classPool.find(getName());
@@ -762,22 +764,24 @@ class CtClassType extends CtClass {
         }
     }
 
-    void toBytecode(DataOutputStream out)
+    public void toBytecode(DataOutputStream out)
         throws CannotCompileException, IOException
     {
-        ClassFile cf = getClassFile2();
         try {
-            modifyClassConstructor(cf);
-            modifyConstructors(cf);
+            if (isModified()) {
+                ClassFile cf = getClassFile2();
+                modifyClassConstructor(cf);
+                modifyConstructors(cf);
+                cf.write(out);
+                out.flush();
+            }
+            else
+                classPool.writeClassfile(getName(), out);
+
+            wasFrozen = true;
         }
         catch (NotFoundException e) {
             throw new CannotCompileException(e);
-        }
-
-        wasFrozen = true;
-        try {
-            cf.write(out);
-            out.flush();
         }
         catch (IOException e) {
             throw new CannotCompileException(e);

@@ -15,8 +15,7 @@
 
 package javassist;
 
-import java.io.DataOutputStream;
-import java.io.IOException;
+import java.io.*;
 import javassist.bytecode.*;
 import java.util.Collection;
 import javassist.expr.ExprEditor;
@@ -36,7 +35,7 @@ public abstract class CtClass {
     /**
      * The version number of this release.
      */
-    public static final String version = "2.7 alpha 8";
+    public static final String version = "3.0 alpha 1";
 
     /**
      * Prints the version number and the copyright notice.
@@ -815,22 +814,55 @@ public abstract class CtClass {
      * Once this method is called, further modifications are not
      * possible any more.
      *
-     * <p>This method is equivalent to:
-     * <ul><pre>this.getClassPool().writeAsClass(this.getName())</pre></ul>
-     *
-     * <p>See the description of <code>ClassPool.writeAsClass()</code>
-     * before you use this method.
-     * This method is provided for convenience.  If you need more
+     * <p>This method is provided for convenience.  If you need more
      * complex functionality, you should write your own class loader.
      *
-     * @see javassist.ClassPool#writeAsClass(String)
-     * @see javassist.ClassPool#forName(String)
-     * @see javassist.Loader
+     * <p>To load a class file, this method uses an internal class loader,
+     * which is an instance of <code>ClassPool.SimpleLoader</code>.
+     * Thus, that class file is not loaded by the system class loader,
+     * which should have loaded this <code>CtClass</code> class.
+     * The internal class loader
+     * loads only the classes explicitly specified by this method
+     * <code>toClass()</code>.  The other classes are loaded
+     * by the parent class loader (usually the sytem class loader)
+     * by delegation.
+     *
+     * <p>For example,
+     *
+     * <ul><pre>class Line { Point p1, p2; }</pre></ul>
+     *
+     * <p>If the class <code>Line</code> is loaded by the internal class
+     * loader and the class <code>Point</code> has not been loaded yet,
+     * then the class <code>Point</code> that the class <code>Line</code>
+     * refers to is loaded by the parent class loader.  There is no
+     * chance of modifying the definition of <code>Point</code> with
+     * Javassist.
+     *
+     * <p>The internal class loader is shared among all the instances
+     * of <code>ClassPool</code>.
+     *
+     * @return the <code>Class</code> object representing the loaded class.  
+     * @see CtClass#forName(String)
+     * @see ClassPool.SimpleClassLoader
+     * @see Loader
      */
     public Class toClass()
         throws NotFoundException, IOException, CannotCompileException
     {
-        return getClassPool2().writeAsClass(getName());
+        return ClassPool.loadClass(getName(), toBytecode());
+    }
+
+    /**
+     * Returns a <code>java.lang.Class</code> object that has been loaded
+     * by <code>toClass()</code>.  Such an object cannot be
+     * obtained by <code>java.lang.Class.forName()</code> because it has
+     * been loaded by an internal class loader of Javassist.
+     *
+     * @see CtClass#toClass()
+     * @see ClassPool.SimpleClassLoader
+     */
+    public static Class forName(String name) throws ClassNotFoundException {
+        return ClassPool.forName(name);
     }
 
     /**
@@ -838,15 +870,21 @@ public abstract class CtClass {
      * Once this method is called, further modifications are not
      * possible any more.
      *
-     * <p>This method is equivalent to:
-     * <ul><pre>this.getClassPool().write(this.getName())</pre></ul>
-     *
-     * @see javassist.ClassPool#write(String)
+     * @return the contents of the class file.
      */
     public byte[] toBytecode()
         throws NotFoundException, IOException, CannotCompileException
     {
-        return getClassPool2().write(getName());
+        ByteArrayOutputStream barray = new ByteArrayOutputStream();
+        DataOutputStream out = new DataOutputStream(barray);
+        try {
+            toBytecode(out);
+        }
+        finally {
+            out.close();
+        }
+
+        return barray.toByteArray();
     }
 
     /**
@@ -854,25 +892,84 @@ public abstract class CtClass {
      * object in the current directory.
      * Once this method is called, further modifications are not
      * possible any more.
-     *
-     * <p>This method is equivalent to:
-     * <ul><pre>this.getClassPool().writeFile(this.getName())</pre></ul>
-     *
-     * @see javassist.ClassPool#writeFile(String)
      */
     public void writeFile()
         throws NotFoundException, IOException, CannotCompileException
     {
-        getClassPool2().writeFile(getName());
+        writeFile(".");
     }
 
-    private ClassPool getClassPool2() throws CannotCompileException {
-        ClassPool cp = getClassPool();
-        if (cp == null)
-            throw new CannotCompileException(
-                        getName() + ": no ClassPool found. not a class?");
-        else
-            return cp;
+    /**
+     * Writes a class file represented by this <code>CtClass</code>
+     * object on a local disk.
+     * Once this method is called, further modifications are not
+     * possible any more.
+     *
+     * @param directoryName     it must end without a directory separator.
+     */
+    public void writeFile(String directoryName)
+        throws NotFoundException, CannotCompileException, IOException
+    {
+        String classname = getName();
+        String filename = directoryName + File.separatorChar
+            + classname.replace('.', File.separatorChar) + ".class";
+        int pos = filename.lastIndexOf(File.separatorChar);
+        if (pos > 0) {
+            String dir = filename.substring(0, pos);
+            if (!dir.equals("."))
+                new File(dir).mkdirs();
+        }
+
+        DataOutputStream out
+            = new DataOutputStream(new BufferedOutputStream(
+                                new DelayedFileOutputStream(filename)));
+        try {
+            toBytecode(out);
+        }
+        finally {
+            out.close();
+        }
+    }
+
+    static class DelayedFileOutputStream extends OutputStream {
+        private FileOutputStream file;
+        private String filename;
+
+        DelayedFileOutputStream(String name) {
+            file = null;
+            filename = name;
+        }
+
+        private void init() throws IOException {
+            if (file == null)
+                file = new FileOutputStream(filename);
+        }
+
+        public void write(int b) throws IOException {
+            init();
+            file.write(b);
+        }
+
+        public void write(byte[] b) throws IOException {
+            init();
+            file.write(b);
+        }
+
+        public void write(byte[] b, int off, int len) throws IOException {
+            init();
+            file.write(b, off, len);
+
+        }
+
+        public void flush() throws IOException {
+            init();
+            file.flush();
+        }
+
+        public void close() throws IOException {
+            init();
+            file.close();
+        }
     }
 
     /**
@@ -880,16 +977,11 @@ public abstract class CtClass {
      * Once this method is called, further modifications are not
      * possible any more.
      *
-     * <p>If this method is used to obtain a byte array representing
-     * the class file, <code>Translator.onWrite()</code> is never
-     * called on this class.  <code>ClassPool.write()</code> should
-     * be used.
-     *
      * <p>This method dose not close the output stream in the end.
      *
      * @param out       the output stream that a class file is written to.
      */
-    void toBytecode(DataOutputStream out)
+    public void toBytecode(DataOutputStream out)
         throws CannotCompileException, IOException
     {
         throw new CannotCompileException("not a class");

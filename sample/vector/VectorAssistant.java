@@ -96,7 +96,7 @@ public class VectorAssistant implements Assistant {
 
 	vec.addMethod(CtNewMethod.copy(addmethod, "add", vec, map));
 	vec.addMethod(CtNewMethod.copy(atmethod, "at", vec, map));
-	pool.writeFile(vec.getName());
+	vec.writeFile();
 	return vec;
     }
 
@@ -125,7 +125,7 @@ public class VectorAssistant implements Assistant {
 	m = CtNewMethod.wrapped(type, "at", args2,
 				null, atmethod, null, vec);
 	vec.addMethod(m);
-	pool.writeFile(vec.getName());
+	vec.writeFile();
 	return vec;
     }
 

@@ -21,9 +21,6 @@ import javassist.CtMethod.ConstParameter;
 /**
  * The class implementing the reflection mechanism.
  *
- * <p>This class is used with <code>ClassPool</code>.
- * Note that it implements an interface <code>javassist.Translator</code>.
- *
  * <p>If a class is reflective,
  * then all the method invocations on every
  * instance of that class are intercepted by the runtime
@@ -58,8 +55,6 @@ import javassist.CtMethod.ConstParameter;
  * @see javassist.reflect.Metaobject
  * @see javassist.reflect.Loader
  * @see javassist.reflect.Compiler
- * @see javassist.ClassPool
- * @see javassist.Translator
  */
 public class Reflection implements Translator {
 
@@ -120,11 +115,10 @@ public class Reflection implements Translator {
      * Inserts hooks for intercepting accesses to the fields declared
      * in reflective classes.
      */
-    public void onWrite(ClassPool pool, String classname)
+    public void onWrite(ClassPool pool, CtClass clazz)
         throws CannotCompileException, NotFoundException
     {
-        CtClass c = pool.get(classname);
-        c.instrument(converter);
+        clazz.instrument(converter);
     }
 
     /**

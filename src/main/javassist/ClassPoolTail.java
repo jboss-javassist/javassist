@@ -128,7 +128,7 @@ final class JarClassPath implements ClassPath {
     }
 }
 
-final class ClassPoolTail extends AbsClassPool {
+final class ClassPoolTail {
     protected ClassPathList pathList;
     private Hashtable packages;         // should be synchronized.
 
@@ -150,62 +150,6 @@ final class ClassPoolTail extends AbsClassPool {
         buf.append(']');
         return buf.toString();
     }
-
-    /**
-     * You can record "System" so that java.lang.System can be quickly
-     * found although "System" is not a package name.
-     */
-    public void recordInvalidClassName(String name) {
-        packages.put(name, name);
-    }
-
-    /**
-     * @return the contents of the class file. 
-     * @throws NotFoundException    if the file could not be found.
-     */
-    byte[] readSource(String classname)
-        throws NotFoundException, IOException, CannotCompileException
-    {
-        byte[] b = readClassfile(classname);
-        if (b == null)
-            throw new NotFoundException(classname);
-        else
-            return b;
-    }
-
-    /**
-     * @return null                 if the file could not be found.
-     * @throws NotFoundException    if any error is reported by ClassPath.
-     */
-    boolean write0(String classname, DataOutputStream out, boolean callback)
-        throws NotFoundException, CannotCompileException, IOException
-    {
-        byte[] b = readClassfile(classname);
-        if (b == null)
-            return false;       // not found
-        else {
-            out.write(b, 0, b.length);
-            return true;
-        }
-    }
-
-    /*
-    -- faster version --
-    void checkClassName(String classname) throws NotFoundException {
-        if (find(classname) == null)
-            throw new NotFoundException(classname);
-    }
-
-    -- slower version --
-
-    void checkClassName(String classname) throws NotFoundException {
-        InputStream fin = openClassfile(classname);
-        try {
-            fin.close();
-        }
-        catch (IOException e) {}
-    }
-    */
 
     public synchronized ClassPath insertClassPath(ClassPath cp) {
         pathList = new ClassPathList(cp, pathList);
@@ -273,6 +217,65 @@ final class ClassPoolTail extends AbsClassPool {
     }
 
     /**
+     * You can record "System" so that java.lang.System can be quickly
+     * found although "System" is not a package name.
+     */
+    public void recordInvalidClassName(String name) {
+        packages.put(name, name);
+    }
+
+    /**
+     * @return the contents of the class file. 
+     * @throws NotFoundException    if the file could not be found.
+     */
+    byte[] readSource(String classname)
+        throws NotFoundException, IOException, CannotCompileException
+    {
+        byte[] b = readClassfile(classname);
+        if (b == null)
+            throw new NotFoundException(classname);
+        else
+            return b;
+    }
+
+    /**
+     * This method does not close the output stream.
+     */
+    void writeClassfile(String classname, OutputStream out)
+        throws NotFoundException, IOException, CannotCompileException
+    {
+        InputStream fin = openClassfile(classname);
+        if (fin == null)
+            throw new NotFoundException(classname);
+
+        try {
+            copyStream(fin, out);
+        }
+        finally {
+            fin.close();
+        }
+    }
+
+    /*
+    -- faster version --
+    void checkClassName(String classname) throws NotFoundException {
+        if (find(classname) == null)
+            throw new NotFoundException(classname);
+    }
+
+    -- slower version --
+
+    void checkClassName(String classname) throws NotFoundException {
+        InputStream fin = openClassfile(classname);
+        try {
+            fin.close();
+        }
+        catch (IOException e) {}
+    }
+    */
+
+
+    /**
      * Obtains the contents of the class file for the class
      * specified by <code>classname</code>.
      *
@@ -337,7 +340,9 @@ final class ClassPoolTail extends AbsClassPool {
     }
 
     /**
-     * Obtains the URL of the class file specified by classname.
+     * Searches the class path to obtain the URL of the class file
+     * specified by classname.  It is also used to determine whether
+     * the class file exists.
      *
      * @param classname     a fully-qualified class name.
      * @return null if the class file could not be found.
@@ -360,7 +365,7 @@ final class ClassPoolTail extends AbsClassPool {
     }
 
     /**
-     * Reads an input stream until it reaches the end.
+     * Reads from an input stream until it reaches the end.
      *
      * @return          the contents of that input stream
      */
@@ -388,6 +393,35 @@ final class ClassPoolTail extends AbsClassPool {
                     return result;
                 }
             } while (size < bufsize);
+            bufsize *= 2;
+        }
+
+        throw new IOException("too much data");
+    }
+
+    /**
+     * Reads from an input stream and write to an output stream
+     * until it reaches the end.  This method does not close the
+     * streams.
+     */
+    public static void copyStream(InputStream fin, OutputStream fout)
+        throws IOException
+    {
+        int bufsize = 4096;
+        for (int i = 0; i < 8; ++i) {
+            byte[] buf = new byte[bufsize];
+            int size = 0;
+            int len = 0;
+            do {
+                len = fin.read(buf, size, bufsize - size);
+                if (len >= 0)
+                    size += len;
+                else {
+                    fout.write(buf, 0, size);
+                    return;
+                }
+            } while (size < bufsize);
+            fout.write(buf);
             bufsize *= 2;
         }
 

@@ -43,16 +43,15 @@ public class Evolution implements Translator {
 	trapMethod = _pool.getMethod("sample.evolve.Sample", "make");
     }
 
-    public void onWrite(ClassPool _pool, String classname)
+    public void onWrite(ClassPool _pool, CtClass clazz)
 	throws NotFoundException, CannotCompileException
     {
-	onWriteUpdatable(classname);
+	onWriteUpdatable(clazz.getName());
 
 	/*
 	 * Replaces all the occurrences of the new operator with a call
 	 * to _makeInstance().
 	 */
-	CtClass clazz = _pool.get(classname);
 	CtClass absClass = updatableClass;
 	CodeConverter converter = new CodeConverter();
 	converter.replaceNew(absClass, absClass, handlerMethod);

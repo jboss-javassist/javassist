@@ -37,7 +37,7 @@ public class Test {
 	    CtMethod fMethod = cc.getDeclaredMethod("f");
 	    CtMethod gMethod = CtNewMethod.copy(fMethod, "g", cc, null);
 	    cc.addMethod(gMethod);
-	    pool.writeFile("sample.Test");	// update the class file
+	    cc.writeFile();	// update the class file
 	    System.out.println("g() was added.");
 	}
     }

@@ -18,7 +18,7 @@ package javassist.web;
 import java.net.*;
 import java.io.*;
 import java.util.Date;
-import javassist.ClassPool;
+import javassist.*;
 
 /**
  * A web server for Javassist.
@@ -28,9 +28,6 @@ import javassist.ClassPool;
  * does not allow an applet to create and use a class loader,
  * instrumenting class files must be done by this web server.
  *
- * <p>Programmers can register a <code>ClassPool</code> object for
- * instrumenting class files when they are sent to web browsers.
- *
  * <p><b>Note:</b> although this class is included in the Javassist API,
  * it is provided as a sample implementation of the web server using
  * Javassist.  Especially, there might be security flaws in this server.
@@ -39,6 +36,7 @@ import javassist.ClassPool;
 public class Webserver {
     private ServerSocket socket;
     private ClassPool classPool;
+    protected Translator translator;
 
     private final static byte[] endofline = { 0x0d, 0x0a };
     private byte[] filebuffer = new byte[4096];
@@ -105,6 +103,7 @@ public class Webserver {
     public Webserver(int port) throws IOException {
         socket = new ServerSocket(port);
         classPool = null;
+        translator = null;
     }
 
     /**
@@ -113,6 +112,22 @@ public class Webserver {
      */
     public void setClassPool(ClassPool loader) {
         classPool = loader;
+    }
+
+    /**
+     * Adds a translator, which is called whenever a client requests
+     * a class file.
+     *
+     * @param cp        the <code>ClassPool</code> object for obtaining
+     *                  a class file.
+     * @param t         a translator.
+     */
+    public void addTranslator(ClassPool cp, Translator t)
+        throws NotFoundException, CannotCompileException
+    {
+        classPool = cp;
+        translator = t;
+        t.start(classPool);
     }
 
     /**
@@ -322,9 +337,13 @@ public class Webserver {
         String classname
             = filename.substring(0, length - 6).replace('/', '.');
         try {
-            classfile = classPool.write(classname);
+            CtClass c = classPool.get(classname);
+            if (translator != null)
+                translator.onWrite(classPool, c);
+
+            classfile = c.toBytecode();
             if (debugDir != null)
-                classPool.writeFile(classname, debugDir);
+                c.writeFile(debugDir);
         }
         catch (Exception e) {
             throw new BadHttpRequest(e);

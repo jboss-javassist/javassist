@@ -128,14 +128,13 @@ public class Loader extends javassist.Loader {
     /**
      * Constructs a new class loader.
      */
-    public Loader() {
+    public Loader() throws CannotCompileException, NotFoundException {
         super();
         delegateLoadingOf("javassist.reflect.Loader");
 
         reflection = new Reflection();
         ClassPool pool = ClassPool.getDefault();
-        pool.addTranslator(reflection); 
-        setClassPool(pool);
+        addTranslator(pool, reflection);
     }
 
     /**

@@ -83,10 +83,23 @@ import java.util.Hashtable;
  * @see javassist.ClassPath
  * @see javassist.Translator
  */
-public class ClassPool extends AbsClassPool {
-    protected AbsClassPool source;
+public class ClassPool {
+
+    /**
+     * Determines the search order.
+     *
+     * <p>If this field is true, <code>get()</code> first searches the
+     * class path associated to this <code>ClassPool</code> and then
+     * the class path associated with the parent <code>ClassPool</code>.
+     * Otherwise, the class path associated with the parent is searched
+     * first.
+     *
+     * <p>The default value is false.
+     */
+    public boolean childFirstLookup = false;
+
+    protected ClassPoolTail source;
     protected ClassPool parent;
-    protected Translator translator;
     protected Hashtable classes;        // should be synchronous
 
     /**
@@ -97,59 +110,21 @@ public class ClassPool extends AbsClassPool {
     /**
      * Creates a class pool.
      *
-     * @param src       the source of class files.  If it is null,
-     *                  the class search path is initially null.
-     * @param p         the parent of this class pool.
+     * @param p         the parent of this class pool.  If this is a root
+     *                  class pool, this parameter must be <code>null</code>.
      * @see javassist.ClassPool#getDefault()
      */
-    public ClassPool(ClassPool p) {
-        this(new ClassPoolTail(), p);
-    }
-
-    ClassPool(AbsClassPool src, ClassPool parent) {
+    public ClassPool(ClassPool parent) {
         this.classes = new Hashtable();
-        this.source = src;
+        this.source = new ClassPoolTail();
         this.parent = parent;
         if (parent == null) {
-            // if this has no parent, it must include primitive types
-            // even if this.source is not a ClassPoolTail.
             CtClass[] pt = CtClass.primitiveTypes;
             for (int i = 0; i < pt.length; ++i)
                 classes.put(pt[i].getName(), pt[i]);
         }
 
-        this.translator = null;
         this.cflow = null;
-    }
-
-    /**
-     * Adds a new translator at the end of the translator chain.
-     *
-     * @param trans         a new translator associated with this class pool.
-     * @throws RuntimeException     if trans.start() throws an exception.
-     */
-    public void addTranslator(Translator trans) throws RuntimeException {
-        ClassPool cp;
-        if (translator == null)
-            cp = this;
-        else {
-            ClassPool s = this;
-            while (s.source instanceof ClassPool)  
-                s = (ClassPool)s.source;
-
-            cp = new ClassPool(s.source, parent);
-            s.source = cp;
-        }
-
-        cp.translator = trans;
-        try {
-            trans.start(cp);
-        }
-        catch (Exception e) {
-            throw new RuntimeException(
-                "Translator.start() throws an exception: "
-                + e.toString());
-        }
     }
 
     /**
@@ -210,12 +185,12 @@ public class ClassPool extends AbsClassPool {
          classes.remove(classname);
      }
 
-    /**
-     * Returns the class search path.
-     */
-    public String toString() {
-        return source.toString();
-    }
+     /**
+      * Returns the class search path.
+      */
+     public String toString() {
+         return source.toString();
+     }
 
     /**
      * Records a name that never exists.
@@ -230,14 +205,6 @@ public class ClassPool extends AbsClassPool {
     public void recordInvalidClassName(String name) {
         source.recordInvalidClassName(name);
     }
-
-    /**
-     * Returns the <code>Translator</code> object associated with
-     * this <code>ClassPool</code>.
-     *
-     * @deprecated
-     */
-    Translator getTranslator() { return translator; }
 
     /**
      * Records the <code>$cflow</code> variable for the field specified
@@ -267,133 +234,12 @@ public class ClassPool extends AbsClassPool {
     }
 
     /**
-     * Writes a class file specified with <code>classname</code>
-     * in the current directory.
-     * It never calls <code>onWrite()</code> on a translator.
-     * It is provided for debugging.
-     *
-     * @param classname         the name of the class written on a local disk.
-     */
-    public void debugWriteFile(String classname)
-        throws NotFoundException, CannotCompileException, IOException
-    {
-        debugWriteFile(classname, ".");
-    }
-
-    /**
-     * Writes a class file specified with <code>classname</code>.
-     * It never calls <code>onWrite()</code> on a translator.
-     * It is provided for debugging.
-     *
-     * @param classname         the name of the class written on a local disk.
-     * @param directoryName     it must end without a directory separator.
-     */
-    public void debugWriteFile(String classname, String directoryName)
-        throws NotFoundException, CannotCompileException, IOException
-    {
-        writeFile(classname, directoryName, false);
-    }
-
-    /* void writeFile(CtClass) should not be defined since writeFile()
-     * may be called on the class pool that does not contain the given
-     * CtClass object.
-     */
-
-    /**
-     * Writes a class file specified with <code>classname</code>
-     * in the current directory.
-     * It calls <code>onWrite()</code> on a translator.
-     *
-     * @param classname         the name of the class written on a local disk.
-     */
-    public void writeFile(String classname)
-        throws NotFoundException, CannotCompileException, IOException
-    {
-        writeFile(classname, ".");
-    }
-
-    /**
-     * Writes a class file specified with <code>classname</code>
-     * on a local disk.
-     * It calls <code>onWrite()</code> on a translator.
-     *
-     * @param classname         the name of the class written on a local disk.
-     * @param directoryName     it must end without a directory separator.
-     */
-    public void writeFile(String classname, String directoryName)
-        throws NotFoundException, CannotCompileException, IOException
-    {
-        writeFile(classname, directoryName, true);
-    }
-
-    private void writeFile(String classname, String directoryName,
-                           boolean callback)
-        throws NotFoundException, CannotCompileException, IOException
-    {
-        String filename = directoryName + File.separatorChar
-            + classname.replace('.', File.separatorChar) + ".class";
-        int pos = filename.lastIndexOf(File.separatorChar);
-        if (pos > 0) {
-            String dir = filename.substring(0, pos);
-            if (!dir.equals("."))
-                new File(dir).mkdirs();
-        }
-
-        DataOutputStream out
-            = new DataOutputStream(new BufferedOutputStream(
-                                new DelayedFileOutputStream(filename)));
-        write(classname, out, callback);
-        out.close();
-    }
-
-    static class DelayedFileOutputStream extends OutputStream {
-        private FileOutputStream file;
-        private String filename;
-
-        DelayedFileOutputStream(String name) {
-            file = null;
-            filename = name;
-        }
-
-        private void init() throws IOException {
-            if (file == null)
-                file = new FileOutputStream(filename);
-        }
-
-        public void write(int b) throws IOException {
-            init();
-            file.write(b);
-        }
-
-        public void write(byte[] b) throws IOException {
-            init();
-            file.write(b);
-        }
-
-        public void write(byte[] b, int off, int len) throws IOException {
-            init();
-            file.write(b, off, len);
-
-        }
-
-        public void flush() throws IOException {
-            init();
-            file.flush();
-        }
-
-        public void close() throws IOException {
-            init();
-            file.close();
-        }
-    }
-
-    /**
-     * A simple class loader used by <code>writeAsClass()</code>
-     * in <code>ClassPool</code>.
+     * A simple class loader used by <code>toClass()</code>
+     * in <code>CtClass</code>.
      * This class loader is provided for convenience.  If you need more
      * complex functionality, you should write your own class loader.
      *
-     * @see ClassPool#writeAsClass(String)
+     * @see CtClass#forName(String)
      * @see CtClass#toClass()
      */
     public static class SimpleLoader extends ClassLoader {
@@ -413,184 +259,33 @@ public class ClassPool extends AbsClassPool {
         }
     };
 
-    private static SimpleLoader classLoader = new SimpleLoader();
+    private static SimpleLoader classLoader = null;
 
     /**
      * Returns a <code>java.lang.Class</code> object that has been loaded
-     * by <code>writeAsClass()</code>.  Such an object cannot be
+     * by <code>loadClass()</code>.  Such an object cannot be
      * obtained by <code>java.lang.Class.forName()</code> because it has
      * been loaded by an internal class loader of Javassist.
-     *
-     * @see #writeAsClass(String)
-     * @see javassist.CtClass#toClass()
      */
-    public static Class forName(String name) throws ClassNotFoundException {
+    static Class forName(String name) throws ClassNotFoundException {
+        if (classLoader == null)
+            classLoader = new SimpleLoader();
+
         return classLoader.loadClass(name);
     }
 
-    /**
-     * Returns a <code>java.lang.Class</code> object.
-     * It calls <code>write()</code> to obtain a class file and then
-     * loads the obtained class file into the JVM.  The returned
-     * <code>Class</code> object represents the loaded class.
-     *
-     * <p>This method is provided for convenience.  If you need more
-     * complex functionality, you should write your own class loader.
-     *
-     * <p>To load a class file, this method uses an internal class loader,
-     * which is an instance of <code>ClassPool.SimpleLoader</code>.
-     * Thus, that class file is not loaded by the system class loader,
-     * which should have loaded this <code>ClassPool</code> class.
-     * The internal class loader
-     * loads only the classes explicitly specified by this method
-     * <code>writeAsClass()</code>.  The other classes are loaded
-     * by the parent class loader (the sytem class loader) by delegation.
-     *
-     * <p>For example,
-     *
-     * <ul><pre>class Line { Point p1, p2; }</pre></ul>
-     *
-     * <p>If the class <code>Line</code> is loaded by the internal class
-     * loader and the class <code>Point</code> has not been loaded yet,
-     * then the class <code>Point</code> that the class <code>Line</code>
-     * refers to is loaded by the parent class loader.  There is no
-     * chance of modifying the definition of <code>Point</code> with
-     * Javassist.
-     *
-     * <p>The internal class loader is shared among all the instances
-     * of <code>ClassPool</code>.
-     *
-     * @param classname         a fully-qualified class name.
-     *
-     * @see #forName(String)
-     * @see javassist.CtClass#toClass()
-     * @see javassist.Loader
-     */
-    public Class writeAsClass(String classname)
+    static Class loadClass(String classname, byte[] classfile)
         throws NotFoundException, IOException, CannotCompileException
     {
+        if (classLoader == null)
+            classLoader = new SimpleLoader();
+
         try {
-            return classLoader.loadClass(classname, write(classname));
+            return classLoader.loadClass(classname, classfile);
         }
         catch (ClassFormatError e) {
             throw new CannotCompileException(e, classname);
         }
-    }
-
-    /**
-     * Returns a byte array representing the class file.
-     * It calls <code>onWrite()</code> on a translator.
-     *
-     * @param classname         a fully-qualified class name.
-     */
-    public byte[] write(String classname)
-        throws NotFoundException, IOException, CannotCompileException
-    {
-        ByteArrayOutputStream barray = new ByteArrayOutputStream();
-        DataOutputStream out = new DataOutputStream(barray);
-        try {
-            write(classname, out, true);
-        }
-        finally {
-            out.close();
-        }
-
-        return barray.toByteArray();
-    }
-
-    /**
-     * Writes a class file specified by <code>classname</code>
-     * to a given output stream.
-     * It calls <code>onWrite()</code> on a translator.
-     *
-     * <p>This method does not close the output stream in the end.
-     *
-     * @param classname         a fully-qualified class name.
-     * @param out               an output stream
-     */
-    public void write(String classname, DataOutputStream out)
-        throws NotFoundException, CannotCompileException, IOException
-    {
-        write(classname, out, true);
-    }
-
-    private void write(String classname, DataOutputStream out,
-                       boolean callback)
-        throws NotFoundException, CannotCompileException, IOException
-    {
-        if (!write0(classname, out, callback))
-            throw new NotFoundException(classname);
-    }
-
-    boolean write0(String classname, DataOutputStream out, boolean callback)
-        throws NotFoundException, CannotCompileException, IOException
-    {
-        CtClass clazz = (CtClass)getCached(classname);
-        if (callback && translator != null
-                                && (clazz == null || !clazz.isFrozen())) {
-            translator.onWrite(this, classname);
-            // The CtClass object might be overwritten.
-            clazz = (CtClass)getCached(classname);
-        }
-
-        if (clazz == null || !clazz.isModified()) {
-            if (clazz != null)
-                clazz.freeze();
-
-            return source.write0(classname, out, callback);
-        }
-        else {
-            clazz.toBytecode(out);
-            return true;
-        }
-    }
-
-    /* for CtClassType.getClassFile2().  Don't delegate to the parent.
-     */
-    byte[] readSource(String classname)
-        throws NotFoundException, IOException, CannotCompileException
-    {
-        return source.readSource(classname);
-    }
-
-    /*
-     * Is invoked by CtClassType.setName().  Don't delegate to the parent.
-     */
-    synchronized void classNameChanged(String oldname, CtClass clazz) {
-        CtClass c = (CtClass)getCached(oldname);
-        if (c == clazz)             // must check this equation.
-            removeCached(oldname);  // see getAndRename().
-
-        String newName = clazz.getName();
-        checkNotFrozen(newName);
-        classes.put(newName, clazz);
-    }
-
-    /*
-     * Is invoked by CtClassType.setName() and methods in this class.
-     * This method throws an exception if the class is already frozen or
-     * if this class pool cannot edit the class since it is in a parent
-     * class pool.
-     */
-    void checkNotFrozen(String classname) throws RuntimeException {
-        CtClass c;
-        if (parent != null) {
-            try {
-                c = parent.get0(classname);
-            }
-            catch (NotFoundException e) {       // some error happens.
-                throw new RuntimeException(e.toString());
-            }
-
-            if (c != null)
-                throw new RuntimeException(classname
-                        + " is in a parent ClassPool.  Use the parent.");
-        }
-
-        c = getCached(classname);
-        if (c != null && c.isFrozen())
-            throw new RuntimeException(classname +
-                                       ": frozen class (cannot edit)");
     }
 
     /**
@@ -614,19 +309,28 @@ public class ClassPool extends AbsClassPool {
     public CtClass getAndRename(String orgName, String newName)
         throws NotFoundException
     {
-        CtClass clazz = null;
-        if (parent != null)
-            clazz = parent.get1(orgName);
-
-        if (clazz == null)
-            clazz = get1(orgName);
-
-        if (clazz == null)
-            throw new NotFoundException(orgName);
+        CtClass clazz = get0(orgName, false);
+        if (clazz instanceof CtClassType)
+            ((CtClassType)clazz).setClassPool(this);
 
         clazz.setName(newName);         // indirectly calls
                                         // classNameChanged() in this class
         return clazz;
+    }
+
+    /*
+     * This method is invoked by CtClassType.setName().  It removes a
+     * CtClass object from the hash table and inserts it with the new
+     * name.  Don't delegate to the parent.
+     */
+    synchronized void classNameChanged(String oldname, CtClass clazz) {
+        CtClass c = (CtClass)getCached(oldname);
+        if (c == clazz)             // must check this equation.
+            removeCached(oldname);  // see getAndRename().
+
+        String newName = clazz.getName();
+        checkNotFrozen(newName);
+        classes.put(newName, clazz);
     }
 
     /**
@@ -646,7 +350,7 @@ public class ClassPool extends AbsClassPool {
      * @param classname         a fully-qualified class name.
      */
     public CtClass get(String classname) throws NotFoundException {
-        CtClass clazz = get0(classname);
+        CtClass clazz = get0(classname, true);
         if (clazz == null)
             throw new NotFoundException(classname);
         else
@@ -654,33 +358,51 @@ public class ClassPool extends AbsClassPool {
     }
 
     /**
+     * @param useCache  false if the cached CtClass must be ignored.
+     * @param searchParent  false if the parent class pool is not searched.
      * @return null     if the class could not be found.
      */
-    private synchronized CtClass get0(String classname)
+    protected synchronized CtClass get0(String classname, boolean useCache)
         throws NotFoundException
     {
-        CtClass clazz;
-        clazz = getCached(classname);
-        if (clazz != null) return clazz;
-        if (parent != null) {
-            clazz = parent.get0(classname);
+        CtClass clazz = null;
+        if (useCache) {
+            clazz = getCached(classname);
             if (clazz != null)
                 return clazz;
         }
 
-        if (clazz == null) {
-            clazz = get1(classname);
+        if (!childFirstLookup && parent != null) {
+            clazz = parent.get0(classname, useCache);
             if (clazz != null)
-                classes.put(classname, clazz);
+                return clazz;
         }
+
+        clazz = createCtClass(classname, useCache);
+        if (clazz != null) {
+            if (useCache)
+                classes.put(classname, clazz);
+
+            return clazz;
+        }
+
+        if (childFirstLookup && parent != null)
+            clazz = parent.get0(classname, useCache);
 
         return clazz;
     }
 
-    protected CtClass get1(String classname) throws NotFoundException {
+    /**
+     * Creates a CtClass object representing the specified class.
+     * It first examines whether or not the corresponding class
+     * file exists.  If yes, it creates a CtClass object.
+     *
+     * @return null if the class file could not be found.
+     */
+    private CtClass createCtClass(String classname, boolean useCache) {
         if (classname.endsWith("[]")) {
             String base = classname.substring(0, classname.indexOf('['));
-            if (getCached(base) == null && find(base) == null)
+            if ((!useCache || getCached(base) == null) && find(base) == null)
                 return null;
             else
                 return new CtArray(classname, this);
@@ -693,14 +415,55 @@ public class ClassPool extends AbsClassPool {
     }
 
     /**
-     * Obtains the URL of the class file specified by classname.
-     * This method does not delegate to the parent pool.
+     * Searches the class path to obtain the URL of the class file
+     * specified by classname.  It is also used to determine whether
+     * the class file exists.
      *
      * @param classname     a fully-qualified class name.
      * @return null if the class file could not be found.
+     * @see CtClassType#getURL()
      */
     URL find(String classname) {
         return source.find(classname);
+    }
+
+    /*
+     * Is invoked by CtClassType.setName() and methods in this class.
+     * This method throws an exception if the class is already frozen or
+     * if this class pool cannot edit the class since it is in a parent
+     * class pool.
+     */
+    void checkNotFrozen(String classname) throws RuntimeException {
+        CtClass clazz = getCached(classname);
+        if (clazz == null) {
+            if (!childFirstLookup && parent != null) {
+                try {
+                    clazz = parent.get0(classname, true);
+                }
+                catch (NotFoundException e) {}
+                if (clazz != null)
+                    throw new RuntimeException(classname
+                            + " is in a parent ClassPool.  Use the parent.");
+            }
+        }
+        else
+            if (clazz.isFrozen())
+                throw new RuntimeException(classname +
+                                       ": frozen class (cannot edit)");
+    }
+
+    /* for CtClassType.getClassFile2().  Don't delegate to the parent.
+     */
+    byte[] readSource(String classname)
+        throws NotFoundException, IOException, CannotCompileException
+    {
+        return source.readSource(classname);
+    }
+
+    void writeClassfile(String classname, OutputStream out)
+        throws NotFoundException, IOException, CannotCompileException
+    {
+        source.writeClassfile(classname, out);
     }
 
     /**

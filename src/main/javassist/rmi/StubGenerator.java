@@ -82,7 +82,7 @@ public class StubGenerator implements Translator {
             = new CtClass[] { pool.get("javassist.rmi.RemoteException") };
     }
 
-    public void onWrite(ClassPool pool, String classname) {}
+    public void onWrite(ClassPool pool, CtClass clazz) {}
 
     /**
      * Returns <code>true</code> if the specified class is a proxy class

@@ -91,7 +91,7 @@ public class Compiler {
     {
         Reflection implementor = new Reflection();
         ClassPool pool = ClassPool.getDefault();
-        pool.addTranslator(implementor);
+        implementor.start(pool);
 
         for (int i = 0; i < n; ++i) {
             CtClass c = pool.get(entries[i].classname);
@@ -121,8 +121,11 @@ public class Compiler {
                 System.err.println(c.getName() + ": not reflective");
         }
 
-        for (int i = 0; i < n; ++i)
-            pool.writeFile(entries[i].classname);
+        for (int i = 0; i < n; ++i) {
+            CtClass c = pool.get(entries[i].classname);
+            implementor.onWrite(pool, c);
+            c.writeFile();
+        }
     }
 
     private static int parse(String[] args, CompiledClass[] result) {

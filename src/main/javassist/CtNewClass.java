@@ -55,7 +55,7 @@ class CtNewClass extends CtClassType {
         super.addConstructor(c);
     }
 
-    void toBytecode(DataOutputStream out)
+    public void toBytecode(DataOutputStream out)
         throws CannotCompileException, IOException
     {
         if (!hasConstructor)

@@ -44,8 +44,9 @@ import java.util.Vector;
  * public class Main {
  *   public static void main(String[] args) throws Throwable {
  *     MyTranslator myTrans = new MyTranslator();
- *     ClassPool cp = ClassPool.getDefault(myTrans);
+ *     ClassPool cp = ClassPool.getDefault();
  *     Loader cl = new Loader(cp);
+ *     cl.addTranslator(cp, myTrans);
  *     cl.run("MyApp", args);
  *   }
  * }
@@ -130,6 +131,7 @@ public class Loader extends ClassLoader {
     private Hashtable notDefinedHere;   // must be atomic.
     private Vector notDefinedPackages;  // must be atomic.
     private ClassPool source;
+    private Translator translator;
 
     /**
      * Specifies the algorithm of class loading.
@@ -176,6 +178,7 @@ public class Loader extends ClassLoader {
         notDefinedHere = new Hashtable();
         notDefinedPackages = new Vector();
         source = cp;
+        translator = null;
         delegateLoadingOf("javassist.Loader");
     }
 
@@ -199,6 +202,21 @@ public class Loader extends ClassLoader {
      */
     public void setClassPool(ClassPool cp) {
         source = cp;
+    }
+
+    /**
+     * Adds a translator, which is called whenever a class is loaded.
+     *
+     * @param cp        the <code>ClassPool</code> object for obtaining
+     *                  a class file.
+     * @param t         a translator.
+     */
+    public void addTranslator(ClassPool cp, Translator t)
+        throws NotFoundException, CannotCompileException
+    {
+        source = cp;
+        translator = t;
+        t.start(cp);
     }
 
     /**
@@ -291,8 +309,13 @@ public class Loader extends ClassLoader {
     protected Class findClass(String name) {
         byte[] classfile;
         try {
-            if (source != null)
-                classfile = source.write(name);
+            if (source != null) {
+                CtClass c = source.get(name);
+                if (translator != null)
+                    translator.onWrite(source, c);
+
+                classfile = c.toBytecode();
+            }
             else {
                 String jarname = "/" + name.replace('.', '/') + ".class";
                 InputStream in = this.getClass().getResourceAsStream(jarname);
@@ -369,7 +392,7 @@ public class Loader extends ClassLoader {
     protected Package getPackage(String name) {
         return super.getPackage(name);
     }
-        /*
+    /*
         // Package p = super.getPackage(name);
         Package p = null;
         if (p == null)

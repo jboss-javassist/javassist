@@ -31,9 +31,8 @@ public class DemoLoader {
     public static void main(String[] args) throws Throwable {
         Evolution translator = new Evolution();
         ClassPool cp = ClassPool.getDefault();
-        cp.addTranslator(translator);
         Loader cl = new Loader();
-        cl.setClassPool(cp);
+        cl.addTranslator(cp, translator);
 
         translator.makeUpdatable("sample.evolve.WebPage");
         cl.run("sample.evolve.DemoServer", args);

@@ -16,45 +16,35 @@
 package javassist;
 
 /**
- * An observer of <code>ClassPool</code>.
+ * An observer of <code>Loader</code>.
  * The users can define a class implementing this
  * interface and attach an instance of that class to a
- * <code>ClassPool</code> object so that it can translate a class file
- * when the class file is loaded into the JVM, for example.
+ * <code>Loader</code> object so that it can translate a class file
+ * when the class file is loaded into the JVM.
  *
- * @see ClassPool#ClassPool(ClassPool,Translator)
- * @see ClassPool#getDefault(Translator)
+ * @see Loader
  */
 public interface Translator {
     /**
-     * Is invoked by a <code>ClassPool</code> for initialization
-     * when the object is attached to a <code>ClassPool</code> object.
+     * Is invoked by a <code>Loader</code> for initialization
+     * when the object is attached to the <code>Loader</code> object.
      *
      * @param pool      the <code>ClassPool</code> that this translator
-     *                          is attached to.
-     *
-     * @see ClassPool#ClassPool(ClassPool,Translator)
-     * @see ClassPool#getDefault(Translator)
+     *                          should use.
+     * @see Loader
      */
     void start(ClassPool pool)
         throws NotFoundException, CannotCompileException;
 
     /**
-     * Is invoked by a <code>ClassPool</code> for notifying that
-     * a class is written out to an output stream.
-     *
-     * <p>If <code>CtClass.frozen()</code> is true, that is, if the class has been
-     * already modified and written, then onWrite() is not invoked.
+     * Is invoked by a <code>Loader</code> for notifying that
+     * a class is loaded.
      *
      * @param pool      the <code>ClassPool</code> that this translator
-     *                          is attached to.
-     * @param classname         a fully-qualified class name
-     *
-     * @see ClassPool#writeFile(String)
-     * @see ClassPool#writeFile(String, String)
-     * @see ClassPool#write(String)
-     * @see ClassPool#write(String,DataOutputStream)
+     *                          should use.
+     * @param clazz     the class that is being loaded.
+     * @see Loader
      */
-    void onWrite(ClassPool pool, String classname)
+    void onWrite(ClassPool pool, CtClass clazz)
         throws NotFoundException, CannotCompileException;
 }
