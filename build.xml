@@ -71,11 +71,12 @@ Copyright (C) 1999-2003 Shigeru Chiba. All Rights Reserved.</i>]]></bottom>
   <target name="dist" depends="jar,javadocs">
     <delete file="javassist-dist.zip"/>
     <zip zipfile="javassist-dist.zip">
-       <fileset dir="${basedir}">
+       <zipfileset dir="${basedir}" prefix="javassist">
           <include name="**"/>
           <exclude name="build/**"/>
+          <exclude name="local/**"/>
           <exclude name="javassist-dist.zip"/>
-       </fileset>
+       </zipfileset>
     </zip>
   </target>
 
