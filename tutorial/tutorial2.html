@@ -1359,6 +1359,16 @@ value.  This source text can be any Java expression if the result type
 of the expression matches the type of the field.  Note that an expression
 does not end with a semi colon (<code>;</code>).
 
+<p>Furthermore, the above code can be rewritten into the following
+simple code:
+
+<ul><pre>
+CtClass point = ClassPool.getDefault().get("Point");
+CtField f = CtField.make("public int z = 0;", point);
+point.addField(f);
+</pre></ul>
+
+
 <p><br>
 
 <a name="runtime">
@@ -1394,8 +1404,6 @@ enclosed by braces <code>{</code> and <code>}</code>, are not
 supported.
 
 <p><li>Inner classes or anonymous classes are not supported.
-
-<p><li><code>synchronized</code> statements are not supported yet.
 
 <p><li>Labeled <code>continue</code> and <code>break</code> statements
 are not supported.

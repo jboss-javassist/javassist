@@ -48,6 +48,24 @@ public abstract class CodeGen extends Visitor implements Opcode, TokenId {
 
     protected ArrayList breakList, continueList;
 
+    /**
+     * doit() in ReturnHook is called from atReturn().
+     */
+    protected static abstract class ReturnHook {
+        ReturnHook next;
+        protected abstract void doit(Bytecode b);
+        protected ReturnHook(CodeGen gen) {
+            next = gen.returnHooks;
+            gen.returnHooks = this;
+        }
+
+        protected void remove(CodeGen gen) {
+            gen.returnHooks = next;
+        }
+    }
+
+    protected ReturnHook returnHooks;
+
     /* The following fields are used by atXXX() methods
      * for returning the type of the compiled expression.
      */
@@ -63,6 +81,7 @@ public abstract class CodeGen extends Visitor implements Opcode, TokenId {
         inStaticMethod = false;
         breakList = null;
         continueList = null;
+        returnHooks = null;
     }
 
     public void setTypeChecker(TypeChecker checker) {
@@ -341,10 +360,8 @@ public abstract class CodeGen extends Visitor implements Opcode, TokenId {
             atTryStmnt(st);
         else if (op == SWITCH)
             atSwitchStmnt(st);
-        else if (op == SYNCHRONIZED) {
-            hasReturned = false;
-            throw new CompileError("sorry, synchronized is not supported");
-        }
+        else if (op == SYNCHRONIZED)
+            atSyncStmnt(st);
         else {
             // LABEL, SWITCH label stament might be null?.
             hasReturned = false;
@@ -589,6 +606,9 @@ public abstract class CodeGen extends Visitor implements Opcode, TokenId {
             }
         }
 
+        for (ReturnHook har = returnHooks; har != null; har = har.next)
+            har.doit(bytecode);
+
         bytecode.addOpcode(op);
         hasReturned = true;
     }
@@ -605,6 +625,61 @@ public abstract class CodeGen extends Visitor implements Opcode, TokenId {
 
     protected void atTryStmnt(Stmnt st) throws CompileError {
         hasReturned = false;
+    }
+
+    private void atSyncStmnt(Stmnt st) throws CompileError {
+        int nbreaks = getListSize(breakList);
+        int ncontinues = getListSize(continueList);
+
+        compileExpr(st.head());
+        if (exprType != CLASS && arrayDim == 0)
+            throw new CompileError("bad type expr for synchronized block");
+
+        Bytecode bc = bytecode;
+        final int var = bc.getMaxLocals();
+        bc.incMaxLocals(1);
+        bc.addOpcode(DUP);
+        bc.addAstore(var);
+        bc.addOpcode(MONITORENTER);
+
+        ReturnHook rh = new ReturnHook(this) {
+            protected void doit(Bytecode b) {
+                b.addAload(var);
+                b.addOpcode(MONITOREXIT);
+            }
+        };
+
+        int pc = bc.currentPc();
+        Stmnt body = (Stmnt)st.tail();
+        if (body != null)
+            body.accept(this);
+
+        int pc2 = bc.currentPc();
+        int pc3 = 0;
+        if (!hasReturned) {
+            rh.doit(bc);
+            bc.addOpcode(Opcode.GOTO);
+            pc3 = bc.currentPc();
+            bc.addIndex(0);
+        }
+
+        int pc4 = bc.currentPc();
+        rh.doit(bc);
+        bc.addOpcode(ATHROW);
+        bc.addExceptionHandler(pc, pc2, pc4, 0);
+        if (!hasReturned)
+            bc.write16bit(pc3, bc.currentPc() - pc3 + 1);
+
+        rh.remove(this);
+
+        if (getListSize(breakList) != nbreaks
+            || getListSize(continueList) != ncontinues)
+            throw new CompileError(
+                "sorry, cannot break/continue in synchronized block");
+    }
+
+    private static int getListSize(ArrayList list) {
+        return list == null ? 0 : list.size();
     }
 
     private static boolean isPlusPlusExpr(ASTree expr) {

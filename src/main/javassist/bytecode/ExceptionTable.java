@@ -186,7 +186,8 @@ public class ExceptionTable {
      * @param type      <code>catchType</code>
      */
     public void add(int index, int start, int end, int handler, int type) {
-        entries.add(index,
+        if (start < end)
+            entries.add(index,
                     new ExceptionTableEntry(start, end, handler, type));
     }
 
@@ -199,7 +200,8 @@ public class ExceptionTable {
      * @param type      <code>catchType</code>
      */
     public void add(int start, int end, int handler, int type) {
-        entries.add(new ExceptionTableEntry(start, end, handler, type));
+        if (start < end)
+            entries.add(new ExceptionTableEntry(start, end, handler, type));
     }
 
     /**
