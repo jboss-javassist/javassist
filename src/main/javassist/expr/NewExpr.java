@@ -206,7 +206,7 @@ public class NewExpr extends Expr {
             bytecode.addIndex(newIndex);
             bytecode.addOpcode(DUP);
             gen.atMethodCall2(newType, MethodInfo.nameInit,
-                              args, false, true);
+                              args, false, true, -1);
             gen.setType(newType);
         }
     }

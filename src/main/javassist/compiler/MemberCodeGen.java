@@ -122,7 +122,7 @@ public class MemberCodeGen extends CodeGen {
             bytecode.addNew(cname);
             bytecode.addOpcode(DUP);
 
-            atMethodCall2(clazz, MethodInfo.nameInit, args, false, true);
+            atMethodCall2(clazz, MethodInfo.nameInit, args, false, true, -1);
 
             exprType = CLASS;
             arrayDim = 0;
@@ -227,14 +227,17 @@ public class MemberCodeGen extends CodeGen {
         ASTList args = (ASTList)expr.oprand2();
         boolean isStatic = false;
         boolean isSpecial = false;
+        int aload0pos = -1;
 
         if (method instanceof Member) {
             mname = ((Member)method).get();
             targetClass = thisClass;
             if (inStaticMethod)
                 isStatic = true;            // should be static
-            else
+            else {
+                aload0pos = bytecode.currentPc();
                 bytecode.addAload(0);       // this
+            }
         }
         else if (method instanceof Keyword) {   // constructor
             isSpecial = true;
@@ -289,7 +292,8 @@ public class MemberCodeGen extends CodeGen {
         else
             fatal();
 
-        atMethodCall2(targetClass, mname, args, isStatic, isSpecial);
+        atMethodCall2(targetClass, mname, args, isStatic, isSpecial,
+                      aload0pos);
     }
 
     private static void badMethod() throws CompileError {
@@ -307,7 +311,8 @@ public class MemberCodeGen extends CodeGen {
     }
 
     public void atMethodCall2(CtClass targetClass, String mname,
-                        ASTList args, boolean isStatic, boolean isSpecial)
+                        ASTList args, boolean isStatic, boolean isSpecial,
+                        int aload0pos)
         throws CompileError
     {
         int nargs = atMethodArgsLength(args);
@@ -355,10 +360,15 @@ public class MemberCodeGen extends CodeGen {
         if ((acc & AccessFlag.STATIC) != 0) {
             if (!isStatic) {
                 /* this method is static but the target object is
-                   on stack.  It must be popped out.
+                   on stack.  It must be popped out.  If aload0pos >= 0,
+                   then the target object was pushed by aload_0.  It is
+                   overwritten by NOP.
                 */
                 isStatic = true;
-                popTarget = true;
+                if (aload0pos >= 0)
+                    bytecode.write(aload0pos, NOP);
+                else
+                    popTarget = true;
             }
 
             bytecode.addInvokestatic(declClass, mname, desc);
