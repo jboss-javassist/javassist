@@ -20,8 +20,10 @@ import java.io.DataOutputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintWriter;
 import java.io.IOException;
-import java.util.Map;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import javassist.CtClass;
 
 /**
@@ -838,6 +840,25 @@ public final class ConstPool {
     }
 
     /**
+     * Get all the class names
+     *
+     * @return a set of class names
+     */
+    public Set getClassNames()
+    {
+        HashSet result = new HashSet();
+        LongVector v = items;
+        int size = numOfItems;
+        for (int i = 1; i < size; ++i)
+        {
+            String className = ((ConstInfo) v.elementAt(i)).getClassName(this);
+            if (className != null)
+               result.add(className);
+        }
+        return result;
+    }
+
+    /**
      * Replaces all occurrences of a class name.
      *
      * @param oldName           the replaced name
@@ -961,6 +982,7 @@ public final class ConstPool {
 abstract class ConstInfo {
     public abstract int getTag();
 
+    public String getClassName(ConstPool cp) { return null; }
     public void renameClass(ConstPool cp, String oldName, String newName) {}
     public void renameClass(ConstPool cp, Map classnames) {}
     public abstract int copy(ConstPool src, ConstPool dest, Map classnames);
@@ -1009,6 +1031,11 @@ class ClassInfo extends ConstInfo {
     }
 
     public int getTag() { return tag; }
+
+    public String getClassName(ConstPool cp)
+    {
+        return cp.getUtf8Info(name);
+    };
 
     public void renameClass(ConstPool cp, String oldName, String newName) {
         String nameStr = cp.getUtf8Info(name);
