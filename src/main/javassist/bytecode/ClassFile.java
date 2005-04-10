@@ -625,42 +625,38 @@ public final class ClassFile {
     }
 
     /**
-     * Get the Major version
+     * Get the Major version.
      *
      * @return the major version
      */
-    public int getMajorVersion()
-    {
+    public int getMajorVersion() {
         return major;
     }
 
     /**
-     * Set the Major version
+     * Set the Major version.
      *
-     * @param major the major version
+     * @param major         the major version
      */
-    public void setMajorVersion(int major)
-    {
+    public void setMajorVersion(int major) {
        this.major = major;
     }
 
     /**
-     * Get the Minor version
+     * Get the Minor version.
      *
      * @return the minor version
      */
-    public int getMinorVersion()
-    {
+    public int getMinorVersion() {
         return minor;
     }
 
     /**
-     * Set the Minor version
+     * Set the Minor version.
      *
-     * @param minor the minor version
+     * @param minor         the minor version
      */
-    public void setMinorVersion(int minor)
-    {
+    public void setMinorVersion(int minor) {
        this.minor = minor;
     }
 }

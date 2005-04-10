@@ -841,7 +841,7 @@ public final class ConstPool {
     }
 
     /**
-     * Get all the class names
+     * Get all the class names.
      *
      * @return a set of class names
      */
@@ -850,8 +850,7 @@ public final class ConstPool {
         HashSet result = new HashSet();
         LongVector v = items;
         int size = numOfItems;
-        for (int i = 1; i < size; ++i)
-        {
+        for (int i = 1; i < size; ++i) {
             String className = ((ConstInfo) v.elementAt(i)).getClassName(this);
             if (className != null)
                result.add(className);
@@ -1033,8 +1032,7 @@ class ClassInfo extends ConstInfo {
 
     public int getTag() { return tag; }
 
-    public String getClassName(ConstPool cp)
-    {
+    public String getClassName(ConstPool cp) {
         return cp.getUtf8Info(name);
     };
 
