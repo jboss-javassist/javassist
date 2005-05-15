@@ -1,8 +1,6 @@
 package sample.evolve;
 
 import javassist.*;
-import java.io.*;
-import java.util.Hashtable;
 
 /**
  * DemoLoader is a class loader for running a program including

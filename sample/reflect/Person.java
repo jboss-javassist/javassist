@@ -1,6 +1,6 @@
 /*
-  A base-level class controlled by VerboseMetaobj.
-*/
+ * A base-level class controlled by VerboseMetaobj.
+ */
 
 package sample.reflect;
 
@@ -9,43 +9,45 @@ import javassist.reflect.Metaobject;
 
 public class Person {
     public String name;
+
     public static int birth = 3;
+
     public static final String defaultName = "John";
 
     public Person(String name, int birthYear) {
-	if (name == null)
-	    this.name = defaultName;
-	else
-	    this.name = name;
+        if (name == null)
+            this.name = defaultName;
+        else
+            this.name = name;
 
-	this.birth = birthYear;
+        birth = birthYear;
     }
 
     public String getName() {
-	return name;
+        return name;
     }
 
     public int getAge(int year) {
-	return year - birth;
+        return year - birth;
     }
 
     public static void main(String[] args) {
-	String name;
-	if (args.length > 0)
-	    name = args[0];
-	else
-	    name = "Bill";
+        String name;
+        if (args.length > 0)
+            name = args[0];
+        else
+            name = "Bill";
 
-	Person p = new Person(name, 1960);
-	System.out.println("name: " + p.getName());
-	System.out.println("object: " + p.toString());
+        Person p = new Person(name, 1960);
+        System.out.println("name: " + p.getName());
+        System.out.println("object: " + p.toString());
 
-	// change the metaobject of p.
-	if (p instanceof Metalevel) {
-	    ((Metalevel)p)._setMetaobject(new Metaobject(p, null));
-	    System.out.println("<< the metaobject was changed.>>");
-	}
+        // change the metaobject of p.
+        if (p instanceof Metalevel) {
+            ((Metalevel)p)._setMetaobject(new Metaobject(p, null));
+            System.out.println("<< the metaobject was changed.>>");
+        }
 
-	System.out.println("age: " + p.getAge(1999));
+        System.out.println("age: " + p.getAge(1999));
     }
 }

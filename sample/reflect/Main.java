@@ -1,6 +1,5 @@
 package sample.reflect;
 
-import javassist.reflect.ClassMetaobject;
 import javassist.reflect.Loader;
 
 /*
@@ -23,11 +22,11 @@ import javassist.reflect.Loader;
 */
 public class Main {
     public static void main(String[] args) throws Throwable {
-	Loader cl = (Loader)Main.class.getClassLoader();
-	cl.makeReflective("sample.reflect.Person",
-			  "sample.reflect.VerboseMetaobj",
-			  "javassist.reflect.ClassMetaobject");
+        Loader cl = (Loader)Main.class.getClassLoader();
+        cl.makeReflective("sample.reflect.Person",
+                          "sample.reflect.VerboseMetaobj",
+                          "javassist.reflect.ClassMetaobject");
 
-	cl.run("sample.reflect.Person", args);
+        cl.run("sample.reflect.Person", args);
     }
 }

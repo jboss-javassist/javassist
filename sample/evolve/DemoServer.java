@@ -1,6 +1,5 @@
 package sample.evolve;
 
-import javassist.*;
 import javassist.web.*;
 import java.io.*;
 
