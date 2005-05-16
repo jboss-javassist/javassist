@@ -1143,10 +1143,13 @@ public abstract class CodeGen extends Visitor implements Opcode, TokenId {
         int type1 = exprType;
         int dim1 = arrayDim;
         expr.oprand2().accept(this);
-        if (dim1 != arrayDim)
+        if (dim1 != arrayDim && type1 != NULL && exprType != NULL)
             throw new CompileError("incompatible array types");
 
-        return type1;
+        if (type1 == NULL)
+            return exprType;
+        else
+            return type1;
     }
 
     private static final int ifOp[] = { EQ, IF_ICMPEQ, IF_ICMPNE,
