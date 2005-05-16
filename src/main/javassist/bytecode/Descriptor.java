@@ -58,30 +58,58 @@ public class Descriptor {
     }
 
     /**
-     * Converts to a Java class name from a descriptor
+     * Converts to a Java class name from a descriptor.
+     *
+     * @param descriptor        type descriptor.
      */
     public static String toClassName(String descriptor) {
-        if (descriptor.equals("V"))
-            return "void";
-        else if (descriptor.equals("I"))
-            return "int";
-        else if (descriptor.equals("B"))
-            return "byte";
-        else if (descriptor.equals("J"))
-            return "long";
-        else if (descriptor.equals("D"))
-            return "double";
-        else if (descriptor.equals("F"))
-            return "float";
-        else if (descriptor.equals("C"))
-            return "char";
-        else if (descriptor.equals("S"))
-            return "short";
-        else if (descriptor.equals("Z"))
-            return "boolean";
+        int arrayDim = 0;
+        int i = 0;
+        char c = descriptor.charAt(0);
+        while (c == '[') {
+            ++arrayDim;
+            c = descriptor.charAt(++i);
+        }
+
+        String name;
+        if (c == 'L') {
+            int i2 = descriptor.indexOf(';', i++);
+            name = descriptor.substring(i, i2).replace('/', '.');
+            i = i2;
+        }
+        else if (c == 'V')
+            name =  "void";
+        else if (c == 'I')
+            name = "int";
+        else if (c == 'B')
+            name = "byte";
+        else if (c == 'J')
+            name = "long";
+        else if (c == 'D')
+            name = "double";
+        else if (c == 'F')
+            name = "float";
+        else if (c == 'C')
+            name = "char";
+        else if (c == 'S')
+            name = "short";
+        else if (c == 'Z')
+            name = "boolean";
+        else
+            throw new RuntimeException("bad descriptor: " + descriptor);
+
+        if (i + 1 != descriptor.length())
+            throw new RuntimeException("multiple descriptors?: " + descriptor);
+
+        if (arrayDim == 0)
+            return name;
         else {
-            String newname = toJavaName(descriptor);
-            return newname.substring(1, newname.length() - 1);
+            StringBuffer sbuf = new StringBuffer(name);
+            do {
+                sbuf.append("[]");
+            } while (--arrayDim > 0);
+
+            return sbuf.toString();
         }
     }
 
