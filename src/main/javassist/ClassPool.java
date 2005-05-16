@@ -22,6 +22,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URL;
 import java.util.Hashtable;
+import javassist.bytecode.Descriptor;
 
 /**
  * A container of <code>CtClass</code> objects.
@@ -348,6 +349,10 @@ public class ClassPool {
      * @return null if the class file could not be found.
      */
     protected CtClass createCtClass(String classname, boolean useCache) {
+        // accept "[L<class name>;" as a class name. 
+        if (classname.charAt(0) == '[')
+            classname = Descriptor.toClassName(classname);
+
         if (classname.endsWith("[]")) {
             String base = classname.substring(0, classname.indexOf('['));
             if ((!useCache || getCached(base) == null) && find(base) == null)

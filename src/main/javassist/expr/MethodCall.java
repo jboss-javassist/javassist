@@ -93,7 +93,10 @@ public class MethodCall extends Expr {
         else
             cname = cp.getMethodrefClassName(index);
 
-        return cname;
+         if (cname.charAt(0) == '[')
+             cname = Descriptor.toClassName(cname);
+
+         return cname;
     }
 
     /**
