@@ -133,8 +133,7 @@ public class Lex implements TokenId {
                 return readSeparator('.');
             }
         }
-        else if ('A' <= c && c <= 'Z' || 'a' <= c && c <= 'z' || c == '_'
-                 || c == '$')
+        else if (Character.isJavaIdentifierStart((char)c))
             return readIdentifier(c, token);
         else
             return readSeparator(c);
@@ -434,8 +433,7 @@ public class Lex implements TokenId {
         do {
             tbuf.append((char)c);
             c = getc();
-        } while ('A' <= c && c <= 'Z' || 'a' <= c && c <= 'z' || c == '_'
-                 || c == '$' || '0' <= c && c <= '9');
+        } while (Character.isJavaIdentifierPart((char)c));
 
         ungetc(c);
 
@@ -497,7 +495,7 @@ public class Lex implements TokenId {
         ktable.append("return", RETURN);
         ktable.append("short", SHORT);
         ktable.append("static", STATIC);
-        ktable.append("strict", STRICT);
+        ktable.append("strictfp", STRICT);
         ktable.append("super", SUPER);
         ktable.append("switch", SWITCH);
         ktable.append("synchronized", SYNCHRONIZED);
@@ -523,6 +521,18 @@ public class Lex implements TokenId {
 
     private void ungetc(int c) {
         lastChar = c;
+    }
+
+    public String getTextAround() {
+        int begin = position - 10;
+        if (begin < 0)
+            begin = 0;
+
+        int end = position + 10;
+        if (end > maxlen)
+            end = maxlen;
+
+        return input.substring(begin, end);
     }
 
     private int getc() {

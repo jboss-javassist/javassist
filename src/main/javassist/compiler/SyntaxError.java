@@ -16,7 +16,7 @@
 package javassist.compiler;
 
 public class SyntaxError extends CompileError {
-    public SyntaxError(Lex l) {
-        super("syntax error", l);
+    public SyntaxError(Lex lexer) {
+        super("syntax error near \"" + lexer.getTextAround() + "\"", lexer);
     }
 }
