@@ -1423,9 +1423,7 @@ public abstract class CodeGen extends Visitor implements Opcode, TokenId {
         ASTree oprand = expr.oprand1();
         if (token == '.') {
             String member = ((Symbol)expr.oprand2()).get();
-            if (member.equals("length"))
-                atArrayLength(expr);
-            else if (member.equals("class"))                
+            if (member.equals("class"))                
                 atClassObject(expr);  // .class
             else
                 atFieldRead(expr);
@@ -1573,16 +1571,6 @@ public abstract class CodeGen extends Visitor implements Opcode, TokenId {
         exprType = CLASS;
         arrayDim = 0;
         className = "java/lang/Class";
-    }
-
-    public void atArrayLength(Expr expr) throws CompileError {
-        expr.oprand1().accept(this);
-        if (arrayDim == 0)
-            throw new CompileError(".length applied to a non array");
-
-        bytecode.addOpcode(ARRAYLENGTH);
-        exprType = INT;
-        arrayDim = 0;
     }
 
     public void atArrayRead(ASTree array, ASTree index)

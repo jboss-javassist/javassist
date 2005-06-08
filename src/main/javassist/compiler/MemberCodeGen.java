@@ -651,7 +651,7 @@ public class MemberCodeGen extends CodeGen {
     protected void atFieldAssign(Expr expr, int op, ASTree left,
                         ASTree right, boolean doDup) throws CompileError
     {
-        CtField f = fieldAccess(left);
+        CtField f = fieldAccess(left, false);
         boolean is_static = resultStatic;
         if (op != '=' && !is_static)
             bytecode.addOpcode(DUP);
@@ -728,7 +728,12 @@ public class MemberCodeGen extends CodeGen {
 
     protected void atFieldRead(ASTree expr) throws CompileError
     {
-        CtField f = fieldAccess(expr);
+        CtField f = fieldAccess(expr, true);
+        if (f == null) {
+            atArrayLength(expr);
+            return;
+        }
+
         boolean is_static = resultStatic;
         ASTree cexpr = TypeChecker.getConstantFieldValue(f);
         if (cexpr == null)
@@ -737,6 +742,15 @@ public class MemberCodeGen extends CodeGen {
             cexpr.accept(this);
             setFieldType(f.getFieldInfo2());
         }
+    }
+
+    private void atArrayLength(ASTree expr) throws CompileError {
+        if (arrayDim == 0)
+            throw new CompileError(".length applied to a non array");
+
+        bytecode.addOpcode(ARRAYLENGTH);
+        exprType = INT;
+        arrayDim = 0;
     }
 
     /**
@@ -837,7 +851,7 @@ public class MemberCodeGen extends CodeGen {
                                    ASTree oprand, Expr expr, boolean doDup)
         throws CompileError
     {
-        CtField f = fieldAccess(oprand);
+        CtField f = fieldAccess(oprand, false);
         boolean is_static = resultStatic;
         if (!is_static)
             bytecode.addOpcode(DUP);
@@ -857,8 +871,12 @@ public class MemberCodeGen extends CodeGen {
     }
 
     /* This method also returns a value in resultStatic.
+     *
+     * @param acceptLength      true if array length is acceptable
      */
-    protected CtField fieldAccess(ASTree expr) throws CompileError {
+    protected CtField fieldAccess(ASTree expr, boolean acceptLength)
+            throws CompileError
+    {
         if (expr instanceof Member) {
             String name = ((Member)expr).get();
             CtField f = null;
@@ -905,6 +923,9 @@ public class MemberCodeGen extends CodeGen {
                     if (exprType == CLASS && arrayDim == 0)
                         f = resolver.lookupFieldByJvmName(className,
                                                     (Symbol)e.oprand2());
+                    else if (acceptLength && arrayDim > 0
+                             && ((Symbol)e.oprand2()).get().equals("length"))
+                        return null;    // expr is an array length.
                     else
                         badLvalue();
 
