@@ -15,9 +15,9 @@
 
 package javassist.bytecode.annotation;
 
+import java.io.IOException;
 import javassist.bytecode.ConstPool;
 import javassist.bytecode.Descriptor;
-import java.io.IOException;
 
 /**
  * Enum constant value.
@@ -92,7 +92,7 @@ public class EnumMemberValue extends MemberValue {
      * Writes the value.
      */
     public void write(AnnotationsWriter writer) throws IOException {
-        writer.enumConstValue(getType(), getValue());
+        writer.enumConstValue(cp.getUtf8Info(typeIndex), getValue());
     }
 
     /**
