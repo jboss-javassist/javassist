@@ -30,6 +30,8 @@ public final class FieldInfo {
     ConstPool constPool;
     int accessFlags;
     int name;
+   String cachedName;
+   String cachedType;
     int descriptor;
     LinkedList attribute;       // may be null.
 
@@ -51,6 +53,7 @@ public final class FieldInfo {
     public FieldInfo(ConstPool cp, String fieldName, String desc) {
         this(cp);
         name = cp.addUtf8Info(fieldName);
+       cachedName = fieldName;
         descriptor = cp.addUtf8Info(desc);
     }
 
@@ -75,12 +78,24 @@ public final class FieldInfo {
     }
 
     void prune(ConstPool cp) {
+       AttributeInfo invisibleAnnotations = getAttribute(AnnotationsAttribute.invisibleTag);
+       LinkedList newAttributes = new LinkedList();
+       if (invisibleAnnotations != null)
+       {
+          invisibleAnnotations = invisibleAnnotations.copy(cp, null);
+          newAttributes.add(invisibleAnnotations);
+       }
+       AttributeInfo visibleAnnotations = getAttribute(AnnotationsAttribute.visibleTag);
+       if (visibleAnnotations != null)
+       {
+          visibleAnnotations = visibleAnnotations.copy(cp, null);
+          newAttributes.add(visibleAnnotations);
+       }
         int index = getConstantValue();
-        if (index == 0)
-            attribute = null;
-        else {
+        attribute = newAttributes;
+        if (index != 0)
+        {
             index = constPool.copy(index, cp, null);
-            attribute = new LinkedList();
             attribute.add(new ConstantAttribute(cp, index));
         }
 
@@ -101,7 +116,8 @@ public final class FieldInfo {
      * Returns the field name.
      */
     public String getName() {
-        return constPool.getUtf8Info(name);
+       if (cachedName == null) cachedName = constPool.getUtf8Info(name);
+       return cachedName;
     }
 
     /**
@@ -109,6 +125,7 @@ public final class FieldInfo {
      */
     public void setName(String newName) {
         name = constPool.addUtf8Info(newName);
+       cachedName = newName;
     }
 
     /**

@@ -15,6 +15,17 @@
 
 package javassist;
 
+import java.io.BufferedInputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Hashtable;
+import java.util.List;
 import javassist.bytecode.AccessFlag;
 import javassist.bytecode.AttributeInfo;
 import javassist.bytecode.BadBytecode;
@@ -32,18 +43,6 @@ import javassist.compiler.AccessorMaker;
 import javassist.compiler.CompileError;
 import javassist.compiler.Javac;
 import javassist.expr.ExprEditor;
-
-import java.io.BufferedInputStream;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.Hashtable;
-import java.util.List;
 
 /**
  * Class types.
@@ -174,10 +173,13 @@ class CtClassType extends CtClass {
         if (classfile != null)
             return classfile;
 
+       /*
         if (readCounter++ > READ_THRESHOLD) {
+            System.out.println("COMPACTING!!!!: " + getName());
             doCompaction();
             readCounter = 0;
         }
+        */
 
         InputStream fin = null;
         try {
@@ -962,6 +964,13 @@ class CtClassType extends CtClass {
         }
     }
 
+   public void prune()
+   {
+      if (wasPruned) return;
+      wasPruned = true;
+      getClassFile2().prune();
+   }
+
     public void toBytecode(DataOutputStream out)
         throws CannotCompileException, IOException
     {
@@ -981,7 +990,7 @@ class CtClassType extends CtClass {
                 fieldInitializers = null;
                 if (doPruning) {
                     // to save memory
-                    cf.prune();
+                    cf. prune();
                     wasPruned = true;
                 }
             }

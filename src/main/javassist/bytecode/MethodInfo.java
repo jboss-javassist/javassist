@@ -32,6 +32,7 @@ public final class MethodInfo {
     ConstPool constPool;
     int accessFlags;
     int name;
+   String cachedName;
     int descriptor;
     LinkedList attribute; // may be null
 
@@ -70,6 +71,7 @@ public final class MethodInfo {
         this(cp);
         accessFlags = 0;
         name = cp.addUtf8Info(methodname);
+        cachedName = methodname;
         descriptor = constPool.addUtf8Info(desc);
     }
 
@@ -107,7 +109,7 @@ public final class MethodInfo {
      * Returns a string representation of the object.
      */
     public String toString() {
-        return constPool.getUtf8Info(name) + " "
+        return getName() + " "
                 + constPool.getUtf8Info(descriptor);
     }
 
@@ -127,7 +129,23 @@ public final class MethodInfo {
     }
 
     void prune(ConstPool cp) {
-        attribute = null;
+       AttributeInfo invisibleAnnotations = getAttribute(AnnotationsAttribute.invisibleTag);
+       LinkedList newAttributes = new LinkedList();
+       if (invisibleAnnotations != null)
+       {
+          invisibleAnnotations = invisibleAnnotations.copy(cp, null);
+          newAttributes.add(invisibleAnnotations);
+       }
+       AttributeInfo visibleAnnotations = getAttribute(AnnotationsAttribute.visibleTag);
+       if (visibleAnnotations != null)
+       {
+          visibleAnnotations = visibleAnnotations.copy(cp, null);
+          newAttributes.add(visibleAnnotations);
+       }
+       ExceptionsAttribute ea = getExceptionsAttribute();
+       if (ea != null) newAttributes.add(ea);
+       
+        attribute = newAttributes;
         name = cp.addUtf8Info(getName());
         descriptor = cp.addUtf8Info(getDescriptor());
         constPool = cp;
@@ -137,7 +155,8 @@ public final class MethodInfo {
      * Returns a method name.
      */
     public String getName() {
-        return constPool.getUtf8Info(name);
+       if (cachedName == null) cachedName = constPool.getUtf8Info(name);
+       return cachedName;
     }
 
     /**
@@ -145,6 +164,7 @@ public final class MethodInfo {
      */
     public void setName(String newName) {
         name = constPool.addUtf8Info(newName);
+       cachedName = newName;
     }
 
     /**
@@ -383,7 +403,7 @@ public final class MethodInfo {
         ConstPool destCp = constPool;
         accessFlags = src.accessFlags;
         name = destCp.addUtf8Info(methodname);
-
+        cachedName = methodname;
         ConstPool srcCp = src.constPool;
         String desc = srcCp.getUtf8Info(src.descriptor);
         String desc2 = Descriptor.rename(desc, classnames);

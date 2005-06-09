@@ -15,11 +15,6 @@
 
 package javassist;
 
-import javassist.bytecode.ClassFile;
-import javassist.bytecode.Descriptor;
-import javassist.bytecode.Opcode;
-import javassist.expr.ExprEditor;
-
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
@@ -29,6 +24,10 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.URL;
 import java.util.Collection;
+import javassist.bytecode.ClassFile;
+import javassist.bytecode.Descriptor;
+import javassist.bytecode.Opcode;
+import javassist.expr.ExprEditor;
 
 // Subclasses of CtClass: CtClassType, CtPrimitiveType, and CtArray
 
@@ -1004,7 +1003,7 @@ public abstract class CtClass {
         ClassPool cp = getClassPool();
         CtClass obj = cp.removeCached(getName());
         if (obj != this)
-            cp.cacheCtClass(getName(), obj);
+            cp.cacheCtClass(getName(), obj, false);
     }
 
     /**
@@ -1111,6 +1110,11 @@ public abstract class CtClass {
             file.close();
         }
     }
+
+   public void prune()
+   {
+
+   }
 
     /**
      * Converts this class to a class file.

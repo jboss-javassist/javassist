@@ -150,7 +150,7 @@ public class ClassPool {
      * Provide a hook so that subclasses can do their own
      * caching of classes.
      *
-     * @see #cacheCtClass(String,CtClass)
+     * @see #cacheCtClass(String,CtClass,boolean)
      * @see #removeCached(String)
      */
     protected CtClass getCached(String classname) {
@@ -164,7 +164,7 @@ public class ClassPool {
      * @see #getCached(String)
      * @see #removeCached(String,CtClass)
      */
-    protected void cacheCtClass(String classname, CtClass c) {
+    protected void cacheCtClass(String classname, CtClass c, boolean dynamic) {
         classes.put(classname, c);
     }
 
@@ -173,7 +173,7 @@ public class ClassPool {
      * caching of classes.
      *
      * @see #getCached(String)
-     * @see #cacheCtClass(String,CtClass)
+     * @see #cacheCtClass(String,CtClass,boolean)
      */
     protected CtClass removeCached(String classname) {
         return (CtClass)classes.remove(classname);
@@ -272,7 +272,7 @@ public class ClassPool {
 
         String newName = clazz.getName();
         checkNotFrozen(newName);
-        cacheCtClass(newName, clazz);
+        cacheCtClass(newName, clazz, false);
     }
 
     /**
@@ -330,7 +330,7 @@ public class ClassPool {
         clazz = createCtClass(classname, useCache);
         if (clazz != null) {
             if (useCache)
-                cacheCtClass(classname, clazz);
+                cacheCtClass(classname, clazz, false);
 
             return clazz;
         }
@@ -475,7 +475,7 @@ public class ClassPool {
         clazz.checkModify();
         String classname = clazz.getName();
         checkNotFrozen(classname);
-        cacheCtClass(classname, clazz);
+        cacheCtClass(classname, clazz, true);
         return clazz;
     }
 
@@ -505,7 +505,7 @@ public class ClassPool {
     {
         checkNotFrozen(classname);
         CtClass clazz = new CtNewClass(classname, this, false, superclass);
-        cacheCtClass(classname, clazz);
+        cacheCtClass(classname, clazz, true);
         return clazz;
     }
 
@@ -519,7 +519,7 @@ public class ClassPool {
     synchronized CtClass makeNestedClass(String classname) {
         checkNotFrozen(classname);
         CtClass clazz = new CtNewNestedClass(classname, this, false, null);
-        cacheCtClass(classname, clazz);
+        cacheCtClass(classname, clazz, true);
         return clazz;
     }
 
@@ -549,7 +549,7 @@ public class ClassPool {
     {
         checkNotFrozen(name);
         CtClass clazz = new CtNewClass(name, this, true, superclass);
-        cacheCtClass(name, clazz);
+        cacheCtClass(name, clazz, true);
         return clazz;
     }
 
