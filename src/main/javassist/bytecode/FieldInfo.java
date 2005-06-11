@@ -100,13 +100,13 @@ public final class FieldInfo {
             newAttributes.add(visibleAnnotations);
         }
 
-        attribute = newAttributes;
         int index = getConstantValue();
         if (index != 0) {
             index = constPool.copy(index, cp, null);
-            attribute.add(new ConstantAttribute(cp, index));
+            newAttributes.add(new ConstantAttribute(cp, index));
         }
 
+        attribute = newAttributes;
         name = cp.addUtf8Info(getName());
         descriptor = cp.addUtf8Info(getDescriptor());
         constPool = cp;
