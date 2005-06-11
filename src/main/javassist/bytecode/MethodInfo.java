@@ -32,12 +32,9 @@ public final class MethodInfo {
     ConstPool constPool;
     int accessFlags;
     int name;
-   String cachedName;
+    String cachedName;
     int descriptor;
     LinkedList attribute; // may be null
-
-    // Bill, do you really need this?
-    // public Exception created = new Exception();
 
     /**
      * The name of constructors: <code>&lt;init&gt</code>.
@@ -109,8 +106,7 @@ public final class MethodInfo {
      * Returns a string representation of the object.
      */
     public String toString() {
-        return getName() + " "
-                + constPool.getUtf8Info(descriptor);
+        return getName() + " " + getDescriptor();
     }
 
     /**
@@ -129,33 +125,38 @@ public final class MethodInfo {
     }
 
     void prune(ConstPool cp) {
-       AttributeInfo invisibleAnnotations = getAttribute(AnnotationsAttribute.invisibleTag);
-       LinkedList newAttributes = new LinkedList();
-       if (invisibleAnnotations != null)
-       {
-          invisibleAnnotations = invisibleAnnotations.copy(cp, null);
-          newAttributes.add(invisibleAnnotations);
-       }
-       AttributeInfo visibleAnnotations = getAttribute(AnnotationsAttribute.visibleTag);
-       if (visibleAnnotations != null)
-       {
-          visibleAnnotations = visibleAnnotations.copy(cp, null);
-          newAttributes.add(visibleAnnotations);
-       }
-       ExceptionsAttribute ea = getExceptionsAttribute();
-       if (ea != null) newAttributes.add(ea);
-       
-        attribute = newAttributes;
-        name = cp.addUtf8Info(getName());
-        descriptor = cp.addUtf8Info(getDescriptor());
-        constPool = cp;
+        LinkedList newAttributes = new LinkedList();
+        AttributeInfo invisibleAnnotations
+            = getAttribute(AnnotationsAttribute.invisibleTag);
+        if (invisibleAnnotations != null) {
+            invisibleAnnotations = invisibleAnnotations.copy(cp, null);
+            newAttributes.add(invisibleAnnotations);
+         }
+
+        AttributeInfo visibleAnnotations
+            = getAttribute(AnnotationsAttribute.visibleTag);
+        if (visibleAnnotations != null) {
+            visibleAnnotations = visibleAnnotations.copy(cp, null);
+            newAttributes.add(visibleAnnotations);
+         }
+
+         ExceptionsAttribute ea = getExceptionsAttribute();
+         if (ea != null)
+             newAttributes.add(ea);
+
+         attribute = newAttributes;
+         name = cp.addUtf8Info(getName());
+         descriptor = cp.addUtf8Info(getDescriptor());
+         constPool = cp;
     }
 
     /**
      * Returns a method name.
      */
     public String getName() {
-       if (cachedName == null) cachedName = constPool.getUtf8Info(name);
+       if (cachedName == null)
+           cachedName = constPool.getUtf8Info(name);
+
        return cachedName;
     }
 

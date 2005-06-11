@@ -43,7 +43,7 @@ public abstract class CtClass {
     /**
      * The version number of this release.
      */
-    public static final String version = "3.1";
+    public static final String version = "3.1RC1";
 
     /**
      * Prints the version number and the copyright notice.
@@ -1111,10 +1111,12 @@ public abstract class CtClass {
         }
     }
 
-   public void prune()
-   {
-
-   }
+    /**
+     * Discards unnecessary data to minimize the memory footprint.
+     * After calling this method, the class is read only.
+     * It cannot be modified any more.
+     */
+    public void prune() {}
 
     /**
      * Converts this class to a class file.

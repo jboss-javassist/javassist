@@ -30,8 +30,8 @@ public final class FieldInfo {
     ConstPool constPool;
     int accessFlags;
     int name;
-   String cachedName;
-   String cachedType;
+    String cachedName;
+    String cachedType;
     int descriptor;
     LinkedList attribute;       // may be null.
 
@@ -53,13 +53,20 @@ public final class FieldInfo {
     public FieldInfo(ConstPool cp, String fieldName, String desc) {
         this(cp);
         name = cp.addUtf8Info(fieldName);
-       cachedName = fieldName;
+        cachedName = fieldName;
         descriptor = cp.addUtf8Info(desc);
     }
 
     FieldInfo(ConstPool cp, DataInputStream in) throws IOException {
         this(cp);
         read(in);
+    }
+
+    /**
+     * Returns a string representation of the object.
+     */
+    public String toString() {
+        return getName() + " " + getDescriptor();
     }
 
     /**
@@ -78,23 +85,24 @@ public final class FieldInfo {
     }
 
     void prune(ConstPool cp) {
-       AttributeInfo invisibleAnnotations = getAttribute(AnnotationsAttribute.invisibleTag);
-       LinkedList newAttributes = new LinkedList();
-       if (invisibleAnnotations != null)
-       {
-          invisibleAnnotations = invisibleAnnotations.copy(cp, null);
-          newAttributes.add(invisibleAnnotations);
-       }
-       AttributeInfo visibleAnnotations = getAttribute(AnnotationsAttribute.visibleTag);
-       if (visibleAnnotations != null)
-       {
-          visibleAnnotations = visibleAnnotations.copy(cp, null);
-          newAttributes.add(visibleAnnotations);
-       }
-        int index = getConstantValue();
+        LinkedList newAttributes = new LinkedList();
+        AttributeInfo invisibleAnnotations
+            = getAttribute(AnnotationsAttribute.invisibleTag);
+        if (invisibleAnnotations != null) {
+            invisibleAnnotations = invisibleAnnotations.copy(cp, null);
+            newAttributes.add(invisibleAnnotations);
+         }
+
+        AttributeInfo visibleAnnotations
+            = getAttribute(AnnotationsAttribute.visibleTag);
+        if (visibleAnnotations != null) {
+            visibleAnnotations = visibleAnnotations.copy(cp, null);
+            newAttributes.add(visibleAnnotations);
+        }
+
         attribute = newAttributes;
-        if (index != 0)
-        {
+        int index = getConstantValue();
+        if (index != 0) {
             index = constPool.copy(index, cp, null);
             attribute.add(new ConstantAttribute(cp, index));
         }
@@ -116,7 +124,9 @@ public final class FieldInfo {
      * Returns the field name.
      */
     public String getName() {
-       if (cachedName == null) cachedName = constPool.getUtf8Info(name);
+       if (cachedName == null)
+           cachedName = constPool.getUtf8Info(name);
+
        return cachedName;
     }
 
@@ -125,7 +135,7 @@ public final class FieldInfo {
      */
     public void setName(String newName) {
         name = constPool.addUtf8Info(newName);
-       cachedName = newName;
+        cachedName = newName;
     }
 
     /**

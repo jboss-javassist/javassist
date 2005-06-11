@@ -175,7 +175,6 @@ class CtClassType extends CtClass {
 
        /*
         if (readCounter++ > READ_THRESHOLD) {
-            System.out.println("COMPACTING!!!!: " + getName());
             doCompaction();
             readCounter = 0;
         }
@@ -964,10 +963,11 @@ class CtClassType extends CtClass {
         }
     }
 
-   public void prune()
-   {
-      if (wasPruned) return;
-      wasPruned = true;
+   public void prune() {
+      if (wasPruned)
+          return;
+
+      wasPruned = wasFrozen = true;
       getClassFile2().prune();
    }
 
@@ -990,7 +990,7 @@ class CtClassType extends CtClass {
                 fieldInitializers = null;
                 if (doPruning) {
                     // to save memory
-                    cf. prune();
+                    cf.prune();
                     wasPruned = true;
                 }
             }
