@@ -266,33 +266,6 @@ public abstract class CtClass {
     }
 
     /**
-     * Disallows (or allows) pruning the data structure on memory
-     * when this <code>CtClass</code> object is converted into a class file.
-     * Pruning saves memory space since a <code>ClassPool</code> holds
-     * all instances of <code>CtClass</code>
-     * all the time of program execution.
-     * However, pruning discards the data representing part of the
-     * class definition, such as method bodies.
-     * Therefore, once it is pruned, <code>toBytecode()</code>,
-     * <code>writeFile()</code>, or <code>toClass()</code> cannot
-     * be called again.
-     *
-     * <p>Initially, pruning is allowed.
-     *
-     * @param stop      disallow pruning if true.  Otherwise, allow.
-     * @see #detach()
-     * @see #toBytecode()
-     * @see #toClass()
-     * @see #writeFile()
-     */
-    public void stopPruning(boolean stop) {}
-
-    /* Called by get() in ClassPool.
-     * CtClassType overrides this method.
-     */
-    void incGetCounter() {}
-
-    /**
      * Returns <code>true</code> if this object represents a primitive
      * Java type: boolean, byte, char, short, int, long, float, double,
      * or void.
@@ -1007,6 +980,55 @@ public abstract class CtClass {
     }
 
     /**
+     * Disallows (or allows) automatically pruning this <code>CtClass</code>
+     * object.
+     *
+     * <p>
+     * Javassist can automatically prune a <code>CtClass</code> object
+     * when <code>toBytecode()</code> (or <code>toClass()</code>,
+     * <code>writeFile()</code>) is called.
+     * Since a <code>ClassPool</code> holds all instances of <code>CtClass</code>
+     * even after <code>toBytecode()</code> (or <code>toClass()</code>,
+     * <code>writeFile()</code>) is called, pruning may significantly
+     * save memory consumption.
+     *
+     * <p>If <code>ClassPool.doPruning</code> is true, the automatic pruning
+     * is on by default.  Otherwise, it is off.
+     * 
+     * @param stop      disallow pruning if true.  Otherwise, allow.
+     *
+     * @see #detach()
+     * @see #prune()
+     * @see ClassPool#doPruning
+     */
+    public void stopPruning(boolean stop) {}
+
+    /**
+     * Discards unnecessary data, in particuar, <code>CodeAttribute</code>s
+     * (method bodies) of the class,
+     * to minimize the memory footprint.
+     * After calling this method, the class is read only.
+     * It cannot be modified any more.
+     * Furthermore, <code>toBytecode()</code>,
+     * <code>writeFile()</code>, <code>toClass()</code>,
+     * or <code>instrument()</code> cannot be called.
+     * However, the method names and signatures in the class etc.
+     * are still accessible.
+     *
+     * @see #toBytecode()
+     * @see #toClass()
+     * @see #writeFile()
+     *
+     * @see #stopPruning(boolean)
+     */
+    public void prune() {}
+
+    /* Called by get() in ClassPool.
+     * CtClassType overrides this method.
+     */
+    void incGetCounter() {}
+
+    /**
      * Converts this class to a class file.
      * Once this method is called, further modifications are not
      * possible any more.
@@ -1110,13 +1132,6 @@ public abstract class CtClass {
             file.close();
         }
     }
-
-    /**
-     * Discards unnecessary data to minimize the memory footprint.
-     * After calling this method, the class is read only.
-     * It cannot be modified any more.
-     */
-    public void prune() {}
 
     /**
      * Converts this class to a class file.

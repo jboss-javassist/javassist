@@ -373,6 +373,7 @@ public final class ClassFile {
 
     /**
      * Returns the names of the interfaces implemented by the class.
+     * The returned array is read only.
      */
     public String[] getInterfaces() {
         if (cachedInterfaces != null)

@@ -73,6 +73,33 @@ public class ClassPool {
      */
     public boolean childFirstLookup = false;
 
+    /**
+     * Turning the automatic pruning on/off.
+     *
+     * <p>If this field is true, <code>CtClass</code> objects are
+     * automatically pruned by default when <code>toBytecode()</code> etc.
+     * are called.  The automatic pruning can be turned on/off individually
+     * for each <code>CtClass</code> object.
+     *
+     * <p>The initial value is true.
+     *
+     * @see CtClass#prune()
+     * @see CtClass#stopPruning(boolean)
+     */
+    public static boolean doPruning = true;
+
+    /* releaseUnmodifiedClassFile was introduced for avoiding a bug
+       of JBoss AOP.  So the value should be true except for JBoss AOP.
+     */
+
+    /**
+     * If true, unmodified and not-recently-used class files are
+     * periodically released for saving memory.
+     *
+     * <p>The initial value is true.
+     */
+    public static boolean releaseUnmodifiedClassFile = true;
+
     protected ClassPoolTail source;
     protected ClassPool parent;
     protected Hashtable classes;        // should be synchronous

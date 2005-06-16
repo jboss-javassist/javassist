@@ -66,7 +66,7 @@ class CtClassType extends CtClass {
     private Hashtable hiddenMethods;    // must be synchronous
     private int uniqueNumberSeed;
 
-    private boolean doPruning = false;
+    private boolean doPruning = ClassPool.doPruning;
     int getCounter;
     private static int readCounter = 0;
     private static final int READ_THRESHOLD = 100;  // see getClassFile2()
@@ -173,12 +173,11 @@ class CtClassType extends CtClass {
         if (classfile != null)
             return classfile;
 
-       /*
-        if (readCounter++ > READ_THRESHOLD) {
-            doCompaction();
+        if (readCounter++ > READ_THRESHOLD
+                                    && ClassPool.releaseUnmodifiedClassFile) {
+            releaseClassFiles();
             readCounter = 0;
         }
-        */
 
         InputStream fin = null;
         try {
@@ -215,7 +214,12 @@ class CtClassType extends CtClass {
      */
     void incGetCounter() { ++getCounter; }
 
-    private void doCompaction() {
+    /**
+     * Releases the class files and cached CtBehaviors
+     * of the CtClasses that have not been recently used
+     * if they are unmodified. 
+     */
+    private void releaseClassFiles() {
         Enumeration e = classPool.classes.elements();
         while (e.hasMoreElements()) {
             Object obj = e.nextElement();
@@ -963,13 +967,17 @@ class CtClassType extends CtClass {
         }
     }
 
-   public void prune() {
-      if (wasPruned)
-          return;
+    /**
+     * @see javassist.CtClass#prune()
+     * @see javassist.CtClass#stopPruning(boolean)
+     */
+    public void prune() {
+        if (wasPruned)
+            return;
 
-      wasPruned = wasFrozen = true;
-      getClassFile2().prune();
-   }
+        wasPruned = wasFrozen = true;
+        getClassFile2().prune();
+    }
 
     public void toBytecode(DataOutputStream out)
         throws CannotCompileException, IOException
