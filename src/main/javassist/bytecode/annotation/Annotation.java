@@ -34,6 +34,9 @@ import java.util.Iterator;
  *
  * @see javassist.bytecode.AnnotationsAttribute#getAnnotations()
  * @see javassist.bytecode.ParameterAnnotationsAttribute#getAnnotations()
+ * @see MemberValue
+ * @see MemberValueVisitor
+ * @see AnnotationsWriter
  *
  * @author <a href="mailto:bill@jboss.org">Bill Burke</a>
  * @author Shigeru Chiba

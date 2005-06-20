@@ -106,4 +106,15 @@ public class CannotCompileException extends Exception {
             cause.printStackTrace(w);
         }
     }
+
+    /**
+     * Prints this exception and its backtrace.
+     */
+    public void printStackTrace(java.io.PrintStream w) {
+        super.printStackTrace(w);
+        if (cause != null) {
+            w.println("Caused by:");
+            cause.printStackTrace(w);
+        }
+    }
 }
