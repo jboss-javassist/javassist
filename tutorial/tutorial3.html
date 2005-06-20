@@ -124,10 +124,10 @@ The following methods are part of the methods declared in
 Move to the first instruction.<br>
 <li><code>void move(int index)</code><br>
 Move to the instruction specified by the given index.<br>
-<li><code>hasNext()</code><br>
+<li><code>boolean hasNext()</code><br>
 Returns true if there is more instructions.<br>
-<li><code>next()</code><br>
-Returns the index of the next instruction.
+<li><code>int next()</code><br>
+Returns the index of the next instruction.<br>
 <em>Note that it does not return the opcode of the next
 instruction.</em><br>
 <li><code>int byteAt(int index)</code><br>
@@ -140,6 +140,18 @@ Writes a byte array at the index.<br>
 Inserts a byte array at the index.
 Branch offsets etc. are automatically adjusted.<br>
 </ul>
+
+<p>The following code snippet displays all the instructions included
+in a method body:
+
+<ul><pre>
+CodeIterator ci = ... ;
+while (ci.hasNext()) {
+    int index = ci.next();
+    int op = ci.byteAt(index);
+    System.out.println(Mnemonic.OPCODE[op]);
+}
+</pre></ul>
 
 <p><br>
 

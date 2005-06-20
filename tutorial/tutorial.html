@@ -130,8 +130,6 @@ example, the data of method bodies.  Thus, after a
 <code>CtClass</code> object is pruned, the bytecode of a method is not
 accessible although method names and signatures are accessible.
 
-<p>(Note: the current version of Javassist turns pruning off by default.)
-
 <p>To disallow pruning a <code>CtClass</code>, <code>stopPruning()</code>
 must be called in advance:
 
@@ -155,6 +153,8 @@ cc.defrost();
 cc.setSuperclass(...);    // OK since the class is not frozen.
 </pre></ul>
 
+<p>To disallow pruning for all the <code>CtClass</code>es, set
+<code>ClassPool.doPruning</code> to <code>false</code>.
 
 <h4>Class search path</h4>
 
