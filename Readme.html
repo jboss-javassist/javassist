@@ -240,6 +240,33 @@ with a web browser running
    on the local host.
 (Or, see <a href="sample/evolve/start.html">sample/evolve/start.html</a>.)
 
+<h3>8. sample/hotswap/*.java</h3>
+
+<p>This shows dynamic class reloading by the JPDA.
+To run, first type the following commands:
+
+<ul><pre>
+% cd sample/hotswap
+% javac *.java
+% cd logging
+% javac *.java
+% cd ..
+</pre></ul>
+
+<p>If your Java is 1.4, then type:
+
+<ul><pre>
+% java -Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=8000 Test
+</pre></ul>
+
+<p>If you are using Java 5, then type:
+
+<ul><pre>
+% java -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=8000 Test
+</pre></ul>
+
+<p>Note that the class path must include <code>JAVA_HOME/lib/tools.jar</code>.
+
 <h2>Hints</h2>
 
 <p>To know the version number, type this command:
@@ -258,6 +285,8 @@ see javassist.Dump.
 <p>- version 3.1
 
 <ul>
+  <li>javassist.tool.HotSwapper was added.
+  <li>javassist.Dump was moved to javassist.tool.Dump.
 </ul>
 
 <p>- version 3.0 in January 18, 2005

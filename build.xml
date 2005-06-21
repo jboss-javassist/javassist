@@ -6,7 +6,7 @@
 
 <project name="javassist" default="jar" basedir=".">
 
-  <property name="dist-version" value="javassist-3.0"/>
+  <property name="dist-version" value="javassist-3.1"/>
 
   <property environment="env"/>
   <property name="target.jar" value="javassist.jar"/>
@@ -51,7 +51,25 @@
            debug="on"
            deprecation="on"
            optimize="off"
-           includes="sample/**">
+           includes="sample/**"
+           excludes="sample/hotswap/**">
+            <classpath refid="classpath"/>
+    </javac>
+    <javac srcdir="${basedir}/sample/hotswap"
+           destdir="${build.classes.dir}"
+           debug="on"
+           deprecation="on"
+           optimize="off"
+           includes="*">
+            <classpath refid="classpath"/>
+    </javac>
+    <mkdir dir="${build.classes.dir}/logging"/>
+    <javac srcdir="${basedir}/sample/hotswap/logging"
+           destdir="${build.classes.dir}/logging"
+           debug="on"
+           deprecation="on"
+           optimize="off"
+           includes="*">
             <classpath refid="classpath"/>
     </javac>
     <copy file="sample/vector/Test.j"
@@ -59,7 +77,7 @@
     <copy todir="${build.classes.dir}/sample/evolve">
       <fileset dir="sample/evolve"/>
     </copy>
-    <echo>To run the sample programs, change the current directory 
+    <echo>To run the sample programs without ant, change the current directory 
 to ${build.classes.dir}.</echo>
   </target>
 
@@ -175,4 +193,21 @@ Copyright (C) 1999-2005 Shigeru Chiba. All Rights Reserved.</i>]]></bottom>
     </java>
   </target>
 
+  <!-- for JDK 1.4 -->
+  <target name = "sample-hotswap" depends="sample">
+    <echo>** JAVA_HOME/lib/tools.jar must be included in CLASS_PATH</echo>
+    <java fork="true" dir="${run.dir}" classname="Test">
+      <jvmarg line="-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=8000" />
+      <classpath refid="classpath"/>
+    </java>
+  </target>
+
+  <!-- for Java 5 -->
+  <target name = "sample-hotswap5" depends="sample">
+    <echo>** JAVA_HOME/lib/tools.jar must be included in CLASS_PATH</echo>
+    <java fork="true" dir="${run.dir}" classname="Test">
+      <jvmarg line="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=8000" />
+      <classpath refid="classpath"/>
+    </java>
+  </target>
 </project>

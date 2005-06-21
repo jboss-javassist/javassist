@@ -13,7 +13,7 @@
  * License.
  */
 
-package javassist;
+package javassist.tool;
 
 import java.io.*;
 import javassist.bytecode.ClassFile;
@@ -25,7 +25,7 @@ import javassist.bytecode.ClassFileWriter;
  * the class file is broken.
  *
  * <p>For example,
- * <ul><pre>% java javassist.Dump foo.class</pre></ul>
+ * <ul><pre>% java javassist.tool.Dump foo.class</pre></ul>
  *
  * <p>prints the contents of the constant pool and the list of methods
  * and fields.
