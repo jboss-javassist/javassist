@@ -1077,6 +1077,8 @@ public abstract class CodeGen extends Visitor implements Opcode, TokenId {
         if (op == EQ) {         // ==, !=, ...
             BinExpr bexpr = (BinExpr)expr;
             int type1 = compileOprands(bexpr);
+            // here, arrayDim might represent the array dim. of the left oprand
+            // if the right oprand is NULL.
             compareExpr(branchIf, bexpr.getOperator(), type1, bexpr);
         }
         else if (op == '!')
@@ -1143,8 +1145,11 @@ public abstract class CodeGen extends Visitor implements Opcode, TokenId {
         int type1 = exprType;
         int dim1 = arrayDim;
         expr.oprand2().accept(this);
-        if (dim1 != arrayDim && type1 != NULL && exprType != NULL)
-            throw new CompileError("incompatible array types");
+        if (dim1 != arrayDim)
+            if (type1 != NULL && exprType != NULL)
+                throw new CompileError("incompatible array types");
+            else if (exprType == NULL)
+                arrayDim = dim1;
 
         if (type1 == NULL)
             return exprType;
