@@ -584,7 +584,8 @@ Once a class loader loads a class, it cannot reload a modified
 version of that class during runtime.  Thus, you cannot alter
 the definition of a class after the JVM loads it.
 However, the JPDA (Java Platform Debugger Architecture) provides
-limited ability for reloading a class.  See "HotSwap" of JPDA for details.
+limited ability for reloading a class.
+See <a href="#hotswap">Section 3.6</a>.
 </ul>
 
 <p>If the same class file is loaded by two distinct class loaders,
@@ -996,6 +997,24 @@ with this modified <code>String</code> class, do as follows:
 overriding a system class in <code>rt.jar</code> should not be
 deployed as doing so would contravene the Java 2 Runtime Environment
 binary code license.</i>
+
+<p><br>
+
+<a name="hotswap">
+<h3>3.6 Reloading a class at runtime</h3></a>
+
+<p>If the JVM is launched with the JPDA (Java Platform Debugger
+Architecture) enabled, a class is dynamically reloadable.  After the
+JVM loads a class, the old version of the class definition can be
+unloaded and a new one can be reloaded again.  That is, the definition
+of that class can be dynamically modified during runtime.  However,
+the new class definition must be somewhat compatible to the old one.
+<em>The JVM does not allow schema changes between the two versions.</em>
+They have the same set of methods and fields.
+
+<p>Javassist provides a convenient class for reloading a class at runtime.
+For more information, see the API documentation of
+<code>javassist.tool.HotSwapper</code>.
 
 <p><br>
 

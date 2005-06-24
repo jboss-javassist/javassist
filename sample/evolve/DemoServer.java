@@ -19,7 +19,8 @@ import java.io.*;
  * server overwrites WebPage.class (class file) and calls update()
  * in VersionManager so that WebPage.class is loaded into the JVM
  * again.  The new contents of WebPage.class are copied from
- * either WebPage.class.0 or WebPage.class.1.
+ * either sample/evolve/WebPage.class
+ * or sample/evolve/sample/evolve/WebPage.class.
  */
 public class DemoServer extends Webserver {
 

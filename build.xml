@@ -52,9 +52,29 @@
            deprecation="on"
            optimize="off"
            includes="sample/**"
-           excludes="sample/hotswap/**">
+           excludes="sample/hotswap/**,sample/evolve/sample/**">
             <classpath refid="classpath"/>
     </javac>
+
+    <copy file="sample/vector/Test.j"
+          todir="${build.classes.dir}/sample/vector"/>
+
+    <javac srcdir="${basedir}/sample/evolve"
+           destdir="${build.classes.dir}/sample/evolve/"
+           debug="on"
+           deprecation="on"
+           optimize="off"
+           includes="sample/**">
+            <classpath refid="classpath"/>
+    </javac>
+    <copy todir="${build.classes.dir}/sample/evolve">
+      <fileset dir="sample/evolve"/>
+    </copy>
+    <copy file="${build.classes.dir}/sample/evolve/WebPage.class"
+          tofile="${build.classes.dir}/sample/evolve/WebPage.class.0"/>
+    <copy file="${build.classes.dir}/sample/evolve/sample/evolve/WebPage.class"
+          tofile="${build.classes.dir}/sample/evolve/WebPage.class.1"/>
+
     <javac srcdir="${basedir}/sample/hotswap"
            destdir="${build.classes.dir}"
            debug="on"
@@ -72,11 +92,6 @@
            includes="*">
             <classpath refid="classpath"/>
     </javac>
-    <copy file="sample/vector/Test.j"
-          todir="${build.classes.dir}/sample/vector"/>
-    <copy todir="${build.classes.dir}/sample/evolve">
-      <fileset dir="sample/evolve"/>
-    </copy>
     <echo>To run the sample programs without ant, change the current directory 
 to ${build.classes.dir}.</echo>
   </target>
