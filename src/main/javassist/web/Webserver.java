@@ -46,7 +46,6 @@ public class Webserver {
     private final static int typeGif = 3;
     private final static int typeJpeg = 4;
     private final static int typeText = 5;
-    private final static int typeUnknown = 6;
 
     /**
      * If this field is not null, the class files taken from

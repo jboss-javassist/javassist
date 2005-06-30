@@ -32,7 +32,6 @@ public class MethodCall extends Expr {
     }
 
     private int getNameAndType(ConstPool cp) {
-        String cname;
         int pos = currentPos;
         int c = iterator.byteAt(pos);
         int index = iterator.u16bitAt(pos + 1);

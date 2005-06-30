@@ -241,7 +241,6 @@ public class StubGenerator implements Translator {
             if (superclazz == null)
                 break;
 
-            String name = superclazz.getName();
             try {
                 superclazz.getDeclaredConstructor(null);
                 break;  // the constructor with no arguments is found.

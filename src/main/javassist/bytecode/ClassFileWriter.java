@@ -60,7 +60,6 @@ public class ClassFileWriter {
         }
 
         out.println();
-        ConstPool cp = cf.getConstPool();
         list = cf.getFields();
         n = list.size();
         for (int i = 0; i < n; ++i) {

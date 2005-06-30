@@ -27,10 +27,13 @@ import java.lang.IllegalAccessException;
  * @see javassist.reflect.ClassMetaobject#invoke(Object, int, Object[])
  */
 public class CannotInvokeException extends RuntimeException {
-    /**
-     * @serial
-     */
+
     private Throwable err = null;
+
+    /**
+     * Returns the cause of this exception.  It may return null.
+     */
+    public Throwable getReason() { return err; }
 
     /**
      * Constructs a CannotInvokeException with an error message.

@@ -1581,7 +1581,6 @@ public abstract class CodeGen extends Visitor implements Opcode, TokenId {
     public void atArrayRead(ASTree array, ASTree index)
         throws CompileError
     {
-        int op;
         arrayAccess(array, index);
         bytecode.addOpcode(getArrayReadOp(exprType, arrayDim));
     }
@@ -1607,7 +1606,6 @@ public abstract class CodeGen extends Visitor implements Opcode, TokenId {
     }
 
     protected static int getArrayReadOp(int type, int dim) {
-        int op;
         if (dim > 0)
             return AALOAD;
 
@@ -1633,7 +1631,6 @@ public abstract class CodeGen extends Visitor implements Opcode, TokenId {
     }
 
     protected static int getArrayWriteOp(int type, int dim) {
-        int op;
         if (dim > 0)
             return AASTORE;
 

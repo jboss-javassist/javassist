@@ -20,7 +20,7 @@ import javassist.CtMethod.ConstParameter;
 
 class CtNewWrappedConstructor extends CtNewWrappedMethod {
     private static final int PASS_NONE = CtNewConstructor.PASS_NONE;
-    private static final int PASS_ARRAY = CtNewConstructor.PASS_ARRAY;
+    // private static final int PASS_ARRAY = CtNewConstructor.PASS_ARRAY;
     private static final int PASS_PARAMS = CtNewConstructor.PASS_PARAMS;
 
     public static CtConstructor wrapped(CtClass[] parameterTypes,

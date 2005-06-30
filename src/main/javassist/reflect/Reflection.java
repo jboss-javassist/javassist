@@ -276,7 +276,6 @@ public class Reflection implements Translator {
         throws CannotCompileException, NotFoundException
     {
         CtMethod[] ms = clazz.getMethods();
-        int identifier = 0;
         for (int i = 0; i < ms.length; ++i) {
             CtMethod m = ms[i];
             int mod = m.getModifiers();

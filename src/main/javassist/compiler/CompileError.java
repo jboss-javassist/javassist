@@ -40,6 +40,8 @@ public class CompileError extends Exception {
         this("cannot find " + e.getMessage());
     }
 
+    public Lex getLex() { return lex; }
+
     public String getMessage() {
         return reason;
     }
