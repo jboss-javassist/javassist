@@ -139,6 +139,8 @@ public class HotSwapper {
         return mereq;
     }
 
+    /* Stops triggering a hotswapper when reload() is called.
+     */
     private void deleteEventRequest(EventRequestManager manager,
                                     MethodEntryRequest request) {
         manager.deleteEventRequest(request);
