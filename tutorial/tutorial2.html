@@ -789,6 +789,70 @@ is ignored.
 syntax.  It must be followed by an argument list surrounded by parentheses
 <code>( )</code>.
 
+<h4>javassist.expr.ConstructorCall</h4>
+
+<p>A <code>ConstructorCall</code> object represents a constructor call
+such as <code>this()</code> and <code>super</code> included in a constructor
+body.
+The method <code>replace()</code> in
+<code>ConstructorCall</code> substitutes a statement or
+a block for the constructor call.
+It receives source text representing the substituted statement or
+block, in which the identifiers starting with <code>$</code>
+have special meaning as in the source text passed to
+<code>insertBefore()</code>.
+
+<ul><table border=0>
+<tr>
+<td><code>$0</code></td>
+<td>
+The target object of the constructor call.
+This is equivalent to <code>this</code>.
+</td>
+</tr>
+
+<tr>
+<td><code>$1</code>, <code>$2</code>, ... &nbsp &nbsp</td>
+<td>
+The parameters of the constructor call.
+</td>
+</tr>
+
+<tr><td><code>$class</code> &nbsp &nbsp</td>
+<td>A <code>java.lang.Class</code> object representing
+the class declaring the constructor.
+</td>
+</tr>
+
+<tr><td><code>$sig</code> &nbsp &nbsp</td>
+<td>An array of <code>java.lang.Class</code> objects representing
+the formal parameter types.</td>
+</tr>
+
+<tr><td><code>$proceed</code> &nbsp &nbsp</td>
+<td>The name of the constructor originally called
+in the expression.</td>
+</tr>
+
+</table>
+</ul>
+
+<p>Here the constructor call means the one represented by the
+<code>ConstructorCall</code> object.
+
+<p>The other identifiers such as <code>$w</code>,
+<code>$args</code> and <code>$$</code>
+are also available.
+
+<p>Since any constructor must call either a constructor of the super
+class or another constructor of the same class,
+the substituted statement must include a constructor call,
+normally a call to <code>$proceed()</code>.
+
+<p><code>$proceed</code> is not a <code>String</code> value but special
+syntax.  It must be followed by an argument list surrounded by parentheses
+<code>( )</code>.
+
 <h4>javassist.expr.FieldAccess</h4>
 
 <p>A <code>FieldAccess</code> object represents field access.
