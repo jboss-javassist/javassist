@@ -71,7 +71,7 @@ public class MethodCall extends Expr {
      * Returns the class of the target object,
      * which the method is called on.
      */
-    private CtClass getCtClass() throws NotFoundException {
+    protected CtClass getCtClass() throws NotFoundException {
         return thisClass.getClassPool().get(getClassName());
     }
 
@@ -99,7 +99,7 @@ public class MethodCall extends Expr {
     }
 
     /**
-     * Returns the name of the called method.
+     * Returns the name of the called method. 
      */
     public String getMethodName() {
         ConstPool cp = getConstPool();
@@ -114,7 +114,10 @@ public class MethodCall extends Expr {
         return getCtClass().getMethod(getMethodName(), getMethodDesc());
     }
 
-    private String getMethodDesc() {
+    /**
+     * Returns the descriptor of the called method.
+     */
+    protected String getMethodDesc() {
         ConstPool cp = getConstPool();
         int nt = getNameAndType(cp);
         return cp.getUtf8Info(cp.getNameAndTypeDescriptor(nt));

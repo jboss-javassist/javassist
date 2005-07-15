@@ -137,11 +137,16 @@ public class ExprEditor {
                             newList = newList.next;
                         }
                         else {
-                            expr = new MethodCall(pos, iterator, clazz, minfo);
-                            MethodCall mcall = (MethodCall)expr;
-                            if (!mcall.getMethodName().equals(
-                                                MethodInfo.nameInit))
+                            MethodCall mcall = new MethodCall(pos, iterator, clazz, minfo);
+                            if (mcall.getMethodName().equals(MethodInfo.nameInit)) {
+                                ConstructorCall ccall = new ConstructorCall(pos, iterator, clazz, minfo);
+                                expr = ccall;
+                                edit(ccall);
+                            }
+                            else {
+                                expr = mcall;
                                 edit(mcall);
+                            }
                         }
                     }
                 }
@@ -211,9 +216,22 @@ public class ExprEditor {
 
     /**
      * Edits a method call (overridable).
+     *
      * The default implementation performs nothing.
      */
     public void edit(MethodCall m) throws CannotCompileException {}
+
+    /**
+     * Edits a constructor call (overridable).
+     * The constructor call is either
+     * <code>super()</code> or <code>this()</code>
+     * included in a constructor body.
+     *
+     * The default implementation performs nothing.
+     *
+     * @see #edit(NewExpr)
+     */
+    public void edit(ConstructorCall c) throws CannotCompileException {}
 
     /**
      * Edits a field-access expression (overridable).
