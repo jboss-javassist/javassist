@@ -133,6 +133,13 @@ public final class ConstPool {
     }
 
     /**
+     * Returns the number of entries in this table.
+     */
+    public int getSize() {
+        return numOfItems;
+    }
+
+    /**
      * Returns the name of the class using this constant pool table.
      */
     public String getClassName() {
