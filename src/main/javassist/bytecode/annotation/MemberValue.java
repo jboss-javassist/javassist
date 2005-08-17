@@ -21,6 +21,7 @@ import java.io.IOException;
 /**
  * The value of a member declared in an annotation.
  *
+ * @see Annotation#getMemberValue(String)
  * @author <a href="mailto:bill@jboss.org">Bill Burke</a>
  * @author Shigeru Chiba
  */

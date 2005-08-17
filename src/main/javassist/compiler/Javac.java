@@ -569,9 +569,18 @@ public class Javac {
      * have been invoked.
      */
     public void compileExpr(String src) throws CompileError {
-        Parser p = new Parser(new Lex(src));
-        ASTree e = p.parseExpression(stable);
+        ASTree e = parseExpr(src, stable);
         compileExpr(e);
+    }
+
+    /**
+     * Parsers an expression.
+     */
+    public static ASTree parseExpr(String src, SymbolTable st)
+        throws CompileError
+    {
+        Parser p = new Parser(new Lex(src));
+        return p.parseExpression(st);
     }
 
     /**
@@ -585,6 +594,6 @@ public class Javac {
      */
     public void compileExpr(ASTree e) throws CompileError {
         if (e != null)
-            e.accept(gen);
+            gen.compileExpr(e);
     }
 }

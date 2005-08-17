@@ -852,6 +852,23 @@ public final class Parser implements TokenId {
         case '!' :
         case '~' :
             t = lex.get();
+            if (t == '-') {
+                int t2 = lex.lookAhead();
+                switch (t2) {
+                case LongConstant :
+                case IntConstant :
+                case CharConstant :
+                    lex.get();
+                    return new IntConst(-lex.getLong(), t2);
+                case DoubleConstant :
+                case FloatConstant :
+                    lex.get();
+                    return new DoubleConst(-lex.getDouble(), t2);
+                default :
+                    break;
+                }
+            }
+
             return Expr.make(t, parseUnaryExpr(tbl));
         case '(' :
             return parseCast(tbl);
@@ -977,12 +994,12 @@ public final class Parser implements TokenId {
      * a class name and a member name in an expression for static member
      * access.  For example,
      *     java.lang.Integer.toString(3)        in regular Java
-     * must be written like this:
+     * can be written like this:
      *     java.lang.Integer#toString(3)        for this compiler.
      */
     private ASTree parsePostfix(SymbolTable tbl) throws CompileError {
         int token = lex.lookAhead();
-        switch (token) {
+        switch (token) {    // see also parseUnaryExpr()
         case LongConstant :
         case IntConstant :
         case CharConstant :

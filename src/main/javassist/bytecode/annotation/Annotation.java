@@ -243,7 +243,16 @@ public class Annotation {
     /**
      * Obtains the member value with the given name.
      *
-     * @return null if the member cannot be found.
+     * <p>If this annotation does not have a value for the
+     * specified member,
+     * this method returns null.  It does not return a
+     * <code>MemberValue</code> with the default value.
+     * The default value can be obtained from the annotation type.
+     *
+     * @return null if the member cannot be found or if the value is
+     * the default value.
+     *
+     * @see AnnotationDefaultAttribute
      */
     public MemberValue getMemberValue(String name) {
         if (members == null)

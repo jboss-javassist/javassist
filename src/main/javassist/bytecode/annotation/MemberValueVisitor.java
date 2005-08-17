@@ -18,6 +18,7 @@ package javassist.bytecode.annotation;
 /**
  * Visitor for traversing member values included in an annotation.
  *
+ * @see MemberValue#accept(MemberValueVisitor)
  * @author <a href="mailto:bill@jboss.org">Bill Burke</a>
  */
 public interface MemberValueVisitor {

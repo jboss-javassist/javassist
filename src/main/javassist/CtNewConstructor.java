@@ -30,6 +30,7 @@ import javassist.CtMethod.ConstParameter;
  * initializer obtained by <code>makeClassInitializer()</code>.
  *
  * @see CtClass#addConstructor(CtConstructor)
+ * @see CtClass#makeClassInitializer()
  */
 public class CtNewConstructor {
     /**

@@ -32,6 +32,7 @@ import javassist.bytecode.BadBytecode;
 import javassist.bytecode.Bytecode;
 import javassist.bytecode.ClassFile;
 import javassist.bytecode.CodeAttribute;
+import javassist.bytecode.ConstantAttribute;
 import javassist.bytecode.CodeIterator;
 import javassist.bytecode.ConstPool;
 import javassist.bytecode.Descriptor;
@@ -833,6 +834,20 @@ class CtClassType extends CtClass {
 
         if (init == null)
             init = f.getInit();
+
+        if (init != null) {
+            int mod = f.getModifiers();
+            if (Modifier.isStatic(mod) && Modifier.isFinal(mod))
+                try {
+                    ConstPool cp = getClassFile2().getConstPool();
+                    int index = init.getConstantValue(cp, f.getType());
+                    if (index != 0) {
+                        f.getFieldInfo2().addAttribute(new ConstantAttribute(cp, index));
+                        init = null;
+                    }
+                }
+                catch (NotFoundException e) {}
+        }
 
         getFieldsCache();
         fieldsCache = CtField.append(fieldsCache, f);

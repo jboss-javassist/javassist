@@ -17,8 +17,12 @@ package javassist;
 
 import javassist.bytecode.*;
 import javassist.compiler.Javac;
+import javassist.compiler.SymbolTable;
 import javassist.compiler.CompileError;
 import javassist.compiler.ast.ASTree;
+import javassist.compiler.ast.IntConst;
+import javassist.compiler.ast.DoubleConst;
+import javassist.compiler.ast.StringL;
 
 /**
  * An instance of CtField represents a field.
@@ -26,6 +30,8 @@ import javassist.compiler.ast.ASTree;
  * @see CtClass#getDeclaredFields()
  */
 public class CtField extends CtMember {
+    static final String javaLangString = "java.lang.String";
+
     protected FieldInfo fieldInfo;
 
     /**
@@ -665,6 +671,10 @@ public class CtField extends CtMember {
         // produce codes for initialization
         abstract int compileIfStatic(CtClass type, String name,
                 Bytecode code, Javac drv) throws CannotCompileException;
+
+        // returns the index of CONSTANT_Integer_info etc
+        // if the value is constant.  Otherwise, 0.
+        int getConstantValue(ConstPool cp, CtClass type) { return 0; }
     }
 
     static abstract class CodeInitializer0 extends Initializer {
@@ -697,6 +707,34 @@ public class CtField extends CtMember {
                 throw new CannotCompileException(e);
             }
         }
+
+        int getConstantValue2(ConstPool cp, CtClass type, ASTree tree) {
+            if (type.isPrimitive()) {
+                if (tree instanceof IntConst) {
+                    long value = ((IntConst)tree).get();
+                    if (type == CtClass.doubleType)
+                        return cp.addDoubleInfo((double)value);
+                    else if (type == CtClass.floatType)
+                        return cp.addFloatInfo((float)value);
+                    else if (type == CtClass.longType)
+                        return cp.addLongInfo(value);
+                    else  if (type != CtClass.voidType)
+                        return cp.addIntegerInfo((int)value);
+                }
+                else if (tree instanceof DoubleConst) {
+                    double value = ((DoubleConst)tree).get();
+                    if (type == CtClass.floatType)
+                        return cp.addFloatInfo((float)value);
+                    else if (type == CtClass.doubleType)
+                        return cp.addDoubleInfo(value);
+                }
+            }
+            else if (tree instanceof StringL
+                     && type.getName().equals(javaLangString))
+                return cp.addStringInfo(((StringL)tree).get());
+
+            return 0;
+        }
     }
 
     static class CodeInitializer extends CodeInitializer0 {
@@ -707,6 +745,16 @@ public class CtField extends CtMember {
         void compileExpr(Javac drv) throws CompileError {
             drv.compileExpr(expression);
         }
+
+        int getConstantValue(ConstPool cp, CtClass type) {
+            try {
+                ASTree t = Javac.parseExpr(expression, new SymbolTable());
+                return getConstantValue2(cp, type, t);
+            }
+            catch (CompileError e) {
+                return 0;
+            }
+        }
     }
 
     static class PtreeInitializer extends CodeInitializer0 {
@@ -716,6 +764,10 @@ public class CtField extends CtMember {
 
         void compileExpr(Javac drv) throws CompileError {
             drv.compileExpr(expression);
+        }
+
+        int getConstantValue(ConstPool cp, CtClass type) {
+            return getConstantValue2(cp, type, expression);
         }
     }
 
@@ -863,7 +915,7 @@ public class CtField extends CtMember {
         {
             int nparam = stringParams.length;
             code.addIconst(nparam);
-            code.addAnewarray("java.lang.String");
+            code.addAnewarray(javaLangString);
             for (int j = 0; j < nparam; ++j) {
                 code.add(Bytecode.DUP);         // dup
                 code.addIconst(j);                      // iconst_<j>
@@ -980,6 +1032,13 @@ public class CtField extends CtMember {
             code.addPutstatic(Bytecode.THIS, name, Descriptor.of(type));
             return 1;   // stack size
         }
+
+        int getConstantValue(ConstPool cp, CtClass type) {
+            if (type == CtClass.intType)
+                return cp.addIntegerInfo(value);
+            else
+                return 0;
+        }
     }
 
     static class LongInitializer extends Initializer {
@@ -1008,6 +1067,13 @@ public class CtField extends CtMember {
             code.addLdc2w(value);
             code.addPutstatic(Bytecode.THIS, name, Descriptor.of(type));
             return 2;   // stack size
+        }
+
+        int getConstantValue(ConstPool cp, CtClass type) {
+            if (type == CtClass.longType)
+                return cp.addLongInfo(value);
+            else
+                return 0;
         }
     }
 
@@ -1038,6 +1104,13 @@ public class CtField extends CtMember {
             code.addPutstatic(Bytecode.THIS, name, Descriptor.of(type));
             return 2;   // stack size
         }
+
+        int getConstantValue(ConstPool cp, CtClass type) {
+            if (type == CtClass.doubleType)
+                return cp.addDoubleInfo(value);
+            else
+                return 0;
+        }
     }
 
     static class StringInitializer extends Initializer {
@@ -1046,7 +1119,7 @@ public class CtField extends CtMember {
         StringInitializer(String v) { value = v; }
 
         void check(CtClass type) throws CannotCompileException {
-            if (!type.getName().equals("java.lang.String"))
+            if (!type.getName().equals(javaLangString))
                 throw new CannotCompileException("type mismatch");
         }
 
@@ -1066,6 +1139,13 @@ public class CtField extends CtMember {
             code.addLdc(value);
             code.addPutstatic(Bytecode.THIS, name, Descriptor.of(type));
             return 1;   // stack size
+        }
+
+        int getConstantValue(ConstPool cp, CtClass type) {
+            if (type.getName().equals(javaLangString))
+                return cp.addStringInfo(value);
+            else
+                return 0;
         }
     }
 
