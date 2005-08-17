@@ -305,6 +305,10 @@ public abstract class CtBehavior extends CtMember {
      * The declared variable can be accessed in the code snippet inserted
      * by <code>insertBefore()</code>, <code>insertAfter()</code>, etc.
      *
+     * <p>If the second parameter <code>asFinally</code> to
+     * <code>insertAfter()</code> is true, the declared local variable
+     * is not visible from the code inserted by <code>insertAfter()</code>.
+     *
      * @param name      the name of the variable
      * @param type      the type of the variable
      * @see #insertBefore(String)
@@ -440,6 +444,8 @@ public abstract class CtBehavior extends CtMember {
      * @param asFinally         true if the inserted bytecode is executed
      *                  not only when the control normally returns
      *                  but also when an exception is thrown.
+     *                  If this parameter is true, the inserted code cannot
+     *                  access local variables.
      */
     public void insertAfter(String src, boolean asFinally)
         throws CannotCompileException
