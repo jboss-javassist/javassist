@@ -417,12 +417,13 @@ public class MemberResolver implements TokenId {
 
     public static CtClass getSuperclass(CtClass c) throws CompileError {
         try {
-            return c.getSuperclass();
+            CtClass sc = c.getSuperclass();
+            if (sc != null)
+                return sc;
         }
-        catch (NotFoundException e) {
-            throw new CompileError("cannot find the super class of "
-                                   + c.getName());
-        }
+        catch (NotFoundException e) {}
+        throw new CompileError("cannot find the super class of "
+                               + c.getName());
     }
 
     public static String javaToJvmName(String classname) {
