@@ -22,6 +22,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URL;
 import java.util.Hashtable;
+import java.util.Iterator;
+import java.util.ArrayList;
 import javassist.bytecode.Descriptor;
 
 /**
@@ -111,6 +113,8 @@ public class ClassPool {
 
     private static final int INIT_HASH_SIZE = 191;
 
+    private ArrayList importedPackages;
+
     /**
      * Creates a root class pool.  No parent class pool is specified.
      */
@@ -136,6 +140,7 @@ public class ClassPool {
         }
 
         this.cflow = null;
+        clearImportedPackages();
     }
 
     /**
@@ -211,6 +216,46 @@ public class ClassPool {
      */
     public String toString() {
         return source.toString();
+    }
+
+    /**
+     * Record a package name so that the Javassist compiler searches
+     * the package to resolve a class name.
+     * Don't record the <code>java.lang</code> package, which has
+     * been implicitly recorded by default.
+     *
+     * <p>Note that <code>get()</code> in <code>ClassPool</code> does
+     * not search the recorded package.  Only the compiler searches it.
+     *
+     * @param packageName       the package name.
+     *         It must not include the last '.' (dot).
+     *         For example, "java.util" is valid but "java.util." is wrong.
+     * @since 3.1
+     */
+    public void importPackage(String packageName) {
+        importedPackages.add(packageName);
+    }
+
+    /**
+     * Clear all the package names recorded by <code>importPackage()</code>.
+     * The <code>java.lang</code> package is not removed.
+     *
+     * @see #importPackage(String)
+     * @since 3.1
+     */
+    public void clearImportedPackages() {
+        importedPackages = new ArrayList();
+        importedPackages.add("java.lang");
+    }
+
+    /**
+     * Returns all the package names recorded by <code>importPackage()</code>. 
+     *
+     * @see #importPackage(String)
+     * @since 3.1
+     */
+    public Iterator getImportedPackages() {
+        return importedPackages.iterator();
     }
 
     /**

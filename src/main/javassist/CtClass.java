@@ -235,6 +235,7 @@ public abstract class CtClass {
      * and thus it cannot be modified any more.
      *
      * @see #defrost()
+     * @see #detach()
      */
     public boolean isFrozen() { return true; }
 
@@ -260,6 +261,7 @@ public abstract class CtClass {
      *
      * @see #isFrozen()
      * @see #stopPruning(boolean)
+     * @see #detach()
      */
     public void defrost() {
         throw new RuntimeException("cannot defrost " + getName());

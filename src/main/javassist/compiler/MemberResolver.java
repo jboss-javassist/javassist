@@ -16,6 +16,7 @@
 package javassist.compiler;
 
 import java.util.List;
+import java.util.Iterator;
 import javassist.*;
 import javassist.bytecode.*;
 import javassist.compiler.ast.*;
@@ -354,21 +355,32 @@ public class MemberResolver implements TokenId {
         try {
             return lookupClass0(name, notCheckInner);
         }
-        catch (NotFoundException e) {}
-        if (name.indexOf('.') < 0) {
-            String jlangName = "java.lang." + name;
-            try {
-                CtClass cc = classPool.get(jlangName);
-                // if java.lang... is found, then
-                classPool.recordInvalidClassName(name);  
-                return cc;
-            }
-            catch (NotFoundException e) {
-                classPool.recordInvalidClassName(jlangName);
+        catch (NotFoundException e) {
+            return searchImports(name);
+        }
+    }
+
+    private CtClass searchImports(String orgName)
+        throws CompileError
+    {
+        if (orgName.indexOf('.') < 0) {
+            Iterator it = classPool.getImportedPackages();
+            while (it.hasNext()) {
+                String pac = (String)it.next();
+                String fqName = pac + '.' + orgName;
+                try {
+                    CtClass cc = classPool.get(fqName);
+                    // if the class is found,
+                    classPool.recordInvalidClassName(orgName);
+                    return cc;
+                }
+                catch (NotFoundException e) {
+                    classPool.recordInvalidClassName(fqName);
+                }
             }
         }
 
-        throw new CompileError("no such class: " + name);
+        throw new CompileError("no such class: " + orgName);
     }
 
     private CtClass lookupClass0(String classname, boolean notCheckInner)

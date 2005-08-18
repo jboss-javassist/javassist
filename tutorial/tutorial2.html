@@ -19,6 +19,7 @@
 <br><li><a href="#alter">Altering a method body</a>
 <br><li><a href="#add">Adding a new method or field</a>
 <br><li><a href="#runtime">Runtime support classes</a>
+<br><li><a href="#import">Import</a>
 <br><li><a href="#limit">Limitations</a>
 </ul>
 
@@ -1456,8 +1457,44 @@ Javassist classes are never used at runtime of the modified classes.
 
 <p><br>
 
+<a name="import">
+<h3>4.5 Import</h3>
+
+<p>All the class names in source code must be fully qualified
+(they must include package names).
+However, the <code>java.lang</code> package is an
+exception; for example, the Javassist compiler can
+resolve <code>Object</code> as
+well as <code>java.lang.Object</code>.
+
+<p>To tell the compiler to search other packages when resolving a
+class name, call <code>importPackage()</code> in <code>ClassPool</code>.
+For example,
+
+<ul><pre>
+ClassPool pool = ClassPool.getDefault();
+pool.importPackage("java.awt");
+CtClass cc = pool.makeClass("Test");
+CtField f = CtField.make("public Point p;", cc);
+cc.addField(f);
+</pre></ul>
+
+<p>The seconde line instructs the compiler
+to import the <code>java.awt</code> package.
+Thus, the third line will not throw an exception.
+The compiler can recognize <code>Point</code>
+as <code>java.awt.Point</code>.
+
+<p>Note that <code>importPackage()</code> <em>does not</em> affect
+the <code>get()</code> method in <code>ClassPool</code>.
+Only the compiler considers the imported packages.
+The parameter to <code>get()</code>
+must be always a fully qualified name.
+
+<p><br>
+
 <a name="limit">
-<h3>4.5 Limitations</h3>
+<h3>4.6 Limitations</h3>
 
 <p>In the current implementation, the Java compiler included in Javassist
 has several limitations with respect to the language that the compiler can
@@ -1467,13 +1504,6 @@ accept.  Those limitations are:
 has not been supported.  Annotations are supported only by the low level
 API of Javassist.
 See the <code>javassist.bytecode.annotation</code> package.
-
-<p><li>All the class names must be fully qualified (they must include
-package names).  This is because the compiler does not support
-<code>import</code>
-declarations.  However, the <code>java.lang</code> package is an
-exception; for example, the compiler accepts <code>Object</code> as
-well as <code>java.lang.Object</code>.
 
 <p><li>Array initializers, a comma-separated list of expressions
 enclosed by braces <code>{</code> and <code>}</code>, are not
