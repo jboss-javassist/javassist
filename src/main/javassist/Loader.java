@@ -284,20 +284,23 @@ public class Loader extends ClassLoader {
      */
     protected Class loadClass(String name, boolean resolve)
         throws ClassFormatError, ClassNotFoundException {
-        Class c = findLoadedClass(name);
-        if (c == null)
-            c = loadClassByDelegation(name);
+        name = name.intern();
+        synchronized (name) {
+            Class c = findLoadedClass(name);
+            if (c == null)
+                c = loadClassByDelegation(name);
 
-        if (c == null)
-            c = findClass(name);
+            if (c == null)
+                c = findClass(name);
 
-        if (c == null)
-            c = delegateToParent(name);
+            if (c == null)
+                c = delegateToParent(name);
 
-        if (resolve)
-            resolveClass(c);
+            if (resolve)
+                resolveClass(c);
 
-        return c;
+            return c;
+        }
     }
 
     /**
