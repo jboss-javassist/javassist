@@ -31,7 +31,7 @@ public class NewExpr extends ASTList implements TokenId {
         arrayType = CLASS;
     }
 
-    public NewExpr(int type, ASTList arraySize, ASTree init) {
+    public NewExpr(int type, ASTList arraySize, ArrayInit init) {
         super(null, new ASTList(arraySize));
         newArray = true;
         arrayType = type;
@@ -40,7 +40,7 @@ public class NewExpr extends ASTList implements TokenId {
     }
 
     public static NewExpr makeObjectArray(ASTList className,
-                                          ASTList arraySize, ASTree init) {
+                                          ASTList arraySize, ArrayInit init) {
         NewExpr e = new NewExpr(className, arraySize);
         e.newArray = true;
         if (init != null)
@@ -61,12 +61,12 @@ public class NewExpr extends ASTList implements TokenId {
 
     public ASTList getArraySize() { return getArguments(); }
 
-    public ASTree getInitializer() {
+    public ArrayInit getInitializer() {
         ASTree t = getRight().getRight();
         if (t == null)
             return null;
         else
-            return t.getLeft();
+            return (ArrayInit)t.getLeft();
     }
 
     public void accept(Visitor v) throws CompileError { v.atNewExpr(this); }

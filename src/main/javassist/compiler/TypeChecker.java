@@ -106,16 +106,33 @@ public class TypeChecker extends Visitor implements Opcode, TokenId {
         int type = expr.getArrayType();
         ASTList size = expr.getArraySize();
         ASTList classname = expr.getClassName();
+        ASTree init = expr.getInitializer();
+        if (init != null)
+            init.accept(this);
+
         if (size.length() > 1)
             atMultiNewArray(type, classname, size);
         else {
-            size.head().accept(this);
+            ASTree sizeExpr = size.head();
+            if (sizeExpr != null)
+                sizeExpr.accept(this);
+
             exprType = type;
             arrayDim = 1;
             if (type == CLASS)
                 className = resolveClassName(classname);
             else
                 className = null;
+        }
+    }
+
+    public void atArrayInit(ArrayInit init) throws CompileError {
+        ASTList list = init;
+        while (list != null) {
+            ASTree h = list.head();
+            list = list.tail();
+            if (h != null)
+                h.accept(this);
         }
     }
 

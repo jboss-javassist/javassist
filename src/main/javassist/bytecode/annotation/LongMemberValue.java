@@ -15,6 +15,7 @@
 
 package javassist.bytecode.annotation;
 
+import javassist.ClassPool;
 import javassist.bytecode.ConstPool;
 import java.io.IOException;
 
@@ -54,6 +55,14 @@ public class LongMemberValue extends MemberValue {
     public LongMemberValue(ConstPool cp) {
         super('J', cp);
         setValue(0L);
+    }
+
+    Object getValue(ClassLoader cl, ClassPool cp) {
+        return new Long(getValue());
+    }
+
+    Class getType(ClassLoader cl) {
+        return long.class;
     }
 
     /**

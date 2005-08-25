@@ -660,11 +660,22 @@ public final class Parser implements TokenId {
     /* array.initializer :
      *  '{' (( array.initializer | expression ) ',')* '}'
      */
-    private ASTree parseArrayInitializer(SymbolTable tbl)
+    private ArrayInit parseArrayInitializer(SymbolTable tbl)
         throws CompileError
     {
         lex.get();      // '{'
-        throw new CompileError("array initializer is not supported", lex);
+        ASTree expr = parseExpression(tbl);
+        ArrayInit init = new ArrayInit(expr);
+        while (lex.lookAhead() == ',') {
+            lex.get();
+            expr = parseExpression(tbl);
+            ASTList.append(init, expr);
+        }
+
+        if (lex.get() != '}')
+            throw new SyntaxError(lex);
+
+        return init;
     }
 
     /* par.expression : '(' expression ')'
@@ -1250,7 +1261,7 @@ public final class Parser implements TokenId {
      *          | primitive.type array.size [ array.initializer ]
      */
     private NewExpr parseNew(SymbolTable tbl) throws CompileError {
-        ASTree init = null;
+        ArrayInit init = null;
         int t = lex.lookAhead();
         if (isBuiltinType(t)) {
             lex.get();

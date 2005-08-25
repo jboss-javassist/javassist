@@ -15,6 +15,7 @@
 
 package javassist.bytecode.annotation;
 
+import javassist.ClassPool;
 import javassist.bytecode.ConstPool;
 import java.io.IOException;
 
@@ -60,6 +61,14 @@ public class IntegerMemberValue extends MemberValue {
     public IntegerMemberValue(ConstPool cp) {
         super('I', cp);
         setValue(0);
+    }
+
+    Object getValue(ClassLoader cl, ClassPool cp) {
+        return new Integer(getValue());
+    }
+
+    Class getType(ClassLoader cl) {
+        return int.class;
     }
 
     /**

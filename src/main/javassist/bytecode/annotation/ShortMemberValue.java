@@ -15,6 +15,7 @@
 
 package javassist.bytecode.annotation;
 
+import javassist.ClassPool;
 import javassist.bytecode.ConstPool;
 import java.io.IOException;
 
@@ -54,6 +55,14 @@ public class ShortMemberValue extends MemberValue {
     public ShortMemberValue(ConstPool cp) {
         super('S', cp);
         setValue((short)0);
+    }
+
+    Object getValue(ClassLoader cl, ClassPool cp) {
+        return new Short(getValue());
+    }
+
+    Class getType(ClassLoader cl) {
+        return short.class;
     }
 
     /**

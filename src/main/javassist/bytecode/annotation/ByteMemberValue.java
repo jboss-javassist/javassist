@@ -14,6 +14,7 @@
  */
 package javassist.bytecode.annotation;
 
+import javassist.ClassPool;
 import javassist.bytecode.ConstPool;
 import java.io.IOException;
 
@@ -53,6 +54,14 @@ public class ByteMemberValue extends MemberValue {
     public ByteMemberValue(ConstPool cp) {
         super('B', cp);
         setValue((byte)0);
+    }
+
+    Object getValue(ClassLoader cl, ClassPool cp) {
+        return new Byte(getValue());
+    }
+
+    Class getType(ClassLoader cl) {
+        return byte.class;
     }
 
     /**

@@ -14,8 +14,10 @@
  */
 package javassist.bytecode.annotation;
 
+import javassist.ClassPool;
 import javassist.bytecode.ConstPool;
 import java.io.IOException;
+import java.lang.reflect.Array;
 
 /**
  * Array member.
@@ -45,6 +47,26 @@ public class ArrayMemberValue extends MemberValue {
         super('[', cp);
         type = t;
         values = null;
+    }
+
+    Object getValue(ClassLoader cl, ClassPool cp) throws ClassNotFoundException {
+        if (type == null || values == null)
+            throw new ClassNotFoundException("no array elements specified");
+
+        int size = values.length;
+        Object a = Array.newInstance(type.getType(cl), size);
+        for (int i = 0; i < size; i++)
+            Array.set(a, i, values[i].getValue(cl, cp));
+
+        return a;
+    }
+
+    Class getType(ClassLoader cl) throws ClassNotFoundException {
+        if (type == null)
+            throw new ClassNotFoundException("no array type specified");
+
+        Object a = Array.newInstance(type.getType(cl), 0);
+        return a.getClass();
     }
 
     /**

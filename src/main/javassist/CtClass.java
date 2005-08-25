@@ -29,7 +29,15 @@ import javassist.bytecode.Descriptor;
 import javassist.bytecode.Opcode;
 import javassist.expr.ExprEditor;
 
-// Subclasses of CtClass: CtClassType, CtPrimitiveType, and CtArray
+/* Note:
+ *
+ * This class is an abstract class and several methods just return null
+ * or throw an exception.  Those methods are overridden in subclasses
+ * of this class.  Read the source code of CtClassType if you are
+ * interested in the implementation of Javassist.
+ *
+ * Subclasses of CtClass are CtClassType, CtPrimitiveType, and CtArray.
+ */
 
 /**
  * An instance of <code>CtClass</code> represents a class.
@@ -416,6 +424,19 @@ public abstract class CtClass {
      */
     public int getModifiers() {
         return 0;
+    }
+
+    /**
+     * Returns the annotations associated with this class.
+     * For example, if an annotation <code>@Author</code> is associated
+     * with this class, the returned array contains an <code>Author</code>
+     * object.  The member values can be obtained by calling methods on
+     * the <code>Author</code> object.
+     *
+     * @return an array of annotation-type objects.
+     */
+    public Object[] getAnnotations() throws ClassNotFoundException {
+        return new Object[0];
     }
 
     /**
@@ -872,7 +893,7 @@ public abstract class CtClass {
      * <p>This is a convenient method mainly for adding
      * a user-defined attribute.  For dealing with attributes, see the
      * <code>javassist.bytecode</code> package.  For example, the following
-     * expression adds an attribute of a class file.
+     * expression adds an attribute <code>info</code> to a class file.
      *
      * <ul><pre>
      * getClassFile().addAttribute(info)

@@ -14,6 +14,7 @@
  */
 package javassist.bytecode.annotation;
 
+import javassist.ClassPool;
 import javassist.bytecode.ConstPool;
 import java.io.IOException;
 
@@ -53,6 +54,14 @@ public class BooleanMemberValue extends MemberValue {
     public BooleanMemberValue(ConstPool cp) {
         super('Z', cp);
         setValue(false);
+    }
+
+    Object getValue(ClassLoader cl, ClassPool cp) {
+        return new Boolean(getValue());
+    }
+
+    Class getType(ClassLoader cl) {
+        return boolean.class;
     }
 
     /**

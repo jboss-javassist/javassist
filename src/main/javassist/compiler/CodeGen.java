@@ -709,12 +709,14 @@ public abstract class CodeGen extends Visitor implements Opcode, TokenId {
          */
         ASTree init = d.getInitializer();
         if (init != null) {
-            doTypeCheck(init);        
+            doTypeCheck(init);
             atVariableAssign(null, '=', null, d, init, false);
         }
     }
 
     public abstract void atNewExpr(NewExpr n) throws CompileError;
+
+    public abstract void atArrayInit(ArrayInit init) throws CompileError;
 
     public void atAssignExpr(AssignExpr expr) throws CompileError {
         atAssignExpr(expr, true);
@@ -770,7 +772,11 @@ public abstract class CodeGen extends Visitor implements Opcode, TokenId {
         if (op != '=')
             atVariable(var);
 
-        atAssignCore(expr, op, right, varType, varArray, varClass);
+        // expr is null if the caller is atDeclarator().
+        if (expr == null && right instanceof ArrayInit)
+            atArrayVariableAssign((ArrayInit)right, varType, varArray, varClass);
+        else
+            atAssignCore(expr, op, right, varType, varArray, varClass);
 
         if (doDup)
             if (is2word(varType, varArray))
@@ -795,6 +801,9 @@ public abstract class CodeGen extends Visitor implements Opcode, TokenId {
         arrayDim = varArray;
         className = varClass;
     }
+
+    protected abstract void atArrayVariableAssign(ArrayInit init,
+            int varType, int varArray, String varClass) throws CompileError;
 
     private void atArrayAssign(Expr expr, int op, Expr array,
                         ASTree right, boolean doDup) throws CompileError

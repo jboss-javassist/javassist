@@ -218,6 +218,22 @@ public class CtField extends CtMember {
     }
 
     /**
+     * Returns the annotations associated with this field.
+     *
+     * @return an array of annotation-type objects.
+     * @see CtMember#getAnnotations()
+     */
+    public Object[] getAnnotations() throws ClassNotFoundException {
+        FieldInfo fi = getFieldInfo2();
+        AnnotationsAttribute ainfo = (AnnotationsAttribute)
+                    fi.getAttribute(AnnotationsAttribute.invisibleTag);  
+        AnnotationsAttribute ainfo2 = (AnnotationsAttribute)
+                    fi.getAttribute(AnnotationsAttribute.visibleTag);  
+        return CtClassType.toAnnotationType(getDeclaringClass().getClassPool(),
+                                            ainfo, ainfo2);
+    }
+
+    /**
      * Returns the type of the field.
      */
     public CtClass getType() throws NotFoundException {

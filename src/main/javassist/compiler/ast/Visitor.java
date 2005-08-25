@@ -47,4 +47,5 @@ public class Visitor {
     public void atStringL(StringL n) throws CompileError {}
     public void atIntConst(IntConst n) throws CompileError {}
     public void atDoubleConst(DoubleConst n) throws CompileError {}
+    public void atArrayInit(ArrayInit n) throws CompileError {}
 }

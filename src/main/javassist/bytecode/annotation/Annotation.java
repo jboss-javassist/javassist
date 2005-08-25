@@ -17,6 +17,7 @@ package javassist.bytecode.annotation;
 
 import javassist.bytecode.ConstPool;
 import javassist.bytecode.Descriptor;
+import javassist.ClassPool;
 import javassist.CtClass;
 import javassist.CtMethod;
 
@@ -252,7 +253,7 @@ public class Annotation {
      * @return null if the member cannot be found or if the value is
      * the default value.
      *
-     * @see AnnotationDefaultAttribute
+     * @see javassist.bytecode.AnnotationDefaultAttribute
      */
     public MemberValue getMemberValue(String name) {
         if (members == null)
@@ -264,6 +265,22 @@ public class Annotation {
             else
                 return p.value;
         }
+    }
+
+    /**
+     * Constructs an annotation-type object representing this annotation.
+     * For example, if this annotation represents <code>@Author</code>,
+     * this method returns an <code>Author</code> object.
+     * 
+     * @param cl        class loader for loading an annotation type.
+     * @param cp        class pool for obtaining class files.
+     */
+    public Object toAnnotationType(ClassLoader cl, ClassPool cp)
+        throws ClassNotFoundException
+    {
+        return AnnotationImpl.make(cl,
+                        MemberValue.loadClass(cl, getTypeName()),
+                        cp, this);
     }
 
     /**

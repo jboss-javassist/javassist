@@ -28,6 +28,7 @@ import java.util.Hashtable;
 import java.util.List;
 import javassist.bytecode.AccessFlag;
 import javassist.bytecode.AttributeInfo;
+import javassist.bytecode.AnnotationsAttribute;
 import javassist.bytecode.BadBytecode;
 import javassist.bytecode.Bytecode;
 import javassist.bytecode.ClassFile;
@@ -40,6 +41,7 @@ import javassist.bytecode.EnclosingMethodAttribute;
 import javassist.bytecode.FieldInfo;
 import javassist.bytecode.InnerClassesAttribute;
 import javassist.bytecode.MethodInfo;
+import javassist.bytecode.annotation.Annotation;
 import javassist.compiler.AccessorMaker;
 import javassist.compiler.CompileError;
 import javassist.compiler.Javac;
@@ -355,6 +357,49 @@ class CtClassType extends CtClass {
         checkModify();
         int acc = AccessFlag.of(mod) | AccessFlag.SUPER;
         getClassFile2().setAccessFlags(acc);
+    }
+
+    public Object[] getAnnotations() throws ClassNotFoundException {
+        ClassFile cf = getClassFile2();
+        AnnotationsAttribute ainfo = (AnnotationsAttribute)
+                    cf.getAttribute(AnnotationsAttribute.invisibleTag);  
+        AnnotationsAttribute ainfo2 = (AnnotationsAttribute)
+                    cf.getAttribute(AnnotationsAttribute.visibleTag);  
+        return toAnnotationType(getClassPool(), ainfo, ainfo2);
+    }
+
+    static Object[] toAnnotationType(ClassPool cp, AnnotationsAttribute a1,
+                                     AnnotationsAttribute a2) throws ClassNotFoundException {
+        Annotation[] anno1, anno2;
+        int size1, size2;
+
+        if (a1 == null) {
+            anno1 = null;
+            size1 = 0;
+        }
+        else {
+            anno1 = a1.getAnnotations();
+            size1 = anno1.length;
+        }
+
+        if (a2 == null) {
+            anno2 = null;
+            size2 = 0;
+        }
+        else {
+            anno2 = a2.getAnnotations();
+            size2 = anno2.length;
+        }
+
+        Object[] result = new Object[size1 + size2];
+        ClassLoader cl = Thread.currentThread().getContextClassLoader();
+        for (int i = 0; i < size1; i++)
+            result[i] = anno1[i].toAnnotationType(cl, cp);
+
+        for (int j = 0; j < size2; j++)
+            result[j + size1] = anno2[j].toAnnotationType(cl, cp);
+
+        return result;
     }
 
     public boolean subclassOf(CtClass superclass) {

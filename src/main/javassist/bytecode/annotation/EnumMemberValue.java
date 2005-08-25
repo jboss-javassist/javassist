@@ -16,6 +16,8 @@
 package javassist.bytecode.annotation;
 
 import java.io.IOException;
+
+import javassist.ClassPool;
 import javassist.bytecode.ConstPool;
 import javassist.bytecode.Descriptor;
 
@@ -50,6 +52,24 @@ public class EnumMemberValue extends MemberValue {
     public EnumMemberValue(ConstPool cp) {
         super('e', cp);
         typeIndex = valueIndex = 0;
+    }
+
+    Object getValue(ClassLoader cl, ClassPool cp)
+        throws ClassNotFoundException
+    {
+        try {
+            return getType(cl).getField(getValue()).get(null);
+        }
+        catch (NoSuchFieldException e) {
+            throw new ClassNotFoundException(getType() + "." + getValue());
+        }
+        catch (IllegalAccessException e) {
+            throw new ClassNotFoundException(getType() + "." + getValue());
+        }
+    }
+
+    Class getType(ClassLoader cl) throws ClassNotFoundException {
+        return loadClass(cl, getType());
     }
 
     /**

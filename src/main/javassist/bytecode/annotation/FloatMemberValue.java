@@ -15,6 +15,7 @@
 
 package javassist.bytecode.annotation;
 
+import javassist.ClassPool;
 import javassist.bytecode.ConstPool;
 import java.io.IOException;
 
@@ -23,7 +24,7 @@ import java.io.IOException;
  *
  * @author <a href="mailto:bill@jboss.org">Bill Burke</a>
  * @author Shigeru Chiba
- * @version $Revision: 1.5 $
+ * @version $Revision: 1.6 $
  */
 public class FloatMemberValue extends MemberValue {
     int valueIndex;
@@ -55,6 +56,14 @@ public class FloatMemberValue extends MemberValue {
     public FloatMemberValue(ConstPool cp) {
         super('F', cp);
         setValue(0.0F);
+    }
+
+    Object getValue(ClassLoader cl, ClassPool cp) {
+        return new Float(getValue());
+    }
+
+    Class getType(ClassLoader cl) {
+        return float.class;
     }
 
     /**

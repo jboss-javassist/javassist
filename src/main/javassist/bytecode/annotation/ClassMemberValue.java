@@ -15,12 +15,13 @@
 
 package javassist.bytecode.annotation;
 
+import javassist.ClassPool;
 import javassist.bytecode.ConstPool;
 import javassist.bytecode.Descriptor;
 import java.io.IOException;
 
 /**
- * String constant value.
+ * Class value.
  *
  * @author <a href="mailto:bill@jboss.org">Bill Burke</a>
  * @author Shigeru Chiba
@@ -29,7 +30,7 @@ public class ClassMemberValue extends MemberValue {
     int valueIndex;
 
     /**
-     * Constructs a string constant value.  The initial value is specified
+     * Constructs a class value.  The initial value is specified
      * by the constant pool entry at the given index.
      *
      * @param index the index of a CONSTANT_Utf8_info structure.
@@ -40,7 +41,7 @@ public class ClassMemberValue extends MemberValue {
     }
 
     /**
-     * Constructs a string constant value.
+     * Constructs a class value.
      *
      * @param className         the initial value.
      */
@@ -50,12 +51,22 @@ public class ClassMemberValue extends MemberValue {
     }
 
     /**
-     * Constructs a string constant value.
+     * Constructs a class value.
      * The initial value is java.lang.Class.
      */
     public ClassMemberValue(ConstPool cp) {
         super('c', cp);
         setValue("java.lang.Class");
+    }
+
+    Object getValue(ClassLoader cl, ClassPool cp)
+        throws ClassNotFoundException
+    {
+        return loadClass(cl, getValue());
+    }
+
+    Class getType(ClassLoader cl) throws ClassNotFoundException {
+        return loadClass(cl, "java.lang.Class");
     }
 
     /**

@@ -18,6 +18,7 @@ package javassist.compiler;
 import javassist.*;
 import javassist.bytecode.*;
 import javassist.compiler.ast.*;
+
 import java.util.ArrayList;
 
 /* Code generator methods depending on javassist.* classes.
@@ -29,8 +30,7 @@ public class MemberCodeGen extends CodeGen {
 
     protected boolean resultStatic;
 
-    public MemberCodeGen(Bytecode b, CtClass cc, ClassPool cp)
-    {
+    public MemberCodeGen(Bytecode b, CtClass cc, ClassPool cp) {
         super(b);
         resolver = new MemberResolver(cp);
         thisClass = cc;
@@ -239,26 +239,46 @@ public class MemberCodeGen extends CodeGen {
     }
 
     public void atNewArrayExpr(NewExpr expr) throws CompileError {
-        if (expr.getInitializer() != null)
-            throw new CompileError("array initializer is not supported");
-
         int type = expr.getArrayType();
         ASTList size = expr.getArraySize();
         ASTList classname = expr.getClassName();
+        ArrayInit init = expr.getInitializer();
         if (size.length() > 1) {
+            if (init != null)
+                throw new CompileError(
+                        "sorry, multi-dimensional array initializer " +
+                        "for new is not supported");
+
             atMultiNewArray(type, classname, size);
             return;
         }
 
-        size.head().accept(this);
-        exprType = type;
-        arrayDim = 1;
+        ASTree sizeExpr = size.head();
+        atNewArrayExpr2(type, sizeExpr, Declarator.astToClassName(classname, '/'), init);
+    }
+
+    private void atNewArrayExpr2(int type, ASTree sizeExpr,
+                        String jvmClassname, ArrayInit init) throws CompileError {
+        if (init == null)
+            if (sizeExpr == null)
+                throw new CompileError("no array size");
+            else
+                sizeExpr.accept(this);
+        else
+            if (sizeExpr == null) {
+                int s = init.length();
+                bytecode.addIconst(s);
+            }
+            else
+                throw new CompileError("unnecessary array size specified for new");
+
+        String elementClass;
         if (type == CLASS) {
-            className = resolveClassName(classname);
-            bytecode.addAnewarray(MemberResolver.jvmToJavaName(className));
+            elementClass = resolveClassName(jvmClassname);
+            bytecode.addAnewarray(MemberResolver.jvmToJavaName(elementClass));
         }
         else {
-            className = null;
+            elementClass = null;
             int atype = 0;
             switch (type) {
             case BOOLEAN :
@@ -293,10 +313,38 @@ public class MemberCodeGen extends CodeGen {
             bytecode.addOpcode(NEWARRAY);
             bytecode.add(atype);
         }
+
+        if (init != null) {
+            int s = init.length();
+            ASTList list = init;
+            for (int i = 0; i < s; i++) {
+                bytecode.addOpcode(DUP);
+                bytecode.addIconst(i);
+                list.head().accept(this);
+                if (!isRefType(type))
+                    atNumCastExpr(exprType, type);
+
+                bytecode.addOpcode(getArrayWriteOp(type, 0));
+                list = list.tail();
+            }
+        }
+
+        exprType = type;
+        arrayDim = 1;
+        className = elementClass;
     }
 
     private static void badNewExpr() throws CompileError {
         throw new CompileError("bad new expression");
+    }
+
+    protected void atArrayVariableAssign(ArrayInit init, int varType,
+                                         int varArray, String varClass) throws CompileError {
+        atNewArrayExpr2(varType, null, varClass, init);
+    }
+
+    public void atArrayInit(ArrayInit init) throws CompileError {
+        throw new CompileError("array initializer is not supported");
     }
 
     protected void atMultiNewArray(int type, ASTList classname, ASTList size)

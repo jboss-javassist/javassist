@@ -15,6 +15,7 @@
 
 package javassist.bytecode.annotation;
 
+import javassist.ClassPool;
 import javassist.bytecode.ConstPool;
 import java.io.IOException;
 
@@ -54,6 +55,14 @@ public class StringMemberValue extends MemberValue {
     public StringMemberValue(ConstPool cp) {
         super('s', cp);
         setValue("");
+    }
+
+    Object getValue(ClassLoader cl, ClassPool cp) {
+        return getValue();
+    }
+
+    Class getType(ClassLoader cl) {
+        return String.class;
     }
 
     /**

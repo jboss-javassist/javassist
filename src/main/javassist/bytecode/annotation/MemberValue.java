@@ -15,6 +15,7 @@
 
 package javassist.bytecode.annotation;
 
+import javassist.ClassPool;
 import javassist.bytecode.ConstPool;
 import java.io.IOException;
 
@@ -32,6 +33,21 @@ public abstract class MemberValue {
     MemberValue(char tag, ConstPool cp) {
         this.cp = cp;
         this.tag = tag;
+    }
+
+    /**
+     * Returns the value.  If the value type is a primitive type, the
+     * returned value is boxed.
+     */
+    abstract Object getValue(ClassLoader cl, ClassPool cp)
+        throws ClassNotFoundException;
+
+    abstract Class getType(ClassLoader cl) throws ClassNotFoundException;
+
+    static Class loadClass(ClassLoader cl, String classname)
+        throws ClassNotFoundException
+    {
+        return Class.forName(classname, true, cl);
     }
 
     /**

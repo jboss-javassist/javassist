@@ -14,6 +14,7 @@
  */
 package javassist.bytecode.annotation;
 
+import javassist.ClassPool;
 import javassist.bytecode.ConstPool;
 import java.io.IOException;
 
@@ -40,6 +41,19 @@ public class AnnotationMemberValue extends MemberValue {
     public AnnotationMemberValue(Annotation a, ConstPool cp) {
         super('@', cp);
         value = a;
+    }
+
+    Object getValue(ClassLoader cl, ClassPool cp)
+        throws ClassNotFoundException
+    {
+        return AnnotationImpl.make(cl, getType(cl), cp, value);
+    }
+
+    Class getType(ClassLoader cl) throws ClassNotFoundException {
+        if (value == null)
+            throw new ClassNotFoundException("no type specified");
+        else
+            return loadClass(cl, value.getTypeName());
     }
 
     /**

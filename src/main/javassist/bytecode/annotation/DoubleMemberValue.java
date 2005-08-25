@@ -15,6 +15,7 @@
 
 package javassist.bytecode.annotation;
 
+import javassist.ClassPool;
 import javassist.bytecode.ConstPool;
 import java.io.IOException;
 
@@ -23,7 +24,7 @@ import java.io.IOException;
  *
  * @author <a href="mailto:bill@jboss.org">Bill Burke</a>
  * @author Shigeru Chiba
- * @version $Revision: 1.5 $
+ * @version $Revision: 1.6 $
  */
 public class DoubleMemberValue extends MemberValue {
     int valueIndex;
@@ -55,6 +56,14 @@ public class DoubleMemberValue extends MemberValue {
     public DoubleMemberValue(ConstPool cp) {
         super('D', cp);
         setValue(0.0);
+    }
+
+    Object getValue(ClassLoader cl, ClassPool cp) {
+        return new Double(getValue());
+    }
+
+    Class getType(ClassLoader cl) {
+        return double.class;
     }
 
     /**
