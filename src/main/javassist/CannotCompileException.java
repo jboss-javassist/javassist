@@ -21,9 +21,30 @@ import javassist.compiler.CompileError;
  * Thrown when bytecode transformation has failed.
  */
 public class CannotCompileException extends Exception {
-    private String message;
-    private Throwable cause;
+    private Throwable myCause;
 
+    /**
+     * Gets the cause of this throwable.
+     * It is for JDK 1.3 compatibility.
+     */
+    public Throwable getCause() {
+        return (myCause == this ? null : myCause);
+    }
+
+    /**
+     * Initializes the cause of this throwable.
+     * It is for JDK 1.3 compatibility.
+     */
+    public synchronized Throwable initCause(Throwable cause) {
+        myCause = cause;
+        return this;
+    }
+
+    private String message;
+
+    /**
+     * Gets a long message if it is available.
+     */
     public String getReason() {
         if (message != null)
             return message;
@@ -39,7 +60,7 @@ public class CannotCompileException extends Exception {
     public CannotCompileException(String msg) {
         super(msg);
         message = msg;
-        cause = null;
+        initCause(null);
     }
 
     /**
@@ -51,7 +72,7 @@ public class CannotCompileException extends Exception {
     public CannotCompileException(Throwable e) {
         super("by " + e.toString());
         message = null;
-        cause = e;
+        initCause(e);
     }
 
     /**
@@ -63,7 +84,7 @@ public class CannotCompileException extends Exception {
      */
     public CannotCompileException(String msg, Throwable e) {
         this(msg);
-        cause = e;
+        initCause(e);
     }
 
     /**
@@ -94,27 +115,5 @@ public class CannotCompileException extends Exception {
      */
     public CannotCompileException(ClassFormatError e, String name) {
         this("invalid class format: " + name, e);
-    }
-
-    /**
-     * Prints this exception and its backtrace.
-     */
-    public void printStackTrace(java.io.PrintWriter w) {
-        super.printStackTrace(w);
-        if (cause != null) {
-            w.println("Caused by:");
-            cause.printStackTrace(w);
-        }
-    }
-
-    /**
-     * Prints this exception and its backtrace.
-     */
-    public void printStackTrace(java.io.PrintStream w) {
-        super.printStackTrace(w);
-        if (cause != null) {
-            w.println("Caused by:");
-            cause.printStackTrace(w);
-        }
     }
 }
