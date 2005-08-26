@@ -523,7 +523,11 @@ public final class ClassFile {
     }
 
     /**
-     * Returns all the attributes.
+     * Returns all the attributes.  The returned <code>List</code> object
+     * is shared with this object.  If you add a new attribute to the list,
+     * the attribute is also added to the classs file represented by this
+     * object.  If you remove an attribute from the list, it is also removed
+     * from the class file.
      * 
      * @return a list of <code>AttributeInfo</code> objects.
      * @see AttributeInfo
@@ -533,10 +537,12 @@ public final class ClassFile {
     }
 
     /**
-     * Returns the attribute with the specified name.
+     * Returns the attribute with the specified name.  If there are multiple
+     * attributes with that name, this method returns either of them.   It
+     * returns null if the specified attributed is not found.
      * 
-     * @param name
-     *            attribute name
+     * @param name          attribute name
+     * @see #getAttributes()
      */
     public AttributeInfo getAttribute(String name) {
         LinkedList list = attributes;
@@ -553,6 +559,8 @@ public final class ClassFile {
     /**
      * Appends an attribute. If there is already an attribute with the same
      * name, the new one substitutes for it.
+     *
+     * @see #getAttributes()
      */
     public void addAttribute(AttributeInfo info) {
         AttributeInfo.remove(attributes, info.getName());

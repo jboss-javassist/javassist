@@ -236,8 +236,11 @@ public final class MethodInfo {
     }
 
     /**
-     * Returns all the attributes. A new element can be added to the returned
-     * list and an existing element can be removed from the list.
+     * Returns all the attributes.  The returned <code>List</code> object
+     * is shared with this object.  If you add a new attribute to the list,
+     * the attribute is also added to the method represented by this
+     * object.  If you remove an attribute from the list, it is also removed
+     * from the method.
      * 
      * @return a list of <code>AttributeInfo</code> objects.
      * @see AttributeInfo
@@ -253,9 +256,9 @@ public final class MethodInfo {
      * Returns the attribute with the specified name. If it is not found, this
      * method returns null.
      * 
-     * @param name
-     *            attribute name
+     * @param name attribute name
      * @return an <code>AttributeInfo</code> object or null.
+     * @see #getAttributes()
      */
     public AttributeInfo getAttribute(String name) {
         return AttributeInfo.lookup(attribute, name);
@@ -264,6 +267,8 @@ public final class MethodInfo {
     /**
      * Appends an attribute. If there is already an attribute with the same
      * name, the new one substitutes for it.
+     *
+     * @see #getAttributes()
      */
     public void addAttribute(AttributeInfo info) {
         if (attribute == null)

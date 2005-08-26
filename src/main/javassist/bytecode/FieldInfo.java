@@ -194,9 +194,11 @@ public final class FieldInfo {
     }
 
     /**
-     * Returns all the attributes.
-     * A new element can be added to the returned list
-     * and an existing element can be removed from the list.
+     * Returns all the attributes.    The returned <code>List</code> object
+     * is shared with this object.  If you add a new attribute to the list,
+     * the attribute is also added to the field represented by this
+     * object.  If you remove an attribute from the list, it is also removed
+     * from the field.
      *
      * @return a list of <code>AttributeInfo</code> objects.
      * @see AttributeInfo
@@ -210,8 +212,10 @@ public final class FieldInfo {
 
     /**
      * Returns the attribute with the specified name.
+     * It returns null if the specified attribute is not found.
      *
      * @param name      attribute name
+     * @see #getAttributes()
      */
     public AttributeInfo getAttribute(String name) {
         return AttributeInfo.lookup(attribute, name);
@@ -220,6 +224,8 @@ public final class FieldInfo {
     /**
      * Appends an attribute.  If there is already an attribute with
      * the same name, the new one substitutes for it.
+     *
+     * @see #getAttributes()
      */
     public void addAttribute(AttributeInfo info) {
         if (attribute == null)
