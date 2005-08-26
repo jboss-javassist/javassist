@@ -652,8 +652,8 @@ public class TypeChecker extends Visitor implements Opcode, TokenId {
         atMethodArgs(args, types, dims, cnames);
 
         MemberResolver.Method found
-            = resolver.lookupMethod(targetClass, thisMethod, mname,
-                                    types, dims, cnames, false);
+            = resolver.lookupMethod(targetClass, thisClass, thisMethod,
+                                    mname, types, dims, cnames);
         if (found == null) {
             String msg;
             if (mname.equals(MethodInfo.nameInit))

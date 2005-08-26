@@ -70,26 +70,39 @@ public class MemberResolver implements TokenId {
         }
     }
 
-    public Method lookupMethod(CtClass clazz, MethodInfo current,
-                               String methodName,
-                               int[] argTypes, int[] argDims,
-                               String[] argClassNames, boolean onlyExact)
+    public Method lookupMethod(CtClass clazz, CtClass currentClass, MethodInfo current,
+                                String methodName,
+                                int[] argTypes, int[] argDims,
+                                String[] argClassNames)
         throws CompileError
     {
         Method maybe = null;
-
         // to enable the creation of a recursively called method
-        if (current != null)
+        if (current != null && clazz == currentClass)
             if (current.getName().equals(methodName)) {
                 int res = compareSignature(current.getDescriptor(),
                                            argTypes, argDims, argClassNames);
                 Method r = new Method(clazz, current);
                 if (res == YES)
                     return r;
-                else if (res == MAYBE && maybe == null)
+                else if (res == MAYBE)
                     maybe = r;
             }
 
+        Method m = lookupMethod(clazz, methodName, argTypes, argDims,
+                                argClassNames, maybe != null);
+        if (m != null)
+            return m;
+        else
+            return maybe;
+    }
+
+    private Method lookupMethod(CtClass clazz, String methodName,
+                               int[] argTypes, int[] argDims,
+                               String[] argClassNames, boolean onlyExact)
+        throws CompileError
+    {
+        Method maybe = null;
         List list = clazz.getClassFile2().getMethods();
         int n = list.size();
         for (int i = 0; i < n; ++i) {
@@ -97,20 +110,26 @@ public class MemberResolver implements TokenId {
             if (minfo.getName().equals(methodName)) {
                 int res = compareSignature(minfo.getDescriptor(),
                                            argTypes, argDims, argClassNames);
-                Method r = new Method(clazz, minfo);
-                if (res == YES)
-                    return r;
-                else if (res == MAYBE && maybe == null)
-                    maybe = r;
+                if (res != NO) {
+                    Method r = new Method(clazz, minfo);
+                    if (res == YES)
+                        return r;
+                    else if (maybe == null)
+                        maybe = r;
+                }
             }
         }
+
+        if (onlyExact)
+            maybe = null;
+        else
+            onlyExact = maybe != null;
 
         try {
             CtClass pclazz = clazz.getSuperclass();
             if (pclazz != null) {
-                Method r = lookupMethod(pclazz, null, methodName, argTypes,
-                                        argDims, argClassNames,
-                                        (onlyExact || maybe != null));
+                Method r = lookupMethod(pclazz, methodName, argTypes,
+                                        argDims, argClassNames, onlyExact);
                 if (r != null)
                     return r;
             }
@@ -123,19 +142,16 @@ public class MemberResolver implements TokenId {
                 CtClass[] ifs = clazz.getInterfaces();
                 int size = ifs.length;
                 for (int i = 0; i < size; ++i) {
-                    Method r = lookupMethod(ifs[i], null, methodName,
+                    Method r = lookupMethod(ifs[i], methodName,
                                             argTypes, argDims, argClassNames,
-                                            (onlyExact || maybe != null));
+                                            onlyExact);
                     if (r != null)
                         return r;
                 }
             }
             catch (NotFoundException e) {}
 
-        if (onlyExact)
-            return null;
-        else
-            return maybe;
+        return maybe;
     }
 
     private static final int YES = 2;

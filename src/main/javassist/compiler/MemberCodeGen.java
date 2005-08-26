@@ -489,8 +489,8 @@ public class MemberCodeGen extends CodeGen {
         int count = bytecode.getStackDepth() - stack + 1;
 
         if (found == null)
-            found = resolver.lookupMethod(targetClass, thisMethod, mname,
-                                          types, dims, cnames, false);
+            found = resolver.lookupMethod(targetClass, thisClass, thisMethod,
+                                          mname, types, dims, cnames);
 
         if (found == null) {
             String msg;
