@@ -249,6 +249,8 @@ public abstract class CtClass {
 
     void freeze() {}
 
+    /* Note: this method is overridden by CtClassType
+     */
     void checkModify() throws RuntimeException {
         if (isFrozen())
             throw new RuntimeException(getName() + " class is frozen");

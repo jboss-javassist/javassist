@@ -257,7 +257,14 @@ class CtClassType extends CtClass {
     void freeze() { wasFrozen = true; }
 
     void checkModify() throws RuntimeException {
-        super.checkModify();
+        if (isFrozen()) {
+            String msg = getName() + " class is frozen";
+            if (wasPruned)
+                msg += " and pruned";
+
+            throw new RuntimeException(msg);
+        }
+
         wasChanged = true;
     }
 
@@ -1079,6 +1086,8 @@ class CtClassType extends CtClass {
         }
     }
 
+    /* See also checkModified()
+     */
     private void checkPruned(String method) {
         if (wasPruned)
             throw new RuntimeException(method + "(): " + getName()
