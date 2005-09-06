@@ -125,6 +125,8 @@ public class NewExpr extends Expr {
         else if (op == Opcode.DUP_X1
                  && iterator.byteAt(newPos + 4) == Opcode.SWAP)
             return 5;
+        else if (op == Opcode.INVOKESPECIAL)
+            return 3;   // for Eclipse's compiler
         else
             throw new CannotCompileException(
                         "sorry, cannot edit NEW followed by no DUP");
