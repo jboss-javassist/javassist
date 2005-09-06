@@ -114,21 +114,27 @@ Member methods in an interface can be created with
 <code>abstractMethod()</code> in <code>CtNewMethod</code>.
 Note that an interface method is an abstract method.
 
-
-<h4>Frozen classes</h4>
+<a name="frozenclasses">
+<h4>Frozen classes</h4></a>
 
 <p>If a <code>CtClass</code> object is converted into a class file by
 <code>writeFile()</code>, <code>toClass()</code>, or
 <code>toBytecode()</code>, Javassist freezes that <code>CtClass</code>
 object.  Further modifications of that <code>CtClass</code> object are
-not permitted.
+not permitted.  This is for warning the developers when they attempt
+to modify a class file that has been already loaded since the JVM does
+not allow reloading a class.
 
 <p>When Javassist freezes a <code>CtClass</code> object, it also
 prunes the data structure contained in that object.  To reduce memory
-consumption, Javassist discards some part of data structure, for
-example, the data of method bodies.  Thus, after a
+consumption, Javassist discards unnecessary attributes
+(<code>attribute_info</code> structures) in that object.
+For example, <code>Code_attribute</code> structures (method bodies)
+are discarded.
+Thus, after a
 <code>CtClass</code> object is pruned, the bytecode of a method is not
-accessible although method names and signatures are accessible.
+accessible although method names, signatures, and annotations
+are still accessible.
 
 <p>To disallow pruning a <code>CtClass</code>, <code>stopPruning()</code>
 must be called in advance:
@@ -283,7 +289,8 @@ program execution.
 This specification of <code>ClassPool</code> may cause huge memory
 consumption if the number of <code>CtClass</code> objects becomes
 amazingly large (this rarely happens since Javassist tries to reduce
-memory consumption in various ways).  To avoid this problem, you
+memory consumption in <a href="#frozenclasses">various ways</a>).
+To avoid this problem, you
 can explicitly remove an unnecessary <code>CtClass</code> object from
 the <code>ClassPool</code>.  If you call <code>detach()</code> on a
 <code>CtClass</code> object, then that <code>CtClass</code> object is
