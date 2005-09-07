@@ -18,13 +18,14 @@ package javassist.bytecode.annotation;
 import javassist.ClassPool;
 import javassist.bytecode.ConstPool;
 import java.io.IOException;
+import java.lang.reflect.Method;
 
 /**
  * Floating-point number constant value.
  *
  * @author <a href="mailto:bill@jboss.org">Bill Burke</a>
  * @author Shigeru Chiba
- * @version $Revision: 1.6 $
+ * @version $Revision: 1.7 $
  */
 public class FloatMemberValue extends MemberValue {
     int valueIndex;
@@ -58,7 +59,7 @@ public class FloatMemberValue extends MemberValue {
         setValue(0.0F);
     }
 
-    Object getValue(ClassLoader cl, ClassPool cp) {
+    Object getValue(ClassLoader cl, ClassPool cp, Method m) {
         return new Float(getValue());
     }
 

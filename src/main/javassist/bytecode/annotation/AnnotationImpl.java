@@ -56,12 +56,12 @@ class AnnotationImpl implements InvocationHandler {
         String name = method.getName();
         MemberValue mv = annotation.getMemberValue(name);
         if (mv == null)
-            return getDefault(name);
+            return getDefault(name, method);
         else
-            return mv.getValue(classLoader, pool);
+            return mv.getValue(classLoader, pool, method);
     }
 
-    private Object getDefault(String name)
+    private Object getDefault(String name, Method method)
         throws ClassNotFoundException, RuntimeException
     {
         String classname = annotation.getTypeName();
@@ -76,7 +76,7 @@ class AnnotationImpl implements InvocationHandler {
                           minfo.getAttribute(AnnotationDefaultAttribute.tag);
                     if (ainfo != null) {
                         MemberValue mv = ainfo.getDefaultValue();
-                        return mv.getValue(classLoader, pool);
+                        return mv.getValue(classLoader, pool, method);
                     }
                 }
             }

@@ -18,6 +18,7 @@ package javassist.bytecode.annotation;
 import javassist.ClassPool;
 import javassist.bytecode.ConstPool;
 import java.io.IOException;
+import java.lang.reflect.Method;
 
 /**
  * Char constant value.
@@ -57,7 +58,7 @@ public class CharMemberValue extends MemberValue {
         setValue('\0');
     }
 
-    Object getValue(ClassLoader cl, ClassPool cp) {
+    Object getValue(ClassLoader cl, ClassPool cp, Method m) {
         return new Character(getValue());
     }
 

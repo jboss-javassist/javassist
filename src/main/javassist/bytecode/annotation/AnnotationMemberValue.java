@@ -17,6 +17,7 @@ package javassist.bytecode.annotation;
 import javassist.ClassPool;
 import javassist.bytecode.ConstPool;
 import java.io.IOException;
+import java.lang.reflect.Method;
 
 /**
  * Nested annotation.
@@ -43,7 +44,7 @@ public class AnnotationMemberValue extends MemberValue {
         value = a;
     }
 
-    Object getValue(ClassLoader cl, ClassPool cp)
+    Object getValue(ClassLoader cl, ClassPool cp, Method m)
         throws ClassNotFoundException
     {
         return AnnotationImpl.make(cl, getType(cl), cp, value);

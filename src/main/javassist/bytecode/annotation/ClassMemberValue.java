@@ -19,6 +19,7 @@ import javassist.ClassPool;
 import javassist.bytecode.ConstPool;
 import javassist.bytecode.Descriptor;
 import java.io.IOException;
+import java.lang.reflect.Method;
 
 /**
  * Class value.
@@ -59,7 +60,7 @@ public class ClassMemberValue extends MemberValue {
         setValue("java.lang.Class");
     }
 
-    Object getValue(ClassLoader cl, ClassPool cp)
+    Object getValue(ClassLoader cl, ClassPool cp, Method m)
         throws ClassNotFoundException
     {
         return loadClass(cl, getValue());

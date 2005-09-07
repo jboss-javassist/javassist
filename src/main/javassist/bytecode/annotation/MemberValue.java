@@ -18,6 +18,7 @@ package javassist.bytecode.annotation;
 import javassist.ClassPool;
 import javassist.bytecode.ConstPool;
 import java.io.IOException;
+import java.lang.reflect.Method;
 
 /**
  * The value of a member declared in an annotation.
@@ -39,7 +40,7 @@ public abstract class MemberValue {
      * Returns the value.  If the value type is a primitive type, the
      * returned value is boxed.
      */
-    abstract Object getValue(ClassLoader cl, ClassPool cp)
+    abstract Object getValue(ClassLoader cl, ClassPool cp, Method m)
         throws ClassNotFoundException;
 
     abstract Class getType(ClassLoader cl) throws ClassNotFoundException;

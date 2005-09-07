@@ -16,6 +16,7 @@
 package javassist.bytecode.annotation;
 
 import java.io.IOException;
+import java.lang.reflect.Method;
 
 import javassist.ClassPool;
 import javassist.bytecode.ConstPool;
@@ -54,7 +55,7 @@ public class EnumMemberValue extends MemberValue {
         typeIndex = valueIndex = 0;
     }
 
-    Object getValue(ClassLoader cl, ClassPool cp)
+    Object getValue(ClassLoader cl, ClassPool cp, Method m)
         throws ClassNotFoundException
     {
         try {

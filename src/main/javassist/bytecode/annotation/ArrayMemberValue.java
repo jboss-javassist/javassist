@@ -18,6 +18,7 @@ import javassist.ClassPool;
 import javassist.bytecode.ConstPool;
 import java.io.IOException;
 import java.lang.reflect.Array;
+import java.lang.reflect.Method;
 
 /**
  * Array member.
@@ -49,14 +50,27 @@ public class ArrayMemberValue extends MemberValue {
         values = null;
     }
 
-    Object getValue(ClassLoader cl, ClassPool cp) throws ClassNotFoundException {
-        if (type == null || values == null)
-            throw new ClassNotFoundException("no array elements specified");
+    Object getValue(ClassLoader cl, ClassPool cp, Method method)
+        throws ClassNotFoundException
+    {
+        if (values == null)
+            throw new ClassNotFoundException(
+                        "no array elements found: " + method.getName());
 
         int size = values.length;
-        Object a = Array.newInstance(type.getType(cl), size);
+        Class clazz;
+        if (type == null) {
+            clazz = method.getReturnType().getComponentType();
+            if (clazz == null || size > 0)
+                throw new ClassNotFoundException("broken array type: "
+                                                 + method.getName());
+        }
+        else
+            clazz = type.getType(cl);
+
+        Object a = Array.newInstance(clazz, size);
         for (int i = 0; i < size; i++)
-            Array.set(a, i, values[i].getValue(cl, cp));
+            Array.set(a, i, values[i].getValue(cl, cp, method));
 
         return a;
     }

@@ -17,6 +17,7 @@ package javassist.bytecode.annotation;
 import javassist.ClassPool;
 import javassist.bytecode.ConstPool;
 import java.io.IOException;
+import java.lang.reflect.Method;
 
 /**
  * Boolean constant value.
@@ -56,7 +57,7 @@ public class BooleanMemberValue extends MemberValue {
         setValue(false);
     }
 
-    Object getValue(ClassLoader cl, ClassPool cp) {
+    Object getValue(ClassLoader cl, ClassPool cp, Method m) {
         return new Boolean(getValue());
     }
 
