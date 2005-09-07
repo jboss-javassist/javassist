@@ -451,6 +451,7 @@ public abstract class CtClass {
      * the <code>Author</code> object.
      *
      * @return an array of annotation-type objects.
+     * @since 3.1
      */
     public Object[] getAnnotations() throws ClassNotFoundException {
         return new Object[0];

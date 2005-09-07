@@ -238,6 +238,7 @@ public class CtField extends CtMember {
      *
      * @return an array of annotation-type objects.
      * @see CtMember#getAnnotations()
+     * @since 3.1
      */
     public Object[] getAnnotations() throws ClassNotFoundException {
         FieldInfo fi = getFieldInfo2();
