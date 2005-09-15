@@ -488,23 +488,30 @@ class CtClassType extends CtClass {
                 String outName = ica.outerClass(i);
                 if (outName != null)
                     return classPool.get(outName);
+                else {
+                    // maybe anonymous or local class.
+                    EnclosingMethodAttribute ema
+                        = (EnclosingMethodAttribute)cf.getAttribute(
+                                                    EnclosingMethodAttribute.tag);
+                    if (ema != null)
+                        return classPool.get(ema.className());
+                }
             }
 
         return null;
     }
 
-    public CtClass getEnclosingClass() throws NotFoundException {
-        CtClass enc = getDeclaringClass();
-        if (enc == null) {
-            ClassFile cf = getClassFile2();
-            EnclosingMethodAttribute ema
+    public CtMethod getEnclosingMethod() throws NotFoundException {
+        ClassFile cf = getClassFile2();
+        EnclosingMethodAttribute ema
                 = (EnclosingMethodAttribute)cf.getAttribute(
-                                                    EnclosingMethodAttribute.tag);
-            if (ema != null)
-                enc = classPool.get(ema.className());
+                                                EnclosingMethodAttribute.tag);
+        if (ema != null) {
+            CtClass enc = classPool.get(ema.className());
+            return enc.getMethod(ema.methodName(), ema.methodDescriptor());
         }
 
-        return enc;
+        return null;
     }
 
     public CtClass makeNestedClass(String name, boolean isStatic) {
@@ -515,6 +522,7 @@ class CtClassType extends CtClass {
         checkModify();
         CtClass c = classPool.makeNestedClass(getName() + "$" + name);
         ClassFile cf = getClassFile2();
+        ClassFile cf2 = c.getClassFile2();
         InnerClassesAttribute ica = (InnerClassesAttribute)cf.getAttribute(
                                                 InnerClassesAttribute.tag);
         if (ica == null) {
@@ -522,8 +530,8 @@ class CtClassType extends CtClass {
             cf.addAttribute(ica);
         }
 
-        ica.append(c.getName(), this.getName(), name, AccessFlag.STATIC);
-        ClassFile cf2 = c.getClassFile2();
+        ica.append(c.getName(), this.getName(), name,
+                   (cf2.getAccessFlags() & ~AccessFlag.SUPER) | AccessFlag.STATIC);
         cf2.addAttribute(ica.copy(cf2.getConstPool(), null));
         return c;
     }

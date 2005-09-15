@@ -582,7 +582,7 @@ public class ClassPool {
     }
 
     /**
-     * Creates a new nested class.
+     * Creates a new public nested class.
      * This method is called by CtClassType.makeNestedClass().
      *
      * @param classname     a fully-qualified class name.

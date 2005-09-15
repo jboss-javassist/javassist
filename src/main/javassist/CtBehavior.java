@@ -408,8 +408,9 @@ public abstract class CtBehavior extends CtMember {
      * a constructor in the super class or this class is called.
      * Therefore, the inserted bytecode is subject to constraints described
      * in Section 4.8.2 of The Java Virtual Machine Specification (2nd ed).
-     * For example, it cannot access instance fields or methods
-     * although it can access static fields and methods.
+     * For example, it cannot access instance fields or methods although
+     * it may assign a value to an instance field directly declared in this
+     * class.  Accessing static fields and methods is allowed.
      * Use <code>insertBeforeBody()</code> in <code>CtConstructor</code>.
      *
      * @param src       the source code representing the inserted bytecode.

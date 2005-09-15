@@ -551,18 +551,20 @@ public abstract class CtClass {
     }
 
     /**
-     * Returns the immediately enclosing class of this class.
+     * Returns the immediately enclosing method of this class.
      * This method works only with JDK 1.5 or later.
      * 
-     * @return null if this class is a top-level class.
+     * @return null if this class is not a local class or an anonymous
+     * class.
      */
-    public CtClass getEnclosingClass() throws NotFoundException {
+    public CtMethod getEnclosingMethod() throws NotFoundException {
         return null;
     }
 
     /**
-     * Makes a new nested class.  Making a nested class modifies the
-     * data in this <code>CtClass</code>.
+     * Makes a new public nested class.  If this method is called,
+     * the <code>CtClass</code>, which encloses the nested class, is modified
+     * since a class file includes a list of inner classes.  
      *
      * <p>The current implementation only supports a static nested class.
      * <code>isStatic</code> must be true.
