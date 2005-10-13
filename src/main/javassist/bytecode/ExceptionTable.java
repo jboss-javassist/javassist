@@ -38,7 +38,7 @@ class ExceptionTableEntry {
 /**
  * <code>exception_table[]</code> of <code>Code_attribute</code>.
  */
-public class ExceptionTable {
+public class ExceptionTable implements Cloneable {
     private ConstPool constPool;
     private ArrayList entries;
 
@@ -65,6 +65,17 @@ public class ExceptionTable {
         }
 
         entries = list;
+    }
+
+    /**
+     * Creates and returns a copy of this object.
+     * The constant pool object is shared between this object
+     * and the cloned object.
+     */
+    public Object clone() throws CloneNotSupportedException {
+        ExceptionTable r = (ExceptionTable)super.clone();
+        r.entries = new ArrayList(entries);
+        return r;
     }
 
     /**

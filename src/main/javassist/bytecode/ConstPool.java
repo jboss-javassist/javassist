@@ -894,8 +894,7 @@ public final class ConstPool {
     private void read(DataInputStream in) throws IOException {
         int n = in.readUnsignedShort();
 
-        int size = (n / LongVector.SIZE + 1) * LongVector.SIZE;
-        items = new LongVector(size);
+        items = new LongVector(n);
         numOfItems = 0;
         addItem(null);          // index 0 is reserved by the JVM.
 

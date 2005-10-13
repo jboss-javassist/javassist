@@ -18,6 +18,68 @@ package javassist.bytecode;
 import javassist.CtClass;
 import javassist.CtPrimitiveType;
 
+class ByteVector implements Cloneable {
+    private byte[] buffer;
+    private int size;
+
+    public ByteVector() {
+        buffer = new byte[64];
+        size = 0;
+    }
+
+    public Object clone() throws CloneNotSupportedException {
+        ByteVector bv = (ByteVector)super.clone();
+        bv.buffer = (byte[])buffer.clone();
+        return bv;
+    }
+
+    public final int getSize() { return size; }
+
+    public final byte[] copy() {
+        byte[] b = new byte[size];
+        arraycopy(buffer, b, size);
+        return b;
+    }
+
+    public int read(int offset) {
+        if (offset < 0 || size <= offset)
+            throw new ArrayIndexOutOfBoundsException(offset);
+
+        return buffer[offset];
+    }
+
+    public void write(int offset, int value) {
+        if (offset < 0 || size <= offset)
+            throw new ArrayIndexOutOfBoundsException(offset);
+
+        buffer[offset] = (byte)value;
+    }
+
+    public void add(int code) {
+        addGap(1);
+        buffer[size - 1] = (byte)code;
+    }
+
+    public void addGap(int length) {
+        if (size + length > buffer.length) {
+            int newSize = size << 1;
+            if (newSize < size + length)
+                newSize = size + length;
+
+            byte[] newBuf = new byte[newSize];
+            arraycopy(buffer, newBuf, size);
+            buffer = newBuf;
+        }
+
+        size += length;
+    }
+
+    private static void arraycopy(byte[] src, byte[] dest, int size) {
+        for (int i = 0; i < size; i++)
+            dest[i] = src[i];
+    }
+}
+
 /**
  * A utility class for producing a bytecode sequence.
  *
@@ -39,21 +101,16 @@ import javassist.CtPrimitiveType;
  * @see ConstPool
  * @see CodeAttribute
  */
-public class Bytecode implements Opcode {
+public class Bytecode extends ByteVector implements Cloneable, Opcode {
     /**
      * Represents the <code>CtClass</code> file using the
      * constant pool table given to this <code>Bytecode</code> object.
      */
     public static final CtClass THIS = ConstPool.THIS;
 
-    static final int bufsize = 64;
     ConstPool constPool;
     int maxStack, maxLocals;
     ExceptionTable tryblocks;
-    Bytecode next;
-    byte[] buffer;
-    int num;
-
     private int stackDepth;
 
     /**
@@ -70,7 +127,6 @@ public class Bytecode implements Opcode {
      * @param localvars         <code>max_locals</code>.
      */
     public Bytecode(ConstPool cp, int stacksize, int localvars) {
-        this();
         constPool = cp;
         maxStack = stacksize;
         maxLocals = localvars;
@@ -91,12 +147,20 @@ public class Bytecode implements Opcode {
         this(cp, 0, 0);
     }
 
-    /* used in add().
+    /**
+     * Creates and returns a copy of this object.
+     * The constant pool object is shared between this object
+     * and the cloned object.
      */
-    private Bytecode() {
-        buffer = new byte[bufsize];
-        num = 0;
-        next = null;
+    public Object clone() {
+        try {
+            Bytecode bc = (Bytecode)super.clone();
+            bc.tryblocks = (ExceptionTable)tryblocks.clone();
+            return bc;
+        }
+        catch (CloneNotSupportedException cnse) {
+            throw new RuntimeException(cnse);
+        }
     }
 
     /**
@@ -121,32 +185,14 @@ public class Bytecode implements Opcode {
      * Returns the length of the bytecode sequence.
      */
     public int length() {
-        int len = 0;
-        Bytecode b = this;
-        while (b != null) {
-            len += b.num;
-            b = b.next;
-        }
-
-        return len;
-    }
-
-    private void copy(byte[] dest, int index) {
-        Bytecode b = this;
-        while (b != null) {
-            System.arraycopy(b.buffer, 0, dest, index, b.num);
-            index += b.num;
-            b = b.next;
-        }
+        return getSize();
     }
 
     /**
      * Returns the produced bytecode sequence.
      */
     public byte[] get() {
-        byte[] b = new byte[length()];
-        copy(b, 0);
-        return b;
+        return copy();
     }
 
     /**
@@ -258,14 +304,7 @@ public class Bytecode implements Opcode {
      * that have been added so far.
      */
     public int currentPc() {
-        int n = 0;
-        Bytecode b = this;
-        while (b != null) {
-            n += b.num;
-            b = b.next;
-        }
-
-        return n;
+        return getSize();
     }
 
     /**
@@ -275,17 +314,7 @@ public class Bytecode implements Opcode {
      * @throws ArrayIndexOutOfBoundsException   if offset is invalid.
      */
     public int read(int offset) {
-        if (offset < 0)
-            return Opcode.NOP;
-        else if (offset < num)
-            return buffer[offset];
-        else
-            try {
-                return next.read(offset - num);
-            }
-            catch (NullPointerException e) {
-                throw new ArrayIndexOutOfBoundsException(offset);
-            }
+        return super.read(offset);
     }
 
     /**
@@ -315,15 +344,7 @@ public class Bytecode implements Opcode {
      * @throws ArrayIndexOutOfBoundsException   if offset is invalid.
      */
     public void write(int offset, int value) {
-        if (offset < num)
-            buffer[offset] = (byte)value;
-        else
-            try {
-                next.write(offset - num, value);
-            }
-            catch (NullPointerException e) {
-                throw new ArrayIndexOutOfBoundsException(offset);
-            }
+        super.write(offset, value);
     }
 
     /**
@@ -348,14 +369,7 @@ public class Bytecode implements Opcode {
      * Appends an 8bit value to the end of the bytecode sequence.
      */
     public void add(int code) {
-        if (num < bufsize)
-            buffer[num++] = (byte)code;
-        else {
-            if (next == null)
-                next = new Bytecode();
-
-            next.add(code);
-        }
+        super.add(code);
     }
 
     /**
@@ -374,20 +388,7 @@ public class Bytecode implements Opcode {
      * @param length    the gap length in byte.
      */
     public void addGap(int length) {
-        if (num < bufsize) {
-            num += length;
-            if (num <= bufsize)
-                return;
-            else {
-                length = num - bufsize;
-                num = bufsize;
-            }
-        }
-
-        if (next == null)
-            next = new Bytecode();
-
-        next.addGap(length);
+        super.addGap(length);
     }
 
     /**

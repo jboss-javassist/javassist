@@ -460,6 +460,10 @@ public abstract class CtClass {
     /**
      * Sets the modifiers.
      *
+     * <p>If the class is a nested class, this method also modifies
+     * the class declaring that nested class (i.e. the enclosing
+     * class is modified).
+     *
      * @param mod       modifiers encoded by
      *                  <code>javassist.Modifier</code>
      * @see Modifier

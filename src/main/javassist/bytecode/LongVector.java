@@ -16,70 +16,48 @@
 package javassist.bytecode;
 
 final class LongVector {
-    static final int SIZE = 128;
-    private int num;
-    private Object[] objects;
-    private LongVector next;
+    static final int ASIZE = 128;
+    static final int ABITS = 7;  // ASIZE = 2^ABITS
+    static final int VSIZE = 8;
+    private Object[][] objects;
+    private int elements;
 
     public LongVector() {
-        this(SIZE);
+        objects = new Object[VSIZE][];
+        elements = 0;
     }
 
     public LongVector(int initialSize) {
-        num = 0;
-        objects = new Object[initialSize];
-        next = null;
+        int vsize = ((initialSize >> ABITS) & ~(VSIZE - 1)) + VSIZE;
+        objects = new Object[vsize][];
+        elements = 0;
     }
 
-    public void addElement(Object obj) {
-        LongVector p = this;
-        while (p.next != null)
-            p = p.next;
+    public int size() { return elements; }
 
-        if (p.num < p.objects.length)
-            p.objects[p.num++] = obj;
-        else {
-            LongVector q = p.next = new LongVector(SIZE);
-            q.objects[q.num++] = obj;
-        }
-    }
-
-    public int size() {
-        LongVector p = this;
-        int s = 0;
-        while (p != null) {
-            s += p.num;
-            p = p.next;
-        }
-
-        return s;
-    }
+    public int capacity() { return objects.length * ASIZE; }
 
     public Object elementAt(int i) {
-        LongVector p = this;
-        while (p != null)
-            if (i < p.num)
-                return p.objects[i];
-            else {
-                i -= p.num;
-                p = p.next;
-            }
+        if (i < 0 || elements <= i)
+            return null;
 
-        return null;
+        return objects[i >> ABITS][i & (ASIZE - 1)];
     }
 
-/*
-    public static void main(String [] args) {
-        LongVector v = new LongVector(4);
-        int i;
-        for (i = 0; i < 128; ++i)
-            v.addElement(new Integer(i));
-
-        System.out.println(v.size());
-        for (i = 0; i < v.size(); ++i) {
-            System.out.print(v.elementAt(i));
-            System.out.print(", ");
+    public void addElement(Object value) {
+        int nth = elements >> ABITS;
+        int offset = elements & (ASIZE - 1);
+        int len = objects.length;
+        if (nth >= len) { 
+            Object[][] newObj = new Object[len + VSIZE][];
+            System.arraycopy(objects, 0, newObj, 0, len);
+            objects = newObj;
         }
+
+        if (objects[nth] == null)
+            objects[nth] = new Object[ASIZE];
+
+        objects[nth][offset] = value;
+        elements++;
     }
-*/
 }
