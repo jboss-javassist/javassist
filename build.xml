@@ -179,8 +179,8 @@ Copyright (C) 1999-2005 Shigeru Chiba. All Rights Reserved.</i>]]></bottom>
   </target>
 
   <target name = "sample-vector" depends="sample" >
-    <echo>javassist.preproc.Compiler sample/vector/Test.j</echo>
-    <java fork="true" dir="${run.dir}" classname="javassist.preproc.Compiler">
+    <echo>sample.preproc.Compiler sample/vector/Test.j</echo>
+    <java fork="true" dir="${run.dir}" classname="sample.preproc.Compiler">
       <classpath refid="classpath"/>
       <arg line="sample/vector/Test.j"/>
     </java>

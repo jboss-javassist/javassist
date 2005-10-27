@@ -1,13 +1,13 @@
 /*
   A sample program using sample.vector.VectorAssistant
-  and the javassist.preproc package.
+  and the sample.preproc package.
 
   This automatically produces the classes representing vectors of integer
   and vectors of java.lang.String.
 
   To compile and run this program, do as follows:
 
-    % java javassist.tool.Compiler sample/vector/Test.j
+    % java sample.preproc.Compiler sample/vector/Test.j
     % javac sample/vector/Test.java
     % java sample.vector.Test
 

@@ -2,7 +2,7 @@ package sample.vector;
 
 import java.io.IOException;
 import javassist.*;
-import javassist.preproc.Assistant;
+import sample.preproc.Assistant;
 
 /**
  * This is a Javassist program which produce a new class representing
@@ -45,9 +45,9 @@ public class VectorAssistant implements Assistant {
 
     /**
      * Calls <code>makeSubclass()</code> and produces a new vector class.
-     * This method is called by a <code>javassist.preproc.Compiler</code>.
+     * This method is called by a <code>sample.preproc.Compiler</code>.
      *
-     * @see javassist.preproc.Compiler
+     * @see sample.preproc.Compiler
      */
     public CtClass[] assist(ClassPool pool, String vec, String[] args)
 	throws CannotCompileException

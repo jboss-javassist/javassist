@@ -181,12 +181,11 @@ set CLASSPATH=.;javassist.jar
 
 <p>This example shows the use of Javassit for producing a class representing
 a vector of a given type at compile time.
-This is a demonstration of the use of <tt>javassist.preproc</tt> package.
 
 <p>   To run, type the commands:
 <ul><pre>
 % javac sample/vector/*.java
-% java javassist.preproc.Compiler sample/vector/Test.j
+% java sample.preproc.Compiler sample/vector/Test.j
 % javac sample/vector/Test.java
 % java sample.vector.Test
 </pre></ul>
@@ -287,6 +286,7 @@ see javassist.Dump.
 <ul>
   <li>getEnclosingClass() in javassist.CtClass was renamed
       to getEnclosingMethod().
+  <li>toMethod() in javassist.CtConstructor has been implemented.
 </ul>
 
 <p>- version 3.1 RC2 in September 7, 2005
