@@ -63,6 +63,8 @@ In the case of the program shown above, the
 <code>test.Rectangle</code> is obtained from the
 <code>ClassPool</code> object and it is assigned to a variable
 <code>cc</code>.
+The <code>ClassPool</code> object returned by <code>getDfault()</code>
+searches the default system search path.
 
 <p>From the implementation viewpoint, <code>ClassPool</code> is a hash
 table of <code>CtClass</code> objects, which uses the class names as
@@ -89,6 +91,17 @@ modified bytecode.  To obtain the bytecode, call <code>toBytecode()</code>:
 <ul><pre>
 byte[] b = cc.toBytecode();
 </pre></ul>
+
+<p>You can directly load the <code>CtClass</code> as well:
+
+<ul><pre>
+Class clazz = cc.toClass();
+</pre></ul>
+
+<p><code>toClass()</code> requests the context class loader for the current
+thread to load the class file represented by the <code>CtClass</code>.  It
+returns a <code>java.lang.Class</code> object representing the loaded class.
+For more details, please see <a href="#toclass">the following section</a>.
 
 <a name="def">
 <h4>Defining a new class</h4>
@@ -483,7 +496,7 @@ the easiest way for modifying the classes is as follows:
         <code>ClassPool.get()</code>,
     <li>2. Modify it, and
     <li>3. Call <code>writeFile()</code> or <code>toBytecode()</code>
-           on that <code>CtClass</code> object.
+           on that <code>CtClass</code> object to obtain a modified class file.
 </ul>
 
 <p>If whether a class is modified or not is determined at load time,
@@ -496,7 +509,9 @@ by Javassist.
 
 <p><br>
 
+<a name="toclass">
 <h3>3.1 The <code>toClass</code> method in <code>CtClass</code></h3>
+</a>
 
 <p>The <code>CtClass</code> provides a convenience method
 <code>toClass()</code>, which requests the context class loader for

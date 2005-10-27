@@ -34,6 +34,45 @@ public abstract class CtBehavior extends CtMember {
         methodInfo = minfo;
     }
 
+    /**
+     * @param isCons        true if this is a constructor.
+     */
+    void copy(CtBehavior src, boolean isCons, ClassMap map)
+        throws CannotCompileException
+    {
+        CtClass declaring = declaringClass;
+        MethodInfo srcInfo = src.methodInfo;
+        CtClass srcClass = src.getDeclaringClass();
+        ConstPool cp = declaring.getClassFile2().getConstPool();
+        if (map == null)
+            map = new ClassMap();
+
+        map.put(srcClass.getName(), declaring.getName());
+        try {
+            boolean patch = false;
+            CtClass srcSuper = srcClass.getSuperclass();
+            String destSuperName = declaring.getSuperclass().getName();
+            if (srcSuper != null) {
+                String srcSuperName = srcSuper.getName();
+                if (!srcSuperName.equals(destSuperName))
+                    if (srcSuperName.equals(CtClass.javaLangObject))
+                        patch = true;
+                    else
+                        map.put(srcSuperName, destSuperName);
+            }
+
+            methodInfo = new MethodInfo(cp, srcInfo.getName(), srcInfo, map);
+            if (isCons && patch)
+                methodInfo.setSuperclass(destSuperName);
+        }
+        catch (NotFoundException e) {
+            throw new CannotCompileException(e);
+        }
+        catch (BadBytecode e) {
+            throw new CannotCompileException(e);
+        }
+    }
+
     protected void extendToString(StringBuffer buffer) {
         buffer.append(' ');
         buffer.append(getName());

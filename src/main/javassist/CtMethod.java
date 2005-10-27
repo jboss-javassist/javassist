@@ -22,6 +22,7 @@ import javassist.bytecode.*;
  *
  * <p>See the super class <code>CtBehavior</code> since
  * a number of useful methods are in <code>CtBehavior</code>.
+ * A number of useful factory methods are in <code>CtNewMethod</code>.
  *
  * @see CtClass#getDeclaredMethods()
  * @see CtNewMethod
@@ -106,30 +107,23 @@ public final class CtMethod extends CtBehavior {
         throws CannotCompileException
     {
         this(null, declaring);
-        MethodInfo srcInfo = src.methodInfo;
-        CtClass srcClass = src.getDeclaringClass();
-        ConstPool cp = declaring.getClassFile2().getConstPool();
-        if (map == null)
-            map = new ClassMap();
+        copy(src, false, map);
+    }
 
-        map.put(srcClass.getName(), declaring.getName());
-        try {
-            CtClass srcSuper = srcClass.getSuperclass();
-            if (srcSuper != null) {
-                String srcSuperName = srcSuper.getName();
-                if (!srcSuperName.equals(CtClass.javaLangObject))
-                    map.put(srcSuperName,
-                            declaring.getSuperclass().getName());
-            }
-
-            methodInfo = new MethodInfo(cp, srcInfo.getName(), srcInfo, map);
-        }
-        catch (NotFoundException e) {
-            throw new CannotCompileException(e);
-        }
-        catch (BadBytecode e) {
-            throw new CannotCompileException(e);
-        }
+    /**
+     * Compiles the given source code and creates a method.
+     * This method simply delegates to <code>make()</code> in
+     * <code>CtNewMethod</code>.  See it for more details.
+     * <code>CtNewMethod</code> has a number of useful factory methods.
+     *
+     * @param src               the source text. 
+     * @param declaring    the class to which the created method is added.
+     * @see CtNewMethod.make(String, CtClass)
+     */
+    public static CtMethod make(String src, CtClass declaring)
+        throws CannotCompileException
+    {
+        return CtNewMethod.make(src, declaring);
     }
 
     /**

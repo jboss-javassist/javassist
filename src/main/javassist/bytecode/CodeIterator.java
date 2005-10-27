@@ -154,11 +154,11 @@ public class CodeIterator implements Opcode {
     }
 
     /**
-     * Moves to the first instruction following
-     * constructor invocation <code>super()</code> or <code>this()</code>.
+     * Moves to the instruction for
+     * either <code>super()</code> or <code>this()</code>.
      *
-     * <p>This method skips all the instructions for executing
-     * <code>super()</code> or <code>this()</code>, which should be
+     * <p>This method skips all the instructions for computing arguments
+     * to <code>super()</code> or <code>this()</code>, which should be
      * placed at the beginning of a constructor body.
      *
      * <p>This method returns the index of INVOKESPECIAL instruction
@@ -176,10 +176,9 @@ public class CodeIterator implements Opcode {
     }
 
     /**
-     * Moves to the first instruction following super
-     * constructor invocation <code>super()</code>.
+     * Moves to the instruction for <code>super()</code>.
      *
-     * <p>This method skips all the instructions for executing
+     * <p>This method skips all the instructions for computing arguments to
      * <code>super()</code>, which should be
      * placed at the beginning of a constructor body.
      *
@@ -199,10 +198,9 @@ public class CodeIterator implements Opcode {
     }
 
     /**
-     * Moves to the first instruction following explicit
-     * constructor invocation <code>this()</code>.
+     * Moves to the instruction for <code>this()</code>.
      *
-     * <p>This method skips all the instructions for executing
+     * <p>This method skips all the instructions for computing arguments to
      * <code>this()</code>, which should be
      * placed at the beginning of a constructor body.
      *

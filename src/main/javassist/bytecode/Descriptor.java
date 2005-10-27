@@ -665,4 +665,85 @@ public class Descriptor {
 
         return n;
     }
+
+    /**
+     * An Iterator over a descriptor.
+     */
+    public static class Iterator {
+        private String desc;
+        private int index, curPos;
+        private boolean param;
+
+        /**
+         * Constructs an iterator.
+         *
+         * @param s         descriptor.
+         */
+        public Iterator(String s) {
+            desc = s;
+            index = curPos = 0;
+            param = false;
+        }
+
+        /**
+         * Returns true if the iteration has more elements.
+         */
+        public boolean hasNext() {
+            return index < desc.length();
+        }
+
+        /**
+         * Returns true if the current element is a parameter type.
+         */
+        public boolean isParameter() { return param; }
+
+        /**
+         * Returns the first character of the current element.
+         * @return
+         */
+        public char currentChar() { return desc.charAt(curPos); }
+
+        /**
+         * Returns true if the current element is double or long type.
+         */
+        public boolean is2byte() {
+            char c = currentChar();
+            return c == 'D' || c == 'J';
+        }
+
+        /**
+         * Returns the position of the next type character.
+         * That type character becomes a new current element.
+         */
+        public int next() {
+            int nextPos = index;
+            char c = desc.charAt(nextPos);
+            if (c == '(') {
+                ++index;
+                c = desc.charAt(++nextPos);
+                param = true;
+            }
+
+            if (c == ')') {
+                ++index;
+                c = desc.charAt(++nextPos);
+                param = false;
+            }
+
+            while (c == '[')
+                c = desc.charAt(++nextPos);
+
+            if (c == 'L') {
+                nextPos = desc.indexOf(';', nextPos) + 1;
+                if (nextPos <= 0)
+                    throw new IndexOutOfBoundsException("bad descriptor");
+            }
+            else
+                ++nextPos;
+
+            curPos = index;
+            index = nextPos;
+            return curPos;
+        }
+    }
 }

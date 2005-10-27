@@ -98,36 +98,7 @@ public final class CtConstructor extends CtBehavior {
         throws CannotCompileException
     {
         this((MethodInfo)null, declaring);
-        MethodInfo srcInfo = src.methodInfo;
-        CtClass srcClass = src.getDeclaringClass();
-        ConstPool cp = declaring.getClassFile2().getConstPool();
-        if (map == null)
-            map = new ClassMap();
-
-        map.put(srcClass.getName(), declaring.getName());
-        try {
-            boolean patch = false;
-            CtClass srcSuper = srcClass.getSuperclass();
-            String destSuperName = declaring.getSuperclass().getName();
-            if (srcSuper != null) {
-                String srcSuperName = srcSuper.getName();
-                if (!srcSuperName.equals(destSuperName))
-                    if (srcSuperName.equals(CtClass.javaLangObject))
-                        patch = true;
-                    else
-                        map.put(srcSuperName, destSuperName);
-            }
-
-            methodInfo = new MethodInfo(cp, srcInfo.getName(), srcInfo, map);
-            if (patch)
-                methodInfo.setSuperclass(destSuperName);
-        }
-        catch (NotFoundException e) {
-            throw new CannotCompileException(e);
-        }
-        catch (BadBytecode e) {
-            throw new CannotCompileException(e);
-        }
+        copy(src, true, map);
     }
 
     /**
@@ -267,6 +238,74 @@ public final class CtConstructor extends CtBehavior {
         try {
             ci.skipConstructor();
             return ci.next();
+        }
+        catch (BadBytecode e) {
+            throw new CannotCompileException(e);
+        }
+    }
+
+    /**
+     * Makes a copy of this constructor and converts it into a method.
+     * The signature of the mehtod is the same as the that of this constructor.
+     * The return type is <code>void</code>.  The resulting method must be
+     * appended to the class specified by <code>declaring</code>.
+     * If this constructor is a static initializer, the resulting method takes
+     * no parameter.
+     *
+     * <p>An occurrence of another constructor call <code>this()</code>
+     * or a super constructor call <code>super()</code> is
+     * eliminated from the resulting method. 
+     *
+     * <p>The immediate super class of the class declaring this constructor
+     * must be also a super class of the class declaring the resulting method.
+     * If the constructor accesses a field, the class declaring the resulting method
+     * must also declare a field with the same name and type.
+     *
+     * @param name              the name of the resulting method.
+     * @param declaring         the class declaring the resulting method.
+     */
+    public CtMethod toMethod(String name, CtClass declaring)
+        throws CannotCompileException
+    {
+        CtMethod method = new CtMethod(null, declaring);
+        method.copy(this, false, null);
+        if (isConstructor()) {
+            MethodInfo minfo = method.getMethodInfo2();
+            CodeAttribute ca = minfo.getCodeAttribute();
+            if (ca != null)
+                removeConsCall(ca);
+        }
+
+        method.setName(name);
+        return method;
+    }
+
+    private static void removeConsCall(CodeAttribute ca)
+        throws CannotCompileException
+    {
+        CodeIterator iterator = ca.iterator();
+        try {
+            int pos = iterator.skipConstructor();
+            if (pos >= 0) {
+                int mref = iterator.u16bitAt(pos + 1);
+                String desc = ca.getConstPool().getMethodrefType(mref);
+                int num = Descriptor.numOfParameters(desc) + 1;
+                if (num > 3)
+                    iterator.insertGap(pos, num - 3);
+
+                iterator.writeByte(Opcode.POP, pos++);  // this
+                iterator.writeByte(Opcode.NOP, pos);
+                iterator.writeByte(Opcode.NOP, pos + 1);
+                Descriptor.Iterator it = new Descriptor.Iterator(desc);
+                while (true) {
+                    it.next();
+                    if (it.isParameter())
+                        iterator.writeByte(it.is2byte() ? Opcode.POP2 : Opcode.POP,
+                                           pos++);
+                    else
+                        break;
+                }
+            }
         }
         catch (BadBytecode e) {
             throw new CannotCompileException(e);
