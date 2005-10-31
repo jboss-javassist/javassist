@@ -1199,4 +1199,17 @@ public abstract class CtClass {
     {
         throw new CannotCompileException("not a class");
     }
+
+    /**
+     * Makes a unique member name.  This method guarantees that
+     * the returned name is not used as a prefix of any methods
+     * or fields visible in this class.
+     * If the returned name is XYZ, then any method or field names
+     * in this class do not start with XYZ.
+     *
+     * @param prefix        the prefix of the member name.
+     */
+    public String makeUniqueName(String prefix) {
+        throw new RuntimeException("not available in " + getName());
+    }
 }

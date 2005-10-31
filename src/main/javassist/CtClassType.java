@@ -26,6 +26,8 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
+import java.util.Set;
+
 import javassist.bytecode.AccessFlag;
 import javassist.bytecode.AttributeInfo;
 import javassist.bytecode.AnnotationsAttribute;
@@ -1256,6 +1258,72 @@ class CtClassType extends CtClass {
     }
 
     int getUniqueNumber() { return uniqueNumberSeed++; }
+
+    public String makeUniqueName(String prefix) {
+        HashMap table = new HashMap();
+        makeMemberList(table);
+        Set keys = table.keySet();
+        String[] methods = new String[keys.size()];
+        keys.toArray(methods);
+
+        if (notFindInArray(prefix, methods))
+            return prefix;
+
+        int i = 100;
+        String name;
+        do {
+            if (i > 999)
+                throw new RuntimeException("too many unique name");
+
+            name = prefix + i++;
+        } while (!notFindInArray(name, methods));
+        return name;
+    }
+
+    private static boolean notFindInArray(String prefix, String[] values) {
+        int len = values.length;
+        for (int i = 0; i < len; i++)
+            if (values[i].startsWith(prefix))
+                return false;
+
+        return true;
+    }
+
+    private void makeMemberList(HashMap table) {
+        int mod = getModifiers();
+        if (Modifier.isAbstract(mod) || Modifier.isInterface(mod))
+            try {
+                CtClass[] ifs = getInterfaces();
+                int size = ifs.length;
+                for (int i = 0; i < size; i++) {
+                    CtClass ic =ifs[i];
+                    if (ic != null && ic instanceof CtClassType)
+                        ((CtClassType)ic).makeMemberList(table);
+                }
+            }
+            catch (NotFoundException e) {}
+
+        try {
+            CtClass s = getSuperclass();
+            if (s != null && s instanceof CtClassType)
+                ((CtClassType)s).makeMemberList(table);
+        }
+        catch (NotFoundException e) {}
+
+        List list = getClassFile2().getMethods();
+        int n = list.size();
+        for (int i = 0; i < n; i++) {
+            MethodInfo minfo = (MethodInfo)list.get(i);
+            table.put(minfo.getName(), this);
+        }
+
+        list = getClassFile2().getFields();
+        n = list.size();
+        for (int i = 0; i < n; i++) {
+            FieldInfo finfo = (FieldInfo)list.get(i);
+            table.put(finfo.getName(), this);
+        }
+    }
 }
 
 class FieldInitLink {

@@ -76,7 +76,9 @@ specified key.  If such a <code>CtClass</code> object is not found,
 then returned as the resulting value of <code>get()</code>.
 
 <p>The <code>CtClass</code> object obtained from a <code>ClassPool</code>
-object can be modified.
+object can be modified
+(<a href="tutorial2.html#intro">details of how to modify
+a <code>CtClass</code></a> will be presented later).
 In the example above, it is modified so that the superclass of
 <code>test.Rectangle</code> is changed into a class
 <code>test.Point</code>.  This change is reflected on the original
@@ -101,7 +103,7 @@ Class clazz = cc.toClass();
 <p><code>toClass()</code> requests the context class loader for the current
 thread to load the class file represented by the <code>CtClass</code>.  It
 returns a <code>java.lang.Class</code> object representing the loaded class.
-For more details, please see <a href="#toclass">the following section</a>.
+For more details, please see <a href="#toclass">this section below</a>.
 
 <a name="def">
 <h4>Defining a new class</h4>

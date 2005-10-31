@@ -175,6 +175,12 @@ public class Modifier {
         return mod & ~clearBit;
     }
 
+    /**
+     * Return a string describing the access modifier flags in
+     * the specified modifier.
+     *
+     * @param mod   modifier flags.
+     */
     public static String toString(int mod) {
         return java.lang.reflect.Modifier.toString(mod);
     }

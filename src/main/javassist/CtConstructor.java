@@ -154,6 +154,27 @@ public final class CtConstructor extends CtBehavior {
     }
 
     /**
+     * Returns true if this constructor calls a constructor
+     * of the super class.  This method returns false if it
+     * calls another constructor of this class by <code>this()</code>. 
+     */
+    public boolean callsSuper() throws CannotCompileException {
+        CodeAttribute codeAttr = methodInfo.getCodeAttribute();
+        if (codeAttr != null) {
+            CodeIterator it = codeAttr.iterator();
+            try {
+                int index = it.skipSuperConstructor();
+                return index >= 0;
+            }
+            catch (BadBytecode e) {
+                throw new CannotCompileException(e);
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * Sets a constructor body.
      *
      * @param src       the source code representing the constructor body.
