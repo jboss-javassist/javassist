@@ -298,7 +298,9 @@ such a method call, the <code>ClassPool</code>
 must contain all the instances of <code>CtClass</code> all the time of
 program execution.
 
+<a name="avoidmemory">
 <h4>Avoid out of memory</h4>
+</a>
 
 <p>
 This specification of <code>ClassPool</code> may cause huge memory
@@ -337,13 +339,26 @@ cp.appendSystemPath();	// or append another path by appendClassPath()
 default <code>ClassPool</code> returned by
 <code>ClassPool.getDefault()</code> does.
 Note that <code>ClassPool.getDefault()</code> is a singleton factory method
-provided for convenience.  Therefore, the default <code>ClassPool</code>
-is never garbage-collected.
+provided for convenience.  It creates a <code>ClassPool</code> object in
+the same way shown above although it keeps a single instance of
+<code>ClassPool</code> and reuses it.
+A <code>ClassPool</code> object returned by <code>getDefault()</code>
+does not have a special role.  <code>getDefault()</code> is a convenience
+method.
+
 
 <h4>Cascaded ClassPools.</h4>
 
 <p>
-<code>ClassPool</code> objects can be cascaded like
+<em>If a program is running on a web application server,</em>
+creating multiple instances of <code>ClassPool</code> might be necessary;
+an instance of <code>ClassPool</code> should be created
+for each class loader (i.e. container).
+The program should create a <code>ClassPool</code> object by not calling
+<code>getDefault()</code> but a constructor of <code>ClassPool</code>.
+
+<p>
+Multiple <code>ClassPool</code> objects can be cascaded like
 <code>java.lang.ClassLoader</code>.  For example,
 
 <ul><pre>
@@ -435,7 +450,7 @@ transformation.
 <p>To create another copy of the default instance of
 <code>ClassPool</code>, which is returned by
 <code>ClassPool.getDefault()</code>, execute the following code
-snippet (this code was already shown above):
+snippet (this code was already <a href="#avoidmemory">shown above</a>):
 
 <ul><pre>
 ClassPool cp = new ClassPool();

@@ -25,6 +25,16 @@ public abstract class CtMember {
 
     protected CtMember(CtClass clazz) { declaringClass = clazz; }
 
+    static CtMember append(CtMember list, CtMember previousTail, CtMember tail) {
+        tail.next = null;
+        if (list == null)
+            return tail;
+        else {
+            previousTail.next = tail;
+            return list;
+        }
+    }
+
     static CtMember append(CtMember list, CtMember tail) {
         tail.next = null;
         if (list == null)

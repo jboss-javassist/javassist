@@ -618,11 +618,16 @@ class CtClassType extends CtClass {
         if (fieldsCache == null) {
             List list = getClassFile2().getFields();
             int n = list.size();
+            CtMember allFields = null;
+            CtField tail = null;
             for (int i = 0; i < n; ++i) {
                 FieldInfo finfo = (FieldInfo)list.get(i);
-                fieldsCache = CtMember.append(fieldsCache,
-                                             new CtField(finfo, this));
+                CtField newTail = new CtField(finfo, this);
+                allFields = CtMember.append(allFields, tail, newTail);
+                tail = newTail;
             }
+
+            fieldsCache = allFields;
         }
 
         return fieldsCache;
@@ -721,13 +726,18 @@ class CtClassType extends CtClass {
         if (constructorsCache == null) {
             List list = getClassFile2().getMethods();
             int n = list.size();
+            CtMember allConstructors = null;
+            CtConstructor tail = null;
             for (int i = 0; i < n; ++i) {
                 MethodInfo minfo = (MethodInfo)list.get(i);
-                if (minfo.isConstructor())
-                    constructorsCache
-                        = CtMember.append(constructorsCache,
-                                          new CtConstructor(minfo, this));
+                if (minfo.isConstructor()) {
+                    CtConstructor newTail = new CtConstructor(minfo, this);
+                    allConstructors = CtMember.append(allConstructors, tail, newTail);
+                    tail = newTail;
+                }
             }
+
+            constructorsCache = allConstructors;
         }
 
         return constructorsCache;
@@ -870,12 +880,18 @@ class CtClassType extends CtClass {
         if (methodsCache == null) {
             List list = getClassFile2().getMethods();
             int n = list.size();
+            CtMember allMethods = null;
+            CtMethod tail = null;
             for (int i = 0; i < n; ++i) {
                 MethodInfo minfo = (MethodInfo)list.get(i);
-                if (minfo.isMethod())
-                    methodsCache = CtMember.append(methodsCache,
-                                                   new CtMethod(minfo, this));
+                if (minfo.isMethod()) {
+                    CtMethod newTail = new CtMethod(minfo, this);
+                    allMethods = CtMember.append(allMethods, tail, newTail);
+                    tail = newTail;
+                }
             }
+
+            methodsCache = allMethods;
         }
 
         return methodsCache;
