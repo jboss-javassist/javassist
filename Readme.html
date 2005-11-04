@@ -284,6 +284,9 @@ see javassist.Dump.
 <p>- version 3.1
 
 <ul>
+  <li>getFields(), getMethods(), and getConstructors() in CtClass
+    were changed to return non-private memebers instead of only
+    public members.
   <li>getEnclosingClass() in javassist.CtClass was renamed
       to getEnclosingMethod().
   <li>toMethod() in javassist.CtConstructor has been implemented.

@@ -582,8 +582,8 @@ public abstract class CtClass {
 
     /**
      * Returns an array containing <code>CtField</code> objects
-     * representing all the public fields of the class.
-     * That array includes public fields inherited from the
+     * representing all the non-private fields of the class.
+     * That array includes non-private fields inherited from the
      * superclasses.
      */
     public CtField[] getFields() { return new CtField[0]; }
@@ -628,7 +628,7 @@ public abstract class CtClass {
 
     /**
      * Returns an array containing <code>CtConstructor</code> objects
-     * representing all the public constructors of the class.
+     * representing all the non-private constructors of the class.
      */
     public CtConstructor[] getConstructors() {
         return new CtConstructor[0];
@@ -686,8 +686,8 @@ public abstract class CtClass {
 
     /**
      * Returns an array containing <code>CtMethod</code> objects
-     * representing all the public methods of the class.
-     * That array includes public methods inherited from the
+     * representing all the non-private methods of the class.
+     * That array includes pon-private methods inherited from the
      * superclasses.
      */
     public CtMethod[] getMethods() {
@@ -1043,12 +1043,13 @@ public abstract class CtClass {
      * is on by default.  Otherwise, it is off.
      * 
      * @param stop      disallow pruning if true.  Otherwise, allow.
+     * @return the previous status of pruning.  true if pruning is already stopped.
      *
      * @see #detach()
      * @see #prune()
      * @see ClassPool#doPruning
      */
-    public void stopPruning(boolean stop) {}
+    public boolean stopPruning(boolean stop) { return true; }
 
     /**
      * Discards unnecessary attributes, in particuar,
@@ -1141,6 +1142,25 @@ public abstract class CtClass {
         }
         finally {
             out.close();
+        }
+    }
+
+    /**
+     * Writes a class file as <code>writeFile()</code> does although this
+     * method does not prune or freeze the class after writing the class
+     * file.  Note that, once <code>writeFile()</code> or <code>toBytecode()</code>
+     * is called, it cannot be called again since the class is pruned and frozen.
+     * This method would be useful for debugging.
+     */
+    public void debugWriteFile() {
+        try {
+            boolean p = stopPruning(true);
+            writeFile();
+            defrost();
+            stopPruning(p);
+        }
+        catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
 

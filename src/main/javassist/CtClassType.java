@@ -564,7 +564,7 @@ class CtClassType extends CtClass {
 
         CtMember cf = ((CtClassType)cc).getFieldsCache();
         while (cf != null) {
-            if (Modifier.isPublic(cf.getModifiers()))
+            if (!Modifier.isPrivate(cf.getModifiers()))
                 alist.add(cf);
 
             cf = cf.next;
@@ -680,7 +680,7 @@ class CtClassType extends CtClass {
         int n = 0;
         int i = cons.length;
         while (--i >= 0)
-            if (Modifier.isPublic(cons[i].getModifiers()))
+            if (!Modifier.isPrivate(cons[i].getModifiers()))
                 ++n;
 
         CtConstructor[] result = new CtConstructor[n];
@@ -688,7 +688,7 @@ class CtClassType extends CtClass {
         i = cons.length;
         while (--i >= 0) {
             CtConstructor c = cons[i];
-            if (Modifier.isPublic(c.getModifiers()))
+            if (!Modifier.isPrivate(c.getModifiers()))
                 result[n++] = c;
         }
 
@@ -756,7 +756,7 @@ class CtClassType extends CtClass {
     public CtMethod[] getMethods() {
         HashMap h = new HashMap();
         getMethods0(h, this);
-        return (CtMethod[])h.values().toArray(new CtMethod[0]);
+        return (CtMethod[])h.values().toArray(new CtMethod[h.size()]);
     }
 
     private static void getMethods0(HashMap h, CtClass cc) {
@@ -778,7 +778,7 @@ class CtClassType extends CtClass {
         if (cc instanceof CtClassType) {
             CtMember cm = ((CtClassType)cc).getMethodsCache();
             while (cm != null) {
-                if (Modifier.isPublic(cm.getModifiers()))
+                if (!Modifier.isPrivate(cm.getModifiers()))
                     h.put(((CtMethod)cm).getStringRep(), cm);
 
                 cm = cm.next;
@@ -1120,8 +1120,10 @@ class CtClassType extends CtClass {
                                        + " was pruned.");
     }
 
-    public void stopPruning(boolean stop) {
+    public boolean stopPruning(boolean stop) {
+        boolean prev = !doPruning;
         doPruning = !stop;
+        return prev;
     }
 
     private void modifyClassConstructor(ClassFile cf)

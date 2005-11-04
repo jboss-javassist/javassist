@@ -251,7 +251,8 @@ public class ClassMetaobject implements Serializable {
         Class baseclass = getJavaClass();
         Method[] allmethods = baseclass.getDeclaredMethods();
         int n = allmethods.length;
-        methods = new Method[n];
+        int[] index = new int[n];
+        int max = 0;
         for (int i = 0; i < n; ++i) {
             Method m = allmethods[i];
             String mname = m.getName();
@@ -265,9 +266,16 @@ public class ClassMetaobject implements Serializable {
                         break;
                 }
 
-                methods[k] = m;
+                index[i] = ++k;
+                if (k > max)
+                    max = k;
             }
         }
+
+        methods = new Method[max];
+        for (int i = 0; i < n; ++i)
+            if (index[i] > 0)
+                methods[index[i] - 1] = allmethods[i];
 
         return methods;
     }

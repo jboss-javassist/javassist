@@ -177,6 +177,13 @@ cc.setSuperclass(...);    // OK since the class is not frozen.
 <p>To disallow pruning for all the <code>CtClass</code>es, set
 <code>ClassPool.doPruning</code> to <code>false</code>.
 
+<ul><b>Note:</b>
+While debugging, you might want to temporarily stop pruning and write a modified
+class file to a disk drive.  <code>debugWriteFile()</code> is a convenient method
+for that purpose.  It stops pruning, write a class file, defrost it, and turn
+pruning on again (if it was initially on).
+</ul>
+
 <h4>Class search path</h4>
 
 <p>The default <code>ClassPool</code> returned
