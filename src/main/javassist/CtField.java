@@ -251,6 +251,15 @@ public class CtField extends CtMember {
     }
 
     /**
+     * Returns the character string representing the type of the field.
+     * If two fields have the same type,
+     * <code>getSignature()</code> returns the same string.
+     */
+    public String getSignature() {
+        return fieldInfo.getDescriptor();
+    }
+
+    /**
      * Returns the type of the field.
      */
     public CtClass getType() throws NotFoundException {
@@ -316,6 +325,10 @@ public class CtField extends CtMember {
      * If that attribute is not found in the class file, this
      * method returns null.
      *
+     * <p>Note that an attribute is a data block specified by
+     * the class file format.
+     * See {@link javassist.bytecode.AttributeInfo}.
+     *
      * @param name              attribute name
      */
     public byte[] getAttribute(String name) {
@@ -328,6 +341,10 @@ public class CtField extends CtMember {
 
     /**
      * Adds an attribute. The attribute is saved in the class file.
+     *
+     * <p>Note that an attribute is a data block specified by
+     * the class file format.
+     * See {@link javassist.bytecode.AttributeInfo}.
      *
      * @param name      attribute name
      * @param data      attribute value

@@ -301,6 +301,10 @@ public abstract class CtBehavior extends CtMember {
      * If that attribute is not found in the class file, this
      * method returns null.
      *
+     * <p>Note that an attribute is a data block specified by
+     * the class file format.
+     * See {@link javassist.bytecode.AttributeInfo}.
+     *
      * @param name              attribute name
      */
     public byte[] getAttribute(String name) {
@@ -313,6 +317,10 @@ public abstract class CtBehavior extends CtMember {
 
     /**
      * Adds an attribute. The attribute is saved in the class file.
+     *
+     * <p>Note that an attribute is a data block specified by
+     * the class file format.
+     * See {@link javassist.bytecode.AttributeInfo}.
      *
      * @param name      attribute name
      * @param data      attribute value

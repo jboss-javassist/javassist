@@ -142,9 +142,20 @@ public abstract class CtMember {
     public abstract String getName();
 
     /**
+     * Returns the character string representing the signature of the member.
+     * If two members have the same signature (parameter types etc.),
+     * <code>getSignature()</code> returns the same string.
+     */
+    public abstract String getSignature();
+
+    /**
      * Obtains a user-defined attribute with the given name.
      * If that attribute is not found in the class file, this
      * method returns null.
+     *
+     * <p>Note that an attribute is a data block specified by
+     * the class file format.
+     * See {@link javassist.bytecode.AttributeInfo}.
      *
      * @param name              attribute name
      */
@@ -152,6 +163,10 @@ public abstract class CtMember {
 
     /**
      * Adds a user-defined attribute. The attribute is saved in the class file.
+     *
+     * <p>Note that an attribute is a data block specified by
+     * the class file format.
+     * See {@link javassist.bytecode.AttributeInfo}.
      *
      * @param name      attribute name
      * @param data      attribute value
