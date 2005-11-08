@@ -123,6 +123,21 @@ public class ClassPool {
     }
 
     /**
+     * Creates a root class pool.  If <code>useDefaultPath</code> is
+     * true, <code>appendSystemPath()</code> is called.  Otherwise,
+     * this constructor is equivalent to the constructor taking no
+     * parameter.
+     *
+     * @param useDefaultPath    true if the system search path is
+     *                          appended.
+     */
+    public ClassPool(boolean useDefaultPath) {
+        this(null);
+        if (useDefaultPath)
+            appendSystemPath();
+    }
+
+    /**
      * Creates a class pool.
      *
      * @param parent    the parent of this class pool.  If this is a root

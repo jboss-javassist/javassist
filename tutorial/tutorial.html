@@ -35,7 +35,7 @@ Shigeru Chiba
 Java bytecode is stored in a binary file called a class file.
 Each class file contains one Java class or interface.
 
-<p>The class <code>Javassist.CtClass</code> is an abstract
+<p>The class <code>Javassist.CtClass</code> is an absatract
 representation of a class file.  A <code>CtClass</code> (compile-time
 class) object is a handle for dealing with a class file.  The
 following program is a very simple example:
@@ -338,8 +338,8 @@ To create a new instance of <code>ClassPool</code>, execute the following
 code snippet:
 
 <ul><pre>
-ClassPool cp = new ClassPool();
-cp.appendSystemPath();	// or append another path by appendClassPath()
+ClassPool cp = new ClassPool(true);
+// if needed, append an extra search path by appendClassPath()
 </pre></ul>
 
 <p>This creates a <code>ClassPool</code> object that behaves as the
@@ -353,8 +353,17 @@ A <code>ClassPool</code> object returned by <code>getDefault()</code>
 does not have a special role.  <code>getDefault()</code> is a convenience
 method.
 
+<p>Note that <code>new ClassPool(true)</code> is a convenient constructor,
+which constructs a <code>ClassPool</code> object and appends the system
+search path to it.  Calling that constructor is
+equivalent to the following code:
 
-<h4>Cascaded ClassPools.</h4>
+<ul><pre>
+ClassPool cp = new ClassPool();
+cp.appendSystemPath();  // or append another path by appendClassPath()
+</pre></ul>
+
+<h4>Cascaded ClassPools</h4>
 
 <p>
 <em>If a program is running on a web application server,</em>
@@ -460,8 +469,7 @@ transformation.
 snippet (this code was already <a href="#avoidmemory">shown above</a>):
 
 <ul><pre>
-ClassPool cp = new ClassPool();
-cp.appendSystemPath();	// or append another path by appendClassPath()
+ClassPool cp = new ClassPool(true);
 </pre></ul>
 
 <p>If you have two <code>ClassPool</code> objects, then you can
