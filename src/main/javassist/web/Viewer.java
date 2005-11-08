@@ -19,7 +19,7 @@ import java.io.*;
 import java.net.*;
 
 /**
- * An applet viewer.
+ * A sample applet viewer.
  *
  * <p>This is a sort of applet viewer that can run any program even if
  * the main class is not a subclass of <code>Applet</code>.

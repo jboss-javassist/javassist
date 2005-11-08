@@ -21,7 +21,7 @@ import java.util.Date;
 import javassist.*;
 
 /**
- * A web server for Javassist.
+ * A web server for running sample programs.
  *
  * <p>This enables a Java program to instrument class files loaded by
  * web browsers for applets.  Since the (standard) security manager
