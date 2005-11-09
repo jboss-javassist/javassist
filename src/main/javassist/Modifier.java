@@ -66,6 +66,14 @@ public class Modifier {
     }
 
     /**
+     * Returns true if the modifiers do not include either
+     * <tt>public</tt>, <tt>protected</tt>, or <tt>private</tt>.
+     */
+    public static boolean isPackage(int mod) {
+        return (mod & (PUBLIC | PRIVATE | PROTECTED)) == 0;
+    }
+
+    /**
      * Returns true if the modifiers include the <tt>static</tt>
      * modifier.
      */

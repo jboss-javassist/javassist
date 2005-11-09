@@ -104,6 +104,31 @@ public abstract class CtMember {
     public CtClass getDeclaringClass() { return declaringClass; }
 
     /**
+     * Returns true if this member is accessible from the given class.
+     */
+    public boolean visibleFrom(CtClass clazz) {
+        int mod = getModifiers();
+        if (Modifier.isPublic(mod))
+            return true;
+        else if (Modifier.isPrivate(mod))
+            return clazz == declaringClass;
+        else {  // package or protected
+            String declName = declaringClass.getPackageName();
+            String fromName = clazz.getPackageName();
+            boolean visible;
+            if (declName == null)
+                visible = fromName == null;
+            else
+                visible = declName.equals(fromName);
+
+            if (!visible && Modifier.isProtected(mod))
+                return clazz.subclassOf(declaringClass);
+
+            return visible;
+        }
+    }
+
+    /**
      * Obtains the modifiers of the member.
      *
      * @return          modifiers encoded with
