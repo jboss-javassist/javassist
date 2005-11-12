@@ -90,7 +90,11 @@ import javassist.bytecode.annotation.*;
  * a.addMemberValue("name", new StringMemberValue("Chiba", cp));
  * attr.setAnnotation(a);
  * cf.addAttribute(attr);
+ * cf.setVersionToJava5();
  * </pre></ul>
+ *
+ * <p>The last statement is necessary if the class file was produced by
+ * Javassist or JDK 1.4.  Otherwise, it is not necessary.
  *
  * @see AnnotationDefaultAttribute
  * @see javassist.bytecode.annotation.Annotation

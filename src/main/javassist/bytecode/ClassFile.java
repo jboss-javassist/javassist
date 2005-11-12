@@ -675,7 +675,7 @@ public final class ClassFile {
     }
 
     /**
-     * Set the Major version.
+     * Set the major version.
      * 
      * @param major
      *            the major version
@@ -685,7 +685,7 @@ public final class ClassFile {
     }
 
     /**
-     * Get the Minor version.
+     * Get the minor version.
      * 
      * @return the minor version
      */
@@ -694,12 +694,24 @@ public final class ClassFile {
     }
 
     /**
-     * Set the Minor version.
+     * Set the minor version.
      * 
      * @param minor
      *            the minor version
      */
     public void setMinorVersion(int minor) {
         this.minor = minor;
+    }
+
+    /**
+     * Sets the major and minor version to Java 5.
+     *
+     * If the major version is older than 49, Java 5
+     * extensions such as annotations are ignored
+     * by the JVM.
+     */
+    public void setVersionToJava5() {
+        this.major = 49;
+        this.minor = 0;
     }
 }
