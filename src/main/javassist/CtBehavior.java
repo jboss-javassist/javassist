@@ -169,11 +169,16 @@ public abstract class CtBehavior extends CtMember {
     }
 
     /**
-     * Returns the character string representing the parameter types
-     * and the return type.  If two methods/constructors have
+     * Returns the method signature (the parameter types
+     * and the return type).
+     * The method signature is represented by a character string
+     * called method descriptor, which is defined in the JVM specification.
+     * If two methods/constructors have
      * the same parameter types
      * and the return type, <code>getSignature()</code> returns the
      * same string (the return type of constructors is <code>void</code>).
+     *
+     * @see javassist.bytecode.Descriptor
      */
     public String getSignature() {
         return methodInfo.getDescriptor();

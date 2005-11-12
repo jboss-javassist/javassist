@@ -41,7 +41,7 @@ public class ConstructorCall extends MethodCall {
      * Returns the called constructor.
      */
     public CtConstructor getConstructor() throws NotFoundException {
-        return getCtClass().getConstructor(getMethodDesc());
+        return getCtClass().getConstructor(getSignature());
     }
 
     /**

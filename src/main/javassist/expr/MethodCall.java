@@ -111,13 +111,20 @@ public class MethodCall extends Expr {
      * Returns the called method.
      */
     public CtMethod getMethod() throws NotFoundException {
-        return getCtClass().getMethod(getMethodName(), getMethodDesc());
+        return getCtClass().getMethod(getMethodName(), getSignature());
     }
 
     /**
-     * Returns the descriptor of the called method.
+     * Returns the method signature (the parameter types
+     * and the return type).
+     * The method signature is represented by a character string
+     * called method descriptor, which is defined in the JVM specification.
+     *
+     * @see javassist.CtBehavior.getSignature()
+     * @see javassist.bytecode.Descriptor
+     * @since 3.1
      */
-    protected String getMethodDesc() {
+    public String getSignature() {
         ConstPool cp = getConstPool();
         int nt = getNameAndType(cp);
         return cp.getUtf8Info(cp.getNameAndTypeDescriptor(nt));
