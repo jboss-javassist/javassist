@@ -193,8 +193,9 @@ class CtClassType extends CtClass {
             fin = new BufferedInputStream(fin);
             classfile = new ClassFile(new DataInputStream(fin));
             if (!classfile.getName().equals(qualifiedName))
-                throw new RuntimeException(classfile.getName() + " in "
-                                + qualifiedName.replace('.', '/') + ".java");
+                throw new RuntimeException("cannot find " + qualifiedName + ": " 
+                        + classfile.getName() + " found in "
+                        + qualifiedName.replace('.', '/') + ".class");
 
             return classfile;
         }

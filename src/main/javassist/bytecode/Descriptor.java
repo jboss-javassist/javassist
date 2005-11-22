@@ -621,11 +621,28 @@ public class Descriptor {
      * <p>If the descriptor represents a method type, this method returns
      * (the size of the returned value) - (the sum of the data sizes
      * of all the parameters).  For example, if the descriptor is
-     * "(I)D", then this method returns 1 (= 2 - 1).
+     * <code>"(I)D"</code>, then this method returns 1 (= 2 - 1).
      *
      * @param desc descriptor
      */
     public static int dataSize(String desc) {
+        return dataSize(desc, true);
+    }
+
+    /**
+     * Computes the data size of parameters.
+     * If one of the parameters is double type, the size of that parameter
+     * is 2 words.  For example, if the given descriptor is
+     *  <code>"(IJ)D"</code>, then this method returns 3.  The size of the
+     * return type is not computed.
+     * 
+     * @param desc      a method descriptor.
+     */
+    public static int paramSize(String desc) {
+        return -dataSize(desc, false);
+    }
+
+    private static int dataSize(String desc, boolean withRet) {
         int n = 0;
         char c = desc.charAt(0);
         if (c == '(') {
@@ -658,10 +675,11 @@ public class Descriptor {
             }
         }
 
-        if (c == 'J' || c == 'D')
-            n += 2;
-        else if (c != 'V')
-            ++n;
+        if (withRet)
+            if (c == 'J' || c == 'D')
+                n += 2;
+            else if (c != 'V')
+                ++n;
 
         return n;
     }

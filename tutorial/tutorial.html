@@ -184,6 +184,7 @@ for that purpose.  It stops pruning, write a class file, defrost it, and turn
 pruning on again (if it was initially on).
 </ul>
 
+
 <h4>Class search path</h4>
 
 <p>The default <code>ClassPool</code> returned
@@ -328,6 +329,11 @@ cc.detach();
 
 <p>You must not call any method on that
 <code>CtClass</code> object after <code>detach()</code> is called.
+However, you can call <code>get()</code> on <code>ClassPool</code>
+to make a new instance of <code>CtClass</code> representing
+the same class.  If you call <code>get()</code>, the <code>ClassPool</code>
+reads a class file again and newly creates a <code>CtClass</code>
+object, which is returned by <code>get()</code>.
 
 <p>
 Another idea is to occasionally replace a <code>ClassPool</code> with

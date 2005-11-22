@@ -1297,9 +1297,29 @@ public class Bytecode extends ByteVector implements Cloneable, Opcode {
      * @param desc      the descriptor of the field type.
      */
     public void addPutstatic(CtClass c, String name, String desc) {
+        addPutstatic0(c, null, name, desc);
+    }
+
+    /**
+     * Appends PUTSTATIC.
+     *
+     * @param classname         the fully-qualified name of the target class.
+     * @param filedName         the field name.
+     * @param desc              the descriptor of the field type.
+     */
+    public void addPutstatic(String classname, String fieldName, String desc) {
+        // if classname is null, the target class is THIS.
+        addPutstatic0(null, classname, fieldName, desc);
+    }
+
+    private void addPutstatic0(CtClass target, String classname,
+                               String fieldName, String desc) {
         add(PUTSTATIC);
-        int ci = constPool.addClassInfo(c);
-        addIndex(constPool.addFieldrefInfo(ci, name, desc));
+
+        // target is null if it represents THIS.
+        int ci = classname == null ? constPool.addClassInfo(target)
+                                : constPool.addClassInfo(classname);
+        addIndex(constPool.addFieldrefInfo(ci, fieldName, desc));
         growStack(-Descriptor.dataSize(desc));
     }
 
