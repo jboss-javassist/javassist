@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry excluding="sample/hotswap/logging/|src/main/|sample/evolve/|sample/hotswap/|sample/|tutorial/" kind="src" path=""/>
+	<classpathentry excluding="javassist/tool/HotSwapper.java" kind="src" path="src/main"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>
