@@ -832,13 +832,29 @@ public class Bytecode extends ByteVector implements Cloneable, Opcode {
     /**
      * Appends GETFIELD.
      *
-     * @param c         the class
-     * @param name      the field name
+     * @param c         the class.
+     * @param name      the field name.
      * @param type      the descriptor of the field type.
      *
      * @see Descriptor#of(CtClass)
      */
     public void addGetfield(CtClass c, String name, String type) {
+        add(GETFIELD);
+        int ci = constPool.addClassInfo(c);
+        addIndex(constPool.addFieldrefInfo(ci, name, type));
+        growStack(Descriptor.dataSize(type) - 1);
+    }
+
+    /**
+     * Appends GETFIELD.
+     *
+     * @param c         the fully-qualified class name.
+     * @param name      the field name.
+     * @param type      the descriptor of the field type.
+     *
+     * @see Descriptor#of(CtClass)
+     */
+    public void addGetfield(String c, String name, String type) {
         add(GETFIELD);
         int ci = constPool.addClassInfo(c);
         addIndex(constPool.addFieldrefInfo(ci, name, type));
@@ -1283,8 +1299,27 @@ public class Bytecode extends ByteVector implements Cloneable, Opcode {
      * @param desc      the descriptor of the field type.
      */
     public void addPutfield(CtClass c, String name, String desc) {
+        addPutfield0(c, null, name, desc);
+    }
+
+    /**
+     * Appends PUTFIELD.
+     *
+     * @param classname         the fully-qualified name of the target class.
+     * @param name      the field name.
+     * @param desc      the descriptor of the field type.
+     */
+    public void addPutfield(String classname, String name, String desc) {
+        // if classnaem is null, the target class is THIS.
+        addPutfield0(null, classname, name, desc);
+    }
+
+    private void addPutfield0(CtClass target, String classname,
+                              String name, String desc) {
         add(PUTFIELD);
-        int ci = constPool.addClassInfo(c);
+        // target is null if it represents THIS.
+        int ci = classname == null ? constPool.addClassInfo(target)
+                                   : constPool.addClassInfo(classname);
         addIndex(constPool.addFieldrefInfo(ci, name, desc));
         growStack(-1 - Descriptor.dataSize(desc));
     }
@@ -1315,7 +1350,6 @@ public class Bytecode extends ByteVector implements Cloneable, Opcode {
     private void addPutstatic0(CtClass target, String classname,
                                String fieldName, String desc) {
         add(PUTSTATIC);
-
         // target is null if it represents THIS.
         int ci = classname == null ? constPool.addClassInfo(target)
                                 : constPool.addClassInfo(classname);
