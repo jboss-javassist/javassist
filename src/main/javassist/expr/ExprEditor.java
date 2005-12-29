@@ -72,18 +72,6 @@ public class ExprEditor {
      */
     public ExprEditor() {}
 
-    static class NewOp {
-        NewOp next;
-        int pos;
-        String type;
-
-        NewOp(NewOp n, int p, String t) {
-            next = n;
-            pos = p;
-            type = t;
-        }
-    }
-
     /**
      * Undocumented method.  Do not use; internal-use only.
      */
@@ -96,85 +84,11 @@ public class ExprEditor {
 
         CodeIterator iterator = codeAttr.iterator();
         boolean edited = false;
-        int maxLocals = codeAttr.getMaxLocals();
-        int maxStack = 0;
-
-        NewOp newList = null;
-        ConstPool cp = minfo.getConstPool();
+        LoopContext context = new LoopContext(codeAttr.getMaxLocals());
 
         while (iterator.hasNext())
-            try {
-                Expr expr = null;
-                int pos = iterator.next();
-                int c = iterator.byteAt(pos);
-
-                if (c < Opcode.GETSTATIC)   // c < 178
-                    /* skip */;
-                else if (c < Opcode.NEWARRAY) { // c < 188
-                    if (c == Opcode.INVOKESTATIC
-                        || c == Opcode.INVOKEINTERFACE
-                        || c == Opcode.INVOKEVIRTUAL) {
-                        expr = new MethodCall(pos, iterator, clazz, minfo);
-                        edit((MethodCall)expr);
-                    }
-                    else if (c == Opcode.GETFIELD || c == Opcode.GETSTATIC
-                             || c == Opcode.PUTFIELD
-                             || c == Opcode.PUTSTATIC) {
-                        expr = new FieldAccess(pos, iterator, clazz, minfo, c);
-                        edit((FieldAccess)expr);
-                    }
-                    else if (c == Opcode.NEW) {
-                        int index = iterator.u16bitAt(pos + 1);
-                        newList = new NewOp(newList, pos,
-                                            cp.getClassInfo(index));
-                    }
-                    else if (c == Opcode.INVOKESPECIAL) {
-                        if (newList != null && cp.isConstructor(newList.type,
-                                iterator.u16bitAt(pos + 1)) > 0) {
-                            expr = new NewExpr(pos, iterator, clazz, minfo,
-                                               newList.type, newList.pos);
-                            edit((NewExpr)expr);
-                            newList = newList.next;
-                        }
-                        else {
-                            MethodCall mcall = new MethodCall(pos, iterator, clazz, minfo);
-                            if (mcall.getMethodName().equals(MethodInfo.nameInit)) {
-                                ConstructorCall ccall = new ConstructorCall(pos, iterator, clazz, minfo);
-                                expr = ccall;
-                                edit(ccall);
-                            }
-                            else {
-                                expr = mcall;
-                                edit(mcall);
-                            }
-                        }
-                    }
-                }
-                else {  // c >= 188
-                    if (c == Opcode.NEWARRAY || c == Opcode.ANEWARRAY
-                        || c == Opcode.MULTIANEWARRAY) {
-                        expr = new NewArray(pos, iterator, clazz, minfo, c);
-                        edit((NewArray)expr);
-                    }
-                    else if (c == Opcode.INSTANCEOF) {
-                        expr = new Instanceof(pos, iterator, clazz, minfo);
-                        edit((Instanceof)expr);
-                    }
-                    else if (c == Opcode.CHECKCAST) {
-                        expr = new Cast(pos, iterator, clazz, minfo);
-                        edit((Cast)expr);
-                    }
-                }
-
-                if (expr != null && expr.edited()) {
-                    edited = true;
-                    maxLocals = max(maxLocals, expr.locals());
-                    maxStack = max(maxStack, expr.stack());
-                }
-            }
-            catch (BadBytecode e) {
-                throw new CannotCompileException(e);
-            }
+            if (loopBody(iterator, clazz, minfo, context))
+                edited = true;
 
         ExceptionTable et = codeAttr.getExceptionTable();
         int n = et.size();
@@ -183,18 +97,142 @@ public class ExprEditor {
             edit(h);
             if (h.edited()) {
                 edited = true;
-                maxLocals = max(maxLocals, h.locals());
-                maxStack = max(maxStack, h.stack());
+                context.updateMax(h.locals(), h.stack());
             }
         }
 
-        codeAttr.setMaxLocals(maxLocals);
-        codeAttr.setMaxStack(codeAttr.getMaxStack() + maxStack);
+        codeAttr.setMaxLocals(context.maxLocals);
+        codeAttr.setMaxStack(codeAttr.getMaxStack() + context.maxStack);
         return edited;
     }
 
-    private int max(int i, int j) {
-        return i > j ? i : j;
+    /**
+     * Visits each bytecode in the given range. 
+     */
+    boolean doit(CtClass clazz, MethodInfo minfo, LoopContext context,
+            CodeIterator iterator, int endPos)
+        throws CannotCompileException
+    {
+        boolean edited = false;
+
+        while (iterator.hasNext() && iterator.lookAhead() < endPos)
+            if (loopBody(iterator, clazz, minfo, context))
+                edited = true;
+
+        return edited;
+    }
+
+    final static class NewOp {
+        NewOp next;
+        int pos;
+        String type;
+
+        NewOp(NewOp n, int p, String t) {
+            next = n;
+            pos = p;
+            type = t;
+        }
+    }
+
+    final static class LoopContext {
+        NewOp newList;
+        int maxLocals;
+        int maxStack;
+
+        LoopContext(int locals) {
+            maxLocals = locals;
+            maxStack = 0;
+            newList = null;
+        }
+
+        void updateMax(int locals, int stack) {
+            if (maxLocals < locals)
+                maxLocals = locals;
+
+            if (maxStack < stack)
+                maxStack = stack;
+        }
+    }
+
+    final boolean loopBody(CodeIterator iterator, CtClass clazz,
+                           MethodInfo minfo, LoopContext context)
+        throws CannotCompileException
+    {
+        try {
+            Expr expr = null;
+            int pos = iterator.next();
+            int c = iterator.byteAt(pos);
+
+            if (c < Opcode.GETSTATIC)   // c < 178
+                /* skip */;
+            else if (c < Opcode.NEWARRAY) { // c < 188
+                if (c == Opcode.INVOKESTATIC
+                    || c == Opcode.INVOKEINTERFACE
+                    || c == Opcode.INVOKEVIRTUAL) {
+                    expr = new MethodCall(pos, iterator, clazz, minfo);
+                    edit((MethodCall)expr);
+                }
+                else if (c == Opcode.GETFIELD || c == Opcode.GETSTATIC
+                         || c == Opcode.PUTFIELD
+                         || c == Opcode.PUTSTATIC) {
+                    expr = new FieldAccess(pos, iterator, clazz, minfo, c);
+                    edit((FieldAccess)expr);
+                }
+                else if (c == Opcode.NEW) {
+                    int index = iterator.u16bitAt(pos + 1);
+                    context.newList = new NewOp(context.newList, pos,
+                                        minfo.getConstPool().getClassInfo(index));
+                }
+                else if (c == Opcode.INVOKESPECIAL) {
+                    NewOp newList = context.newList;
+                    if (newList != null
+                        && minfo.getConstPool().isConstructor(newList.type,
+                                            iterator.u16bitAt(pos + 1)) > 0) {
+                        expr = new NewExpr(pos, iterator, clazz, minfo,
+                                           newList.type, newList.pos);
+                        edit((NewExpr)expr);
+                        context.newList = newList.next;
+                    }
+                    else {
+                        MethodCall mcall = new MethodCall(pos, iterator, clazz, minfo);
+                        if (mcall.getMethodName().equals(MethodInfo.nameInit)) {
+                            ConstructorCall ccall = new ConstructorCall(pos, iterator, clazz, minfo);
+                            expr = ccall;
+                            edit(ccall);
+                        }
+                        else {
+                            expr = mcall;
+                            edit(mcall);
+                        }
+                    }
+                }
+            }
+            else {  // c >= 188
+                if (c == Opcode.NEWARRAY || c == Opcode.ANEWARRAY
+                    || c == Opcode.MULTIANEWARRAY) {
+                    expr = new NewArray(pos, iterator, clazz, minfo, c);
+                    edit((NewArray)expr);
+                }
+                else if (c == Opcode.INSTANCEOF) {
+                    expr = new Instanceof(pos, iterator, clazz, minfo);
+                    edit((Instanceof)expr);
+                }
+                else if (c == Opcode.CHECKCAST) {
+                    expr = new Cast(pos, iterator, clazz, minfo);
+                    edit((Cast)expr);
+                }
+            }
+
+            if (expr != null && expr.edited()) {
+                context.updateMax(expr.locals(), expr.stack());
+                return true;
+            }
+            else
+                return false;
+        }
+        catch (BadBytecode e) {
+            throw new CannotCompileException(e);
+        }
     }
 
     /**

@@ -154,6 +154,18 @@ public class CodeIterator implements Opcode {
     }
 
     /**
+     * Obtains the value that the next call
+     * to <code>next()</code> will return.
+     *
+     * <p>This method is side-effects free.
+     * Successive calls to <code>lookAhead()</code> return the
+     * same value until <code>next()</code> is called.
+     */
+    public int lookAhead() {
+        return currentPos;
+    }
+
+    /**
      * Moves to the instruction for
      * either <code>super()</code> or <code>this()</code>.
      *

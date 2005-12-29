@@ -43,15 +43,10 @@ import java.util.LinkedList;
  */
 public abstract class Expr implements Opcode {
     int currentPos;
-
     CodeIterator iterator;
-
     CtClass thisClass;
-
     MethodInfo thisMethod;
-
     boolean edited;
-
     int maxLocals, maxStack;
 
     static final String javaLangObject = "java.lang.Object";
@@ -252,6 +247,32 @@ public abstract class Expr implements Opcode {
         }
     }
 
+    /**
+     * Replaces this expression with the bytecode derived from
+     * the given source text.
+     *
+     * @param statement         a Java statement.
+     */
+    public abstract void replace(String statement) throws CannotCompileException;
+
+    /**
+     * Replaces this expression with the bytecode derived from
+     * the given source text and <code>ExprEditor</code>.
+     *
+     * @param statement         a Java statement.
+     * @param recursive         if not null, the substituted bytecode
+     *                          is recursively processed by the given
+     *                          <code>ExprEditor</code>.
+     * @since 3.1
+     */
+    public void replace(String statement, ExprEditor recursive)
+        throws CannotCompileException
+    {
+        replace(statement);
+        if (recursive != null)
+            runEditor(recursive, iterator);
+    }
+
     protected void replace0(int pos, Bytecode bytecode, int size)
             throws BadBytecode {
         byte[] code = bytecode.get();
@@ -267,5 +288,30 @@ public abstract class Expr implements Opcode {
         iterator.insert(bytecode.getExceptionTable(), pos);
         maxLocals = bytecode.getMaxLocals();
         maxStack = bytecode.getMaxStack();
+    }
+
+    protected void runEditor(ExprEditor ed, CodeIterator oldIterator)
+        throws CannotCompileException
+    {
+        CodeAttribute codeAttr = oldIterator.get();
+        int orgLocals = codeAttr.getMaxLocals();
+        int orgStack = codeAttr.getMaxStack();
+        int newLocals = locals();
+        codeAttr.setMaxStack(stack());
+        codeAttr.setMaxLocals(newLocals);
+        ExprEditor.LoopContext context
+            = new ExprEditor.LoopContext(newLocals);
+        CodeIterator iterator = codeAttr.iterator();
+        iterator.move(currentPos);
+        int size = iterator.getCodeLength();
+        int endPos = oldIterator.lookAhead();
+        if (ed.doit(thisClass, thisMethod, context, iterator, endPos))
+            edited = true;
+
+        oldIterator.move(endPos + iterator.getCodeLength() - size);
+        codeAttr.setMaxLocals(orgLocals);
+        codeAttr.setMaxStack(orgStack);
+        maxLocals = context.maxLocals;
+        maxStack += context.maxStack;
     }
 }
