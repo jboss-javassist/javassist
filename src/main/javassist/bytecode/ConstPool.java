@@ -905,6 +905,15 @@ public final class ConstPool {
                 --n;
             }
         }
+
+        int i = 1;
+        while (true) {
+            ConstInfo info = (ConstInfo)items.elementAt(i++);
+            if (info == null)
+                break;
+            else
+                info.makeHashtable(this);
+        }
     }
 
     private int readOne(DataInputStream in) throws IOException {
@@ -997,6 +1006,8 @@ abstract class ConstInfo {
     public abstract void write(DataOutputStream out) throws IOException;
     public abstract void print(PrintWriter out);
 
+    void makeHashtable(ConstPool cp) {}     // called after read() finishes in ConstPool.
+
     public String toString() {
         ByteArrayOutputStream bout = new ByteArrayOutputStream();
         PrintWriter out = new PrintWriter(bout);
@@ -1086,6 +1097,11 @@ class ClassInfo extends ConstInfo {
     public void print(PrintWriter out) {
         out.print("Class #");
         out.println(name);
+    }
+
+    void makeHashtable(ConstPool cp) {
+        String name = Descriptor.toJavaName(getClassName(cp));
+        cp.classes.put(name, this);
     }
 }
 
