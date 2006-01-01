@@ -1,5 +1,5 @@
 import java.io.*;
-import javassist.tool.HotSwapper;
+import javassist.tools.HotSwapper;
 
 public class Test {
     public static void main(String[] args) throws Exception {
