@@ -868,14 +868,18 @@ public final class ConstPool {
     /**
      * Replaces all occurrences of a class name.
      *
-     * @param oldName           the replaced name
-     * @param newName           the substituted name.
+     * @param oldName           the replaced name (JVM-internal representation).
+     * @param newName           the substituted name (JVM-internal representation).
      */
     public void renameClass(String oldName, String newName) {
         LongVector v = items;
         int size = numOfItems;
-        for (int i = 1; i < size; ++i)
-            ((ConstInfo)v.elementAt(i)).renameClass(this, oldName, newName);
+        classes = new HashMap(classes.size() * 2);
+        for (int i = 1; i < size; ++i) {
+            ConstInfo ci = (ConstInfo)v.elementAt(i);
+            ci.renameClass(this, oldName, newName);
+            ci.makeHashtable(this);
+        }
     }
 
     /**
@@ -887,8 +891,12 @@ public final class ConstPool {
     public void renameClass(Map classnames) {
         LongVector v = items;
         int size = numOfItems;
-        for (int i = 1; i < size; ++i)
-            ((ConstInfo)v.elementAt(i)).renameClass(this, classnames);
+        classes = new HashMap(classes.size() * 2);
+        for (int i = 1; i < size; ++i) {
+            ConstInfo ci = (ConstInfo)v.elementAt(i);
+            ci.renameClass(this, classnames);
+            ci.makeHashtable(this);
+        }
     }
 
     private void read(DataInputStream in) throws IOException {
