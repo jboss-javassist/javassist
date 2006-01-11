@@ -1339,7 +1339,7 @@ public class Bytecode extends ByteVector implements Cloneable, Opcode {
      * Appends PUTSTATIC.
      *
      * @param classname         the fully-qualified name of the target class.
-     * @param filedName         the field name.
+     * @param fieldName         the field name.
      * @param desc              the descriptor of the field type.
      */
     public void addPutstatic(String classname, String fieldName, String desc) {

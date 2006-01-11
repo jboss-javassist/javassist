@@ -1,6 +1,6 @@
 package sample.duplicate;
 
-import javassist.reflect.*;
+import javassist.tools.reflect.*;
 
 public class DuplicatedObject extends Metaobject {
     private DuplicatedObject backup;

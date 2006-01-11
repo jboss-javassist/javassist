@@ -13,7 +13,7 @@
  * License.
  */
 
-package javassist.web;
+package javassist.tools.web;
 
 import java.io.*;
 import java.net.*;
@@ -27,7 +27,7 @@ import java.net.*;
  *
  * <p>To run, you should type:
  *
- * <ul><code>% java javassist.web.Viewer <i>host port</i> Main arg1, ...</code></ul>
+ * <ul><code>% java javassist.tools.web.Viewer <i>host port</i> Main arg1, ...</code></ul>
  *
  * <p>This command calls <code>Main.main()</code> with <code>arg1,...</code>
  * All classes including <code>Main</code> are fetched from
@@ -63,7 +63,7 @@ public class Viewer extends ClassLoader {
         }
         else
             System.err.println(
-        "Usage: java javassist.web.Viewer <host> <port> class [args ...]");
+        "Usage: java javassist.tools.web.Viewer <host> <port> class [args ...]");
     }
 
     /**
@@ -138,7 +138,7 @@ public class Viewer extends ClassLoader {
     protected Class findClass(String name) throws ClassNotFoundException {
         Class c = null;
         if (name.startsWith("java.") || name.startsWith("javax.")
-            || name.equals("javassist.web.Viewer"))
+            || name.equals("javassist.tools.web.Viewer"))
             c = findSystemClass(name);
 
         if (c == null)

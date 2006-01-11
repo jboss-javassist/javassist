@@ -717,7 +717,6 @@ public class Descriptor {
 
         /**
          * Returns the first character of the current element.
-         * @return
          */
         public char currentChar() { return desc.charAt(curPos); }
 

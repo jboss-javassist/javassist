@@ -118,7 +118,7 @@ public final class CtMethod extends CtBehavior {
      *
      * @param src               the source text. 
      * @param declaring    the class to which the created method is added.
-     * @see CtNewMethod.make(String, CtClass)
+     * @see CtNewMethod#make(String, CtClass)
      */
     public static CtMethod make(String src, CtClass declaring)
         throws CannotCompileException

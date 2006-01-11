@@ -13,7 +13,7 @@
  * License.
  */
 
-package javassist.reflect;
+package javassist.tools.reflect;
 
 import java.lang.reflect.*;
 import java.util.Arrays;
@@ -35,8 +35,8 @@ import java.io.ObjectOutputStream;
  * <ul><pre>ClassMetaobject cm = ((Metalevel)reflectiveObject)._getClass();
  * </pre></ul>
  *
- * @see javassist.reflect.Metaobject
- * @see javassist.reflect.Metalevel
+ * @see javassist.tools.reflect.Metaobject
+ * @see javassist.tools.reflect.Metalevel
  */
 public class ClassMetaobject implements Serializable {
     /**

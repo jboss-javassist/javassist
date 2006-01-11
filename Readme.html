@@ -137,7 +137,7 @@ set CLASSPATH=.;javassist.jar
 
 <ul><pre>
 % javac sample/reflect/*.java
-% java javassist.reflect.Loader sample.reflect.Main Joe
+% java javassist.tools.reflect.Loader sample.reflect.Main Joe
 </pre></ul>
 
 <p>Compare this result with that of the regular execution without reflection:
@@ -151,7 +151,7 @@ set CLASSPATH=.;javassist.jar
    To do this, type the commands:
 
 <ul><pre>
-% java javassist.reflect.Compiler sample.reflect.Person -m sample.reflect.VerboseMetaobj
+% java javassist.tools.reflect.Compiler sample.reflect.Person -m sample.reflect.VerboseMetaobj
 </pre></ul>
 
 <p>   Then,
@@ -292,14 +292,18 @@ see javassist.Dump.
   <li>The return type of CtClass.stopPruning() was changed from void
     to boolean.
   <li>toMethod() in javassist.CtConstructor has been implemented.
-  <li>javassist.preproc package was elminated and the source was
-      moved to the sample directory.
-</ul>
+  <li>It includes new javassist.util.proxy package
+      similar to Enhancer of CGLIB.
 
-<p>- version 3.1
-
-<ul>
-  <li>javassist.tool package was renamed to javassist.tools.
+  <p>
+  <li>The subpackages of Javassist were restructured.
+  <ul>
+    <li>javassist.tool package was renamed to javassist.tools.
+    <li>HotSwapper was moved to javassist.util.
+    <li>Several subpackages were moved to javassist.tools.
+    <li>javassist.preproc package was elminated and the source was
+        moved to the sample directory.
+  </ul>
 </ul>
 
 <p>- version 3.1 RC2 in September 7, 2005

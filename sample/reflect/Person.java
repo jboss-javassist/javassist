@@ -4,8 +4,8 @@
 
 package sample.reflect;
 
-import javassist.reflect.Metalevel;
-import javassist.reflect.Metaobject;
+import javassist.tools.reflect.Metalevel;
+import javassist.tools.reflect.Metaobject;
 
 public class Person {
     public String name;

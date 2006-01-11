@@ -109,18 +109,18 @@ to ${build.classes.dir}.</echo>
            excludepackagenames="javassist.compiler.*,javassist.convert.*"
            sourcepath="src/main"
            defaultexcludes="yes"
+           locale="en_US"
+           charset="iso-8859-1"
            destdir="html"
            author="true"
            version="true"
            use="true"
-           Locale="en_US"
-           charset="iso-8859-1"
-           Public="true"
+           public="true"
            nohelp="true"
            windowtitle="Javassist API">
       <doctitle><![CDATA[<h1>Javassist</h1>]]></doctitle>
       <bottom><![CDATA[<i>Javassist, a Java-bytecode translator toolkit. 
-Copyright (C) 1999-2005 Shigeru Chiba. All Rights Reserved.</i>]]></bottom>
+Copyright (C) 1999-2006 Shigeru Chiba. All Rights Reserved.</i>]]></bottom>
     </javadoc>
   </target>
 
@@ -151,7 +151,8 @@ Copyright (C) 1999-2005 Shigeru Chiba. All Rights Reserved.</i>]]></bottom>
 
   <target name = "sample-all"
           depends="sample-test,sample-reflect,sample-duplicate,sample-vector">
-    <echo>** please run sample-rmi and sample-evolve separately **</echo>
+    <echo>** please run sample-rmi, sample-evolve, and</echo>
+    <echo>   sample-hotswap (or -hotswap5) separately **</echo>
   </target>
 
   <target name = "sample-test" depends="sample" >
@@ -161,7 +162,7 @@ Copyright (C) 1999-2005 Shigeru Chiba. All Rights Reserved.</i>]]></bottom>
   </target>
 
   <target name = "sample-reflect" depends="sample" >
-    <java fork="true" dir="${run.dir}" classname="javassist.reflect.Loader">
+    <java fork="true" dir="${run.dir}" classname="javassist.tools.reflect.Loader">
       <classpath refid="classpath"/>
       <arg line="sample.reflect.Main Joe" />
     </java>
@@ -212,6 +213,7 @@ Copyright (C) 1999-2005 Shigeru Chiba. All Rights Reserved.</i>]]></bottom>
   <!-- for JDK 1.4 -->
   <target name = "sample-hotswap" depends="sample">
     <echo>** JAVA_HOME/lib/tools.jar must be included in CLASS_PATH</echo>
+    <echo>** for JDK 1.4</echo>
     <java fork="true" dir="${run.dir}" classname="Test">
       <jvmarg line="-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=8000" />
       <classpath refid="classpath"/>
@@ -221,6 +223,7 @@ Copyright (C) 1999-2005 Shigeru Chiba. All Rights Reserved.</i>]]></bottom>
   <!-- for Java 5 -->
   <target name = "sample-hotswap5" depends="sample">
     <echo>** JAVA_HOME/lib/tools.jar must be included in CLASS_PATH</echo>
+    <echo>** for JDK 1.5 or later</echo>
     <java fork="true" dir="${run.dir}" classname="Test">
       <jvmarg line="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=8000" />
       <classpath refid="classpath"/>

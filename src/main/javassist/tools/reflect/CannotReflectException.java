@@ -13,14 +13,22 @@
  * License.
  */
 
-package javassist.rmi;
+package javassist.tools.reflect;
 
-public class ObjectNotFoundException extends Exception {
-    public ObjectNotFoundException(String name) {
-        super(name + " is not exported");
-    }
+import javassist.CannotCompileException;
 
-    public ObjectNotFoundException(String name, Exception e) {
-        super(name + " because of " + e.toString());
+/**
+ * Thrown by <code>makeReflective()</code> in <code>Reflection</code>
+ * when there is an attempt to reflect
+ * a class that is either an interface or a subclass of
+ * either ClassMetaobject or Metaobject.
+ *
+ * @author Brett Randall
+ * @see javassist.tools.reflect.Reflection#makeReflective(CtClass,CtClass,CtClass)
+ * @see javassist.CannotCompileException
+ */
+public class CannotReflectException extends CannotCompileException {
+    public CannotReflectException(String msg) {
+        super(msg);
     }
 }

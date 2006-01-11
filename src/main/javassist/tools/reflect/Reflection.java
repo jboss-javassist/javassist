@@ -13,7 +13,7 @@
  * License.
  */
 
-package javassist.reflect;
+package javassist.tools.reflect;
 
 import javassist.*;
 import javassist.CtMethod.ConstParameter;
@@ -54,10 +54,10 @@ import javassist.CtMethod.ConstParameter;
  * }
  * </pre></ul>
  *
- * @see javassist.reflect.ClassMetaobject
- * @see javassist.reflect.Metaobject
- * @see javassist.reflect.Loader
- * @see javassist.reflect.Compiler
+ * @see javassist.tools.reflect.ClassMetaobject
+ * @see javassist.tools.reflect.Metaobject
+ * @see javassist.tools.reflect.Loader
+ * @see javassist.tools.reflect.Compiler
  */
 public class Reflection implements Translator {
 
@@ -69,9 +69,9 @@ public class Reflection implements Translator {
     static final String readPrefix = "_r_";
     static final String writePrefix = "_w_";
 
-    static final String metaobjectClassName = "javassist.reflect.Metaobject";
+    static final String metaobjectClassName = "javassist.tools.reflect.Metaobject";
     static final String classMetaobjectClassName
-        = "javassist.reflect.ClassMetaobject";
+        = "javassist.tools.reflect.ClassMetaobject";
 
     protected CtMethod trapMethod, trapStaticMethod;
     protected CtMethod trapRead, trapWrite;
@@ -103,9 +103,9 @@ public class Reflection implements Translator {
     public void start(ClassPool pool) throws NotFoundException {
         classPool = pool;
         final String msg
-            = "javassist.reflect.Sample is not found or broken.";
+            = "javassist.tools.reflect.Sample is not found or broken.";
         try {
-            CtClass c = classPool.get("javassist.reflect.Sample");
+            CtClass c = classPool.get("javassist.tools.reflect.Sample");
             trapMethod = c.getDeclaredMethod("trap");
             trapStaticMethod = c.getDeclaredMethod("trapStatic");
             trapRead = c.getDeclaredMethod("trapRead");
@@ -139,8 +139,8 @@ public class Reflection implements Translator {
      * @param metaclass         the class name of the class metaobject.
      * @return <code>false</code>       if the class is already reflective.
      *
-     * @see javassist.reflect.Metaobject
-     * @see javassist.reflect.ClassMetaobject
+     * @see javassist.tools.reflect.Metaobject
+     * @see javassist.tools.reflect.ClassMetaobject
      */
     public boolean makeReflective(String classname,
                                   String metaobject, String metaclass)
@@ -165,8 +165,8 @@ public class Reflection implements Translator {
      *                          <code>ClassMetaobject</code>.
      * @return <code>false</code>       if the class is already reflective.
      *
-     * @see javassist.reflect.Metaobject
-     * @see javassist.reflect.ClassMetaobject
+     * @see javassist.tools.reflect.Metaobject
+     * @see javassist.tools.reflect.ClassMetaobject
      */
     public boolean makeReflective(Class clazz,
                                   Class metaobject, Class metaclass)
@@ -191,8 +191,8 @@ public class Reflection implements Translator {
      *                          <code>ClassMetaobject</code>.
      * @return <code>false</code>       if the class is already reflective.
      *
-     * @see javassist.reflect.Metaobject
-     * @see javassist.reflect.ClassMetaobject
+     * @see javassist.tools.reflect.Metaobject
+     * @see javassist.tools.reflect.ClassMetaobject
      */
     public boolean makeReflective(CtClass clazz,
                                   CtClass metaobject, CtClass metaclass)
@@ -243,7 +243,7 @@ public class Reflection implements Translator {
         else
             clazz.setAttribute("Reflective", new byte[0]);
 
-        CtClass mlevel = classPool.get("javassist.reflect.Metalevel");
+        CtClass mlevel = classPool.get("javassist.tools.reflect.Metalevel");
         boolean addMeta = !clazz.subtypeOf(mlevel);
         if (addMeta)
             clazz.addInterface(mlevel);
@@ -253,7 +253,7 @@ public class Reflection implements Translator {
 
         CtField f;
         if (addMeta) {
-            f = new CtField(classPool.get("javassist.reflect.Metaobject"),
+            f = new CtField(classPool.get("javassist.tools.reflect.Metaobject"),
                             metaobjectField, clazz);
             f.setModifiers(Modifier.PROTECTED);
             clazz.addField(f, CtField.Initializer.byNewWithParams(metaobject));
@@ -262,7 +262,7 @@ public class Reflection implements Translator {
             clazz.addMethod(CtNewMethod.setter(metaobjectSetter, f));
         }
 
-        f = new CtField(classPool.get("javassist.reflect.ClassMetaobject"),
+        f = new CtField(classPool.get("javassist.tools.reflect.ClassMetaobject"),
                         classobjectField, clazz);
         f.setModifiers(Modifier.PRIVATE | Modifier.STATIC);
         clazz.addField(f, CtField.Initializer.byNew(metaclass,

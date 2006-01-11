@@ -703,7 +703,7 @@ public abstract class CtClass {
      *
      * @param name      method name
      * @param desc      method descriptor
-     * @see CtBehavior.getSignature()
+     * @see CtBehavior#getSignature()
      * @see javassist.bytecode.Descriptor
      */
     public CtMethod getMethod(String name, String desc)

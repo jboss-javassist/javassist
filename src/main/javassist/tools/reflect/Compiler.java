@@ -13,7 +13,7 @@
  * License.
  */
 
-package javassist.reflect;
+package javassist.tools.reflect;
 
 import javassist.CtClass;
 import javassist.ClassPool;
@@ -31,7 +31,7 @@ class CompiledClass {
  * <p>This translator directly modifies class files on a local disk so that
  * the classes represented by those class files are reflective.
  * After the modification, the class files can be run with the standard JVM
- * without <code>javassist.reflect.Loader</code>
+ * without <code>javassist.tools.reflect.Loader</code>
  * or any other user-defined class loader.
  *
  * <p>The modified class files are given as the command-line parameters,
@@ -63,9 +63,9 @@ class CompiledClass {
  * <p>Note that if the super class is also made reflective, it must be done
  * before the sub class.
  *
- * @see javassist.reflect.Metaobject
- * @see javassist.reflect.ClassMetaobject
- * @see javassist.reflect.Reflection
+ * @see javassist.tools.reflect.Metaobject
+ * @see javassist.tools.reflect.ClassMetaobject
+ * @see javassist.tools.reflect.Reflection
  */
 public class Compiler {
 
@@ -100,12 +100,12 @@ public class Compiler {
                 String metaobj, classobj;
 
                 if (entries[i].metaobject == null)
-                    metaobj = "javassist.reflect.Metaobject";
+                    metaobj = "javassist.tools.reflect.Metaobject";
                 else
                     metaobj = entries[i].metaobject;
 
                 if (entries[i].classobject == null)
-                    classobj = "javassist.reflect.ClassMetaobject";
+                    classobj = "javassist.tools.reflect.ClassMetaobject";
                 else
                     classobj = entries[i].classobject;
 
@@ -156,7 +156,7 @@ public class Compiler {
     }
 
     private static void help(PrintStream out) {
-        out.println("Usage: java javassist.reflect.Compiler");
+        out.println("Usage: java javassist.tools.reflect.Compiler");
         out.println("            (<class> [-m <metaobject>] [-c <class metaobject>])+");
     }
 }

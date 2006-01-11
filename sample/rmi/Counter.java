@@ -1,6 +1,6 @@
 package sample.rmi;
 
-import javassist.rmi.AppletServer;
+import javassist.tools.rmi.AppletServer;
 import java.io.IOException;
 import javassist.CannotCompileException;
 import javassist.NotFoundException;

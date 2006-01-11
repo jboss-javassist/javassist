@@ -3,9 +3,9 @@ package sample.rmi;
 import java.applet.*;
 import java.awt.*;
 import java.awt.event.*;
-import javassist.rmi.ObjectImporter;
-import javassist.rmi.ObjectNotFoundException;
-import javassist.web.Viewer;
+import javassist.tools.rmi.ObjectImporter;
+import javassist.tools.rmi.ObjectNotFoundException;
+import javassist.tools.web.Viewer;
 
 public class CountApplet extends Applet implements ActionListener {
     private Font font;

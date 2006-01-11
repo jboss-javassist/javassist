@@ -1,6 +1,6 @@
 package sample.reflect;
 
-import javassist.reflect.*;
+import javassist.tools.reflect.*;
 
 public class VerboseMetaobj extends Metaobject {
     public VerboseMetaobj(Object self, Object[] args) {

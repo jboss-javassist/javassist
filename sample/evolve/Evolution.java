@@ -60,9 +60,9 @@ public class Evolution implements Translator {
     private void onLoadUpdatable(String classname) throws NotFoundException,
             CannotCompileException {
         // if the class is a concrete class,
-        // classname is <updatableClassName>$<version>.
+        // classname is <updatableClassName>$$<version>.
 
-        int i = classname.lastIndexOf('$');
+        int i = classname.lastIndexOf("$$");
         if (i <= 0)
             return;
 
@@ -72,7 +72,7 @@ public class Evolution implements Translator {
 
         int version;
         try {
-            version = Integer.parseInt(classname.substring(i + 1));
+            version = Integer.parseInt(classname.substring(i + 2));
         }
         catch (NumberFormatException e) {
             throw new NotFoundException(classname, e);

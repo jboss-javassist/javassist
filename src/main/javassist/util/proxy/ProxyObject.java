@@ -13,17 +13,17 @@
  * License.
  */
 
-package javassist.reflect;
+package javassist.util.proxy;
 
 /**
- * Signals that <code>ClassMetaobject.newInstance()</code> fails.
+ * The interface implemented by proxy classes.
+ *
+ * @see ProxyFactory
  */
-public class CannotCreateException extends Exception {
-    public CannotCreateException(String s) {
-        super(s);
-    }
-
-    public CannotCreateException(Exception e) {
-        super("by " + e.toString());
-    }
+public interface ProxyObject {
+    /**
+     * Sets a handler.  It can be used for changing handlers
+     * during runtime.
+     */
+    void setHandler(MethodHandler mi);
 }

@@ -13,13 +13,14 @@
  * License.
  */
 
-package javassist.rmi;
+package javassist.tools.rmi;
 
-/**
- * An interface implemented by proxy classes.
- *
- * @see javassist.rmi.StubGenerator
- */
-public interface Proxy {
-    int _getObjectId();
+public class ObjectNotFoundException extends Exception {
+    public ObjectNotFoundException(String name) {
+        super(name + " is not exported");
+    }
+
+    public ObjectNotFoundException(String name, Exception e) {
+        super(name + " because of " + e.toString());
+    }
 }

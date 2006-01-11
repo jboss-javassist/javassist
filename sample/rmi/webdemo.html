@@ -6,7 +6,7 @@
 local object.  The applet can communicate through a socket with the
 host that executes the web server distributing that applet.  However,
 the applet cannot directly call a method on an object if the object is
-on a remote host.  The <code>javassist.rmi</code> package provides
+on a remote host.  The <code>javassist.tools.rmi</code> package provides
 a mechanism for the applet to transparently access the remote object.
 The rules that the applet must be subject to are simpler than the
 standard Java RMI.
@@ -36,7 +36,7 @@ Look at the lines shown with red:
 <p><b>Figure 1: Applet</b>
 
 <pre>
-<font color="red">import javassist.rmi.ObjectImporter;</font>
+<font color="red">import javassist.tools.rmi.ObjectImporter;</font>
 
 public class CountApplet extends Applet implements ActionListener {
   private Font font;
@@ -106,7 +106,7 @@ public class Counter {
 }
 </pre>
 
-<p>Note that the <code>javassist.rmi</code> package does not require
+<p>Note that the <code>javassist.tools.rmi</code> package does not require
 the <code>Counter</code> class to be an interface unlike the Java RMI,
 with which <code>Counter</code> must be an interface and it must be
 implemented by another class.
@@ -167,7 +167,7 @@ following features:
 <p> With the Java RMI or Voyager, the applet programmer must define
 an interface for every remote object class and access the remote object
 through that interface.
-On the other hand, the <code>javassist.rmi</code> package does not
+On the other hand, the <code>javassist.tools.rmi</code> package does not
 require the programmer to follow that programming convention.
 It is suitable for writing simple distributed programs like applets.
 

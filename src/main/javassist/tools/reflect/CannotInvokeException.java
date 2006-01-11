@@ -13,7 +13,7 @@
  * License.
  */
 
-package javassist.reflect;
+package javassist.tools.reflect;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.IllegalAccessException;
@@ -22,9 +22,9 @@ import java.lang.IllegalAccessException;
  * Thrown when method invocation using the reflection API has thrown
  * an exception.
  *
- * @see javassist.reflect.Metaobject#trapMethodcall(int, Object[])
- * @see javassist.reflect.ClassMetaobject#trapMethodcall(int, Object[])
- * @see javassist.reflect.ClassMetaobject#invoke(Object, int, Object[])
+ * @see javassist.tools.reflect.Metaobject#trapMethodcall(int, Object[])
+ * @see javassist.tools.reflect.ClassMetaobject#trapMethodcall(int, Object[])
+ * @see javassist.tools.reflect.ClassMetaobject#invoke(Object, int, Object[])
  */
 public class CannotInvokeException extends RuntimeException {
 

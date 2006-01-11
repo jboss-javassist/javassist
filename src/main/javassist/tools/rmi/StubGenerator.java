@@ -13,7 +13,7 @@
  * License.
  */
 
-package javassist.rmi;
+package javassist.tools.rmi;
 
 import javassist.*;
 import java.lang.reflect.Method;
@@ -43,7 +43,7 @@ public class StubGenerator implements Translator {
     private static final String fieldImporter = "importer";
     private static final String fieldObjectId = "objectId";
     private static final String accessorObjectId = "_getObjectId";
-    private static final String sampleClass = "javassist.rmi.Sample";
+    private static final String sampleClass = "javassist.tools.rmi.Sample";
 
     private ClassPool classPool;
     private Hashtable proxyClasses;
@@ -74,13 +74,13 @@ public class StubGenerator implements Translator {
         forwardStaticMethod = c.getDeclaredMethod("forwardStatic");
 
         proxyConstructorParamTypes
-            = pool.get(new String[] { "javassist.rmi.ObjectImporter",
+            = pool.get(new String[] { "javassist.tools.rmi.ObjectImporter",
                                          "int" });
         interfacesForProxy
             = pool.get(new String[] { "java.io.Serializable",
-                                         "javassist.rmi.Proxy" });
+                                         "javassist.tools.rmi.Proxy" });
         exceptionForProxy
-            = new CtClass[] { pool.get("javassist.rmi.RemoteException") };
+            = new CtClass[] { pool.get("javassist.tools.rmi.RemoteException") };
     }
 
     /**
@@ -139,7 +139,7 @@ public class StubGenerator implements Translator {
         proxy.setInterfaces(interfacesForProxy);
 
         CtField f
-            = new CtField(classPool.get("javassist.rmi.ObjectImporter"),
+            = new CtField(classPool.get("javassist.tools.rmi.ObjectImporter"),
                           fieldImporter, proxy);
         f.setModifiers(Modifier.PRIVATE);
         proxy.addField(f, CtField.Initializer.byParameter(0));

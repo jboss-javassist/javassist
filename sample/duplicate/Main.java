@@ -3,7 +3,7 @@ package sample.duplicate;
 /*
   Runtime metaobject (JDK 1.2 or later only).
 
-  With the javassist.reflect package, the users can attach a metaobject
+  With the javassist.tools.reflect package, the users can attach a metaobject
   to an object.  The metaobject can control the behavior of the object.
   For example, you can implement fault tolerancy with this ability.  One
   of the implementation techniques of fault tolernacy is to make a copy
@@ -30,15 +30,15 @@ package sample.duplicate;
   % java sample.duplicate.Main
 
   You would see two balls in a window.  This is because
-  sample.duplicate.Viewer is loaded by javassist.reflect.Loader so that
+  sample.duplicate.Viewer is loaded by javassist.tools.reflect.Loader so that
   a metaobject would be attached.
 */
 public class Main {
     public static void main(String[] args) throws Throwable {
-	javassist.reflect.Loader cl = new javassist.reflect.Loader();
+	javassist.tools.reflect.Loader cl = new javassist.tools.reflect.Loader();
 	cl.makeReflective("sample.duplicate.Ball",
 			  "sample.duplicate.DuplicatedObject",
-			  "javassist.reflect.ClassMetaobject");
+			  "javassist.tools.reflect.ClassMetaobject");
 	cl.run("sample.duplicate.Viewer", args);
     }
 }

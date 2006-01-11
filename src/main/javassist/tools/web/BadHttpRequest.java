@@ -13,7 +13,7 @@
  * License.
  */
 
-package javassist.web;
+package javassist.tools.web;
 
 /**
  * Thrown when receiving an invalid HTTP request.

@@ -13,7 +13,7 @@
  * License.
  */
 
-package javassist.web;
+package javassist.tools.web;
 
 import java.net.*;
 import java.io.*;
@@ -82,7 +82,7 @@ public class Webserver {
         }
         else
             System.err.println(
-                        "Usage: java javassist.web.Webserver <port number>");
+                        "Usage: java javassist.tools.web.Webserver <port number>");
     }
 
     /**

@@ -13,7 +13,7 @@
  * License.
  */
 
-package javassist.rmi;
+package javassist.tools.rmi;
 
 /**
  * A template used for defining a proxy class.

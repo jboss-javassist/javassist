@@ -120,7 +120,7 @@ public class MethodCall extends Expr {
      * The method signature is represented by a character string
      * called method descriptor, which is defined in the JVM specification.
      *
-     * @see javassist.CtBehavior.getSignature()
+     * @see javassist.CtBehavior#getSignature()
      * @see javassist.bytecode.Descriptor
      * @since 3.1
      */

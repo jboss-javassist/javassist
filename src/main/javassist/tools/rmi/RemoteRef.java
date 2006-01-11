@@ -13,7 +13,7 @@
  * License.
  */
 
-package javassist.rmi;
+package javassist.tools.rmi;
 
 /**
  * Remote reference.  This class is internally used for sending a remote

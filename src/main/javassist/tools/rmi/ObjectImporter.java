@@ -13,7 +13,7 @@
  * License.
  */
 
-package javassist.rmi;
+package javassist.tools.rmi;
 
 import java.io.*;
 import java.net.*;
@@ -22,7 +22,8 @@ import java.lang.reflect.*;
 
 /**
  * The object importer enables applets to call a method on a remote
- * object running on the <code>Webserver</code>.
+ * object running on the <code>Webserver</code> (the <b>main</b> class of this
+ * package).
  *
  * <p>To access the remote
  * object, the applet first calls <code>lookupObject()</code> and
@@ -66,9 +67,9 @@ import java.lang.reflect.*;
  * to catch the exception.  However, good programs should catch
  * the <code>RuntimeException</code>.
  *
- * @see javassist.rmi.AppletServer
- * @see javassist.rmi.RemoteException
- * @see javassist.web.Viewer
+ * @see javassist.tools.rmi.AppletServer
+ * @see javassist.tools.rmi.RemoteException
+ * @see javassist.tools.web.Viewer
  */
 public class ObjectImporter implements java.io.Serializable {
     private final byte[] endofline = { 0x0d, 0x0a };
@@ -95,7 +96,7 @@ public class ObjectImporter implements java.io.Serializable {
     /**
      * Constructs an object importer.
      *
-     * <p>If you run a program with <code>javassist.web.Viewer</code>,
+     * <p>If you run a program with <code>javassist.tools.web.Viewer</code>,
      * you can construct an object importer as follows:
      *
      * <ul><pre>
@@ -103,7 +104,7 @@ public class ObjectImporter implements java.io.Serializable {
      * ObjectImporter oi = new ObjectImporter(v.getServer(), v.getPort());
      * </pre></ul>
      *
-     * @see javassist.web.Viewer
+     * @see javassist.tools.web.Viewer
      */
     public ObjectImporter(String servername, int port) {
         this.orgServername = this.servername = servername;

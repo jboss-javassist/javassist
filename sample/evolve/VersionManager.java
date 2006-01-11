@@ -41,7 +41,7 @@ public class VersionManager {
         else
             version = ((Integer)found).intValue() + 1;
 
-        Class c = Class.forName(qualifiedClassname + '$' + version);
+        Class c = Class.forName(qualifiedClassname + "$$" + version);
         versionNo.put(qualifiedClassname, new Integer(version));
         return c;
     }

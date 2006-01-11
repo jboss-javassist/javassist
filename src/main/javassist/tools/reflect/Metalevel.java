@@ -13,18 +13,26 @@
  * License.
  */
 
-package javassist.rmi;
+package javassist.tools.reflect;
 
 /**
- * <code>RemoteException</code> represents any exception thrown
- * during remote method invocation.
+ * An interface to access a metaobject and a class metaobject.
+ * This interface is implicitly implemented by the reflective
+ * class.
  */
-public class RemoteException extends RuntimeException {
-    public RemoteException(String msg) {
-        super(msg);
-    }
+public interface Metalevel {
+    /**
+     * Obtains the class metaobject associated with this object.
+     */
+    ClassMetaobject _getClass();
 
-    public RemoteException(Exception e) {
-        super("by " + e.toString());
-    }
+    /**
+     * Obtains the metaobject associated with this object.
+     */
+    Metaobject _getMetaobject();
+
+    /**
+     * Changes the metaobject associated with this object.
+     */
+    void _setMetaobject(Metaobject m);
 }

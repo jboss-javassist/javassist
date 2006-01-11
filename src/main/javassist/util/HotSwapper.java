@@ -13,7 +13,7 @@
  * License.
  */
 
-package javassist.tools;
+package javassist.util;
 
 import com.sun.jdi.*;
 import com.sun.jdi.connect.*;
@@ -81,7 +81,7 @@ public class HotSwapper {
     private Trigger trigger;
 
     private static final String HOST_NAME = "localhost";
-    private static final String TRIGGER_NAME = "javassist.tools.Trigger";
+    private static final String TRIGGER_NAME = Trigger.class.getName();
 
     /**
      * Connects to the JVM.

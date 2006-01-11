@@ -13,22 +13,13 @@
  * License.
  */
 
-package javassist.reflect;
-
-import javassist.CannotCompileException;
+package javassist.tools.rmi;
 
 /**
- * Thrown by <code>makeReflective()</code> in <code>Reflection</code>
- * when there is an attempt to reflect
- * a class that is either an interface or a subclass of
- * either ClassMetaobject or Metaobject.
+ * An interface implemented by proxy classes.
  *
- * @author Brett Randall
- * @see javassist.reflect.Reflection#makeReflective(CtClass,CtClass,CtClass)
- * @see javassist.CannotCompileException
+ * @see javassist.tools.rmi.StubGenerator
  */
-public class CannotReflectException extends CannotCompileException {
-    public CannotReflectException(String msg) {
-        super(msg);
-    }
+public interface Proxy {
+    int _getObjectId();
 }

@@ -13,7 +13,7 @@
  * License.
  */
 
-package javassist.reflect;
+package javassist.tools.reflect;
 
 import javassist.CannotCompileException;
 import javassist.NotFoundException;
@@ -29,10 +29,10 @@ import javassist.ClassPool;
  * <ul><pre>
  * public class Main {
  *   public static void main(String[] args) throws Throwable {
- *     javassist.reflect.Loader cl
- *         = (javassist.reflect.Loader)Main.class.getClassLoader();
+ *     javassist.tools.reflect.Loader cl
+ *         = (javassist.tools.reflect.Loader)Main.class.getClassLoader();
  *     cl.makeReflective("Person", "MyMetaobject",
- *                       "javassist.reflect.ClassMetaobject");
+ *                       "javassist.tools.reflect.ClassMetaobject");
  *     cl.run("MyApp", args);
  *   }
  * }
@@ -40,7 +40,7 @@ import javassist.ClassPool;
  *
  * <p>Then run this program as follows:
  *
- * <ul><pre>% java javassist.reflect.Loader Main arg1, ...</pre></ul>
+ * <ul><pre>% java javassist.tools.reflect.Loader Main arg1, ...</pre></ul>
  *
  * <p>This command runs <code>Main.main()</code> with <code>arg1</code>, ...
  * and <code>Main.main()</code> runs <code>MyApp.main()</code> with
@@ -54,9 +54,9 @@ import javassist.ClassPool;
  * <ul><pre>
  * public class Main2 {
  *   public static void main(String[] args) throws Throwable {
- *     javassist.reflect.Loader cl = new javassist.reflect.Loader();
+ *     javassist.tools.reflect.Loader cl = new javassist.tools.reflect.Loader();
  *     cl.makeReflective("Person", "MyMetaobject",
- *                       "javassist.reflect.ClassMetaobject");
+ *                       "javassist.tools.reflect.ClassMetaobject");
  *     cl.run("MyApp", args);
  *   }
  * }
@@ -67,11 +67,11 @@ import javassist.ClassPool;
  * <ul><pre>% java Main2 arg1, ...</pre></ul>
  *
  * <p>The difference from the former one is that the class <code>Main</code>
- * is loaded by <code>javassist.reflect.Loader</code> whereas the class
+ * is loaded by <code>javassist.tools.reflect.Loader</code> whereas the class
  * <code>Main2</code> is not.  Thus, <code>Main</code> belongs
  * to the same name space (security domain) as <code>MyApp</code>
  * whereas <code>Main2</code> does not; <code>Main2</code> belongs
- * to the same name space as <code>javassist.reflect.Loader</code>.
+ * to the same name space as <code>javassist.tools.reflect.Loader</code>.
  * For more details,
  * see the notes in the manual page of <code>javassist.Loader</code>.
  *
@@ -84,7 +84,7 @@ import javassist.ClassPool;
  *     javassist.Loader cl
  *         = new javassist.Loader(ClassPool.getDefault(reflection));
  *     reflection.makeReflective("Person", "MyMetaobject",
- *                               "javassist.reflect.ClassMetaobject");
+ *                               "javassist.tools.reflect.ClassMetaobject");
  *     cl.run("MyApp", args);
  *   }
  * }
@@ -92,18 +92,18 @@ import javassist.ClassPool;
  *
  * <p><b>Note:</b>
  *
- * <p><code>javassist.reflect.Loader</code> does not make a class reflective
+ * <p><code>javassist.tools.reflect.Loader</code> does not make a class reflective
  * if that class is in a <code>java.*</code> or
  * <code>javax.*</code> pacakge because of the specifications
  * on the class loading algorithm of Java.  The JVM does not allow to
  * load such a system class with a user class loader.
  *
  * <p>To avoid this limitation, those classes should be statically
- * modified with <code>javassist.reflect.Compiler</code> and the original
+ * modified with <code>javassist.tools.reflect.Compiler</code> and the original
  * class files should be replaced.
  *
- * @see javassist.reflect.Reflection
- * @see javassist.reflect.Compiler
+ * @see javassist.tools.reflect.Reflection
+ * @see javassist.tools.reflect.Compiler
  * @see javassist.Loader
  */
 public class Loader extends javassist.Loader {
@@ -130,7 +130,7 @@ public class Loader extends javassist.Loader {
      */
     public Loader() throws CannotCompileException, NotFoundException {
         super();
-        delegateLoadingOf("javassist.reflect.Loader");
+        delegateLoadingOf("javassist.tools.reflect.Loader");
 
         reflection = new Reflection();
         ClassPool pool = ClassPool.getDefault();
@@ -151,8 +151,8 @@ public class Loader extends javassist.Loader {
      *                          <code>ClassMetaobject</code>.
      * @return <code>false</code>       if the class is already reflective.
      *
-     * @see javassist.reflect.Metaobject
-     * @see javassist.reflect.ClassMetaobject
+     * @see javassist.tools.reflect.Metaobject
+     * @see javassist.tools.reflect.ClassMetaobject
      */
     public boolean makeReflective(String clazz,
                                   String metaobject, String metaclass)
