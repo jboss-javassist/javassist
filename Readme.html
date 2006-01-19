@@ -289,6 +289,8 @@ see javassist.Dump.
     public members.
   <li>getEnclosingClass() in javassist.CtClass was renamed
       to getEnclosingMethod().
+  <li>getModifiers() was extended to return Modifier.STATIC if the class
+      is a static inner class.
   <li>The return type of CtClass.stopPruning() was changed from void
     to boolean.
   <li>toMethod() in javassist.CtConstructor has been implemented.

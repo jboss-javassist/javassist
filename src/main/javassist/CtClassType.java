@@ -358,12 +358,20 @@ class CtClassType extends CtClass {
     }
 
     public int getModifiers() {
-        int acc = getClassFile2().getAccessFlags();
+        ClassFile cf = getClassFile2();
+        int acc = cf.getAccessFlags();
         acc = AccessFlag.clear(acc, AccessFlag.SUPER);
+        int inner = cf.getInnerAccessFlags();
+        if (inner != -1 && (inner & AccessFlag.STATIC) != 0)
+            acc |= AccessFlag.STATIC;
+
         return AccessFlag.toModifier(acc);
     }
 
     public void setModifiers(int mod) {
+        if (Modifier.isStatic(mod))
+            throw new RuntimeException("cannot set to static");
+
         checkModify();
         int acc = AccessFlag.of(mod) | AccessFlag.SUPER;
         getClassFile2().setAccessFlags(acc);

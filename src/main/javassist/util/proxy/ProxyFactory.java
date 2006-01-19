@@ -50,6 +50,12 @@ import javassist.bytecode.*;
  *     }
  * };
  * f.setHandler(mi);
+ * f.setFilter(new MethodFilter() {
+ *     public boolean isHandled(Method m) {
+ *         // ignore finalize()
+ *         return !m.getName().equals("finalize");
+ *     }
+ * });
  * Class c = f.createClass();
  * Foo foo = (Foo)c.newInstance();
  * </pre></ul>

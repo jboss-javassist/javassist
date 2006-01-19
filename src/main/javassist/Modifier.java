@@ -40,6 +40,8 @@ public class Modifier {
     public static final int INTERFACE = AccessFlag.INTERFACE;
     public static final int ABSTRACT  = AccessFlag.ABSTRACT;
     public static final int STRICT    = AccessFlag.STRICT;
+    public static final int ANNOTATION = AccessFlag.ANNOTATION;
+    public static final int ENUM      = AccessFlag.ENUM;
 
     /**
      * Returns true if the modifiers include the <tt>public</tt>

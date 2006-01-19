@@ -437,6 +437,9 @@ public abstract class CtClass {
      * Returns the modifiers for this class, encoded in an integer.
      * For decoding, use <code>javassist.Modifier</code>.
      *
+     * <p>If the class is a static nested class (a.k.a. static inner class),
+     * the returned modifiers include <code>Modifier.STATIC</code>. 
+     *
      * @see Modifier
      */
     public int getModifiers() {

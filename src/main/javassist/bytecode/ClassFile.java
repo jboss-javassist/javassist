@@ -234,6 +234,29 @@ public final class ClassFile {
     }
 
     /**
+     * Returns access and property flags of this nested class.
+     * This method returns -1 if the class is not a nested class. 
+     *
+     * <p>The returned value is obtained from <code>inner_class_access_flags</code>
+     * of the entry representing this nested class itself
+     * in <code>InnerClasses_attribute</code>>. 
+     */
+    public int getInnerAccessFlags() {
+        InnerClassesAttribute ica
+            = (InnerClassesAttribute)getAttribute(InnerClassesAttribute.tag);
+        if (ica == null)
+            return -1;
+
+        String name = getName();
+        int n = ica.tableLength();
+        for (int i = 0; i < n; ++i)
+            if (name.equals(ica.innerClass(i)))
+                return ica.accessFlags(i);
+
+        return -1;
+    }
+
+    /**
      * Returns the class name.
      */
     public String getName() {
