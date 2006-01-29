@@ -55,10 +55,12 @@ public class MemberResolver implements TokenId {
     public static class Method {
         public CtClass declaring;
         public MethodInfo info;
+        public int notmatch;
 
-        public Method(CtClass c, MethodInfo i) {
+        public Method(CtClass c, MethodInfo i, int n) {
             declaring = c;
             info = i;
+            notmatch = n;
         }
 
         /**
@@ -82,11 +84,13 @@ public class MemberResolver implements TokenId {
             if (current.getName().equals(methodName)) {
                 int res = compareSignature(current.getDescriptor(),
                                            argTypes, argDims, argClassNames);
-                Method r = new Method(clazz, current);
-                if (res == YES)
-                    return r;
-                else if (res == MAYBE)
-                    maybe = r;
+                if (res != NO) {
+                    Method r = new Method(clazz, current, res);
+                    if (res == YES)
+                        return r;
+                    else
+                        maybe = r;
+                }
             }
 
         Method m = lookupMethod(clazz, methodName, argTypes, argDims,
@@ -111,10 +115,10 @@ public class MemberResolver implements TokenId {
                 int res = compareSignature(minfo.getDescriptor(),
                                            argTypes, argDims, argClassNames);
                 if (res != NO) {
-                    Method r = new Method(clazz, minfo);
+                    Method r = new Method(clazz, minfo, res);
                     if (res == YES)
                         return r;
-                    else if (maybe == null)
+                    else if (maybe == null || maybe.notmatch > res)
                         maybe = r;
                 }
             }
@@ -154,9 +158,8 @@ public class MemberResolver implements TokenId {
         return maybe;
     }
 
-    private static final int YES = 2;
-    private static final int MAYBE = 1;
-    private static final int NO = 0;
+    private static final int YES = 0;
+    private static final int NO = -1;
 
     /*
      * Returns YES if actual parameter types matches the given signature.
@@ -165,6 +168,10 @@ public class MemberResolver implements TokenId {
      *
      * This method does not correctly implement the Java method dispatch
      * algorithm.
+     *
+     * If some of the parameter types exactly match but others are subtypes of
+     * the corresponding type in the signature, this method returns the number
+     * of parameter types that do not exactly match.
      */
     private int compareSignature(String desc, int[] argTypes,
                                  int[] argDims, String[] argClassNames)
@@ -204,7 +211,7 @@ public class MemberResolver implements TokenId {
 
                 // if the thread reaches here, c must be 'L'.
                 i = desc.indexOf(';', i) + 1;
-                result = MAYBE;
+                result++;
                 if (i <= 0)
                     return NO;  // invalid descriptor?
             }
@@ -218,12 +225,12 @@ public class MemberResolver implements TokenId {
                     CtClass clazz = lookupClassByJvmName(argClassNames[n]);
                     try {
                         if (clazz.subtypeOf(lookupClassByJvmName(cname)))
-                            result = MAYBE;
+                            result++;
                         else
                             return NO;
                     }
                     catch (NotFoundException e) {
-                        result = MAYBE; // should be NO?
+                        result++; // should be NO?
                     }
                 }
 
@@ -235,7 +242,7 @@ public class MemberResolver implements TokenId {
                 if (t != at)
                     if (t == INT
                         && (at == SHORT || at == BYTE || at == CHAR))
-                        result = MAYBE;
+                        result++;
                     else
                         return NO;
             }
