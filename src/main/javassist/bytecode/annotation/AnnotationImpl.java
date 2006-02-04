@@ -53,7 +53,22 @@ class AnnotationImpl implements InvocationHandler {
     public Object invoke(Object proxy, Method method, Object[] args)
         throws Throwable
     {
-        String name = method.getName();
+       String name = method.getName();
+        if (Object.class == method.getDeclaringClass())
+        {
+           if ("equals".equals(name))
+           {
+              Object obj = args[0];
+              if (obj == null || obj instanceof Proxy == false)
+                 return false;
+              Object other = Proxy.getInvocationHandler(obj);
+              return this.equals(other);
+           }
+           if ("toString".equals(name))
+              return annotation.getTypeName() + '@' + hashCode();
+           if ("hashCode".equals(name))
+              return hashCode();
+        }
         MemberValue mv = annotation.getMemberValue(name);
         if (mv == null)
             return getDefault(name, method);
