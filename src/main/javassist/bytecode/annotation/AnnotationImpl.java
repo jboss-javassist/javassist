@@ -60,14 +60,17 @@ class AnnotationImpl implements InvocationHandler {
            {
               Object obj = args[0];
               if (obj == null || obj instanceof Proxy == false)
-                 return false;
+                 return Boolean.FALSE;
               Object other = Proxy.getInvocationHandler(obj);
-              return this.equals(other);
+              if (this.equals(other))
+                 return Boolean.TRUE;
+              else
+                 return Boolean.FALSE;
            }
            if ("toString".equals(name))
               return annotation.getTypeName() + '@' + hashCode();
            if ("hashCode".equals(name))
-              return hashCode();
+              return new Integer(hashCode());
         }
         MemberValue mv = annotation.getMemberValue(name);
         if (mv == null)
