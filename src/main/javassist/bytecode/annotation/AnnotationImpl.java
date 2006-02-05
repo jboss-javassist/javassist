@@ -24,7 +24,7 @@ import javassist.bytecode.MethodInfo;
 
 import java.lang.reflect.*;
 
-class AnnotationImpl implements InvocationHandler {
+public class AnnotationImpl implements InvocationHandler {
     private Annotation annotation;
     private ClassPool pool;
     private ClassLoader classLoader;
@@ -50,6 +50,11 @@ class AnnotationImpl implements InvocationHandler {
         classLoader = loader;
     }
 
+    public String getTypeName()
+    {
+       return annotation.getTypeName();
+    }
+    
     public Object invoke(Object proxy, Method method, Object[] args)
         throws Throwable
     {
