@@ -56,6 +56,24 @@ public class EnclosingMethodAttribute extends AttributeInfo {
     }
 
     /**
+     * Constructs an EnclosingMethod attribute.
+     *
+     * @param cp                a constant pool table.
+     * @param className         the name of the innermost enclosing class.
+     */
+    public EnclosingMethodAttribute(ConstPool cp, String className) {
+        super(cp, tag);
+        int ci = cp.addClassInfo(className);
+        int ni = 0;
+        byte[] bvalue = new byte[4];
+        bvalue[0] = (byte)(ci >>> 8);
+        bvalue[1] = (byte)ci;
+        bvalue[2] = (byte)(ni >>> 8);
+        bvalue[3] = (byte)ni;
+        set(bvalue);
+    }
+
+    /**
      * Returns the value of <code>class_index</code>.
      */
     public int classIndex() {
@@ -105,6 +123,8 @@ public class EnclosingMethodAttribute extends AttributeInfo {
      *                          class names.
      */
     public AttributeInfo copy(ConstPool newCp, Map classnames) {
+        if (methodIndex() == 0) 
+            return new EnclosingMethodAttribute(newCp, className());
         return new EnclosingMethodAttribute(newCp, className(),
                                             methodName(), methodDescriptor());
     }
