@@ -57,6 +57,7 @@ public class EnclosingMethodAttribute extends AttributeInfo {
 
     /**
      * Constructs an EnclosingMethod attribute.
+     * The value of <code>method_index</code> is set to 0.
      *
      * @param cp                a constant pool table.
      * @param className         the name of the innermost enclosing class.
@@ -125,7 +126,8 @@ public class EnclosingMethodAttribute extends AttributeInfo {
     public AttributeInfo copy(ConstPool newCp, Map classnames) {
         if (methodIndex() == 0) 
             return new EnclosingMethodAttribute(newCp, className());
-        return new EnclosingMethodAttribute(newCp, className(),
+        else
+            return new EnclosingMethodAttribute(newCp, className(),
                                             methodName(), methodDescriptor());
     }
 }

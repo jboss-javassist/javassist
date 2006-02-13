@@ -24,6 +24,10 @@ import javassist.bytecode.MethodInfo;
 
 import java.lang.reflect.*;
 
+/**
+ * Internal-use only.  This is a helper class internally used for implementing
+ * <code>toAnnotationType()</code> in <code>Annotation</code>.  
+ */
 public class AnnotationImpl implements InvocationHandler {
     private Annotation annotation;
     private ClassPool pool;
@@ -50,33 +54,38 @@ public class AnnotationImpl implements InvocationHandler {
         classLoader = loader;
     }
 
-    public String getTypeName()
-    {
-       return annotation.getTypeName();
+    /**
+     * Obtains the name of the annotation type.
+     */
+    public String getTypeName() {
+        return annotation.getTypeName();
     }
-    
+
+    /**
+     * Executes a method invocation on a proxy instance.
+     */
     public Object invoke(Object proxy, Method method, Object[] args)
         throws Throwable
     {
-       String name = method.getName();
-        if (Object.class == method.getDeclaringClass())
-        {
-           if ("equals".equals(name))
-           {
-              Object obj = args[0];
-              if (obj == null || obj instanceof Proxy == false)
-                 return Boolean.FALSE;
-              Object other = Proxy.getInvocationHandler(obj);
-              if (this.equals(other))
-                 return Boolean.TRUE;
-              else
-                 return Boolean.FALSE;
-           }
-           if ("toString".equals(name))
-              return annotation.getTypeName() + '@' + hashCode();
-           if ("hashCode".equals(name))
-              return new Integer(hashCode());
+        String name = method.getName();
+        if (Object.class == method.getDeclaringClass()) {
+            if ("equals".equals(name)) {
+                Object obj = args[0];
+                if (obj == null || obj instanceof Proxy == false)
+                    return Boolean.FALSE;
+
+                Object other = Proxy.getInvocationHandler(obj);
+                if (this.equals(other))
+                    return Boolean.TRUE;
+                else
+                    return Boolean.FALSE;
+            }
+            else if ("toString".equals(name))
+                return annotation.getTypeName() + '@' + hashCode();
+            else if ("hashCode".equals(name))
+                return new Integer(hashCode());
         }
+
         MemberValue mv = annotation.getMemberValue(name);
         if (mv == null)
             return getDefault(name, method);
