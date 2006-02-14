@@ -114,6 +114,7 @@ public class ProxyFactory {
     private static final String HOLDER = "_methods_";
     private static final String HOLDER_TYPE = "[Ljava/lang/reflect/Method;";
     private static final String HANDLER = "handler";
+    private static final String NULL_INTERCEPTOR_HOLDER = "javassist.util.proxy.RuntimeSupport";
     private static final String DEFAULT_INTERCEPTOR = "default_interceptor";
     private static final String HANDLER_TYPE
         = 'L' + MethodHandler.class.getName().replace('.', '/') + ';';
@@ -127,14 +128,7 @@ public class ProxyFactory {
         superClass = null;
         interfaces = null;
         methodFilter = null;
-        handler = new MethodHandler() {
-            public Object invoke(Object self, Method m,
-                                 Method proceed, Object[] args)
-                throws Exception
-            {
-                return proceed.invoke(self, args);
-            }
-        };
+        handler = null;
         thisClass = null;
         writeDirectory = null;
     }
@@ -460,14 +454,21 @@ public class ProxyFactory {
         minfo.setAccessFlags(Modifier.PUBLIC);      // cons.getModifiers() & ~Modifier.NATIVE
         setThrows(minfo, cp, cons.getExceptionTypes());
         Bytecode code = new Bytecode(cp, 0, 0);
+
         code.addAload(0);
         code.addGetstatic(thisClassName, DEFAULT_INTERCEPTOR, HANDLER_TYPE);
+        code.addOpcode(Opcode.DUP);
+        code.addOpcode(Opcode.IFNONNULL);
+        code.addIndex(7);
+        code.addOpcode(Opcode.POP);
+        code.addGetstatic(NULL_INTERCEPTOR_HOLDER, DEFAULT_INTERCEPTOR, HANDLER_TYPE);
         code.addPutfield(thisClassName, HANDLER, HANDLER_TYPE);
+
         code.addAload(0);
         int s = addLoadParameters(code, cons.getParameterTypes(), 1);
         code.addInvokespecial(superClass.getName(), "<init>", desc);
         code.addOpcode(Opcode.RETURN);
-        code.setMaxLocals(++s);
+        code.setMaxLocals(s + 1);
         minfo.setCodeAttribute(code.toCodeAttribute());
         return minfo;
     }

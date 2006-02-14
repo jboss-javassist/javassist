@@ -24,6 +24,18 @@ import java.lang.reflect.Method;
  */
 public class RuntimeSupport {
     /**
+     * A method handler that only executes a method.
+     */
+    public static MethodHandler default_interceptor = new MethodHandler() {
+        public Object invoke(Object self, Method m,
+                             Method proceed, Object[] args)
+            throws Exception
+        {
+            return proceed.invoke(self, args);
+        }
+    };
+
+    /**
      * Finds a method with the given name and descriptor.
      * It searches only the class of self.
      *
