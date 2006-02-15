@@ -37,6 +37,9 @@ public class NewExpr extends Expr {
         newPos = np;
     }
 
+    /*
+     * Not used
+     * 
     private int getNameAndType(ConstPool cp) {
         int pos = currentPos;
         int c = iterator.byteAt(pos);
@@ -46,7 +49,7 @@ public class NewExpr extends Expr {
             return cp.getInterfaceMethodrefNameAndType(index);
         else
             return cp.getMethodrefNameAndType(index);
-    }
+    } */
 
     /**
      * Returns the method or constructor containing the <tt>new</tt>
@@ -85,6 +88,18 @@ public class NewExpr extends Expr {
      */
     public String getClassName() {
         return newTypeName;
+    }
+
+    /**
+     * Get the signature of the constructor
+     * 
+     * @return the signature
+     */
+    public String getSignature()
+    {
+        ConstPool constPool = getConstPool();
+        int methodIndex = iterator.u16bitAt(currentPos + 1);   // constructor
+        return constPool.getMethodrefType(methodIndex);
     }
 
     /**
@@ -131,7 +146,7 @@ public class NewExpr extends Expr {
             throw new CannotCompileException(
                         "sorry, cannot edit NEW followed by no DUP");
     }
-
+    
     /**
      * Replaces the <tt>new</tt> expression with the bytecode derived from
      * the given source text.
