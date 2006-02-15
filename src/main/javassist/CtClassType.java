@@ -426,8 +426,10 @@ class CtClassType extends CtClass {
         int numParameters = 0;
         if (a1 != null) 
             numParameters = a1.numParameters();
-        else
+        else if (a2 != null)
             numParameters = a2.numParameters();
+        else
+           return new Object[0][];
 
         Object[][] result = new Object[numParameters][];
         ClassLoader cl = Thread.currentThread().getContextClassLoader();
