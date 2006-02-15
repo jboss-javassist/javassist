@@ -43,6 +43,7 @@ import javassist.bytecode.EnclosingMethodAttribute;
 import javassist.bytecode.FieldInfo;
 import javassist.bytecode.InnerClassesAttribute;
 import javassist.bytecode.MethodInfo;
+import javassist.bytecode.ParameterAnnotationsAttribute;
 import javassist.bytecode.annotation.Annotation;
 import javassist.compiler.AccessorMaker;
 import javassist.compiler.CompileError;
@@ -416,6 +417,47 @@ class CtClassType extends CtClass {
 
         for (int j = 0; j < size2; j++)
             result[j + size1] = anno2[j].toAnnotationType(cl, cp);
+
+        return result;
+    }
+
+    static Object[][] toAnnotationType(ClassPool cp, ParameterAnnotationsAttribute a1,
+                                     ParameterAnnotationsAttribute a2) throws ClassNotFoundException {
+        int numParameters = 0;
+        if (a1 != null) 
+            numParameters = a1.numParameters();
+        else
+            numParameters = a2.numParameters();
+
+        Object[][] result = new Object[numParameters][];
+        ClassLoader cl = Thread.currentThread().getContextClassLoader();
+        for (int i = 0; i < numParameters; i++) {
+            Annotation[] anno1, anno2;
+            int size1, size2;
+
+            if (a1 == null) {
+                anno1 = null;
+                size1 = 0;
+            }
+            else {
+                anno1 = a1.getAnnotations()[i];
+                size1 = anno1.length;
+            }
+
+            if (a2 == null) {
+                anno2 = null;
+                size2 = 0;
+            }
+            else {
+                anno2 = a2.getAnnotations()[i];
+                size2 = anno2.length;
+            }
+            result[i] = new Object[size1 + size2];
+            for (int j = 0; j < size1; ++j)
+               result[i][j] = anno1[j].toAnnotationType(cl, cp);
+            for (int j = 0; j < size2; ++j)
+               result[i][j + size1] = anno2[j].toAnnotationType(cl, cp);
+        }
 
         return result;
     }

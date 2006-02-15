@@ -153,6 +153,23 @@ public abstract class CtBehavior extends CtMember {
     }
 
     /**
+     * Returns the parameter annotations associated with this method or constructor.
+     *
+     * @return an array of annotation-type objects.
+     * @see CtMember#getAnnotations()
+     * @since 3.1
+     */
+    public Object[][] getParameterAnnotations() throws ClassNotFoundException {
+        MethodInfo mi = getMethodInfo2();
+        ParameterAnnotationsAttribute ainfo = (ParameterAnnotationsAttribute)
+                    mi.getAttribute(ParameterAnnotationsAttribute.invisibleTag);  
+        ParameterAnnotationsAttribute ainfo2 = (ParameterAnnotationsAttribute)
+                    mi.getAttribute(ParameterAnnotationsAttribute.visibleTag);  
+        return CtClassType.toAnnotationType(getDeclaringClass().getClassPool(),
+                                            ainfo, ainfo2);
+    }
+
+    /**
      * Obtains parameter types of this method/constructor.
      */
     public CtClass[] getParameterTypes() throws NotFoundException {
