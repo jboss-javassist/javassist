@@ -422,7 +422,9 @@ class CtClassType extends CtClass {
     }
 
     static Object[][] toAnnotationType(ClassPool cp, ParameterAnnotationsAttribute a1,
-                                     ParameterAnnotationsAttribute a2) throws ClassNotFoundException {
+                                       ParameterAnnotationsAttribute a2)
+        throws ClassNotFoundException
+    {
         int numParameters = 0;
         if (a1 != null) 
             numParameters = a1.numParameters();
@@ -454,6 +456,7 @@ class CtClassType extends CtClass {
                 anno2 = a2.getAnnotations()[i];
                 size2 = anno2.length;
             }
+
             result[i] = new Object[size1 + size2];
             for (int j = 0; j < size1; ++j)
                result[i][j] = anno1[j].toAnnotationType(cl, cp);

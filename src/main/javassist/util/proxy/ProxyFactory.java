@@ -16,6 +16,7 @@
 package javassist.util.proxy;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Member;
@@ -183,6 +184,21 @@ public class ProxyFactory {
         else
             return this.getClass().getClassLoader();
             // return Thread.currentThread().getContextClassLoader();
+    }
+
+    /**
+     * Creates a proxy class and returns an instance of that class.
+     *
+     * @param paramTypes    parameter types for a constructor.
+     * @param args          arguments passed to a constructor.
+     */
+    public Object create(Class[] paramTypes, Object[] args)
+        throws NoSuchMethodException, IllegalArgumentException,
+               InstantiationException, IllegalAccessException, InvocationTargetException
+    {
+        Class c = createClass();
+        Constructor cons = c.getConstructor(paramTypes);
+        return cons.newInstance(args);
     }
 
     /**

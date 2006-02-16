@@ -95,8 +95,7 @@ public class NewExpr extends Expr {
      * 
      * @return the signature
      */
-    public String getSignature()
-    {
+    public String getSignature() {
         ConstPool constPool = getConstPool();
         int methodIndex = iterator.u16bitAt(currentPos + 1);   // constructor
         return constPool.getMethodrefType(methodIndex);
@@ -146,7 +145,7 @@ public class NewExpr extends Expr {
             throw new CannotCompileException(
                         "sorry, cannot edit NEW followed by no DUP");
     }
-    
+
     /**
      * Replaces the <tt>new</tt> expression with the bytecode derived from
      * the given source text.
