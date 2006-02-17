@@ -762,7 +762,15 @@ public class ClassPool {
      * @see #toClass(CtClass, java.lang.ClassLoader)
      */
     public Class toClass(CtClass clazz) throws CannotCompileException {
-        return toClass(clazz, Thread.currentThread().getContextClassLoader());
+        return toClass(clazz, getContextClassLoader()); 
+    }
+
+    /**
+     * Obtains a class loader that seems appropriate to look up a class
+     * by name. 
+     */
+    static ClassLoader getContextClassLoader() {
+        return Thread.currentThread().getContextClassLoader();
     }
 
     /**
