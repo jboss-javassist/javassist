@@ -362,28 +362,6 @@ public final class ConstPool {
     }
 
     /**
-     * Changed the Utf8Info of the <code>name_index</code> field of the
-     * <code>CONSTANT_NameAndType_info</code> structure
-     * indirectly specified by the given index.
-     *
-     * @param index     an index to a <code>CONSTANT_Methodref_info</code>.
-     * @param string    the new Utf8 string
-     */
-    public void setMethodrefType(int index, String string) {
-        MethodrefInfo minfo = (MethodrefInfo)getItem(index);
-        if (minfo == null)
-            throw new IllegalArgumentException("Not a Methodref_info " + index);
-        else {
-            NameAndTypeInfo n
-                = (NameAndTypeInfo)getItem(minfo.nameAndTypeIndex);
-            if(n == null)
-                throw new IllegalStateException("Unable to find NameAndTypeInfo " + index);
-            else
-                setUtf8Info(n.typeDescriptor, string);
-        }
-    }
-
-    /**
      * Reads the <code>class_index</code> field of the
      * <code>CONSTANT_InterfaceMethodref_info</code> structure
      * at the given index.
@@ -465,29 +443,6 @@ public final class ConstPool {
                 return getUtf8Info(n.typeDescriptor);
         }
     }
-    
-    /**
-     * Changed the Utf8Info of the <code>name_index</code> field of the
-     * <code>CONSTANT_NameAndType_info</code> structure
-     * indirectly specified by the given index.
-     *
-     * @param index     an index to a <code>CONSTANT_Methodref_info</code>.
-     * @param string    the new Utf8 string
-     */
-    public void setInterfaceMethodrefType(int index, String string) {
-        InterfaceMethodrefInfo minfo = (InterfaceMethodrefInfo)getItem(index);
-        if (minfo == null)
-            throw new IllegalArgumentException("Not an InterfaceMethodref_info " + index);
-        else {
-            NameAndTypeInfo n
-                = (NameAndTypeInfo)getItem(minfo.nameAndTypeIndex);
-            if(n == null)
-                throw new IllegalStateException("Unable to find NameAndTypeInfo " + index);
-            else
-                setUtf8Info(n.typeDescriptor, string);
-        }
-    }
-
     /**
      * Reads <code>CONSTANT_Integer_info</code>, <code>_Float_info</code>,
      * <code>_Long_info</code>, <code>_Double_info</code>, or
@@ -580,18 +535,6 @@ public final class ConstPool {
     public String getUtf8Info(int index) {
         Utf8Info utf = (Utf8Info)getItem(index);
         return utf.string;
-    }
-
-    /**
-     * Sets <code>CONSTANT_utf8_info</code> structure
-     * at the given index.
-     *
-     * @param index the index
-     * @param string the string specified by this entry.
-     */
-    private void setUtf8Info(int index, String string) {
-        Utf8Info utf = (Utf8Info)getItem(index);
-        utf.string = string;
     }
 
     /**
