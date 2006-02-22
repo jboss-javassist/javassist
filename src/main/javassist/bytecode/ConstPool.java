@@ -589,7 +589,7 @@ public final class ConstPool {
      * @param index the index
      * @param string the string specified by this entry.
      */
-    public void setUtf8Info(int index, String string) {
+    private void setUtf8Info(int index, String string) {
         Utf8Info utf = (Utf8Info)getItem(index);
         utf.string = string;
     }
