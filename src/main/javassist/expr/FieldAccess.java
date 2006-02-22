@@ -123,15 +123,18 @@ public class FieldAccess extends Expr {
         return super.mayThrow();
     }
 
-    /*
-     * Returns the type of the field.
-
-    public CtClass getFieldType() throws NotFoundException {
+    /**
+     * Returns the signature of the field type.
+     * The signature is represented by a character string
+     * called field descriptor, which is defined in the JVM specification.
+     *
+     * @see javassist.bytecode.Descriptor#toCtClass(String, ClassPool)
+     * @since 3.1
+     */
+    public String getSignature() {
         int index = iterator.u16bitAt(currentPos + 1);
-        String type = getConstPool().getFieldrefType(index);
-        return Descriptor.toCtClass(type, thisClass.getClassPool());
+        return getConstPool().getFieldrefType(index);
     }
-    */
 
     /**
      * Replaces the method call with the bytecode derived from

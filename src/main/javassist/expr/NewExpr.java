@@ -92,7 +92,12 @@ public class NewExpr extends Expr {
 
     /**
      * Get the signature of the constructor
-     * 
+     *
+     * The signature is represented by a character string
+     * called method descriptor, which is defined in the JVM specification.
+     *
+     * @see javassist.CtBehavior#getSignature()
+     * @see javassist.bytecode.Descriptor
      * @return the signature
      */
     public String getSignature() {
