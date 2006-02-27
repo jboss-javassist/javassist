@@ -51,7 +51,7 @@ public abstract class CtClass {
     /**
      * The version number of this release.
      */
-    public static final String version = "3.1";
+    public static final String version = "3.2 beta";
 
     /**
      * Prints the version number and the copyright notice.
@@ -461,6 +461,17 @@ public abstract class CtClass {
     }
 
     /**
+     * Returns an array of nested classes declared in the class.
+     * Nested classes are inner classes, anonymous classes, local classes,
+     * and static nested classes.
+     *
+     * @since 3.2
+     */
+    public CtClass[] getNestedClasses() throws NotFoundException {
+        return new CtClass[0];
+    }
+
+    /**
      * Sets the modifiers.
      *
      * <p>If the class is a nested class, this method also modifies
@@ -571,7 +582,7 @@ public abstract class CtClass {
     /**
      * Makes a new public nested class.  If this method is called,
      * the <code>CtClass</code>, which encloses the nested class, is modified
-     * since a class file includes a list of inner classes.  
+     * since a class file includes a list of nested classes.  
      *
      * <p>The current implementation only supports a static nested class.
      * <code>isStatic</code> must be true.

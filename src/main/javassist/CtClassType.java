@@ -369,6 +369,32 @@ class CtClassType extends CtClass {
         return AccessFlag.toModifier(acc);
     }
 
+    public CtClass[] getNestedClasses() throws NotFoundException {
+        ClassFile cf = getClassFile2();
+        InnerClassesAttribute ica
+            = (InnerClassesAttribute)cf.getAttribute(InnerClassesAttribute.tag);
+        if (ica == null)
+            return new CtClass[0];
+
+        String thisName = cf.getName();
+        int n = ica.tableLength();
+        ArrayList list = new ArrayList(n);
+        for (int i = 0; i < n; i++) {
+            String outer = ica.outerClass(i);
+            /*
+             * If a nested class is local or anonymous,
+             * the outer_class_info_index is 0.
+             */
+            if (outer == null || outer.equals(thisName)) {
+                String inner = ica.innerClass(i);
+                if (inner != null)
+                    list.add(classPool.get(inner));
+            }
+        }
+
+        return (CtClass[])list.toArray(new CtClass[list.size()]);
+    }
+
     public void setModifiers(int mod) {
         if (Modifier.isStatic(mod))
             throw new RuntimeException("cannot set to static");
