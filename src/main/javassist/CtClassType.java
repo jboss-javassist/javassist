@@ -437,12 +437,11 @@ class CtClassType extends CtClass {
         }
 
         Object[] result = new Object[size1 + size2];
-        ClassLoader cl = ClassPool.getContextClassLoader();
         for (int i = 0; i < size1; i++)
-            result[i] = anno1[i].toAnnotationType(cl, cp);
+            result[i] = toAnnoType(anno1[i], cp);
 
         for (int j = 0; j < size2; j++)
-            result[j + size1] = anno2[j].toAnnotationType(cl, cp);
+            result[j + size1] = toAnnoType(anno2[j], cp);
 
         return result;
     }
@@ -460,7 +459,6 @@ class CtClassType extends CtClass {
            return new Object[0][];
 
         Object[][] result = new Object[numParameters][];
-        ClassLoader cl = ClassPool.getContextClassLoader();
         for (int i = 0; i < numParameters; i++) {
             Annotation[] anno1, anno2;
             int size1, size2;
@@ -485,13 +483,26 @@ class CtClassType extends CtClass {
 
             result[i] = new Object[size1 + size2];
             for (int j = 0; j < size1; ++j)
-               result[i][j] = anno1[j].toAnnotationType(cl, cp);
+                result[i][j] = toAnnoType(anno1[j], cp);
 
             for (int j = 0; j < size2; ++j)
-               result[i][j + size1] = anno2[j].toAnnotationType(cl, cp);
+                result[i][j + size1] = toAnnoType(anno2[j], cp);
         }
 
         return result;
+    }
+
+    private static Object toAnnoType(Annotation anno, ClassPool cp)
+        throws ClassNotFoundException
+    {
+        try {
+            ClassLoader cl = ClassPool.getContextClassLoader();
+            return anno.toAnnotationType(cl, cp);
+        }
+        catch (ClassNotFoundException e) {
+            ClassLoader cl2 = cp.getClass().getClassLoader();
+            return anno.toAnnotationType(cl2, cp);
+        }
     }
 
     public boolean subclassOf(CtClass superclass) {

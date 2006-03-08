@@ -1137,7 +1137,7 @@ public abstract class CtClass {
      * @param directoryName     it must end without a directory separator.
      */
     public void writeFile(String directoryName)
-        throws NotFoundException, CannotCompileException, IOException
+        throws CannotCompileException, IOException
     {
         String classname = getName();
         String filename = directoryName + File.separatorChar
