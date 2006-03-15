@@ -754,7 +754,10 @@ public class ClassPool {
      * To load the class, this method uses the context class loader
      * of the current thread.  If the program is running on some application
      * server, the context class loader might be inappropriate to load the
-     * class.
+     * class.<p>
+     * 
+     * This can be changed by subclassing the pool and changing
+     * the getClassLoader() method.
      *
      * <p>This method is provided for convenience.  If you need more
      * complex functionality, you should write your own class loader.
@@ -762,9 +765,20 @@ public class ClassPool {
      * @see #toClass(CtClass, java.lang.ClassLoader)
      */
     public Class toClass(CtClass clazz) throws CannotCompileException {
-        return toClass(clazz, getContextClassLoader()); 
+        return toClass(clazz, getClassLoader()); 
     }
 
+    /**
+     * Get the classloader for this pool.<p>
+     * 
+     * The default is the context class loader.
+     * 
+     * @return the classloader for the pool
+     */
+    public ClassLoader getClassLoader() {
+        return getContextClassLoader();
+    }
+    
     /**
      * Obtains a class loader that seems appropriate to look up a class
      * by name. 

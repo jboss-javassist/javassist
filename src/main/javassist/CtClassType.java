@@ -496,7 +496,7 @@ class CtClassType extends CtClass {
         throws ClassNotFoundException
     {
         try {
-            ClassLoader cl = ClassPool.getContextClassLoader();
+            ClassLoader cl = cp.getClassLoader();
             return anno.toAnnotationType(cl, cp);
         }
         catch (ClassNotFoundException e) {
