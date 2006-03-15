@@ -140,6 +140,11 @@ public final class MethodInfo {
             newAttributes.add(visibleAnnotations);
          }
 
+         AnnotationDefaultAttribute defaultAttribute
+              = (AnnotationDefaultAttribute) getAttribute(AnnotationDefaultAttribute.tag);
+         if (defaultAttribute != null)
+             newAttributes.add(defaultAttribute);
+
          ExceptionsAttribute ea = getExceptionsAttribute();
          if (ea != null)
              newAttributes.add(ea);
