@@ -126,33 +126,48 @@ public final class MethodInfo {
 
     void prune(ConstPool cp) {
         LinkedList newAttributes = new LinkedList();
+
         AttributeInfo invisibleAnnotations
             = getAttribute(AnnotationsAttribute.invisibleTag);
         if (invisibleAnnotations != null) {
             invisibleAnnotations = invisibleAnnotations.copy(cp, null);
             newAttributes.add(invisibleAnnotations);
-         }
+        }
 
         AttributeInfo visibleAnnotations
             = getAttribute(AnnotationsAttribute.visibleTag);
         if (visibleAnnotations != null) {
             visibleAnnotations = visibleAnnotations.copy(cp, null);
             newAttributes.add(visibleAnnotations);
-         }
+        }
 
-         AnnotationDefaultAttribute defaultAttribute
-              = (AnnotationDefaultAttribute) getAttribute(AnnotationDefaultAttribute.tag);
-         if (defaultAttribute != null)
-             newAttributes.add(defaultAttribute);
+        AttributeInfo parameterInvisibleAnnotations
+            = getAttribute(ParameterAnnotationsAttribute.invisibleTag);
+        if (parameterInvisibleAnnotations != null) {
+            parameterInvisibleAnnotations = parameterInvisibleAnnotations.copy(cp, null);
+            newAttributes.add(parameterInvisibleAnnotations);
+        }
 
-         ExceptionsAttribute ea = getExceptionsAttribute();
-         if (ea != null)
-             newAttributes.add(ea);
+        AttributeInfo parameterVisibleAnnotations
+            = getAttribute(ParameterAnnotationsAttribute.visibleTag);
+        if (parameterVisibleAnnotations != null) {
+            parameterVisibleAnnotations = parameterVisibleAnnotations.copy(cp, null);
+            newAttributes.add(parameterVisibleAnnotations);
+        }
 
-         attribute = newAttributes;
-         name = cp.addUtf8Info(getName());
-         descriptor = cp.addUtf8Info(getDescriptor());
-         constPool = cp;
+        AnnotationDefaultAttribute defaultAttribute
+             = (AnnotationDefaultAttribute) getAttribute(AnnotationDefaultAttribute.tag);
+        if (defaultAttribute != null)
+            newAttributes.add(defaultAttribute);
+
+        ExceptionsAttribute ea = getExceptionsAttribute();
+        if (ea != null)
+            newAttributes.add(ea);
+
+        attribute = newAttributes;
+        name = cp.addUtf8Info(getName());
+        descriptor = cp.addUtf8Info(getDescriptor());
+        constPool = cp;
     }
 
     /**
