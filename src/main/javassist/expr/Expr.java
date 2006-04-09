@@ -301,14 +301,13 @@ public abstract class Expr implements Opcode {
         codeAttr.setMaxLocals(newLocals);
         ExprEditor.LoopContext context
             = new ExprEditor.LoopContext(newLocals);
-        CodeIterator iterator = codeAttr.iterator();
-        iterator.move(currentPos);
-        int size = iterator.getCodeLength();
+        int size = oldIterator.getCodeLength();
         int endPos = oldIterator.lookAhead();
-        if (ed.doit(thisClass, thisMethod, context, iterator, endPos))
+        oldIterator.move(currentPos);
+        if (ed.doit(thisClass, thisMethod, context, oldIterator, endPos))
             edited = true;
 
-        oldIterator.move(endPos + iterator.getCodeLength() - size);
+        oldIterator.move(endPos + oldIterator.getCodeLength() - size);
         codeAttr.setMaxLocals(orgLocals);
         codeAttr.setMaxStack(orgStack);
         maxLocals = context.maxLocals;

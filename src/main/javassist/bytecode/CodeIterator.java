@@ -18,6 +18,11 @@ package javassist.bytecode;
 /**
  * An iterator for editing a code attribute.
  *
+ * <p>If there are multiple <code>CodeIterator</code>s referring to the
+ * same <code>Code_attribute</code>, then inserting a gap by one
+ * <code>CodeIterator</code> will break the other
+ * <code>CodeIterator</code>.
+ *
  * <p>This iterator does not provide <code>remove()</code>.
  * If a piece of code in a <code>Code_attribute</code> is unnecessary,
  * it should be overwritten with <code>NOP</code>.
@@ -30,7 +35,7 @@ public class CodeIterator implements Opcode {
     protected int endPos;
     protected int currentPos;
 
-    CodeIterator(CodeAttribute ca) {
+    protected CodeIterator(CodeAttribute ca) {
         codeAttr = ca;
         bytecode = ca.getCode();
         begin();
@@ -468,7 +473,19 @@ public class CodeIterator implements Opcode {
         codeAttr.setCode(c);
         bytecode = c;
         endPos = getCodeLength();
+        updateCursors(pos, length2);
         return length2;
+    }
+
+    /**
+     * Is called when a gap is inserted.  The default implementation is empty.
+     * A subclass can override this method so that cursors will be updated.
+     *
+     * @param pos           the position where a gap is inserted.
+     * @param length        the length of the gap.
+     */
+    protected void updateCursors(int pos, int length) {
+        // empty
     }
 
     /**
