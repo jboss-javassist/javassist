@@ -41,8 +41,8 @@ public interface MethodHandler {
      *                      is a wrapper class.
      * @return              the resulting value of the method invocation.
      *
-     * @throws Exception    if the method invocation fails.
+     * @throws Throwable    if the method invocation fails.
      */
     Object invoke(Object self, Method thisMethod, Method proceed,
-                  Object[] args) throws Exception;
+                  Object[] args) throws Throwable;
 }
