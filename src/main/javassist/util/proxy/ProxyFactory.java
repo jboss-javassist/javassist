@@ -178,16 +178,19 @@ public class ProxyFactory {
 
     protected ClassLoader getClassLoader() {
         // return Thread.currentThread().getContextClassLoader();
-        ClassLoader loader;
+        ClassLoader loader = null;
         if (superClass != null && !superClass.getName().equals("java.lang.Object"))
             loader = superClass.getClassLoader();
         else if (interfaces != null && interfaces.length > 0)
             loader = interfaces[0].getClassLoader();
-        else
-            loader = this.getClass().getClassLoader();
 
         if (loader == null)
-            loader = ClassLoader.getSystemClassLoader();
+        {
+            loader = getClass().getClassLoader();
+            // In case javassist is in the endorsed dir
+            if (loader == null)
+               loader = ClassLoader.getSystemClassLoader();
+        }
 
         return loader;
     }
