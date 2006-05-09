@@ -177,13 +177,19 @@ public class ProxyFactory {
     }
 
     protected ClassLoader getClassLoader() {
+        // return Thread.currentThread().getContextClassLoader();
+        ClassLoader loader;
         if (superClass != null && !superClass.getName().equals("java.lang.Object"))
-            return superClass.getClassLoader();
+            loader = superClass.getClassLoader();
         else if (interfaces != null && interfaces.length > 0)
-            return interfaces[0].getClassLoader();
+            loader = interfaces[0].getClassLoader();
         else
-            return this.getClass().getClassLoader();
-            // return Thread.currentThread().getContextClassLoader();
+            loader = this.getClass().getClassLoader();
+
+        if (loader == null)
+            loader = ClassLoader.getSystemClassLoader();
+
+        return loader;
     }
 
     /**
