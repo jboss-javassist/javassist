@@ -184,8 +184,7 @@ public class ProxyFactory {
         else if (interfaces != null && interfaces.length > 0)
             loader = interfaces[0].getClassLoader();
 
-        if (loader == null)
-        {
+        if (loader == null) {
             loader = getClass().getClassLoader();
             // In case javassist is in the endorsed dir
             if (loader == null)
