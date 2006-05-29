@@ -166,7 +166,7 @@ public abstract class CtBehavior extends CtMember {
         ParameterAnnotationsAttribute ainfo2 = (ParameterAnnotationsAttribute)
                     mi.getAttribute(ParameterAnnotationsAttribute.visibleTag);  
         return CtClassType.toAnnotationType(getDeclaringClass().getClassPool(),
-                                            ainfo, ainfo2);
+                                            ainfo, ainfo2, mi);
     }
 
     /**
@@ -324,7 +324,7 @@ public abstract class CtBehavior extends CtMember {
      * method returns null.
      *
      * <p>Note that an attribute is a data block specified by
-     * the class file format.
+     * the class file format.  It is not an annotation.
      * See {@link javassist.bytecode.AttributeInfo}.
      *
      * @param name              attribute name
@@ -341,7 +341,7 @@ public abstract class CtBehavior extends CtMember {
      * Adds an attribute. The attribute is saved in the class file.
      *
      * <p>Note that an attribute is a data block specified by
-     * the class file format.
+     * the class file format.  It is not an annotation.
      * See {@link javassist.bytecode.AttributeInfo}.
      *
      * @param name      attribute name

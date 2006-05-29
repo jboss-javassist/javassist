@@ -447,7 +447,7 @@ class CtClassType extends CtClass {
     }
 
     static Object[][] toAnnotationType(ClassPool cp, ParameterAnnotationsAttribute a1,
-                                       ParameterAnnotationsAttribute a2)
+                                       ParameterAnnotationsAttribute a2, MethodInfo minfo)
         throws ClassNotFoundException
     {
         int numParameters = 0;
@@ -456,7 +456,7 @@ class CtClassType extends CtClass {
         else if (a2 != null)
             numParameters = a2.numParameters();
         else
-           return new Object[0][];
+            numParameters = Descriptor.numOfParameters(minfo.getDescriptor());
 
         Object[][] result = new Object[numParameters][];
         for (int i = 0; i < numParameters; i++) {
