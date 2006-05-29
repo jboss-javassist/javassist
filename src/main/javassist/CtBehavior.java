@@ -155,7 +155,10 @@ public abstract class CtBehavior extends CtMember {
     /**
      * Returns the parameter annotations associated with this method or constructor.
      *
-     * @return an array of annotation-type objects.
+     * @return an array of annotation-type objects.  The length of the returned array is
+     * equal to the number of the formal parameters.  If each parameter has no
+     * annotation, the elements of the returned array are empty arrays.
+     *
      * @see CtMember#getAnnotations()
      * @since 3.1
      */
