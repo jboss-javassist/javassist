@@ -92,9 +92,13 @@ import java.util.Vector;
  * <p><b>Note 1:</b>
  *
  * <p>This class loader does not allow the users to intercept the loading
- * of <code>java.*</code> and <code>javax.*</code> classes unless
- * <code>Loader.doDelegation</code> is <code>false</code>.  Also see
- * Note 2.
+ * of <code>java.*</code> and <code>javax.*</code> classes (and
+ * <code>sun.*</code>, <code>org.xml.*</code>, ...) unless
+ * <code>Loader.doDelegation</code> is <code>false</code>.  This is because
+ * the JVM prohibits a user class loader from loading a system class.
+ * Also see Note 2.
+ * If this behavior is not appropriate, a subclass of <code>Loader</code>
+ * must be defined and <code>loadClassByDelegation()</code> must be overridden.
  *
  * <p><b>Note 2:</b>
  *
