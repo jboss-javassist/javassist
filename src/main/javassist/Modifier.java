@@ -132,6 +132,22 @@ public class Modifier {
     }
 
     /**
+     * Returns true if the modifiers include the <tt>annotation</tt>
+     * modifier.
+     */
+    public static boolean isAnnotation(int mod) {
+        return (mod & ANNOTATION) != 0;
+    }
+
+    /**
+     * Returns true if the modifiers include the <tt>enum</tt>
+     * modifier.
+     */
+    public static boolean isEnum(int mod) {
+        return (mod & ENUM) != 0;
+    }
+
+    /**
      * Returns true if the modifiers include the <tt>abstract</tt>
      * modifier.
      */

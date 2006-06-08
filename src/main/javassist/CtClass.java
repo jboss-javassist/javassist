@@ -434,6 +434,22 @@ public abstract class CtClass {
     }
 
     /**
+     * Determines whether this object represents an annotation type.
+     * It returns <code>true</code> if this object represents an annotation type.
+     */
+    public boolean isAnnotation() {
+        return false;
+    }
+
+    /**
+     * Determines whether this object represents an enum.
+     * It returns <code>true</code> if this object represents an enum.
+     */
+    public boolean isEnum() {
+        return false;
+    }
+
+    /**
      * Returns the modifiers for this class, encoded in an integer.
      * For decoding, use <code>javassist.Modifier</code>.
      *

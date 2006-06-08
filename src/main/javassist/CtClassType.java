@@ -358,6 +358,14 @@ class CtClassType extends CtClass {
         return Modifier.isInterface(getModifiers());
     }
 
+    public boolean isAnnotation() {
+        return Modifier.isAnnotation(getModifiers());
+    }
+
+    public boolean isEnum() {
+       return Modifier.isEnum(getModifiers());
+    }
+
     public int getModifiers() {
         ClassFile cf = getClassFile2();
         int acc = cf.getAccessFlags();
