@@ -15,6 +15,8 @@
 
 package javassist.compiler;
 
+import java.util.Arrays;
+
 import javassist.CtClass;
 import javassist.CtField;
 import javassist.ClassPool;
@@ -659,9 +661,8 @@ public class TypeChecker extends Visitor implements Opcode, TokenId {
             if (mname.equals(MethodInfo.nameInit))
                 msg = "constructor not found";
             else
-                msg = "Method " + mname + " not found in "
+                msg = "Method " + mname + Arrays.asList(cnames)+ " not found in "
                     + targetClass.getName();
-
             throw new CompileError(msg);
         }
 
