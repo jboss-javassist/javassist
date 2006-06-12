@@ -47,7 +47,7 @@ import javassist.bytecode.*;
  *     public Object invoke(Object self, Method m, Method proceed,
  *                          Object[] args) throws Throwable {
  *         System.out.println("Name: " + m.getName());
- *         proceed.invoke(self, args);  // execute the original method.
+ *         return proceed.invoke(self, args);  // execute the original method.
  *     }
  * };
  * f.setHandler(mi);

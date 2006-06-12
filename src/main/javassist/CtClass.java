@@ -436,6 +436,8 @@ public abstract class CtClass {
     /**
      * Determines whether this object represents an annotation type.
      * It returns <code>true</code> if this object represents an annotation type.
+     *
+     * @since 3.2
      */
     public boolean isAnnotation() {
         return false;
@@ -444,6 +446,8 @@ public abstract class CtClass {
     /**
      * Determines whether this object represents an enum.
      * It returns <code>true</code> if this object represents an enum.
+     *
+     * @since 3.2
      */
     public boolean isEnum() {
         return false;
