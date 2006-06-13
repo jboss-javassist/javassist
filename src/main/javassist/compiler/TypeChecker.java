@@ -15,8 +15,6 @@
 
 package javassist.compiler;
 
-import java.util.Arrays;
-
 import javassist.CtClass;
 import javassist.CtField;
 import javassist.ClassPool;
@@ -46,6 +44,56 @@ public class TypeChecker extends Visitor implements Opcode, TokenId {
         resolver = new MemberResolver(cp);
         thisClass = cc;
         thisMethod = null;
+    }
+
+    /*
+     * Converts an array of tuples of exprType, arrayDim, and className
+     * into a String object.
+     */
+    protected static String argTypesToString(int[] types, int[] dims,
+                                             String[] cnames) {
+        StringBuffer sbuf = new StringBuffer();
+        sbuf.append('(');
+        int n = types.length;
+        if (n > 0) {
+            int i = 0;
+            while (true) {
+                typeToString(sbuf, types[i], dims[i], cnames[i]);
+                if (++i < n)
+                    sbuf.append(',');
+                else
+                    break;
+            }
+        }
+
+        sbuf.append(')');
+        return sbuf.toString();
+    }
+
+    /*
+     * Converts a tuple of exprType, arrayDim, and className
+     * into a String object.
+     */
+    protected static StringBuffer typeToString(StringBuffer sbuf,
+                                        int type, int dim, String cname) {
+        String s;
+        if (type == CLASS)
+            s = MemberResolver.jvmToJavaName(cname);
+        else if (type == NULL)
+            s = "Object";
+        else
+            try {
+                s = MemberResolver.getTypeName(type);
+            }
+            catch (CompileError e) {
+                s = "?";
+            }
+
+        sbuf.append(s);
+        while (dim-- > 0)
+            sbuf.append("[]");
+
+        return sbuf;
     }
 
     /**
@@ -657,12 +705,14 @@ public class TypeChecker extends Visitor implements Opcode, TokenId {
             = resolver.lookupMethod(targetClass, thisClass, thisMethod,
                                     mname, types, dims, cnames);
         if (found == null) {
+            String clazz = targetClass.getName();
+            String signature = argTypesToString(types, dims, cnames); 
             String msg;
             if (mname.equals(MethodInfo.nameInit))
-                msg = "constructor not found";
+                msg = "cannot find constructor " + clazz + signature;
             else
-                msg = "Method " + mname + Arrays.asList(cnames)+ " not found in "
-                    + targetClass.getName();
+                msg = mname + signature +  " not found in " + clazz;
+
             throw new CompileError(msg);
         }
 

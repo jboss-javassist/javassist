@@ -323,15 +323,28 @@ public class MemberResolver implements TokenId {
     {
         String cname = "";
         CtClass clazz;
-        switch (type) {
-        case CLASS :
+        if (type == CLASS) {
             clazz = lookupClassByJvmName(classname);
             if (dim > 0)
                 cname = clazz.getName();
             else
                 return clazz;
+        }
+        else
+            cname = getTypeName(type);
 
-            break;
+        while (dim-- > 0)
+            cname += "[]";
+
+        return lookupClass(cname, false);
+    }
+
+    /*
+     * type cannot be CLASS
+     */
+    static String getTypeName(int type) throws CompileError {
+        String cname = "";
+        switch (type) {
         case BOOLEAN :
             cname = "boolean";
             break;
@@ -363,10 +376,7 @@ public class MemberResolver implements TokenId {
             fatal();
         }
 
-        while (dim-- > 0)
-            cname += "[]";
-
-        return lookupClass(cname, false);
+        return cname;
     }
 
     /**
