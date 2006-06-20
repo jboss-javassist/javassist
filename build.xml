@@ -6,7 +6,7 @@
 
 <project name="javassist" default="jar" basedir=".">
 
-  <property name="dist-version" value="javassist-3.2.0.CR2"/>
+  <property name="dist-version" value="javassist-3.2"/>
 
   <property environment="env"/>
   <property name="target.jar" value="javassist.jar"/>
