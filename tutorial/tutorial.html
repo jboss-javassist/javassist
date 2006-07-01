@@ -230,7 +230,11 @@ pool.insertClassPath(cp);
 
 <p>This program adds "http://www.javassist.org:80/java/" to the class search
 path.  This URL is used only for searching classes belonging to a
-package <code>org.javassist</code>.
+package <code>org.javassist</code>.  For example, to load a class
+<code>org.javassist.test.Main</code>, its class file will be obtained from:
+
+<ul><pre>http://www.javassist.org:80/java/org/javassist/test/Main.class
+</pre></ul>
 
 <p>Furthermore, you can directly give a byte array
 to a <code>ClassPool</code> object
