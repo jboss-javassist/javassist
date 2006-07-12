@@ -417,6 +417,8 @@ public class ProxyFactory {
      * @param mod       the modifiers of the method. 
      */
     private static boolean isVisible(int mod, String from, Member meth) {
+        if ((mod & Modifier.VOLATILE) != 0)
+         return false;
         if ((mod & Modifier.PRIVATE) != 0)
             return false;
         else if ((mod & (Modifier.PUBLIC | Modifier.PROTECTED)) != 0)
