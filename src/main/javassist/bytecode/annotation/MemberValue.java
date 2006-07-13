@@ -48,7 +48,43 @@ public abstract class MemberValue {
     static Class loadClass(ClassLoader cl, String classname)
         throws ClassNotFoundException
     {
-        return Class.forName(classname, true, cl);
+       if (classname.equals("void"))
+       {
+          return void.class;
+       }
+       if (classname.equals("int"))
+       {
+          return int.class;
+       }
+       if (classname.equals("byte"))
+       {
+          return byte.class;
+       }
+       if (classname.equals("long"))
+       {
+          return long.class;
+       }
+       if (classname.equals("double"))
+       {
+          return double.class;
+       }
+       if (classname.equals("float"))
+       {
+          return float.class;
+       }
+       if (classname.equals("char"))
+       {
+          return char.class;
+       }
+       if (classname.equals("short"))
+       {
+          return short.class;
+       }
+       if (classname.equals("boolean"))
+       {
+          return boolean.class;
+       }
+       return Class.forName(classname, true, cl);
     }
 
     /**
