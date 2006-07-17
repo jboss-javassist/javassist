@@ -413,15 +413,30 @@ class CtClassType extends CtClass {
     }
 
     public Object[] getAnnotations() throws ClassNotFoundException {
-        ClassFile cf = getClassFile2();
-        AnnotationsAttribute ainfo = (AnnotationsAttribute)
-                    cf.getAttribute(AnnotationsAttribute.invisibleTag);  
-        AnnotationsAttribute ainfo2 = (AnnotationsAttribute)
-                    cf.getAttribute(AnnotationsAttribute.visibleTag);  
-        return toAnnotationType(getClassPool(), ainfo, ainfo2);
+       return getAnnotations(false);
     }
 
-    static Object[] toAnnotationType(ClassPool cp, AnnotationsAttribute a1,
+    public Object[] getAvailableAnnotations(){
+       try
+       {
+           return getAnnotations(true);
+       }
+       catch (ClassNotFoundException e)
+       {
+           throw new RuntimeException("Unexpected exception ", e);
+       }
+    }
+
+    private Object[] getAnnotations(boolean ignoreNotFound) throws ClassNotFoundException {
+       ClassFile cf = getClassFile2();
+       AnnotationsAttribute ainfo = (AnnotationsAttribute)
+                   cf.getAttribute(AnnotationsAttribute.invisibleTag);  
+       AnnotationsAttribute ainfo2 = (AnnotationsAttribute)
+                   cf.getAttribute(AnnotationsAttribute.visibleTag);  
+       return toAnnotationType(ignoreNotFound, getClassPool(), ainfo, ainfo2);
+    }
+
+    static Object[] toAnnotationType(boolean ignoreNotFound, ClassPool cp, AnnotationsAttribute a1,
                                      AnnotationsAttribute a2) throws ClassNotFoundException {
         Annotation[] anno1, anno2;
         int size1, size2;
@@ -444,17 +459,37 @@ class CtClassType extends CtClass {
             size2 = anno2.length;
         }
 
-        Object[] result = new Object[size1 + size2];
-        for (int i = 0; i < size1; i++)
-            result[i] = toAnnoType(anno1[i], cp);
-
-        for (int j = 0; j < size2; j++)
-            result[j + size1] = toAnnoType(anno2[j], cp);
-
-        return result;
+        if (!ignoreNotFound){
+           Object[] result = new Object[size1 + size2];
+           for (int i = 0; i < size1; i++)
+               result[i] = toAnnoType(anno1[i], cp);
+   
+           for (int j = 0; j < size2; j++)
+               result[j + size1] = toAnnoType(anno2[j], cp);
+   
+           return result;
+        }
+        else{
+           ArrayList annotations = new ArrayList();
+           for (int i = 0 ; i < size1 ; i++){
+              try{
+                 annotations.add(toAnnoType(anno1[i], cp));
+              }catch(ClassNotFoundException e){
+              }
+           }
+           for (int j = 0; j < size2; j++)
+           {
+              try{
+                 annotations.add(toAnnoType(anno2[j], cp));
+              }catch(ClassNotFoundException e){
+              }
+           }
+           
+           return annotations.toArray();
+        }
     }
 
-    static Object[][] toAnnotationType(ClassPool cp, ParameterAnnotationsAttribute a1,
+    static Object[][] toAnnotationType(boolean ignoreNotFound, ClassPool cp, ParameterAnnotationsAttribute a1,
                                        ParameterAnnotationsAttribute a2, MethodInfo minfo)
         throws ClassNotFoundException
     {
@@ -489,12 +524,31 @@ class CtClassType extends CtClass {
                 size2 = anno2.length;
             }
 
-            result[i] = new Object[size1 + size2];
-            for (int j = 0; j < size1; ++j)
-                result[i][j] = toAnnoType(anno1[j], cp);
-
-            for (int j = 0; j < size2; ++j)
-                result[i][j + size1] = toAnnoType(anno2[j], cp);
+            if (!ignoreNotFound){
+                result[i] = new Object[size1 + size2];
+                for (int j = 0; j < size1; ++j)
+                    result[i][j] = toAnnoType(anno1[j], cp);
+   
+                for (int j = 0; j < size2; ++j)
+                    result[i][j + size1] = toAnnoType(anno2[j], cp);
+            }
+            else{
+                ArrayList annotations = new ArrayList();
+                for (int j = 0 ; j < size1 ; j++){
+                    try{
+                        annotations.add(toAnnoType(anno1[j], cp));
+                    }catch(ClassNotFoundException e){
+                    }
+                }
+                for (int j = 0; j < size2; j++){
+                    try{
+                        annotations.add(toAnnoType(anno2[j], cp));
+                    }catch(ClassNotFoundException e){
+                    }
+                }
+                  
+                result[i] = annotations.toArray();
+            }
         }
 
         return result;

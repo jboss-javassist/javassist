@@ -241,12 +241,35 @@ public class CtField extends CtMember {
      * @since 3.1
      */
     public Object[] getAnnotations() throws ClassNotFoundException {
+        return getAnnotations(false);
+    }
+
+    /**
+     * Returns the annotations associated with this field.
+     * If any annotations are not on the classpath, they are not returned
+     *
+     * @return an array of annotation-type objects.
+     * @see CtMember#getAnnotations()
+     * @since 3.3
+     */
+    public Object[] getAvailableAnnotations(){
+       try
+       {
+           return getAnnotations(true);
+       }
+       catch (ClassNotFoundException e)
+       {
+           throw new RuntimeException("Unexpected exception", e);
+       }
+    }
+    
+    private Object[] getAnnotations(boolean ignoreNotFound) throws ClassNotFoundException {
         FieldInfo fi = getFieldInfo2();
         AnnotationsAttribute ainfo = (AnnotationsAttribute)
                     fi.getAttribute(AnnotationsAttribute.invisibleTag);  
         AnnotationsAttribute ainfo2 = (AnnotationsAttribute)
                     fi.getAttribute(AnnotationsAttribute.visibleTag);  
-        return CtClassType.toAnnotationType(getDeclaringClass().getClassPool(),
+        return CtClassType.toAnnotationType(ignoreNotFound, getDeclaringClass().getClassPool(),
                                             ainfo, ainfo2);
     }
 

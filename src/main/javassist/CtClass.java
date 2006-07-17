@@ -481,6 +481,21 @@ public abstract class CtClass {
     }
 
     /**
+     * Returns the annotations associated with this class.
+     * For example, if an annotation <code>@Author</code> is associated
+     * with this class, the returned array contains an <code>Author</code>
+     * object.  The member values can be obtained by calling methods on
+     * the <code>Author</code> object. If any annotations are not on the
+     * classpath, they are not returned
+     *
+     * @return an array of annotation-type objects.
+     * @since 3.3
+     */
+    public Object[] getAvailableAnnotations(){
+       return new Object[0];
+    }
+
+    /**
      * Returns an array of nested classes declared in the class.
      * Nested classes are inner classes, anonymous classes, local classes,
      * and static nested classes.

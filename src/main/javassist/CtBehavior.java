@@ -143,13 +143,33 @@ public abstract class CtBehavior extends CtMember {
      * @since 3.1
      */
     public Object[] getAnnotations() throws ClassNotFoundException {
-        MethodInfo mi = getMethodInfo2();
-        AnnotationsAttribute ainfo = (AnnotationsAttribute)
-                    mi.getAttribute(AnnotationsAttribute.invisibleTag);  
-        AnnotationsAttribute ainfo2 = (AnnotationsAttribute)
-                    mi.getAttribute(AnnotationsAttribute.visibleTag);  
-        return CtClassType.toAnnotationType(getDeclaringClass().getClassPool(),
-                                            ainfo, ainfo2);
+       return getAnnotations(false);
+   }
+
+    /**
+     * Returns the annotations associated with this method or constructor.
+     * If any annotations are not on the classpath, they are not returned
+     * 
+     * @return an array of annotation-type objects.
+     * @see CtMember#getAnnotations()
+     * @since 3.3
+     */
+    public Object[] getAvailableAnnotations(){
+       try{
+           return getAnnotations(true);
+       }catch (ClassNotFoundException e){
+           throw new RuntimeException("Unexpected exception", e);
+       }
+    }
+
+    private Object[] getAnnotations(boolean ignoreNotFound) throws ClassNotFoundException {
+       MethodInfo mi = getMethodInfo2();
+       AnnotationsAttribute ainfo = (AnnotationsAttribute)
+                   mi.getAttribute(AnnotationsAttribute.invisibleTag);  
+       AnnotationsAttribute ainfo2 = (AnnotationsAttribute)
+                   mi.getAttribute(AnnotationsAttribute.visibleTag);  
+       return CtClassType.toAnnotationType(ignoreNotFound, getDeclaringClass().getClassPool(),
+                                           ainfo, ainfo2);
     }
 
     /**
@@ -163,15 +183,38 @@ public abstract class CtBehavior extends CtMember {
      * @since 3.1
      */
     public Object[][] getParameterAnnotations() throws ClassNotFoundException {
+        return getParameterAnnotations(false);
+    }
+
+    /**
+     * Returns the parameter annotations associated with this method or constructor.
+     * If any annotations are not on the classpath, they are not returned
+     * 
+     * @return an array of annotation-type objects.  The length of the returned array is
+     * equal to the number of the formal parameters.  If each parameter has no
+     * annotation, the elements of the returned array are empty arrays.
+     *
+     * @see CtMember#getAnnotations()
+     * @since 3.3
+     */
+    public Object[][] getAvailableParameterAnnotations(){
+        try {
+            return getParameterAnnotations(true);
+        }catch(ClassNotFoundException e) {
+            throw new RuntimeException("Unexpected exception", e);
+        }
+    }
+
+    Object[][] getParameterAnnotations(boolean ignoreNotFound) throws ClassNotFoundException {
         MethodInfo mi = getMethodInfo2();
         ParameterAnnotationsAttribute ainfo = (ParameterAnnotationsAttribute)
                     mi.getAttribute(ParameterAnnotationsAttribute.invisibleTag);  
         ParameterAnnotationsAttribute ainfo2 = (ParameterAnnotationsAttribute)
                     mi.getAttribute(ParameterAnnotationsAttribute.visibleTag);  
-        return CtClassType.toAnnotationType(getDeclaringClass().getClassPool(),
+        return CtClassType.toAnnotationType(ignoreNotFound, getDeclaringClass().getClassPool(),
                                             ainfo, ainfo2, mi);
     }
-
+    
     /**
      * Obtains parameter types of this method/constructor.
      */
