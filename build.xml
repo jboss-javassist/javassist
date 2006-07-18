@@ -105,11 +105,13 @@ to ${build.classes.dir}.</echo>
   </target>
 
   <target name="javadocs">
-    <javadoc packagenames="javassist.*"
-           excludepackagenames="javassist.compiler.*,javassist.convert.*"
+  	<mkdir dir="html"/>
+    <javadoc
+           Locale="en_US"
+           packagenames="javassist.*"
+           excludepackagenames="javassist.compiler.*,javassist.convert.*,javassist.scopedpool.*"
            sourcepath="src/main"
            defaultexcludes="yes"
-           locale="en_US"
            destdir="html"
            author="true"
            version="true"
