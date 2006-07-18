@@ -85,6 +85,11 @@ public class AnnotationImpl implements InvocationHandler {
             else if ("hashCode".equals(name))
                 return new Integer(hashCode());
         }
+        else if ("annotationType".equals(name) && method.getParameterTypes().length == 0)
+        {
+           return classLoader.loadClass(getTypeName());
+        }
+
 
         MemberValue mv = annotation.getMemberValue(name);
         if (mv == null)
