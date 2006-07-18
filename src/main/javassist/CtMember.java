@@ -158,16 +158,17 @@ public abstract class CtMember {
 
     /**
      * Returns the annotations associated with this member.
-     * For example, if an annotation <code>@Author</code> is associated
-     * with this member, the returned array contains an <code>Author</code>
-     * object.  The member values can be obtained by calling methods on
-     * the <code>Author</code> object.
-     * If any annotations are not on the classpath, they are not returned
+     * This method is equivalent to <code>getAnnotations()</code>
+     * except that, if any annotations are not on the classpath,
+     * they are not included in the returned array.
      *
      * @return an array of annotation-type objects.
-     * @see CtClass#getAnnotations()
+     * @see #getAnnotations()
+     * @see CtClass#getAvailableAnnotations()
+     * @since 3.3
      */
-    public abstract Object[] getAvailableAnnotations() throws ClassNotFoundException;
+    public abstract Object[] getAvailableAnnotations()
+        throws ClassNotFoundException;
 
 
     /**

@@ -237,7 +237,7 @@ public class CtField extends CtMember {
      * Returns the annotations associated with this field.
      *
      * @return an array of annotation-type objects.
-     * @see CtMember#getAnnotations()
+     * @see #getAvailableAnnotations()
      * @since 3.1
      */
     public Object[] getAnnotations() throws ClassNotFoundException {
@@ -246,23 +246,22 @@ public class CtField extends CtMember {
 
     /**
      * Returns the annotations associated with this field.
-     * If any annotations are not on the classpath, they are not returned
+     * If any annotations are not on the classpath, they are not included
+     * in the returned array.
      *
      * @return an array of annotation-type objects.
-     * @see CtMember#getAnnotations()
+     * @see #getAnnotations()
      * @since 3.3
      */
     public Object[] getAvailableAnnotations(){
-       try
-       {
-           return getAnnotations(true);
-       }
-       catch (ClassNotFoundException e)
-       {
+        try {
+            return getAnnotations(true);
+        }
+        catch (ClassNotFoundException e) {
            throw new RuntimeException("Unexpected exception", e);
-       }
+        }
     }
-    
+
     private Object[] getAnnotations(boolean ignoreNotFound) throws ClassNotFoundException {
         FieldInfo fi = getFieldInfo2();
         AnnotationsAttribute ainfo = (AnnotationsAttribute)

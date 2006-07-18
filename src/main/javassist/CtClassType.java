@@ -417,27 +417,29 @@ class CtClassType extends CtClass {
     }
 
     public Object[] getAvailableAnnotations(){
-       try
-       {
+       try {
            return getAnnotations(true);
        }
-       catch (ClassNotFoundException e)
-       {
+       catch (ClassNotFoundException e) {
            throw new RuntimeException("Unexpected exception ", e);
        }
     }
 
-    private Object[] getAnnotations(boolean ignoreNotFound) throws ClassNotFoundException {
-       ClassFile cf = getClassFile2();
-       AnnotationsAttribute ainfo = (AnnotationsAttribute)
-                   cf.getAttribute(AnnotationsAttribute.invisibleTag);  
-       AnnotationsAttribute ainfo2 = (AnnotationsAttribute)
-                   cf.getAttribute(AnnotationsAttribute.visibleTag);  
-       return toAnnotationType(ignoreNotFound, getClassPool(), ainfo, ainfo2);
+    private Object[] getAnnotations(boolean ignoreNotFound)
+        throws ClassNotFoundException
+    {
+        ClassFile cf = getClassFile2();
+        AnnotationsAttribute ainfo = (AnnotationsAttribute)
+                cf.getAttribute(AnnotationsAttribute.invisibleTag);  
+        AnnotationsAttribute ainfo2 = (AnnotationsAttribute)
+                cf.getAttribute(AnnotationsAttribute.visibleTag);  
+        return toAnnotationType(ignoreNotFound, getClassPool(), ainfo, ainfo2);
     }
 
-    static Object[] toAnnotationType(boolean ignoreNotFound, ClassPool cp, AnnotationsAttribute a1,
-                                     AnnotationsAttribute a2) throws ClassNotFoundException {
+    static Object[] toAnnotationType(boolean ignoreNotFound, ClassPool cp,
+                             AnnotationsAttribute a1, AnnotationsAttribute a2)
+        throws ClassNotFoundException
+    {
         Annotation[] anno1, anno2;
         int size1, size2;
 
@@ -474,23 +476,24 @@ class CtClassType extends CtClass {
            for (int i = 0 ; i < size1 ; i++){
               try{
                  annotations.add(toAnnoType(anno1[i], cp));
-              }catch(ClassNotFoundException e){
               }
+              catch(ClassNotFoundException e){}
            }
-           for (int j = 0; j < size2; j++)
-           {
+           for (int j = 0; j < size2; j++) {
               try{
                  annotations.add(toAnnoType(anno2[j], cp));
-              }catch(ClassNotFoundException e){
               }
+              catch(ClassNotFoundException e){}
            }
-           
+
            return annotations.toArray();
         }
     }
 
-    static Object[][] toAnnotationType(boolean ignoreNotFound, ClassPool cp, ParameterAnnotationsAttribute a1,
-                                       ParameterAnnotationsAttribute a2, MethodInfo minfo)
+    static Object[][] toAnnotationType(boolean ignoreNotFound, ClassPool cp,
+                                       ParameterAnnotationsAttribute a1,
+                                       ParameterAnnotationsAttribute a2,
+                                       MethodInfo minfo)
         throws ClassNotFoundException
     {
         int numParameters = 0;
@@ -537,16 +540,16 @@ class CtClassType extends CtClass {
                 for (int j = 0 ; j < size1 ; j++){
                     try{
                         annotations.add(toAnnoType(anno1[j], cp));
-                    }catch(ClassNotFoundException e){
                     }
+                    catch(ClassNotFoundException e){}
                 }
                 for (int j = 0; j < size2; j++){
                     try{
                         annotations.add(toAnnoType(anno2[j], cp));
-                    }catch(ClassNotFoundException e){
                     }
+                    catch(ClassNotFoundException e){}
                 }
-                  
+
                 result[i] = annotations.toArray();
             }
         }

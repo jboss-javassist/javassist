@@ -63,9 +63,9 @@ public class AnnotationImpl implements InvocationHandler {
 
     /**
      * Executes a method invocation on a proxy instance.
-     * The implementations of <code>toString</code>, <code>equals</code>,
-     * and <code>hashCode</code> are directly supplied by the
-     * <code>AnnotationImpl</code>.  The <code>annotationType</code> method
+     * The implementations of <code>toString()</code>, <code>equals()</code>,
+     * and <code>hashCode()</code> are directly supplied by the
+     * <code>AnnotationImpl</code>.  The <code>annotationType()</code> method
      * is also available on the proxy instance.
      */
     public Object invoke(Object proxy, Method method, Object[] args)
