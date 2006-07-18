@@ -61,46 +61,28 @@ public class ClassMemberValue extends MemberValue {
     }
 
     Object getValue(ClassLoader cl, ClassPool cp, Method m)
-        throws ClassNotFoundException
-    {
+            throws ClassNotFoundException {
         final String classname = getValue();
         if (classname.equals("void"))
-        {
             return void.class;
-        }
-        if (classname.equals("int"))
-        {
+        else if (classname.equals("int"))
             return int.class;
-        }
-        if (classname.equals("byte"))
-        {
+        else if (classname.equals("byte"))
             return byte.class;
-        }
-        if (classname.equals("long"))
-        {
+        else if (classname.equals("long"))
             return long.class;
-        }
-        if (classname.equals("double"))
-        {
+        else if (classname.equals("double"))
             return double.class;
-        }
-        if (classname.equals("float"))
-        {
+        else if (classname.equals("float"))
             return float.class;
-        }
-        if (classname.equals("char"))
-        {
+        else if (classname.equals("char"))
             return char.class;
-        }
-        if (classname.equals("short"))
-        {
+        else if (classname.equals("short"))
             return short.class;
-        }
-        if (classname.equals("boolean"))
-        {
-           return boolean.class;
-        }
-        return loadClass(cl, classname);
+        else if (classname.equals("boolean"))
+            return boolean.class;
+        else
+            return loadClass(cl, classname);
     }
 
     Class getType(ClassLoader cl) throws ClassNotFoundException {
