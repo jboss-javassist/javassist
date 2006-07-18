@@ -283,6 +283,9 @@ see javassist.Dump.
 
 <p>-version 3.3
 <ul>
+    <li>CtClass#getAvailableAnnotations() etc. have been implemented.
+    <li>A bug related to a way of dealing with a bridge method was fixed
+    (<a href="http://jira.jboss.com/jira/browse/HIBERNATE-37">HIBERNATE-37</a>).
     <li>javassist.scopedpool package was added.
 </ul>
 
@@ -298,11 +301,11 @@ see javassist.Dump.
 <ul>
    <li>A bug of replace(String,ExprEditor) in javassist.expr.Expr has been fixed.
   <li>Updated ProxyFactory getClassLoader to choose the javassit class loader
-   when the proxy superclass has a null class loader (a jdk/endorsed class).
-   <a href='http://jira.jboss.com/jira/browse/JASSIST-18'>JASSIST-18</a>
+   when the proxy superclass has a null class loader (a jdk/endorsed class)
+   (<a href='http://jira.jboss.com/jira/browse/JASSIST-18'>JASSIST-18</a>).
   <li>Updated the throws clause of the javassist.util.proxy.MethodHandler
-   to be Throwable rather than Exception.
-   <a href='http://jira.jboss.com/jira/browse/JASSIST-16'>JASSIST-16</a>
+   to be Throwable rather than Exception
+   (<a href='http://jira.jboss.com/jira/browse/JASSIST-16'>JASSIST-16</a>).
 </ul>
 
 <p>- version 3.2.0.CR1 on March 18, 2006

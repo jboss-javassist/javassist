@@ -525,7 +525,7 @@ public final class ClassFile {
      * Appends a method to the class.
      */
     public void addMethod(MethodInfo minfo) throws CannotCompileException {
-        testExistingMethod(minfo.getName(), minfo.getDescriptor());
+        testExistingMethod(minfo);
         methods.add(minfo);
     }
 
@@ -533,16 +533,26 @@ public final class ClassFile {
         methods.add(minfo);
     }
 
-    private void testExistingMethod(String name, String descriptor)
-            throws CannotCompileException {
+    private void testExistingMethod(MethodInfo newMinfo)
+        throws CannotCompileException
+    {
+        String name = newMinfo.getName();
+        String descriptor = newMinfo.getDescriptor();
         ListIterator it = methods.listIterator(0);
         while (it.hasNext()) {
             MethodInfo minfo = (MethodInfo)it.next();
             if (minfo.getName().equals(name)
+                    && notBridgeMethod(minfo) && notBridgeMethod(newMinfo)
                     && Descriptor.eqParamTypes(minfo.getDescriptor(),
-                            descriptor))
+                                               descriptor))
                 throw new CannotCompileException("duplicate method: " + name);
         }
+    }
+
+    /* For a bridge method, see Sec. 15.12.4.5 of JLS 3rd Ed.
+     */
+    private boolean notBridgeMethod(MethodInfo minfo) {
+        return (minfo.getAccessFlags() & AccessFlag.BRIDGE) == 0;
     }
 
     /**
