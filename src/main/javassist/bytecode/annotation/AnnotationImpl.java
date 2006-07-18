@@ -63,6 +63,10 @@ public class AnnotationImpl implements InvocationHandler {
 
     /**
      * Executes a method invocation on a proxy instance.
+     * The implementations of <code>toString</code>, <code>equals</code>,
+     * and <code>hashCode</code> are directly supplied by the
+     * <code>AnnotationImpl</code>.  The <code>annotationType</code> method
+     * is also available on the proxy instance.
      */
     public Object invoke(Object proxy, Method method, Object[] args)
         throws Throwable
@@ -85,11 +89,9 @@ public class AnnotationImpl implements InvocationHandler {
             else if ("hashCode".equals(name))
                 return new Integer(hashCode());
         }
-        else if ("annotationType".equals(name) && method.getParameterTypes().length == 0)
-        {
+        else if ("annotationType".equals(name)
+                 && method.getParameterTypes().length == 0)
            return classLoader.loadClass(getTypeName());
-        }
-
 
         MemberValue mv = annotation.getMemberValue(name);
         if (mv == null)
