@@ -404,12 +404,18 @@ class CtClassType extends CtClass {
     }
 
     public void setModifiers(int mod) {
-        if (Modifier.isStatic(mod))
-            throw new RuntimeException("cannot set to static");
+        ClassFile cf = getClassFile2();
+        if (Modifier.isStatic(mod)) {
+            int flags = cf.getInnerAccessFlags();
+            if (flags != -1 && (flags & AccessFlag.STATIC) != 0)
+                mod = mod & ~Modifier.STATIC;
+            else
+                throw new RuntimeException("cannot change " + getName() + " into a static class");
+        }
 
         checkModify();
         int acc = AccessFlag.of(mod) | AccessFlag.SUPER;
-        getClassFile2().setAccessFlags(acc);
+        cf.setAccessFlags(acc);
     }
 
     public Object[] getAnnotations() throws ClassNotFoundException {
