@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URL;
+import java.security.ProtectionDomain;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.ArrayList;
@@ -61,6 +62,24 @@ import javassist.bytecode.Descriptor;
  * @see javassist.ClassPath
  */
 public class ClassPool {
+    // used by toClass().
+    private static java.lang.reflect.Method defineClass1, defineClass2;
+
+    static {
+        try {
+            Class cl = Class.forName("java.lang.ClassLoader");
+            defineClass1 = cl.getDeclaredMethod("defineClass",
+                        new Class[] { String.class, byte[].class,
+                                      int.class, int.class });
+
+            defineClass2 = cl.getDeclaredMethod("defineClass",
+                        new Class[] { String.class, byte[].class,
+                              int.class, int.class, ProtectionDomain.class });
+        }
+        catch (Exception e) {
+            throw new RuntimeException("cannot initialize ClassPool");
+        }
+    }
 
     /**
      * Determines the search order.
@@ -752,21 +771,27 @@ public class ClassPool {
      * Once this method is called, further modifications are not
      * allowed any more.
      * To load the class, this method uses the context class loader
-     * of the current thread.  If the program is running on some application
+     * of the current thread.  It is obtained by calling
+     * <code>getClassLoader()</code>.  
+     * 
+     * <p>This behavior can be changed by subclassing the pool and changing
+     * the <code>getClassLoader()</code> method.
+     * If the program is running on some application
      * server, the context class loader might be inappropriate to load the
      * class.
-     * 
-     * <p>This can be changed by subclassing the pool and changing
-     * the <code>getClassLoader()</code> method.
      *
      * <p>This method is provided for convenience.  If you need more
      * complex functionality, you should write your own class loader.
      *
-     * @see #toClass(CtClass, java.lang.ClassLoader)
+     * <p><b>Warining:</b> A Class object returned by this method may not
+     * work with a security manager or a signed jar file because a
+     * protection domain is not specified.
+     *
+     * @see #toClass(CtClass, java.lang.ClassLoader, ProtectionDomain)
      * @see #getClassLoader()
      */
     public Class toClass(CtClass clazz) throws CannotCompileException {
-        return toClass(clazz, getClassLoader()); 
+        return toClass(clazz, getClassLoader(), null); 
     }
 
     /**
@@ -793,6 +818,23 @@ public class ClassPool {
 
     /**
      * Converts the class to a <code>java.lang.Class</code> object.
+     * Do not override this method any more at a subclass because
+     * <code>toClass(CtClass)</code> never calls this method.
+     *
+     * <p><b>Warining:</b> A Class object returned by this method may not
+     * work with a security manager or a signed jar file because a
+     * protection domain is not specified.
+     * 
+     * @deprecated      Replaced by {@link #toClass(CtClass,ClassLoader,ProtectionDomain)}
+     */
+    public final Class toClass(CtClass ct, ClassLoader loader)
+        throws CannotCompileException
+    {
+        return toClass(ct, loader, null);
+    }
+
+    /**
+     * Converts the class to a <code>java.lang.Class</code> object.
      * Once this method is called, further modifications are not allowed
      * any more.
      *
@@ -802,24 +844,44 @@ public class ClassPool {
      * on the class loader is invoked through the reflection API,
      * the caller must have permissions to do that.
      *
+     * <p>An easy way to obtain <code>ProtectionDomain</code> object is
+     * to call <code>getProtectionDomain()</code>
+     * in <code>java.lang.Class</code>.  It returns the domain that the
+     * class belongs to.
+     *
      * <p>This method is provided for convenience.  If you need more
      * complex functionality, you should write your own class loader.
      *
      * @param loader        the class loader used to load this class.
+     *                      For example, the loader returned by
+     *                      <code>getClassLoader()</code> can be used
+     *                      for this parameter.
+     * @param domain        the protection domain for the class.
+     *                      If it is null, the default domain created
+     *                      by <code>java.lang.ClassLoader</code> is used.
+     *
+     * @see #getContextClassLoader()
+     * @since 3.3
      */
-    public Class toClass(CtClass ct, ClassLoader loader)
+    public Class toClass(CtClass ct, ClassLoader loader, ProtectionDomain domain)
         throws CannotCompileException
     {
         try {
             byte[] b = ct.toBytecode();
-            Class cl = Class.forName("java.lang.ClassLoader");
-            java.lang.reflect.Method method =
-                cl.getDeclaredMethod("defineClass",
-                                new Class[] { String.class, byte[].class,
-                                              int.class, int.class });
+            java.lang.reflect.Method method;
+            Object[] args;
+            if (domain == null) {
+                method = defineClass1;
+                args = new Object[] { ct.getName(), b, new Integer(0),
+                                      new Integer(b.length)};
+            }
+            else {
+                method = defineClass2;
+                args = new Object[] { ct.getName(), b, new Integer(0),
+                    new Integer(b.length), domain};
+            }
+                
             method.setAccessible(true);
-            Object[] args = new Object[] { ct.getName(), b, new Integer(0),
-                                           new Integer(b.length)};
             Class clazz = (Class)method.invoke(loader, args);
             method.setAccessible(false);
             return clazz;

@@ -283,6 +283,9 @@ see javassist.Dump.
 
 <p>-version 3.3
 <ul>
+    <li>CtClass#toClass() and ClassPool#toClass() were modified to accept a
+    <code>ProtectionDomain</code>
+    (<a href="http://jira.jboss.com/jira/browse/JASSIST-23">JASSIST-23</a>).
     <li>CtClass#getAvailableAnnotations() etc. have been implemented.
     <li>A bug related to a way of dealing with a bridge method was fixed
     (<a href="http://jira.jboss.com/jira/browse/HIBERNATE-37">HIBERNATE-37</a>).
@@ -683,7 +686,7 @@ Howard Lewis Ship, Richard Jones, Marjan Sterjev,
 Bruce McDonald, Mark Brennan, Vlad Skarzhevskyy,
 Brett Randall, Tsuyoshi Murakami, Nathan Meyers, Yoshiyuki Usui
 Yutaka Sunaga, Arjan van der Meer, Bruce Eckel, Guillaume Pothier,
-Kumar Matcha, Andreas Salathe,
+Kumar Matcha, Andreas Salathe, Renat Zubairov,
 and all other contributors for their contributions.
 
 <p><br>

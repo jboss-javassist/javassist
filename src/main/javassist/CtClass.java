@@ -23,6 +23,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.URL;
+import java.security.ProtectionDomain;
 import java.util.Collection;
 import javassist.bytecode.ClassFile;
 import javassist.bytecode.Descriptor;
@@ -1025,6 +1026,10 @@ public abstract class CtClass {
      * <p>Note: this method calls <code>toClass()</code>
      * in <code>ClassPool</code>.
      *
+     * <p><b>Warining:</b> A Class object returned by this method may not
+     * work with a security manager or a signed jar file because a
+     * protection domain is not specified.
+     *
      * @see #toClass(java.lang.ClassLoader)
      * @see ClassPool#toClass(CtClass)
      */
@@ -1043,6 +1048,11 @@ public abstract class CtClass {
      * on the class loader is invoked through the reflection API,
      * the caller must have permissions to do that.
      *
+     * <p>An easy way to obtain <code>ProtectionDomain</code> object is
+     * to call <code>getProtectionDomain()</code>
+     * in <code>java.lang.Class</code>.  It returns the domain that
+     * the class belongs to.
+     *
      * <p>This method is provided for convenience.  If you need more
      * complex functionality, you should write your own class loader.
      *
@@ -1050,9 +1060,33 @@ public abstract class CtClass {
      * in <code>ClassPool</code>.
      *
      * @param loader        the class loader used to load this class.
+     *                      If it is null, the class loader returned by
+     *                      {@link ClassPool#getClassLoader()} is used.
+     * @param domain        the protection domain that the class belongs to.
+     *                      If it is null, the default domain created
+     *                      by <code>java.lang.ClassLoader</code> is used.
      * @see ClassPool#toClass(CtClass,java.lang.ClassLoader)
      */
-    public Class toClass(ClassLoader loader)
+    public Class toClass(ClassLoader loader, ProtectionDomain domain)
+        throws CannotCompileException
+    {
+        ClassPool cp = getClassPool();
+        if (loader == null)
+            loader = cp.getClassLoader();
+
+        return cp.toClass(this, loader, domain);
+    }
+
+    /**
+     * Converts this class to a <code>java.lang.Class</code> object.
+     *
+     * <p><b>Warining:</b> A Class object returned by this method may not
+     * work with a security manager or a signed jar file because a
+     * protection domain is not specified.
+     *
+     * @deprecated      Replaced by {@link #toClass(ClassLoader,ProtectionDomain)}
+     */
+    public final Class toClass(ClassLoader loader)
         throws CannotCompileException
     {
         return getClassPool().toClass(this, loader);

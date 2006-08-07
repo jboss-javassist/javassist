@@ -21,6 +21,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Member;
 import java.lang.reflect.Modifier;
+import java.security.ProtectionDomain;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -166,7 +167,7 @@ public class ProxyFactory {
                 if (writeDirectory != null)
                     FactoryHelper.writeFile(cf, writeDirectory);
 
-                thisClass = FactoryHelper.toClass(cf, cl);
+                thisClass = FactoryHelper.toClass(cf, cl, getDomain());
                 setHandler();
             }
             catch (CannotCompileException e) {
@@ -192,6 +193,18 @@ public class ProxyFactory {
         }
 
         return loader;
+    }
+
+    protected ProtectionDomain getDomain() {
+        Class clazz;
+        if (superClass != null && !superClass.getName().equals("java.lang.Object"))
+            clazz = superClass;
+        else if (interfaces != null && interfaces.length > 0)
+            clazz = interfaces[0];
+        else
+            clazz = this.getClass();
+
+        return clazz.getProtectionDomain();
     }
 
     /**

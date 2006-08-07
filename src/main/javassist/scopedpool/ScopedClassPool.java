@@ -16,6 +16,7 @@
 package javassist.scopedpool;
 
 import java.lang.ref.WeakReference;
+import java.security.ProtectionDomain;
 import java.util.Iterator;
 import java.util.Map;
 import javassist.CannotCompileException;
@@ -30,7 +31,7 @@ import javassist.NotFoundException;
  * @author <a href="mailto:bill@jboss.org">Bill Burke</a>
  * @author <a href="adrian@jboss.com">Adrian Brock</a>
  * @author <a href="kabir.khan@jboss.com">Kabir Khan</a>
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.4 $
  */
 public class ScopedClassPool extends ClassPool {
     protected ScopedClassPoolRepository repository;
@@ -261,7 +262,7 @@ public class ScopedClassPool extends ClassPool {
      * @throws CannotCompileException
      *             for any error
      */
-    public Class toClass(CtClass ct, ClassLoader loader)
+    public Class toClass(CtClass ct, ClassLoader loader, ProtectionDomain domain)
             throws CannotCompileException {
         // We need to pass up the classloader stored in this pool, as the
         // default implementation uses the Thread context cl.
@@ -276,6 +277,6 @@ public class ScopedClassPool extends ClassPool {
         // org.apache.jsp. For classes belonging to org.apache.jsp,
         // JasperLoader does NOT delegate to its parent if it cannot find them.
         lockInCache(ct);
-        return super.toClass(ct, getClassLoader0());
+        return super.toClass(ct, getClassLoader0(), domain);
     }
 }

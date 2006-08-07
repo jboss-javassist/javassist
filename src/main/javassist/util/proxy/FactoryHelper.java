@@ -21,8 +21,10 @@ import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.security.ProtectionDomain;
 
 import javassist.CannotCompileException;
+import javassist.CtClass;
 import javassist.bytecode.ClassFile;
 
 /**
@@ -32,6 +34,24 @@ import javassist.bytecode.ClassFile;
  * @see ProxyFactory
  */
 public class FactoryHelper {
+    private static java.lang.reflect.Method defineClass1, defineClass2;
+
+    static {
+        try {
+            Class cl = Class.forName("java.lang.ClassLoader");
+            defineClass1 = cl.getDeclaredMethod("defineClass",
+                        new Class[] { String.class, byte[].class,
+                                      int.class, int.class });
+
+            defineClass2 = cl.getDeclaredMethod("defineClass",
+                        new Class[] { String.class, byte[].class,
+                              int.class, int.class, ProtectionDomain.class });
+        }
+        catch (Exception e) {
+            throw new RuntimeException("cannot initialize");
+        }
+    }
+
     /**
      * Returns an index for accessing arrays in this class.
      *
@@ -101,19 +121,41 @@ public class FactoryHelper {
 
     /**
      * Loads a class file by a given class loader.
+     * This method uses a default protection domain for the class
+     * but it may not work with a security manager or a sigend jar file.
+     *
+     * @see #toClass(CtClass,ClassLoader,ProtectionDomain)
      */
     public static Class toClass(ClassFile cf, ClassLoader loader)
+        throws CannotCompileException
+    {
+        return toClass(cf, loader, null);
+    }
+
+    /**
+     * Loads a class file by a given class loader.
+     *
+     * @param domain        if it is null, a default domain is used.
+     */
+    public static Class toClass(ClassFile cf, ClassLoader loader, ProtectionDomain domain)
             throws CannotCompileException
     {
         try {
             byte[] b = toBytecode(cf);
-            Class cl = Class.forName("java.lang.ClassLoader");
-            java.lang.reflect.Method method = cl.getDeclaredMethod(
-                    "defineClass", new Class[] { String.class, byte[].class,
-                    Integer.TYPE, Integer.TYPE });
+            java.lang.reflect.Method method;
+            Object[] args;
+            if (domain == null) {
+                method = defineClass1;
+                args = new Object[] { cf.getName(), b, new Integer(0),
+                        new Integer(b.length) };
+            }
+            else {
+                method = defineClass2;
+                args = new Object[] { cf.getName(), b, new Integer(0),
+                        new Integer(b.length), domain };
+            }
+
             method.setAccessible(true);
-            Object[] args = new Object[] { cf.getName(), b, new Integer(0),
-                    new Integer(b.length) };
             Class clazz = (Class)method.invoke(loader, args);
             method.setAccessible(false);
             return clazz;

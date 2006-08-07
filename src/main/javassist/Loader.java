@@ -18,6 +18,7 @@ package javassist;
 import java.io.*;
 import java.util.Hashtable;
 import java.util.Vector;
+import java.security.ProtectionDomain;
 
 /**
  * The class loader for Javassist.
@@ -136,6 +137,7 @@ public class Loader extends ClassLoader {
     private Vector notDefinedPackages; // must be atomic.
     private ClassPool source;
     private Translator translator;
+    private ProtectionDomain domain; 
 
     /**
      * Specifies the algorithm of class loading.
@@ -183,6 +185,7 @@ public class Loader extends ClassLoader {
         notDefinedPackages = new Vector();
         source = cp;
         translator = null;
+        domain = null;
         delegateLoadingOf("javassist.Loader");
     }
 
@@ -199,6 +202,16 @@ public class Loader extends ClassLoader {
             notDefinedPackages.addElement(classname);
         else
             notDefinedHere.put(classname, this);
+    }
+
+    /**
+     * Sets the protection domain for the classes handled by this class
+     * loader.  Without registering an appropriate protection domain,
+     * the program loaded by this loader will not work with a security
+     * manager or a signed jar file.
+     */
+    public void setDomain(ProtectionDomain d) {
+        domain = d;
     }
 
     /**
@@ -362,7 +375,10 @@ public class Loader extends ClassLoader {
                 }
         }
 
-        return defineClass(name, classfile, 0, classfile.length);
+        if (domain == null)
+            return defineClass(name, classfile, 0, classfile.length);
+        else
+            return defineClass(name, classfile, 0, classfile.length, domain);
     }
 
     protected Class loadClassByDelegation(String name)
