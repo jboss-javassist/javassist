@@ -824,7 +824,11 @@ public class ClassPool {
      * <p><b>Warining:</b> A Class object returned by this method may not
      * work with a security manager or a signed jar file because a
      * protection domain is not specified.
-     * 
+     *
+     * <p><b>Note:</b> A subclass of <code>ClassPool</code> that has been
+     * overriding this method must be modified.  It must override
+     * {@link #toClass(CtClass,ClassLoader,ProtectionDomain)}.
+     *
      * @deprecated      Replaced by {@link #toClass(CtClass,ClassLoader,ProtectionDomain)}
      */
     public final Class toClass(CtClass ct, ClassLoader loader)
