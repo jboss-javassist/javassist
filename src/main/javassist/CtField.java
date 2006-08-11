@@ -82,6 +82,15 @@ public class CtField extends CtMember {
     {
         this(src.fieldInfo.getDescriptor(), src.fieldInfo.getName(),
              declaring);
+        java.util.ListIterator iterator
+            = src.fieldInfo.getAttributes().listIterator();
+        FieldInfo fi = fieldInfo;
+        fi.setAccessFlags(src.fieldInfo.getAccessFlags());
+        ConstPool cp = fi.getConstPool();
+        while (iterator.hasNext()) {
+            AttributeInfo ainfo = (AttributeInfo)iterator.next();
+            fi.addAttribute(ainfo.copy(cp, null));
+        }
     }
 
     private CtField(String typeDesc, String name, CtClass clazz)

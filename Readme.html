@@ -286,9 +286,15 @@ see javassist.Dump.
     <li>CtClass#toClass() and ClassPool#toClass() were modified to accept a
     <code>ProtectionDomain</code>
     (<a href="http://jira.jboss.com/jira/browse/JASSIST-23">JASSIST-23</a>).
+    ClassPool#toClass(CtClass, ClassLoader) is now a final method.  All
+    subclasses of ClassPool must override toClass(CtClass, ClassLoader,
+    ProtectionDomain).
+
     <li>CtClass#getAvailableAnnotations() etc. have been implemented.
+
     <li>A bug related to a way of dealing with a bridge method was fixed
     (<a href="http://jira.jboss.com/jira/browse/HIBERNATE-37">HIBERNATE-37</a>).
+
     <li>javassist.scopedpool package was added.
 </ul>
 
