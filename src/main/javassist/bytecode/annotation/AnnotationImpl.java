@@ -62,6 +62,13 @@ public class AnnotationImpl implements InvocationHandler {
     }
 
     /**
+     * Obtains the internal data structure representing the annotation.
+     */
+    public Annotation getAnnotation() {
+        return annotation;
+    }
+
+    /**
      * Executes a method invocation on a proxy instance.
      * The implementations of <code>toString()</code>, <code>equals()</code>,
      * and <code>hashCode()</code> are directly supplied by the
