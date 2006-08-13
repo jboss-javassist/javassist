@@ -289,12 +289,13 @@ public class Annotation {
      * @param writer            the output.
      */
     public void write(AnnotationsWriter writer) throws IOException {
+        String typeName = pool.getUtf8Info(typeIndex);
         if (members == null) {
-            writer.annotation(typeIndex, 0);
+            writer.annotation(typeName, 0);
             return;
         }
 
-        writer.annotation(typeIndex, members.size());
+        writer.annotation(typeName, members.size());
         Iterator it = members.values().iterator();
         while (it.hasNext()) {
             Pair pair = (Pair)it.next();

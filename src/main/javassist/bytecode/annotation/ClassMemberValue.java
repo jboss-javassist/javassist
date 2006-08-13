@@ -120,7 +120,7 @@ public class ClassMemberValue extends MemberValue {
      * Writes the value.
      */
     public void write(AnnotationsWriter writer) throws IOException {
-        writer.classInfoIndex(valueIndex);
+        writer.classInfoIndex(cp.getUtf8Info(valueIndex));
     }
 
     /**
