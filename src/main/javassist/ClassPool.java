@@ -791,7 +791,9 @@ public class ClassPool {
      * @see #getClassLoader()
      */
     public Class toClass(CtClass clazz) throws CannotCompileException {
-        return toClass(clazz, getClassLoader(), null); 
+        // Some subclasses of ClassPool may override toClass(CtClass,ClassLoader).
+        // So we should call that method instead of toClass(.., ProtectionDomain).
+        return toClass(clazz, getClassLoader()); 
     }
 
     /**
@@ -825,13 +827,12 @@ public class ClassPool {
      * work with a security manager or a signed jar file because a
      * protection domain is not specified.
      *
-     * <p><b>Note:</b> A subclass of <code>ClassPool</code> that has been
-     * overriding this method must be modified.  It must override
+     * @deprecated      Replaced by {@link #toClass(CtClass,ClassLoader,ProtectionDomain)}.
+     * A subclass of <code>ClassPool</code> that has been
+     * overriding this method should be modified.  It should override
      * {@link #toClass(CtClass,ClassLoader,ProtectionDomain)}.
-     *
-     * @deprecated      Replaced by {@link #toClass(CtClass,ClassLoader,ProtectionDomain)}
      */
-    public final Class toClass(CtClass ct, ClassLoader loader)
+    public Class toClass(CtClass ct, ClassLoader loader)
         throws CannotCompileException
     {
         return toClass(ct, loader, null);

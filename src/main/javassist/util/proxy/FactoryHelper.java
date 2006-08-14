@@ -24,7 +24,6 @@ import java.io.IOException;
 import java.security.ProtectionDomain;
 
 import javassist.CannotCompileException;
-import javassist.CtClass;
 import javassist.bytecode.ClassFile;
 
 /**
@@ -124,7 +123,7 @@ public class FactoryHelper {
      * This method uses a default protection domain for the class
      * but it may not work with a security manager or a sigend jar file.
      *
-     * @see #toClass(CtClass,ClassLoader,ProtectionDomain)
+     * @see #toClass(ClassFile,ClassLoader,ProtectionDomain)
      */
     public static Class toClass(ClassFile cf, ClassLoader loader)
         throws CannotCompileException
@@ -136,6 +135,7 @@ public class FactoryHelper {
      * Loads a class file by a given class loader.
      *
      * @param domain        if it is null, a default domain is used.
+     * @since 3.3
      */
     public static Class toClass(ClassFile cf, ClassLoader loader, ProtectionDomain domain)
             throws CannotCompileException

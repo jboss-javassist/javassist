@@ -1030,7 +1030,7 @@ public abstract class CtClass {
      * work with a security manager or a signed jar file because a
      * protection domain is not specified.
      *
-     * @see #toClass(java.lang.ClassLoader)
+     * @see #toClass(java.lang.ClassLoader,ProtectionDomain)
      * @see ClassPool#toClass(CtClass)
      */
     public Class toClass() throws CannotCompileException {
@@ -1066,6 +1066,7 @@ public abstract class CtClass {
      *                      If it is null, the default domain created
      *                      by <code>java.lang.ClassLoader</code> is used.
      * @see ClassPool#toClass(CtClass,java.lang.ClassLoader)
+     * @since 3.3
      */
     public Class toClass(ClassLoader loader, ProtectionDomain domain)
         throws CannotCompileException
