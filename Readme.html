@@ -281,12 +281,12 @@ see javassist.Dump.
 
 <h2>Changes</h2>
 
-<p>-version 3.3
+<p>-version 3.3 on August 16, 2006
 <ul>
     <li>CtClass#toClass() and ClassPool#toClass() were modified to accept a
     <code>ProtectionDomain</code>
     (<a href="http://jira.jboss.com/jira/browse/JASSIST-23">JASSIST-23</a>).
-    ClassPool#toClass(CtClass, ClassLoader) is now a final method.  All
+    Now ClassPool#toClass(CtClass, ClassLoader) should not be overridden.  All
     subclasses of ClassPool must override toClass(CtClass, ClassLoader,
     ProtectionDomain).
 
