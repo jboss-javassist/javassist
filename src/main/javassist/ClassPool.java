@@ -21,6 +21,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URL;
+import java.security.AccessController;
+import java.security.PrivilegedActionException;
+import java.security.PrivilegedExceptionAction;
 import java.security.ProtectionDomain;
 import java.util.Hashtable;
 import java.util.Iterator;
@@ -67,17 +70,22 @@ public class ClassPool {
 
     static {
         try {
-            Class cl = Class.forName("java.lang.ClassLoader");
-            defineClass1 = cl.getDeclaredMethod("defineClass",
-                        new Class[] { String.class, byte[].class,
-                                      int.class, int.class });
+            AccessController.doPrivileged(new PrivilegedExceptionAction(){
+                public Object run() throws Exception{
+                    Class cl = Class.forName("java.lang.ClassLoader");
+                    defineClass1 = cl.getDeclaredMethod("defineClass",
+                            new Class[] { String.class, byte[].class,
+                                         int.class, int.class });
 
-            defineClass2 = cl.getDeclaredMethod("defineClass",
-                        new Class[] { String.class, byte[].class,
-                              int.class, int.class, ProtectionDomain.class });
+                    defineClass2 = cl.getDeclaredMethod("defineClass",
+                           new Class[] { String.class, byte[].class,
+                                 int.class, int.class, ProtectionDomain.class });
+                    return null;
+                }
+            });
         }
-        catch (Exception e) {
-            throw new RuntimeException("cannot initialize ClassPool");
+        catch (PrivilegedActionException pae) {
+            throw new RuntimeException("cannot initialize ClassPool", pae.getException());
         }
     }
 
