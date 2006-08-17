@@ -31,7 +31,7 @@ import javassist.NotFoundException;
  * @author <a href="mailto:bill@jboss.org">Bill Burke</a>
  * @author <a href="adrian@jboss.com">Adrian Brock</a>
  * @author <a href="kabir.khan@jboss.com">Kabir Khan</a>
- * @version $Revision: 1.5 $
+ * @version $Revision: 1.6 $
  */
 public class ScopedClassPool extends ClassPool {
     protected ScopedClassPoolRepository repository;
@@ -75,15 +75,15 @@ public class ScopedClassPool extends ClassPool {
      * @return the class loader
      */
     public ClassLoader getClassLoader() {
-        return getClassLoader0();
+       ClassLoader cl = getClassLoader0();
+       if (cl == null)
+          throw new IllegalStateException(
+                  "ClassLoader has been garbage collected");
+       return cl;
     }
 
     protected ClassLoader getClassLoader0() {
-        ClassLoader cl = (ClassLoader)classLoader.get();
-        if (cl == null)
-            throw new IllegalStateException(
-                    "ClassLoader has been garbage collected");
-        return cl;
+       return (ClassLoader)classLoader.get();
     }
 
     /**
