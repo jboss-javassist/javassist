@@ -30,13 +30,19 @@ public class TransformCall extends Transformer {
     public TransformCall(Transformer next, CtMethod origMethod,
                          CtMethod substMethod)
     {
+        this(next, origMethod.getName(), substMethod);
+        classname = origMethod.getDeclaringClass().getName();
+    }
+
+    public TransformCall(Transformer next, String oldMethodName,
+                         CtMethod substMethod)
+    {
         super(next);
-        this.classname = origMethod.getDeclaringClass().getName();
-        this.methodname = origMethod.getName();
-        this.methodDescriptor = origMethod.getMethodInfo2().getDescriptor();
-        this.newClassname = substMethod.getDeclaringClass().getName();
-        this.newMethodname = substMethod.getName();
-        this.constPool = null;
+        methodname = oldMethodName;
+        methodDescriptor = substMethod.getMethodInfo2().getDescriptor();
+        classname = newClassname = substMethod.getDeclaringClass().getName(); 
+        newMethodname = substMethod.getName();
+        constPool = null;
     }
 
     public void initialize(ConstPool cp, CodeAttribute attr) {

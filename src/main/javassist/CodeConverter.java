@@ -204,7 +204,7 @@ public class CodeConverter {
 
     /**
      * Modify method invocations in a method body so that a different
-     * method is invoked.
+     * method will be invoked.
      *
      * <p>Note that the target object, the parameters, or 
      * the type of invocation
@@ -226,8 +226,41 @@ public class CodeConverter {
         if (!d1.equals(d2))
             throw new CannotCompileException("signature mismatch");
 
+        int mod1 = origMethod.getModifiers();
+        int mod2 = substMethod.getModifiers();
+        if (Modifier.isPrivate(mod1) != Modifier.isPrivate(mod2)
+            || Modifier.isStatic(mod1) != Modifier.isStatic(mod2)
+            || origMethod.getDeclaringClass().isInterface()
+               != substMethod.getDeclaringClass().isInterface())
+            throw new CannotCompileException("invoke-type mismatch");
+
         transformers = new TransformCall(transformers, origMethod,
                                          substMethod);
+    }
+
+    /**
+     * Correct invocations to a method that has been renamed.
+     * If a method is renamed, calls to that method must be also
+     * modified so that the method with the new name will be called.
+     *
+     * <p>The method must be declared in the same class before and
+     * after it is renamed.
+     *
+     * <p>Note that the target object, the parameters, or 
+     * the type of invocation
+     * (static method call, interface call, or private method call)
+     * are not modified.  Only the method name is changed.
+     *
+     * @param oldMethodName        the old name of the method.
+     * @param newMethod            the method with the new name.
+     * @see javassist.CtMethod#setName(String)
+     */
+    public void redirectMethodCall(String oldMethodName,
+                                   CtMethod newMethod)
+        throws CannotCompileException
+    {
+        transformers
+            = new TransformCall(transformers, oldMethodName, newMethod);
     }
 
     /**
