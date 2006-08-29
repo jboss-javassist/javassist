@@ -61,12 +61,21 @@ public class ClassMap extends java.util.HashMap {
 
     /**
      * Maps a class name to another name in this hashtable.
+     * If the hashtable contains another mapping from the same
+     * class name, the old mapping is replaced. 
      * This method translates the given class names into the
      * internal form used in the JVM before putting it in
      * the hashtable.
      *
+     * <p>If <code>oldname</code> is equivalent to
+     * <code>newname</code>, then this method does not
+     * perform anything; it does not record the mapping from
+     * <code>oldname</code> to <code>newname</code>.  See
+     * <code>fix</code> method.
+     *
      * @param oldname   the original class name
      * @param newname   the substituted class name.
+     * @see #fix(String)
      */
     public void put(String oldname, String newname) {
         if (oldname == newname)
@@ -75,6 +84,33 @@ public class ClassMap extends java.util.HashMap {
         String oldname2 = toJvmName(oldname);
         String s = (String)get(oldname2);
         if (s == null || !s.equals(oldname2))
+            super.put(oldname2, toJvmName(newname));
+    }
+
+    /**
+     * Maps a class name to another name unless another mapping
+     * has been already recorded.
+     * This method translates the given class names into the
+     * internal form used in the JVM before putting it in
+     * the hashtable.
+     *
+     * <p>If <code>oldname</code> is equivalent to
+     * <code>newname</code>, then this method does not
+     * perform anything; it does not record the mapping from
+     * <code>oldname</code> to <code>newname</code>.  See
+     * <code>fix</code> method.
+     *
+     * @param oldname   the original class name
+     * @param newname   the substituted class name.
+     * @see #fix(String)
+     */
+    public void add(String oldname, String newname) {
+        if (oldname == newname)
+            return;
+
+        String oldname2 = toJvmName(oldname);
+        String s = (String)get(oldname2);
+        if (s == null)
             super.put(oldname2, toJvmName(newname));
     }
 

@@ -47,18 +47,20 @@ public abstract class CtBehavior extends CtMember {
         if (map == null)
             map = new ClassMap();
 
-        map.put(srcClass.getName(), declaring.getName());
+        map.add(srcClass.getName(), declaring.getName());
         try {
             boolean patch = false;
             CtClass srcSuper = srcClass.getSuperclass();
-            String destSuperName = declaring.getSuperclass().getName();
-            if (srcSuper != null) {
+            CtClass destSuper = declaring.getSuperclass();
+            String destSuperName = null;
+            if (srcSuper != null && destSuper != null) {
                 String srcSuperName = srcSuper.getName();
+                destSuperName = destSuper.getName();
                 if (!srcSuperName.equals(destSuperName))
                     if (srcSuperName.equals(CtClass.javaLangObject))
                         patch = true;
                     else
-                        map.put(srcSuperName, destSuperName);
+                        map.add(srcSuperName, destSuperName);
             }
 
             methodInfo = new MethodInfo(cp, srcInfo.getName(), srcInfo, map);
