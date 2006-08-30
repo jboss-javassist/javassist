@@ -18,7 +18,7 @@ package javassist;
 import javassist.bytecode.Descriptor;
 
 /**
- * A hashtable associating class names with different names.
+ * A hash table associating class names with different names.
  *
  * <p>This hashtable is used for replacing class names in a class
  * definition or a method body.  Define a subclass of this class
@@ -45,6 +45,15 @@ import javassist.bytecode.Descriptor;
  * @see CtNewMethod#copy(CtMethod,String,CtClass,ClassMap)
  */
 public class ClassMap extends java.util.HashMap {
+    private ClassMap parent;
+
+    /**
+     * Constructs a hash table.
+     */
+    public ClassMap() { parent = null; }
+
+    ClassMap(ClassMap map) { parent = map; }
+
     /**
      * Maps a class name to another name in this hashtable.
      * The names are obtained with calling <code>Class.getName()</code>.
@@ -87,33 +96,6 @@ public class ClassMap extends java.util.HashMap {
             super.put(oldname2, toJvmName(newname));
     }
 
-    /**
-     * Maps a class name to another name unless another mapping
-     * has been already recorded.
-     * This method translates the given class names into the
-     * internal form used in the JVM before putting it in
-     * the hashtable.
-     *
-     * <p>If <code>oldname</code> is equivalent to
-     * <code>newname</code>, then this method does not
-     * perform anything; it does not record the mapping from
-     * <code>oldname</code> to <code>newname</code>.  See
-     * <code>fix</code> method.
-     *
-     * @param oldname   the original class name
-     * @param newname   the substituted class name.
-     * @see #fix(String)
-     */
-    public void add(String oldname, String newname) {
-        if (oldname == newname)
-            return;
-
-        String oldname2 = toJvmName(oldname);
-        String s = (String)get(oldname2);
-        if (s == null)
-            super.put(oldname2, toJvmName(newname));
-    }
-
     protected final void put0(Object oldname, Object newname) {
         super.put(oldname, newname);
     }
@@ -129,7 +111,11 @@ public class ClassMap extends java.util.HashMap {
      * @see #toJavaName(String)
      */
     public Object get(Object jvmClassName) {
-        return super.get(jvmClassName);
+        Object found = super.get(jvmClassName);
+        if (found == null && parent != null)
+            return parent.get(jvmClassName);
+        else
+            return found;
     }
 
     /**

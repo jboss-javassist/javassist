@@ -288,8 +288,38 @@ public final class CtConstructor extends CtBehavior {
     public CtMethod toMethod(String name, CtClass declaring)
         throws CannotCompileException
     {
+        return toMethod(name, declaring, null);
+    }
+
+    /**
+     * Makes a copy of this constructor and converts it into a method.
+     * The signature of the mehtod is the same as the that of this constructor.
+     * The return type is <code>void</code>.  The resulting method must be
+     * appended to the class specified by <code>declaring</code>.
+     * If this constructor is a static initializer, the resulting method takes
+     * no parameter.
+     *
+     * <p>An occurrence of another constructor call <code>this()</code>
+     * or a super constructor call <code>super()</code> is
+     * eliminated from the resulting method. 
+     *
+     * <p>The immediate super class of the class declaring this constructor
+     * must be also a super class of the class declaring the resulting method.
+     * If the constructor accesses a field, the class declaring the resulting method
+     * must also declare a field with the same name and type.
+     *
+     * @param name              the name of the resulting method.
+     * @param declaring         the class declaring the resulting method.
+     * @param map       the hash table associating original class names
+     *                  with substituted names.  The original class names will be
+     *                  replaced while making a copy.
+     *                  <code>map</code> can be <code>null</code>.
+     */
+    public CtMethod toMethod(String name, CtClass declaring, ClassMap map)
+        throws CannotCompileException
+    {
         CtMethod method = new CtMethod(null, declaring);
-        method.copy(this, false, null);
+        method.copy(this, false, map);
         if (isConstructor()) {
             MethodInfo minfo = method.getMethodInfo2();
             CodeAttribute ca = minfo.getCodeAttribute();

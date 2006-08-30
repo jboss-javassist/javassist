@@ -44,10 +44,9 @@ public abstract class CtBehavior extends CtMember {
         MethodInfo srcInfo = src.methodInfo;
         CtClass srcClass = src.getDeclaringClass();
         ConstPool cp = declaring.getClassFile2().getConstPool();
-        if (map == null)
-            map = new ClassMap();
 
-        map.add(srcClass.getName(), declaring.getName());
+        map = new ClassMap(map);
+        map.put(srcClass.getName(), declaring.getName());
         try {
             boolean patch = false;
             CtClass srcSuper = srcClass.getSuperclass();
@@ -60,7 +59,7 @@ public abstract class CtBehavior extends CtMember {
                     if (srcSuperName.equals(CtClass.javaLangObject))
                         patch = true;
                     else
-                        map.add(srcSuperName, destSuperName);
+                        map.put(srcSuperName, destSuperName);
             }
 
             methodInfo = new MethodInfo(cp, srcInfo.getName(), srcInfo, map);
@@ -356,9 +355,7 @@ public abstract class CtBehavior extends CtMember {
     {
         destClass.checkModify();
 
-        if (map == null)
-            map = new ClassMap();
-
+        map = new ClassMap(map);
         map.put(srcClass.getName(), destClass.getName());
         try {
             CodeAttribute cattr = srcInfo.getCodeAttribute();
