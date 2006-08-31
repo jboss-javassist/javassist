@@ -143,11 +143,25 @@ public class ProxyFactory {
     }
 
     /**
+     * Obtains the super class set by <code>setSuperclass()</code>.
+     *
+     * @since 3.4
+     */
+    public Class getSuperclass() { return superClass; }
+
+    /**
      * Sets the interfaces of a proxy class.
      */
     public void setInterfaces(Class[] ifs) {
         interfaces = ifs;
     }
+
+    /**
+     * Obtains the interfaces set by <code>setInterfaces</code>.
+     *
+     * @since 3.4
+     */
+    public Class[] getInterfaces() { return interfaces; }
 
     /**
      * Sets a filter that selects the methods that will be controlled by a handler.
@@ -177,14 +191,48 @@ public class ProxyFactory {
         return thisClass;
     }
 
+    /**
+     * A provider of class loaders.  
+     */
+    public static interface ClassLoaderProvider {
+        /**
+         * Returns a class loader.
+         *
+         * @param pf    a proxy factory that is going to obtain a class loader.
+         */
+        public ClassLoader get(ProxyFactory pf);
+    }
+
+    /**
+     * A provider used by <code>createClass()</code> for obtaining
+     * a class loader.
+     * <code>get()</code> on this <code>ClassLoaderGetter</code> object
+     * is called to obtain a class loader.
+     *
+     * <p>The value of this field can be updated for changing the default
+     * implementation.
+     *
+     * @since 3.4
+     */
+    public static ClassLoaderProvider classLoaderProvider
+        = new ClassLoaderProvider() {
+              public ClassLoader get(ProxyFactory pf) {
+                  return pf.getClassLoader0();
+              }
+          };
+
     protected ClassLoader getClassLoader() {
+        return classLoaderProvider.get(this);
+    }
+
+    protected ClassLoader getClassLoader0() {
         // return Thread.currentThread().getContextClassLoader();
         ClassLoader loader = null;
         if (superClass != null && !superClass.getName().equals("java.lang.Object"))
             loader = superClass.getClassLoader();
         else if (interfaces != null && interfaces.length > 0)
             loader = interfaces[0].getClassLoader();
-
+ 
         if (loader == null) {
             loader = getClass().getClassLoader();
             // In case javassist is in the endorsed dir
