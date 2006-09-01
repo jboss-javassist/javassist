@@ -129,7 +129,11 @@ public final class CtConstructor extends CtBehavior {
     }
 
     /**
-     * Returns true if the constructor is the default one.
+     * Returns true if the constructor (or static initializer)
+     * is the default one.  This method returns true if the constructor
+     * takes some arguments but it does not perform anything except
+     * calling <code>super()</code> (the no-argument constructor of
+     * the super class).
      */
     public boolean isEmpty() {
         CodeAttribute ca = getMethodInfo2().getCodeAttribute();
@@ -141,16 +145,23 @@ public final class CtConstructor extends CtBehavior {
         CodeIterator it = ca.iterator();
         try {
             int pos, desc;
-            return it.byteAt(it.next()) == Opcode.ALOAD_0
-                && it.byteAt(pos = it.next()) == Opcode.INVOKESPECIAL
-                && (desc = cp.isConstructor(CtClass.javaLangObject,
-                                            it.u16bitAt(pos + 1))) != 0
-                && cp.getUtf8Info(desc).equals("()V")
-                && it.byteAt(it.next()) == Opcode.RETURN
-                && !it.hasNext();
+            int op0 = it.byteAt(it.next());
+            return op0 == Opcode.RETURN     // empty static initializer
+                || (op0 == Opcode.ALOAD_0
+                    && it.byteAt(pos = it.next()) == Opcode.INVOKESPECIAL
+                    && (desc = cp.isConstructor(getSuperclassName(),
+                                                it.u16bitAt(pos + 1))) != 0
+                    && "()V".equals(cp.getUtf8Info(desc))
+                    && it.byteAt(it.next()) == Opcode.RETURN
+                    && !it.hasNext());
         }
         catch (BadBytecode e) {}
         return false;
+    }
+
+    private String getSuperclassName() {
+        ClassFile cf = declaringClass.getClassFile2();
+        return cf.getSuperclass();
     }
 
     /**

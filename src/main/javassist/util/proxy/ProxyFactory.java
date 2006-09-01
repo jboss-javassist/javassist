@@ -192,7 +192,10 @@ public class ProxyFactory {
     }
 
     /**
-     * A provider of class loaders.  
+     * A provider of class loaders.
+     *
+     * @see #classLoaderProvider
+     * @since 3.4
      */
     public static interface ClassLoaderProvider {
         /**
@@ -211,6 +214,15 @@ public class ProxyFactory {
      *
      * <p>The value of this field can be updated for changing the default
      * implementation.
+     *
+     * <p>Example:
+     * <ul><pre>
+     * ProxyFactory.classLoaderProvider = new ProxyFactory.ClassLoaderProvider() {
+     *     public ClassLoader get(ProxyFactory pf) {
+     *         return Thread.currentThread().getContextClassLoader();
+     *     }
+     * };
+     * </pre></ul>
      *
      * @since 3.4
      */
