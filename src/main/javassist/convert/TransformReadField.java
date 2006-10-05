@@ -46,11 +46,23 @@ public class TransformReadField extends Transformer {
 
         try {
             CtClass c = pool.get(cp.getFieldrefClassName(index));
-            if (is_private ? c == fclass : c.subclassOf(fclass))
+            if (c == fclass || (!is_private && isFieldInSuper(c, fclass, fname)))
                 return cp.getFieldrefType(index);
         }
         catch (NotFoundException e) {}
         return null;
+    }
+
+    static boolean isFieldInSuper(CtClass clazz, CtClass fclass, String fname) {
+        if (!clazz.subclassOf(fclass))
+            return false;
+
+        try {
+            CtField f = clazz.getField(fname);
+            return f.getDeclaringClass() == fclass;
+        }
+        catch (NotFoundException e) {}
+        return false;
     }
 
     public int transform(CtClass tclazz, int pos, CodeIterator iterator,
