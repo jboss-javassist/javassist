@@ -1652,6 +1652,8 @@ public abstract class CodeGen extends Visitor implements Opcode, TokenId {
             return LASTORE;
         case INT :
             return IASTORE;
+        case SHORT :
+            return SASTORE;
         case CHAR :
             return CASTORE;
         case BYTE :
