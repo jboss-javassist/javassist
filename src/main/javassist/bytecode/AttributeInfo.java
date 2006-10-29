@@ -23,7 +23,7 @@ import java.util.LinkedList;
 import java.util.ListIterator;
 
 // Note: if you define a new subclass of AttributeInfo, then
-//       update AttributeInfo.read().
+//       update AttributeInfo.read(), .copy(), and (maybe) write().
 
 /**
  * <code>attribute_info</code> structure.
@@ -107,6 +107,8 @@ public class AttributeInfo {
                 return new SourceFileAttribute(cp, name, in);
             else if (nameStr.equals(SyntheticAttribute.tag))
                 return new SyntheticAttribute(cp, name, in);
+            else if (nameStr.equals(StackMapTable.tag))
+                return new StackMapTable(cp, name, in);
         }
 
         return new AttributeInfo(cp, name, in);
@@ -161,9 +163,10 @@ public class AttributeInfo {
      */
     public AttributeInfo copy(ConstPool newCp, Map classnames) {
         int s = info.length;
+        byte[] srcInfo = info;
         byte[] newInfo = new byte[s];
         for (int i = 0; i < s; ++i)
-            newInfo[i] = info[i];
+            newInfo[i] = srcInfo[i];
 
         return new AttributeInfo(newCp, getName(), newInfo);
     }

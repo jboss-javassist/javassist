@@ -209,7 +209,7 @@ public class ProxyFactory {
     /**
      * A provider used by <code>createClass()</code> for obtaining
      * a class loader.
-     * <code>get()</code> on this <code>ClassLoaderGetter</code> object
+     * <code>get()</code> on this <code>ClassLoaderProvider</code> object
      * is called to obtain a class loader.
      *
      * <p>The value of this field can be updated for changing the default
@@ -238,7 +238,6 @@ public class ProxyFactory {
     }
 
     protected ClassLoader getClassLoader0() {
-        // return Thread.currentThread().getContextClassLoader();
         ClassLoader loader = null;
         if (superClass != null && !superClass.getName().equals("java.lang.Object"))
             loader = superClass.getClassLoader();
@@ -248,8 +247,11 @@ public class ProxyFactory {
         if (loader == null) {
             loader = getClass().getClassLoader();
             // In case javassist is in the endorsed dir
-            if (loader == null)
-               loader = ClassLoader.getSystemClassLoader();
+            if (loader == null) {
+                loader = Thread.currentThread().getContextClassLoader();
+                if (loader == null)
+                    loader = ClassLoader.getSystemClassLoader();
+            }
         }
 
         return loader;
