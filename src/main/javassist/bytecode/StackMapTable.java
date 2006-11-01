@@ -19,6 +19,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.Map;
+import java.util.ArrayList;
 
 /**
  * <code>stack_map</code> attribute.
@@ -33,7 +34,7 @@ public class StackMapTable extends AttributeInfo {
      */
     public static final String tag = "StackMapTable";
 
-    private StackMapFrame[] entries;    // may be null
+    private ArrayList entries;    // ArrayList<StackMapFrame>.  may be null.
 
     /**
      * Constructs a <code>stack_map</code> attribute.
@@ -73,7 +74,12 @@ public class StackMapTable extends AttributeInfo {
     private void parseMap() {
         byte[] data = info;
         int n = ByteArray.readU16bit(data, 0);
-        entries = new StackMapFrame[n];
+        entries = new ArrayList(n);
+        int offset = 2;
+        while (n-- > 0) {
+            int frameType;
+        }
+
     }
 
     private void toByteArray(boolean clear) {
@@ -82,9 +88,21 @@ public class StackMapTable extends AttributeInfo {
     }
 
     /**
-     * <code>union stack_map_frame</code>
+     * <code>union stack_map_frame</code>.
+     * <p><code>verification_type_info</code> is represented
+     * by a pair of two <code>int</code> values.  No class
+     * for represening <code>verification_type_ 
      */
-    public static class StackMapFrame {} 
+    public static class StackMapFrame {
+        /**
+         * <code>u2 offset_delta</code>.
+         * If <code>offset_delta</code> is not included
+         * (i.e. <code>same_frame</code>), the value of
+         * this field is computed from other members such
+         * as <code>frame_type</code>. 
+         */
+        public int offsetDelta;
+    } 
 
     /*
      * verification_type_info is represented by a pair of
@@ -138,24 +156,22 @@ public class StackMapTable extends AttributeInfo {
 
     /**
      * <code>same_frame</code>.
-     * The frame has exactly the same locals as the previous
-     * stack map frame.
+     * <code>frame_type</code> is not included.
+     * It is computed by <code>offsetDelta</code>. 
      */
     public static class SameFrame extends StackMapFrame {
         /**
          * The maximum value of <code>SAME</code>.
          */
         public static final int FRAME_TYPE_MAX = 63;
-
-        /**
-         * <code>u1 frame_type</code>.
-         */
-        public int frameType;
     }
 
     /**
      * <code>same_locals_1_stack_item_frame</code> or 
-     * <code>same_locals_1_stack_item_frame_extended</code>. 
+     * <code>same_locals_1_stack_item_frame_extended</code>.
+     *
+     * <p><code>frame_type</code> is not included.
+     * It is computed by <code>offsetDelta</code>. 
      */
     public static class SameLocals extends StackMapFrame {
         /**
@@ -172,15 +188,6 @@ public class StackMapTable extends AttributeInfo {
          * <code>SAME_LOCALS_1_STACK_ITEM_EXTENDED</code>.
          */
         public static final int FRAME_TYPE_EXTENDED = 247;
-
-        /*
-         * <code>frame_type</code> is computed by offsetDelta.
-         */
-
-        /**
-         * <code>u2 offset_delta</code>.
-         */
-        public int offsetDelta;
 
         /**
          * <code>stack[0].tag</code>.
@@ -211,11 +218,6 @@ public class StackMapTable extends AttributeInfo {
          * <code>u1 frame_type</code>.
          */
         public int frameType;
-
-        /**
-         * <code>u2 offset_delta</code>.
-         */
-        public int offsetDelta;
     }
 
     /**
@@ -226,11 +228,6 @@ public class StackMapTable extends AttributeInfo {
          * <code>SAME_FRAME_EXTENDED</code>.
          */
         public static final int FRAME_TYPE = 251;
-
-        /**
-         * <code>u2 offset_delta</code>.
-         */
-        public int offsetDelta;
     }
 
     /**
@@ -253,17 +250,16 @@ public class StackMapTable extends AttributeInfo {
         public int frameType;
 
         /**
-         * <code>u2 offset_delta</code>.
-         */
-        public int offsetDelta;
-
-        /**
          * <code>locals[?].tag</code>.
+         * <code>typeTags.length</code> and <code>typeValues.length</code>
+         * are equal to <code>number_of_locals</code>.
          */
         public int[] typeTags;
 
         /**
          * <code>locals[?].cpool_index</code> or <code>locals[?].offset</code>.
+         * <code>typeTags.length</code> and <code>typeValues.length</code>
+         * are equal to <code>number_of_locals</code>.
          */
         public int[] typeValues;
     }
@@ -278,37 +274,30 @@ public class StackMapTable extends AttributeInfo {
         public static final int FRAME_TYPE = 255;
 
         /**
-         * <code>u2 offset_delta</code>.
-         */
-        public int offsetDelta;
-
-        /**
-         * <code>u2 number_of_locals</code>.
-         */
-        public int numOfLocals;
-
-        /**
          * <code>locals[?].tag</code>.
+         * <code>typeTags.length</code> and <code>typeValues.length</code>
+         * are equal to <code>number_of_locals</code>.
          */
         public int[] typeTags;
 
         /**
          * <code>locals[?].cpool_index</code> or <code>locals[?].offset</code>.
+         * <code>typeTags.length</code> and <code>typeValues.length</code>
+         * are equal to <code>number_of_locals</code>.
          */
         public int[] typeValues;
 
         /**
-         * <code>u2 number_of_stack_items</code>.
-         */
-        public int numOfStackItems;
-
-        /**
          * <code>stack[?].tag</code>.
+         * <code>stackTypeTags.length</code> and <code>stackTypeValues.length</code>
+         * are equal to <code>number_of_stack_items</code>.
          */
         public int[] stackTypeTags;
 
         /**
          * <code>stack[?].cpool_index</code> or <code>locals[?].offset</code>.
+         * <code>stackTypeTags.length</code> and <code>stackTypeValues.length</code>
+         * are equal to <code>number_of_stack_items</code>.
          */
         public int[] stackTypeValues;
     }

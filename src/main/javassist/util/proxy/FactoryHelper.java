@@ -15,6 +15,7 @@
 
 package javassist.util.proxy;
 
+import java.lang.reflect.Method;
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
@@ -142,7 +143,7 @@ public class FactoryHelper {
     {
         try {
             byte[] b = toBytecode(cf);
-            java.lang.reflect.Method method;
+            Method method;
             Object[] args;
             if (domain == null) {
                 method = defineClass1;
@@ -155,10 +156,7 @@ public class FactoryHelper {
                         new Integer(b.length), domain };
             }
 
-            method.setAccessible(true);
-            Class clazz = (Class)method.invoke(loader, args);
-            method.setAccessible(false);
-            return clazz;
+            return toClass2(method, loader, args);
         }
         catch (RuntimeException e) {
             throw e;
@@ -169,6 +167,16 @@ public class FactoryHelper {
         catch (Exception e) {
             throw new CannotCompileException(e);
         }
+    }
+
+    private static synchronized Class toClass2(Method method,
+                                        ClassLoader loader, Object[] args)
+        throws Exception
+    {
+        method.setAccessible(true);
+        Class clazz = (Class)method.invoke(loader, args);
+        method.setAccessible(false);
+        return clazz;
     }
 
     private static byte[] toBytecode(ClassFile cf) throws IOException {

@@ -309,6 +309,10 @@ public class ProxyFactory {
 
     private static int counter = 0;
 
+    private static synchronized String makeProxyName(String classname) {
+        return classname + "_$$_javassist_" + counter++;
+    }
+
     private ClassFile make() throws CannotCompileException {
         String superName, classname;
         if (interfaces == null)
@@ -328,8 +332,7 @@ public class ProxyFactory {
         if (Modifier.isFinal(superClass.getModifiers()))
             throw new CannotCompileException(superName + " is final");
 
-        // generate a proxy name.
-        classname = classname + "_$$_javassist_" + counter++;
+        classname = makeProxyName(classname);
         if (classname.startsWith("java."))
             classname = "org.javassist.tmp." + classname;
 

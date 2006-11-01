@@ -96,8 +96,10 @@ public class AttributeInfo {
                      || nameStr.equals(LocalVariableAttribute.typeTag))
                 return new LocalVariableAttribute(cp, name, in);
             else if (nameStr.equals(AnnotationsAttribute.visibleTag)
-                     || nameStr.equals(AnnotationsAttribute.invisibleTag))
+                     || nameStr.equals(AnnotationsAttribute.invisibleTag)) {
+                // RuntimeVisibleAnnotations or RuntimeInvisibleAnnotations
                 return new AnnotationsAttribute(cp, name, in);
+            }
             else if (nameStr.equals(ParameterAnnotationsAttribute.visibleTag)
                 || nameStr.equals(ParameterAnnotationsAttribute.invisibleTag))
                 return new ParameterAnnotationsAttribute(cp, name, in);
