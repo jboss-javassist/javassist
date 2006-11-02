@@ -285,6 +285,12 @@ see javassist.Dump.
 <ul>
 	<li>A bug in CodeConverter#replaceFieldRead() and CodeConverter#replaceFieldWrite()
 	was fixed. <a href="http://jira.jboss.com/jira/browse/JBAOP-284">JBAOP-284</a>.
+
+    <li>A synchronization bug and a performance bug in <code>javassist.util.proxy</code>
+    have been fixed
+    (<a href="http://jira.jboss.com/jira/browse/JASSIST-28">JASSIST-28</a>).
+    Now generated proxy classes are cached.  To turn the caching off,
+    set <code>ProxyFactory.useCache</code> to <code>false</code>.
 </ul>
 
 <p>-version 3.3 on August 17, 2006
@@ -698,7 +704,7 @@ Howard Lewis Ship, Richard Jones, Marjan Sterjev,
 Bruce McDonald, Mark Brennan, Vlad Skarzhevskyy,
 Brett Randall, Tsuyoshi Murakami, Nathan Meyers, Yoshiyuki Usui
 Yutaka Sunaga, Arjan van der Meer, Bruce Eckel, Guillaume Pothier,
-Kumar Matcha, Andreas Salathe, Renat Zubairov,
+Kumar Matcha, Andreas Salathe, Renat Zubairov, Armin Haaf
 and all other contributors for their contributions.
 
 <p><br>

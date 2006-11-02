@@ -23,9 +23,11 @@ import java.lang.reflect.Member;
 import java.lang.reflect.Modifier;
 import java.security.ProtectionDomain;
 import java.util.HashMap;
+import java.util.WeakHashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
+import java.lang.ref.WeakReference;
 
 import javassist.CannotCompileException;
 import javassist.bytecode.*;
@@ -124,6 +126,56 @@ public class ProxyFactory {
     private static final String HANDLER_SETTER_TYPE = "(" + HANDLER_TYPE + ")V";
 
     /**
+     * If true, a generated proxy class is cached and it will be reused
+     * when generating the proxy class with the same properties is requested.
+     * The default value is true.
+     *
+     * @since 3.4
+     */
+    public static boolean useCache = true; 
+
+    private static WeakHashMap proxyCache = new WeakHashMap();
+
+    static class CacheKey {
+        private String classes;
+        private MethodFilter filter;
+        private int hash;
+        WeakReference proxyClass;
+
+        public CacheKey(Class superClass, Class[] interfaces, MethodFilter f) {
+            classes = getKey(superClass, interfaces);
+            hash = classes.hashCode();
+            filter = f;
+            proxyClass = null;
+        }
+
+        public int hashCode() { return hash; }
+
+        public boolean equals(Object obj) {
+            if (obj instanceof CacheKey) {
+                CacheKey target = (CacheKey)obj;
+                return target.filter == filter && target.classes.equals(classes);
+            }
+            else
+                return false;
+        }
+
+        static String getKey(Class superClass, Class[] interfaces) {
+            StringBuffer sbuf = new StringBuffer();
+            if (superClass != null)
+                sbuf.append(superClass.getName());
+            sbuf.append(':');
+            if (interfaces != null) {
+                int len = interfaces.length;
+                for (int i = 0; i < len; i++)
+                    sbuf.append(interfaces[i].getName()).append(',');
+            }
+
+            return sbuf.toString();
+        }
+    }
+
+    /**
      * Constructs a factory of proxy class.
      */
     public ProxyFactory() {
@@ -174,21 +226,76 @@ public class ProxyFactory {
      * Generates a proxy class.
      */
     public Class createClass() {
-        if (thisClass == null)
-            try {
-                ClassFile cf = make();
-                ClassLoader cl = getClassLoader();
-                if (writeDirectory != null)
-                    FactoryHelper.writeFile(cf, writeDirectory);
-
-                thisClass = FactoryHelper.toClass(cf, cl, getDomain());
-                setHandler();
-            }
-            catch (CannotCompileException e) {
-                throw new RuntimeException(e.getMessage(), e);
-            }
+        if (thisClass == null) {
+            ClassLoader cl = getClassLoader();
+            if (useCache)
+                createClass2(cl);
+            else
+                createClass3(cl);
+        }
 
         return thisClass;
+    }
+
+    private void createClass2(ClassLoader cl) {
+        CacheKey key = new CacheKey(superClass, interfaces, methodFilter);
+        synchronized (proxyCache) {
+            HashMap cacheForTheLoader = (HashMap)proxyCache.get(cl);
+            if (cacheForTheLoader == null) {
+                cacheForTheLoader = new HashMap();
+                proxyCache.put(cl, cacheForTheLoader);
+                cacheForTheLoader.put(key, key);
+            }
+            else {
+                CacheKey found = (CacheKey)cacheForTheLoader.get(key);
+                if (found == null)
+                    cacheForTheLoader.put(key, key);
+                else {
+                    key = found;
+                    Class c = isValidEntry(key);    // no need to synchronize
+                    if (c != null) {
+                        thisClass = c;
+                        return;
+                    }
+                }
+            }
+        }
+
+        synchronized (key) {
+            Class c = isValidEntry(key);
+            if (c == null) {
+                createClass3(cl);
+                key.proxyClass = new WeakReference(thisClass);
+            }
+            else
+                thisClass = c; 
+        }
+    }
+
+    private Class isValidEntry(CacheKey key) {
+        WeakReference ref = key.proxyClass;
+        if (ref != null) {
+            Class c = (Class)ref.get();
+            if(c != null && getHandler(c) == handler)
+                return c;
+        }
+
+        return null;
+    }
+
+    private void createClass3(ClassLoader cl) {
+        try {
+            ClassFile cf = make();
+            if (writeDirectory != null)
+                FactoryHelper.writeFile(cf, writeDirectory);
+
+            thisClass = FactoryHelper.toClass(cf, cl, getDomain());
+            setHandler();
+        }
+        catch (CannotCompileException e) {
+            throw new RuntimeException(e.getMessage(), e);
+        }
+
     }
 
     /**
@@ -305,6 +412,19 @@ public class ProxyFactory {
             catch (Exception e) {
                 throw new RuntimeException(e);
             }
+    }
+
+    static MethodHandler getHandler(Class clazz) {
+        try {
+            Field f = clazz.getField(DEFAULT_INTERCEPTOR);
+            f.setAccessible(true);
+            MethodHandler h = (MethodHandler)f.get(null);
+            f.setAccessible(false);
+            return h;
+        }
+        catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private static int counter = 0;
