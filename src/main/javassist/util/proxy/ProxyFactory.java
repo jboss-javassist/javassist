@@ -141,11 +141,15 @@ public class ProxyFactory {
         private MethodFilter filter;
         private int hash;
         WeakReference proxyClass;
+        MethodHandler handler;
 
-        public CacheKey(Class superClass, Class[] interfaces, MethodFilter f) {
+        public CacheKey(Class superClass, Class[] interfaces,
+                        MethodFilter f, MethodHandler h)
+        {
             classes = getKey(superClass, interfaces);
             hash = classes.hashCode();
             filter = f;
+            handler = h;
             proxyClass = null;
         }
 
@@ -154,7 +158,8 @@ public class ProxyFactory {
         public boolean equals(Object obj) {
             if (obj instanceof CacheKey) {
                 CacheKey target = (CacheKey)obj;
-                return target.filter == filter && target.classes.equals(classes);
+                return target.filter == filter && target.handler == handler
+                       && target.classes.equals(classes);
             }
             else
                 return false;
@@ -238,7 +243,7 @@ public class ProxyFactory {
     }
 
     private void createClass2(ClassLoader cl) {
-        CacheKey key = new CacheKey(superClass, interfaces, methodFilter);
+        CacheKey key = new CacheKey(superClass, interfaces, methodFilter, handler);
         synchronized (proxyCache) {
             HashMap cacheForTheLoader = (HashMap)proxyCache.get(cl);
             if (cacheForTheLoader == null) {
@@ -276,7 +281,7 @@ public class ProxyFactory {
         WeakReference ref = key.proxyClass;
         if (ref != null) {
             Class c = (Class)ref.get();
-            if(c != null && getHandler(c) == handler)
+            if(c != null)
                 return c;
         }
 
