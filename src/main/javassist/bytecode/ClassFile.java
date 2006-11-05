@@ -545,7 +545,8 @@ public final class ClassFile {
                     && notBridgeMethod(minfo) && notBridgeMethod(newMinfo)
                     && Descriptor.eqParamTypes(minfo.getDescriptor(),
                                                descriptor))
-                throw new CannotCompileException("duplicate method: " + name);
+                throw new CannotCompileException("duplicate method: " + name
+                                                 + " in " + this.getName());
         }
     }
 
