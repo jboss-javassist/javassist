@@ -58,7 +58,6 @@ import javassist.bytecode.*;
  *         return proceed.invoke(self, args);  // execute the original method.
  *     }
  * };
- * f.setHandler(mi);
  * f.setFilter(new MethodFilter() {
  *     public boolean isHandled(Method m) {
  *         // ignore finalize()
@@ -67,6 +66,7 @@ import javassist.bytecode.*;
  * });
  * Class c = f.createClass();
  * Foo foo = (Foo)c.newInstance();
+ * ((ProxyObject)foo).setHandler(mi);
  * </pre></ul>
  *
  * <p>Then, the following method call will be forwarded to MethodHandler
@@ -77,6 +77,15 @@ import javassist.bytecode.*;
  * foo.bar();
  * </pre></ul>
  *
+ * <p>The last three lines of the code shown above can be replaced with a call to
+ * the helper method <code>create</code>, which generates a proxy class, instantiates
+ * it, and sets the method handler of the instance:
+ *
+ * <ul><pre>
+ *     :
+ * Foo foo = (Foo)f.create(new Class[0], new Object[0], mi);
+ * </pre></ul>
+ *
  * <p>To change the method handler during runtime,
  * execute the following code:
  *
@@ -85,7 +94,20 @@ import javassist.bytecode.*;
  * ((ProxyObject)foo).setHandler(mi2);
  * </pre></ul>
  *
- * <p>Here is an example of method handler.  It does not execute
+ * <p>You can also specify the default method handler:
+ *
+ * <ul><pre>
+ * ProxyFactory f2 = new ProxyFactory();
+ * f2.setSuperclass(Foo.class);
+ * f2.setHandler(mi);            // set the default handler
+ * Class c2 = f2.createClass();
+ * </pre></ul>
+ *
+ * <p>The default handler is implicitly attached to an instance of the generated class
+ * <code>c2</code>.   Calling <code>setHandler</code> on the instance is not necessary
+ * unless another method handler must be attached to the instance. 
+ *
+ * <p>The following code is an example of method handler.  It does not execute
  * anything except invoking the original method:
  *
  * <ul><pre>
@@ -432,6 +454,22 @@ public class ProxyFactory {
             clazz = this.getClass();
 
         return clazz.getProtectionDomain();
+    }
+
+    /**
+     * Creates a proxy class and returns an instance of that class.
+     *
+     * @param paramTypes    parameter types for a constructor.
+     * @param args          arguments passed to a constructor.
+     * @param mh            the method handler for the proxy class.
+     */
+    public Object create(Class[] paramTypes, Object[] args, MethodHandler mh)
+        throws NoSuchMethodException, IllegalArgumentException,
+               InstantiationException, IllegalAccessException, InvocationTargetException
+    {
+        Object obj = create(paramTypes, args);
+        ((ProxyObject)obj).setHandler(mh);
+        return obj;
     }
 
     /**
