@@ -462,6 +462,7 @@ public class ProxyFactory {
      * @param paramTypes    parameter types for a constructor.
      * @param args          arguments passed to a constructor.
      * @param mh            the method handler for the proxy class.
+     * @since 3.4
      */
     public Object create(Class[] paramTypes, Object[] args, MethodHandler mh)
         throws NoSuchMethodException, IllegalArgumentException,
