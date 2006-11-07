@@ -512,7 +512,12 @@ public class ProxyFactory {
         addMethodsHolder(cf, pool, classname, s);
         addSetter(classname, cf, pool);
 
-        cf.addMethod(makeWriteReplace(pool));
+        try {
+            cf.addMethod(makeWriteReplace(pool));
+        }
+        catch (DuplicateMemberException e) {
+            // writeReplace() is already declared in the super class/interfaces.
+        }
 
         thisClass = null;          
         return cf;

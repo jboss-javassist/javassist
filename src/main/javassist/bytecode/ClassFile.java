@@ -465,8 +465,10 @@ public final class ClassFile {
 
     /**
      * Appends a field to the class.
+     *
+     * @throws DuplicateMemberException         when the field is already included.
      */
-    public void addField(FieldInfo finfo) throws CannotCompileException {
+    public void addField(FieldInfo finfo) throws DuplicateMemberException {
         testExistingField(finfo.getName(), finfo.getDescriptor());
         fields.add(finfo);
     }
@@ -476,12 +478,12 @@ public final class ClassFile {
     }
 
     private void testExistingField(String name, String descriptor)
-            throws CannotCompileException {
+            throws DuplicateMemberException {
         ListIterator it = fields.listIterator(0);
         while (it.hasNext()) {
             FieldInfo minfo = (FieldInfo)it.next();
             if (minfo.getName().equals(name))
-                throw new CannotCompileException("duplicate field: " + name);
+                throw new DuplicateMemberException("duplicate field: " + name);
         }
     }
 
@@ -523,8 +525,10 @@ public final class ClassFile {
 
     /**
      * Appends a method to the class.
+     *
+     * @throws DuplicateMemberException         when the method is already included.
      */
-    public void addMethod(MethodInfo minfo) throws CannotCompileException {
+    public void addMethod(MethodInfo minfo) throws DuplicateMemberException {
         testExistingMethod(minfo);
         methods.add(minfo);
     }
@@ -534,7 +538,7 @@ public final class ClassFile {
     }
 
     private void testExistingMethod(MethodInfo newMinfo)
-        throws CannotCompileException
+        throws DuplicateMemberException
     {
         String name = newMinfo.getName();
         String descriptor = newMinfo.getDescriptor();
@@ -545,7 +549,7 @@ public final class ClassFile {
                     && notBridgeMethod(minfo) && notBridgeMethod(newMinfo)
                     && Descriptor.eqParamTypes(minfo.getDescriptor(),
                                                descriptor))
-                throw new CannotCompileException("duplicate method: " + name
+                throw new DuplicateMemberException("duplicate method: " + name
                                                  + " in " + this.getName());
         }
     }
