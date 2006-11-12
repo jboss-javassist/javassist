@@ -228,8 +228,8 @@ public class CodeConverter {
 
         int mod1 = origMethod.getModifiers();
         int mod2 = substMethod.getModifiers();
-        if (Modifier.isPrivate(mod1) != Modifier.isPrivate(mod2)
-            || Modifier.isStatic(mod1) != Modifier.isStatic(mod2)
+        if (Modifier.isStatic(mod1) != Modifier.isStatic(mod2)
+            || (Modifier.isPrivate(mod1) && !Modifier.isPrivate(mod2))
             || origMethod.getDeclaringClass().isInterface()
                != substMethod.getDeclaringClass().isInterface())
             throw new CannotCompileException("invoke-type mismatch");

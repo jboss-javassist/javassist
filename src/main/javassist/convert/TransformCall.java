@@ -17,11 +17,13 @@ package javassist.convert;
 
 import javassist.CtClass;
 import javassist.CtMethod;
+import javassist.Modifier;
 import javassist.bytecode.*;
 
 public class TransformCall extends Transformer {
     protected String classname, methodname, methodDescriptor;
     protected String newClassname, newMethodname;
+    protected boolean newMethodIsPrivate;
 
     /* cache */
     protected int newIndex;
@@ -43,6 +45,7 @@ public class TransformCall extends Transformer {
         classname = newClassname = substMethod.getDeclaringClass().getName(); 
         newMethodname = substMethod.getName();
         constPool = null;
+        newMethodIsPrivate = Modifier.isPrivate(substMethod.getModifiers());
     }
 
     public void initialize(ConstPool cp, CodeAttribute attr) {
@@ -79,8 +82,12 @@ public class TransformCall extends Transformer {
             int ci = cp.addClassInfo(newClassname);
             if (c == INVOKEINTERFACE)
                 newIndex = cp.addInterfaceMethodrefInfo(ci, nt);
-            else
+            else {
+                if (newMethodIsPrivate && c == INVOKEVIRTUAL)
+                    iterator.writeByte(INVOKESPECIAL, pos);
+
                 newIndex = cp.addMethodrefInfo(ci, nt);
+            }
 
             constPool = cp;
         }
