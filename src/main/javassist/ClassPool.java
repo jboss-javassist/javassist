@@ -874,7 +874,7 @@ public class ClassPool {
      *                      If it is null, the default domain created
      *                      by <code>java.lang.ClassLoader</code> is used.
      *
-     * @see #getContextClassLoader()
+     * @see #getClassLoader()
      * @since 3.3
      */
     public Class toClass(CtClass ct, ClassLoader loader, ProtectionDomain domain)

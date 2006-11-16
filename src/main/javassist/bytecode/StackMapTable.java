@@ -17,9 +17,9 @@ package javassist.bytecode;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Map;
-import java.util.ArrayList;
 
 /**
  * <code>stack_map</code> attribute.
@@ -27,6 +27,8 @@ import java.util.ArrayList;
  * <p>This is an entry in the attributes table of a Code attribute.
  * It was introduced by J2SE 6 for the process of verification by
  * typechecking.
+ *
+ * @since 3.4
  */
 public class StackMapTable extends AttributeInfo {
     /**
@@ -34,32 +36,23 @@ public class StackMapTable extends AttributeInfo {
      */
     public static final String tag = "StackMapTable";
 
-    private ArrayList entries;    // ArrayList<StackMapFrame>.  may be null.
-
     /**
      * Constructs a <code>stack_map</code> attribute.
      */
-    public StackMapTable(ConstPool cp) {
-        this(cp, (byte[])null);
-    }
-
     private StackMapTable(ConstPool cp, byte[] newInfo) {
         super(cp, tag, newInfo);
-        entries = null;
     }
 
     StackMapTable(ConstPool cp, int name_id, DataInputStream in)
         throws IOException
     {
         super(cp, name_id, in);
-        entries = null;
     }
 
     /**
      * Makes a copy.
      */
     public AttributeInfo copy(ConstPool newCp, Map classnames) {
-        toByteArray(false);
         int s = info.length;
         byte[] newInfo = new byte[s];
         System.arraycopy(info, 0, newInfo, 0, s);
@@ -67,47 +60,8 @@ public class StackMapTable extends AttributeInfo {
     }
 
     void write(DataOutputStream out) throws IOException {
-        toByteArray(true);
         super.write(out);
     }
-
-    private void parseMap() {
-        byte[] data = info;
-        int n = ByteArray.readU16bit(data, 0);
-        entries = new ArrayList(n);
-        int offset = 2;
-        while (n-- > 0) {
-            int frameType;
-        }
-
-    }
-
-    private void toByteArray(boolean clear) {
-        if (entries != null)
-            ; // unparse 
-    }
-
-    /**
-     * <code>union stack_map_frame</code>.
-     * <p><code>verification_type_info</code> is represented
-     * by a pair of two <code>int</code> values.  No class
-     * for represening <code>verification_type_ 
-     */
-    public static class StackMapFrame {
-        /**
-         * <code>u2 offset_delta</code>.
-         * If <code>offset_delta</code> is not included
-         * (i.e. <code>same_frame</code>), the value of
-         * this field is computed from other members such
-         * as <code>frame_type</code>. 
-         */
-        public int offsetDelta;
-    } 
-
-    /*
-     * verification_type_info is represented by a pair of
-     * 2 int variables (tag and cpool_index/offset). 
-     */
 
     /**
      * <code>Top_variable_info.tag</code>.
@@ -155,150 +109,342 @@ public class StackMapTable extends AttributeInfo {
     public static final int UNINIT = 8;
 
     /**
-     * <code>same_frame</code>.
-     * <code>frame_type</code> is not included.
-     * It is computed by <code>offsetDelta</code>. 
+     * A code walker for a StackMapTable attribute.
      */
-    public static class SameFrame extends StackMapFrame {
+    static class Walker {
+        byte[] info;
+        int numOfEntries;
+
         /**
-         * The maximum value of <code>SAME</code>.
+         * Constructs a walker.
+         *
+         * @param data      the <code>info</code> field of the
+         *                  <code>attribute_info</code> structure.
          */
-        public static final int FRAME_TYPE_MAX = 63;
+        public Walker(byte[] data) {
+            info = data;
+            numOfEntries = ByteArray.readU16bit(data, 0);
+        }
+
+        /**
+         * Returns the number of the entries.
+         */
+        public final int size() { return numOfEntries; }
+
+        /**
+         * Visits each entry of the stack map frames. 
+         */
+        public final void parse() throws BadBytecode {
+            int n = numOfEntries;
+            int pos = 2;
+            for (int i = 0; i < n; i++)
+                pos = stackMapFrames(pos, i);
+        }
+
+        /**
+         * Invoked when the next entry of the stack map frames is visited.
+         *
+         * @param pos       the position of the frame in the <code>info</code>
+         *                  field of <code>attribute_info</code> structure.
+         * @param nth       the frame is the N-th
+         *                  (0, 1st, 2nd, 3rd, 4th, ...) entry. 
+         * @return          the position of the next frame.
+         */
+        int stackMapFrames(int pos, int nth) throws BadBytecode {
+            int type = info[pos] & 0xff;
+            if (type < 64) {
+                sameFrame(pos, type);
+                pos++;
+            }
+            else if (type < 128)
+                pos = sameLocals(pos, type);
+            else if (type < 247)
+                throw new BadBytecode("bad frame_type in StackMapTable");
+            else if (type == 247)   // SAME_LOCALS_1_STACK_ITEM_EXTENDED
+                pos = sameLocals(pos, type);
+            else if (type < 251) {
+                int offset = ByteArray.readU16bit(info, pos + 1);
+                chopFrame(pos, offset, 251 - type);
+                pos += 3;
+            }
+            else if (type == 251) { // SAME_FRAME_EXTENDED
+                int offset = ByteArray.readU16bit(info, pos + 1);
+                sameFrame(pos, offset);
+                pos += 3;
+            }
+            else if (type < 255)
+                pos = appendFrame(pos, type);
+            else    // FULL_FRAME
+                pos = fullFrame(pos);
+
+            return pos;
+        }
+
+        /**
+         * Invoked if the visited frame is a <code>same_frame</code> or
+         * a <code>same_frame_extended</code>.
+         *
+         * @param pos       the position of this frame in the <code>info</code>
+         *                  field of <code>attribute_info</code> structure.
+         * @param offsetDelta
+         */
+        public void sameFrame(int pos, int offsetDelta) {}
+
+        private int sameLocals(int pos, int type) {
+            int offset;
+            if (type < 128)
+                offset = type - 64;
+            else { // type == 247
+                offset = ByteArray.readU16bit(info, pos + 1);
+                pos += 2;
+            }
+
+            int tag = info[pos + 1] & 0xff;
+            int data = 0;
+            if (tag == OBJECT || tag == UNINIT) {
+                data = ByteArray.readU16bit(info, pos + 2);
+                pos += 2;
+            }
+
+            sameLocals(pos, offset, tag, data);
+            return pos + 2;
+        }
+
+        /**
+         * Invoked if the visited frame is a <code>same_locals_1_stack_item_frame</code>
+         * or a <code>same_locals_1_stack_item_frame_extended</code>.
+         *
+         * @param pos               the position.
+         * @param offsetDelta
+         * @param stackTag          <code>stack[0].tag</code>.
+         * @param stackData         <code>stack[0].cpool_index</code>
+         *                          if the tag is <code>OBJECT</code>,
+         *                          or <code>stack[0].offset</code>
+         *                          if the tag is <code>UNINIT</code>.
+         */
+        public void sameLocals(int pos, int offsetDelta, int stackTag, int stackData) {}
+
+        /**
+         * Invoked if the visited frame is a <code>chop_frame</code>.
+         * 
+         * @param pos               the position.
+         * @param offsetDelta
+         * @param k                 the <cod>k</code> last locals are absent. 
+         */
+        public void chopFrame(int pos, int offsetDelta, int k) {}
+
+        private int appendFrame(int pos, int type) {
+            int k = type - 251;
+            int offset = ByteArray.readU16bit(info, pos + 1);
+            int[] tags = new int[k];
+            int[] data = new int[k];
+            int p = pos + 3;
+            for (int i = 0; i < k; i++) {
+                int tag = info[p] & 0xff;
+                tags[i] = tag;
+                if (tag == OBJECT || tag == UNINIT) {
+                    data[i] = ByteArray.readU16bit(info, p + 1);
+                    p += 3;
+                }
+                else {
+                    data[i] = 0;
+                    p++;
+                }
+            }
+
+            appendFrame(pos, offset, tags, data);
+            return p;
+        }
+
+        /**
+         * Invoked if the visited frame is a <code>append_frame</code>.
+         *
+         * @param pos           the position.
+         * @param offsetDelta
+         * @param tags          <code>locals[i].tag</code>.
+         * @param data          <code>locals[i].cpool_index</code>
+         *                      or <cod>locals[i].offset</code>.
+         */
+        public void appendFrame(int pos, int offsetDelta, int[] tags, int[] data) {} 
+
+        private int fullFrame(int pos) {
+            int offset = ByteArray.readU16bit(info, pos + 1);
+            int numOfLocals = ByteArray.readU16bit(info, pos + 3);
+            int[] localsTags = new int[numOfLocals];
+            int[] localsData = new int[numOfLocals];
+            int p = verifyTypeInfo(pos + 5, numOfLocals, localsTags, localsData);
+            int numOfItems = ByteArray.readU16bit(info, p);
+            int[] itemsTags = new int[numOfItems];
+            int[] itemsData = new int[numOfItems];
+            p = verifyTypeInfo(p + 2, numOfItems, itemsTags, itemsData);
+            fullFrame(pos, offset, localsTags, localsData, itemsTags, itemsData);
+            return p;
+        }
+
+        /**
+         * Invoked if the visited frame is <code>full_frame</code>.
+         *
+         * @param pos               the position.
+         * @param offsetDelta
+         * @param localTags         <code>locals[i].tag</code>
+         * @param localData         <code>locals[i].cpool_index</code>
+         *                          or <code>locals[i].offset</code>
+         * @param stackTags         <code>stack[i].tag</code>
+         * @param stackData         <code>stack[i].cpool_index</code>
+         *                          or <code>stack[i].offset</code>
+         */
+        void fullFrame(int pos, int offsetDelta, int[] localTags, int[] localData,
+                       int[] stackTags, int[] stackData) {}
+
+        private int verifyTypeInfo(int pos, int n, int[] tags, int[] data) {
+            for (int i = 0; i < n; i++) {
+                int tag = info[pos++] & 0xff;
+                tags[i] = tag;
+                if (tag == OBJECT || tag == UNINIT) {
+                    data[i] = ByteArray.readU16bit(info, pos);
+                    pos += 2;
+                }
+            }
+
+            return pos;
+        }
     }
 
     /**
-     * <code>same_locals_1_stack_item_frame</code> or 
-     * <code>same_locals_1_stack_item_frame_extended</code>.
-     *
-     * <p><code>frame_type</code> is not included.
-     * It is computed by <code>offsetDelta</code>. 
+     * A writer of stack map tables.
      */
-    public static class SameLocals extends StackMapFrame {
-        /**
-         * The minimum value of <code>SAME_LOCALS_1_STACK_ITEM</code>.
-         */
-        public static final int FRAME_TYPE = 64;
+    static class Writer {
+        ByteArrayOutputStream output;
+        int numOfEntries;
 
         /**
-         * The maximum value of <code>SAME_LOCALS_1_STACK_ITEM</code>.
+         * Constructs a writer.
+         * @param size      the initial buffer size.
          */
-        public static final int FRAME_TYPE_MAX = 127;
+        public Writer(int size) {
+            output = new ByteArrayOutputStream(size);
+            numOfEntries = 0;
+            output.write(0);        // u2 number_of_entries
+            output.write(0);
+        }
 
         /**
-         * <code>SAME_LOCALS_1_STACK_ITEM_EXTENDED</code>.
+         * Returns the stack map table written out.
          */
-        public static final int FRAME_TYPE_EXTENDED = 247;
+        public byte[] toByteArray() {
+            byte[] b = output.toByteArray();
+            ByteArray.write16bit(numOfEntries, b, 0);
+            return b;
+        }
 
         /**
-         * <code>stack[0].tag</code>.
+         * Writes a <code>same_frame</code> or a <code>same_frame_extended</code>.
          */
-        public int typeTag;
+        public void sameFrame(int offsetDelta) {
+            numOfEntries++;
+            if (offsetDelta < 64)
+                output.write(offsetDelta);
+            else {
+                output.write(251);  // SAME_FRAME_EXTENDED
+                write16(offsetDelta);
+            }
+        }
 
         /**
-         * <code>stack[0].cpool_index</code> or <code>stack[0].offset</code>.
+         * Writes a <code>same_locals_1_stack_item</code>
+         * or a <code>same_locals_1_stack_item_extended</code>.
+         *
+         * @param tag           <code>stack[0].tag</code>.
+         * @param data          <code>stack[0].cpool_index</code>
+         *                      if the tag is <code>OBJECT</code>,
+         *                      or <cod>stack[0].offset</code>
+         *                      if the tag is <code>UNINIT</code>.
+         *                      Otherwise, this parameter is not used.
          */
-        public int typeValue;
-    }
+        public void sameLocals(int offsetDelta, int tag, int data) {
+            numOfEntries++;
+            if (offsetDelta < 64)
+                output.write(offsetDelta + 64);
+            else {
+                output.write(247);  // SAME_LOCALS_1_STACK_ITEM_EXTENDED
+                write16(offsetDelta);
+            }
 
-    /**
-     * <code>chop_frame</code>.
-     */
-    public static class ChopFrame extends StackMapFrame {
-        /**
-         * The minimum value of <code>CHOP</code>.
-         */
-        public static final int FRAME_TYPE = 248;
-
-        /**
-         * The maximum value of <code>CHOP</code>.
-         */
-        public static final int FRAME_TYPE_MAX = 250;
-
-        /**
-         * <code>u1 frame_type</code>.
-         */
-        public int frameType;
-    }
-
-    /**
-     * <code>same_frame_extended</code>.
-     */
-    public static class SameFrameExtended extends StackMapFrame {
-        /**
-         * <code>SAME_FRAME_EXTENDED</code>.
-         */
-        public static final int FRAME_TYPE = 251;
-    }
-
-    /**
-     * <code>append_frame</code>.
-     */
-    public static class AppendFrame extends StackMapFrame {
-        /**
-         * The minimum value of <code>APPEND</code>.
-         */
-        public static final int FRAME_TYPE = 252;
+            writeTypeInfo(tag, data);
+        }
 
         /**
-         * The maximum value of <code>APPEND</code>.
+         * Writes a <code>chop_frame</code>.
+         *
+         * @param k                 the number of absent locals. 1, 2, or 3.
          */
-        public static final int FRAME_TYPE_MAX = 254;
+        public void chopFrame(int offsetDelta, int k) {
+            numOfEntries++;
+            output.write(251 - k);
+            write16(offsetDelta);
+        }
 
         /**
-         * <code>u1 frame_type</code>.
+         * Writes a <code>append_frame</code>.
+         *
+         * @param tag           <code>locals[].tag</code>.
+         *                      The length of this array must be
+         *                      either 1, 2, or 3.
+         * @param data          <code>locals[].cpool_index</code>
+         *                      if the tag is <code>OBJECT</code>,
+         *                      or <cod>locals[].offset</code>
+         *                      if the tag is <code>UNINIT</code>.
+         *                      Otherwise, this parameter is not used.
          */
-        public int frameType;
+        public void appendFrame(int offsetDelta, int[] tags, int[] data) {
+            numOfEntries++;
+            int k = tags.length;    // k is 1, 2, or 3
+            output.write(k + 251);
+            write16(offsetDelta);
+            for (int i = 0; i < k; i++)
+                writeTypeInfo(tags[i], data[i]);
+        }
 
         /**
-         * <code>locals[?].tag</code>.
-         * <code>typeTags.length</code> and <code>typeValues.length</code>
-         * are equal to <code>number_of_locals</code>.
+         * Writes a <code>full_frame</code>.
+         *
+         * @param localTags     <code>locals[].tag</code>.
+         * @param localData     <code>locals[].cpool_index</code>
+         *                      if the tag is <code>OBJECT</code>,
+         *                      or <cod>locals[].offset</code>
+         *                      if the tag is <code>UNINIT</code>.
+         *                      Otherwise, this parameter is not used.
+         * @param stackTags     <code>stack[].tag</code>.
+         * @param stackData     <code>stack[].cpool_index</code>
+         *                      if the tag is <code>OBJECT</code>,
+         *                      or <cod>stack[].offset</code>
+         *                      if the tag is <code>UNINIT</code>.
+         *                      Otherwise, this parameter is not used.
          */
-        public int[] typeTags;
+        public void fullFrame(int offsetDelta, int[] localTags, int[] localData,
+                              int[] stackTags, int[] stackData) {
+            numOfEntries++;
+            output.write(255);      // FULL_FRAME
+            write16(offsetDelta);
+            int n = localTags.length;
+            write16(n);
+            for (int i = 0; i < n; i++)
+                writeTypeInfo(localTags[i], localData[i]);
 
-        /**
-         * <code>locals[?].cpool_index</code> or <code>locals[?].offset</code>.
-         * <code>typeTags.length</code> and <code>typeValues.length</code>
-         * are equal to <code>number_of_locals</code>.
-         */
-        public int[] typeValues;
-    }
+            n = stackTags.length;
+            for (int i = 0; i < n; i++)
+                writeTypeInfo(stackTags[i], stackData[i]);
+        }
 
-    /**
-     * <code>ful_frame</code>.
-     */
-    public static class FullFrame extends StackMapFrame {
-        /**
-         * <code>FULL_FRAME</code>.
-         */
-        public static final int FRAME_TYPE = 255;
+        private void writeTypeInfo(int tag, int data) {
+            output.write(tag);
+            if (tag == OBJECT || tag == UNINIT)
+                write16(data);
+        }
 
-        /**
-         * <code>locals[?].tag</code>.
-         * <code>typeTags.length</code> and <code>typeValues.length</code>
-         * are equal to <code>number_of_locals</code>.
-         */
-        public int[] typeTags;
-
-        /**
-         * <code>locals[?].cpool_index</code> or <code>locals[?].offset</code>.
-         * <code>typeTags.length</code> and <code>typeValues.length</code>
-         * are equal to <code>number_of_locals</code>.
-         */
-        public int[] typeValues;
-
-        /**
-         * <code>stack[?].tag</code>.
-         * <code>stackTypeTags.length</code> and <code>stackTypeValues.length</code>
-         * are equal to <code>number_of_stack_items</code>.
-         */
-        public int[] stackTypeTags;
-
-        /**
-         * <code>stack[?].cpool_index</code> or <code>locals[?].offset</code>.
-         * <code>stackTypeTags.length</code> and <code>stackTypeValues.length</code>
-         * are equal to <code>number_of_stack_items</code>.
-         */
-        public int[] stackTypeValues;
+        private void write16(int value) {
+            output.write((value >>> 8) & 0xff);
+            output.write(value & 0xff);
+        }
     }
 }
