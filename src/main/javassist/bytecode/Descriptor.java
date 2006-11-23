@@ -685,6 +685,69 @@ public class Descriptor {
     }
 
     /**
+     * Returns a human-readable representation of the
+     * given descriptor.  For example, <code>Ljava/lang/Object;</code>
+     * is converted into <code>java.lang.Object</code>.
+     * <code>(I[I)V</code> is converted into <code>(int, int[])</code>
+     * (the return type is ignored). 
+     */
+    public static String toString(String desc) {
+        return PrettyPrinter.toString(desc);
+    }
+
+    static class PrettyPrinter {
+        static String toString(String desc) {
+            StringBuffer sbuf = new StringBuffer();
+            if (desc.charAt(0) == '(') {
+                int pos = 1;
+                sbuf.append('(');
+                while (desc.charAt(pos) != ')') {
+                    if (pos > 1)
+                        sbuf.append(',');
+
+                    pos = readType(sbuf, pos, desc);
+                }
+
+                sbuf.append(')');
+            }
+            else
+                readType(sbuf, 0, desc);
+
+            return sbuf.toString();
+        }
+
+        static int readType(StringBuffer sbuf, int pos, String desc) {
+            char c = desc.charAt(pos);
+            int arrayDim = 0;
+            while (c == '[') {
+                arrayDim++;
+                c = desc.charAt(++pos);
+            }
+
+            if (c == 'L')
+                while (true) {
+                    c = desc.charAt(++pos);
+                    if (c == ';')
+                        break;
+
+                    if (c == '/')
+                        c = '.';
+
+                    sbuf.append(c);
+                }
+            else {
+                CtClass t = toPrimitiveClass(c);
+                sbuf.append(t.getName());
+            }
+
+            while (arrayDim-- > 0)
+                sbuf.append("[]");
+
+            return pos + 1;
+        }
+    }
+
+    /**
      * An Iterator over a descriptor.
      */
     public static class Iterator {

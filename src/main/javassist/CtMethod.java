@@ -155,6 +155,17 @@ public final class CtMethod extends CtBehavior {
     }
 
     /**
+     * Returns the method name followed by parameter types
+     * such as <code>javassist.CtMethod.setBody(String)</code>.
+     *
+     * @since 3.5
+     */
+    public String getLongName() {
+        return getDeclaringClass().getName() + "."
+               + getName() + Descriptor.toString(getSignature());
+    }
+
+    /**
      * Obtains the name of this method.
      */
     public String getName() {

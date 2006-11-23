@@ -82,6 +82,14 @@ public abstract class CtBehavior extends CtMember {
     }
 
     /**
+     * Returns the method or constructor name followed by parameter types
+     * such as <code>javassist.CtBehavior.stBody(String)</code>.
+     *
+     * @since 3.5
+     */
+    public abstract String getLongName();
+
+    /**
      * Returns the MethodInfo representing this method/constructor in the
      * class file.
      */

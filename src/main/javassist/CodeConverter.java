@@ -224,7 +224,8 @@ public class CodeConverter {
         String d1 = origMethod.getMethodInfo2().getDescriptor();
         String d2 = substMethod.getMethodInfo2().getDescriptor();
         if (!d1.equals(d2))
-            throw new CannotCompileException("signature mismatch");
+            throw new CannotCompileException("signature mismatch: "
+                                             + substMethod.getLongName());
 
         int mod1 = origMethod.getModifiers();
         int mod2 = substMethod.getModifiers();
@@ -232,7 +233,8 @@ public class CodeConverter {
             || (Modifier.isPrivate(mod1) && !Modifier.isPrivate(mod2))
             || origMethod.getDeclaringClass().isInterface()
                != substMethod.getDeclaringClass().isInterface())
-            throw new CannotCompileException("invoke-type mismatch");
+            throw new CannotCompileException("invoke-type mismatch "
+                                             + substMethod.getLongName());
 
         transformers = new TransformCall(transformers, origMethod,
                                          substMethod);

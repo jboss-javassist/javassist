@@ -116,6 +116,18 @@ public final class CtConstructor extends CtBehavior {
     }
 
     /**
+     * Returns the constructor name followed by parameter types
+     * such as <code>javassist.CtConstructor(CtClass[],CtClass)</code>.
+     *
+     * @since 3.5
+     */
+    public String getLongName() {
+        return getDeclaringClass().getName()
+               + (isConstructor() ? Descriptor.toString(getSignature())
+                                  : ("." + MethodInfo.nameClinit + "()"));
+    }
+
+    /**
      * Obtains the name of this constructor.
      * It is the same as the simple name of the class declaring this
      * constructor.  If this object represents a class initializer,
