@@ -101,7 +101,11 @@ public class ExprEditor {
             }
         }
 
-        codeAttr.setMaxLocals(context.maxLocals);
+        // codeAttr might be modified by other partys
+        // so I check the current value of max-locals.
+        if (codeAttr.getMaxLocals() < context.maxLocals)
+            codeAttr.setMaxLocals(context.maxLocals);
+
         codeAttr.setMaxStack(codeAttr.getMaxStack() + context.maxStack);
         return edited;
     }
