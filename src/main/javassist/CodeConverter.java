@@ -17,6 +17,7 @@ package javassist;
 
 import javassist.bytecode.*;
 import javassist.convert.*;
+import javassist.convert.TransformAccessArrayField.MethodNames;
 
 /**
  * Simple translator of method bodies
@@ -202,6 +203,11 @@ public class CodeConverter {
                                                calledMethod);
     }
 
+    public void replaceArrayAccess(CtClass calledClass, MethodNames names) throws NotFoundException
+    {
+       transformers = new TransformAccessArrayField(transformers, calledClass.getName(), names);
+    }
+    
     /**
      * Modify method invocations in a method body so that a different
      * method will be invoked.
@@ -365,8 +371,7 @@ public class CodeConverter {
     void doit(CtClass clazz, MethodInfo minfo, ConstPool cp)
         throws CannotCompileException
     {
-        Transformer t;
-
+       Transformer t;
         CodeAttribute codeAttr = minfo.getCodeAttribute();
         if (codeAttr == null || transformers == null)
             return;
