@@ -17,7 +17,6 @@ package javassist;
 
 import javassist.bytecode.*;
 import javassist.convert.*;
-import javassist.convert.TransformAccessArrayField.MethodNames;
 
 /**
  * Simple translator of method bodies
@@ -48,7 +47,7 @@ import javassist.convert.TransformAccessArrayField.MethodNames;
  * @see javassist.expr.ExprEditor
  */
 public class CodeConverter {
-    Transformer transformers = null;
+    protected Transformer transformers = null;
 
     /**
      * Modify a method body so that instantiation of the specified class
@@ -64,7 +63,7 @@ public class CodeConverter {
      * in the method body with:
      *
      * <ul><code>Singleton.createPoint(x, y)</code></ul>
-     * 
+     *
      * <p>This enables to intercept instantiation of <code>Point</code>
      * and change the samentics.  For example, the following
      * <code>createPoint()</code> implements the singleton pattern:
@@ -169,7 +168,7 @@ public class CodeConverter {
      * the original
      * write expression and the assigned value.  The return type of the
      * static method is <code>void</code>.
-     * 
+     *
      * <p>For example, the program below
      *
      * <ul><pre>Point p = new Point();
@@ -203,16 +202,110 @@ public class CodeConverter {
                                                calledMethod);
     }
 
-    public void replaceArrayAccess(CtClass calledClass, MethodNames names) throws NotFoundException
+    /**
+     * Modify a method body, so that ALL accesses to an array are replaced with 
+     * calls to static methods within another class. In the case of reading an 
+     * element from the array, this is replaced with a call to a static method with 
+     * the array and the index as arguments, the return value is the value read from 
+     * the array. If writing to an array, this is replaced with a call to a static 
+     * method with the array, index and new value as parameters, the return value of 
+     * the static method is <code>void</code>.
+     * 
+     * <p>The calledClass parameter is the class containing the static methods to be used 
+     * for array replacement. The names parameter points to an implementation of 
+     * ArrayAccessReplacementMethodNames which specifies the names of the method to be 
+     * used for access for each type of array. For example reading from an int[] will 
+     * require a different method than if writing to an int[], and writing to a long[] 
+     * will require a different method than if writing to a byte[]. If the implementation 
+     * of ArrayAccessReplacementMethodNames does not contain the name for access for a 
+     * type of array, that access is not replaced.
+     * 
+     * <p>A default implementation of ArrayAccessReplacementMethodNames called 
+     * DefaultArrayAccessReplacementMethodNames has been provided and is what is used in the 
+     * following example. This also assumes that 'foo.ArrayAdvisor' is the name of the 
+     * CtClass passed in.
+     * 
+     * <p>If we have the following class
+     * <pre>class POJO{
+     *    int[] ints = new int[]{1, 2, 3, 4, 5};
+     *    long[] longs = new int[]{10, 20, 30};
+     *    Object objects = new Object[]{true, false};
+     *    Integer[] integers = new Integer[]{new Integer(10)};
+     * }
+     * </pre>
+     * and this is accessed as
+     * <pre>POJO p = new POJO();
+     * 
+     * //Write to int array
+     * p.ints[2] = 7;
+     * 
+     * //Read from int array
+     * int i = p.ints[2];
+     * 
+     * //Write to long array
+     * p.longs[2] = 1000L;
+     * 
+     * //Read from long array
+     * long l = p.longs[2];
+     * 
+     * //Write to Object array
+     * p.objects[2] = "Hello";
+     * 
+     * //Read from Object array
+     * Object o = p.objects[2];
+     * 
+     * //Write to Integer array
+     * Integer integer = new Integer(5);
+     * p.integers[0] = integer;
+     * 
+     * //Read from Object array
+     * integer = p.integers[0];
+     * </pre>
+     * 
+     * Following instrumentation we will have
+     * <pre>POJO p = new POJO();
+     * 
+     * //Write to int array
+     * ArrayAdvisor.arrayWriteInt(p.ints, 2, 7);
+     * 
+     * //Read from int array
+     * int i = ArrayAdvisor.arrayReadInt(p.ints, 2);
+     * 
+     * //Write to long array
+     * ArrayAdvisor.arrayWriteLong(p.longs, 2, 1000L);
+     * 
+     * //Read from long array
+     * long l = ArrayAdvisor.arrayReadLong(p.longs, 2);
+     * 
+     * //Write to Object array
+     * ArrayAdvisor.arrayWriteObject(p.objects, 2, "Hello");
+     * 
+     * //Read from Object array
+     * Object o = ArrayAdvisor.arrayReadObject(p.objects, 2);
+     * 
+     * //Write to Integer array
+     * Integer integer = new Integer(5);
+     * ArrayAdvisor.arrayWriteObject(p.integers, 0, integer);
+     * 
+     * //Read from Object array
+     * integer = ArrayAdvisor.arrayWriteObject(p.integers, 0);
+     * </pre>
+     * 
+     * @see DefaultArrayAccessReplacementMethodNames
+     * 
+     * @param calledClass        the class containing the static methods
+     * @param names              contains the names of the methods to replace the different kinds of array access with
+     */
+    public void replaceArrayAccess(CtClass calledClass, ArrayAccessReplacementMethodNames names) throws NotFoundException
     {
        transformers = new TransformAccessArrayField(transformers, calledClass.getName(), names);
     }
-    
+
     /**
      * Modify method invocations in a method body so that a different
      * method will be invoked.
      *
-     * <p>Note that the target object, the parameters, or 
+     * <p>Note that the target object, the parameters, or
      * the type of invocation
      * (static method call, interface call, or private method call)
      * are not modified.  Only the method name is changed.  The substituted
@@ -254,7 +347,7 @@ public class CodeConverter {
      * <p>The method must be declared in the same class before and
      * after it is renamed.
      *
-     * <p>Note that the target object, the parameters, or 
+     * <p>Note that the target object, the parameters, or
      * the type of invocation
      * (static method call, interface call, or private method call)
      * are not modified.  Only the method name is changed.
@@ -368,7 +461,7 @@ public class CodeConverter {
     /**
      * Performs code conversion.
      */
-    void doit(CtClass clazz, MethodInfo minfo, ConstPool cp)
+    protected void doit(CtClass clazz, MethodInfo minfo, ConstPool cp)
         throws CannotCompileException
     {
        Transformer t;
@@ -402,5 +495,232 @@ public class CodeConverter {
             t.clean();
 
         codeAttr.setMaxLocals(codeAttr.getMaxLocals() + locals);
+    }
+
+    /**
+     * Interface containing the method names to be used as array access replacements
+     *
+     * @author <a href="kabir.khan@jboss.com">Kabir Khan</a>
+     * @version $Revision: 1.11 $
+     */
+    public interface ArrayAccessReplacementMethodNames
+    {
+       /**
+        * @return the name of a static method with the signature (Ljava/lang/Object;I)B" to replace reading from a byte[]
+        */
+       String byteOrBooleanRead();
+
+       /**
+        * @return the name of a static method with the signature (Ljava/lang/Object;IB)V  to replace writing to a byte[]
+        */
+       String byteOrBooleanWrite();
+
+       /**
+        * @return the name of a static method with the signature (Ljava/lang/Object;I)C  to replace reading from a char[]
+        */
+       String charRead();
+
+       /**
+        * @return the name of a static method with the signature (Ljava/lang/Object;IC)V to replace writing to a byte[]
+        */
+       String charWrite();
+
+       /**
+        * @return the name of a static method with the signature (Ljava/lang/Object;I)D to replace reading from a double[]
+        */
+       String doubleRead();
+
+       /**
+        * @return the name of a static method with the signature (Ljava/lang/Object;ID)V to replace writing to a double[]
+        */
+       String doubleWrite();
+
+       /**
+        * @return the name of a static method with the signature (Ljava/lang/Object;I)F  to replace reading from a float[]
+        */
+       String floatRead();
+
+       /**
+        * @return the name of a static method with the signature (Ljava/lang/Object;IF)V  to replace writing to a float[]
+        */
+       String floatWrite();
+
+       /**
+        * @return the name of a static method with the signature (Ljava/lang/Object;I)I to replace reading from a int[]
+        */
+       String intRead();
+
+       /**
+        * @return the name of a static method with the signature (Ljava/lang/Object;II)V to replace writing to a int[]
+        */
+       String intWrite();
+
+       /**
+        * @return the name of a static method with the signature (Ljava/lang/Object;I)J to replace reading from a long[]
+        */
+       String longRead();
+
+       /**
+        * @return the name of a static method with the signature (Ljava/lang/Object;IJ)V to replace writing to a long[]
+        */
+       String longWrite();
+
+       /**
+        * @return the name of a static method with the signature (Ljava/lang/Object;I)Ljava/lang/Object;  to replace reading from a Object[] (or any subclass of object)
+        */
+       String objectRead();
+
+       /**
+        * @return the name of a static method with the signature (Ljava/lang/Object;ILjava/lang/Object;)V  to replace writing to a Object[] (or any subclass of object)
+        */
+       String objectWrite();
+
+       /**
+        * @return the name of a static method with the signature (Ljava/lang/Object;I)S to replace reading from a short[]
+        */
+       String shortRead();
+
+       /**
+        * @return the name of a static method with the signature (Ljava/lang/Object;IS)V to replace writing to a short[]
+        */
+       String shortWrite();
+    }
+
+    /**
+     * Default implementation of the MethodNames interface giving default values for method names to be used for replacing accesses to array elements
+     *
+     * @author <a href="kabir.khan@jboss.com">Kabir Khan</a>
+     * @version $Revision: 1.11 $
+     */
+    public static class DefaultArrayAccessReplacementMethodNames implements ArrayAccessReplacementMethodNames
+    {
+
+       /**
+        * @return "arrayReadByteOrBoolean" as the name of the static method with the signature (Ljava/lang/Object;I)B" to replace reading from a byte[]
+        */
+       public String byteOrBooleanRead()
+       {
+          return "arrayReadByteOrBoolean";
+       }
+
+       /**
+        * @return "arrayWriteByteOrBoolean" as the name of the static method with the signature (Ljava/lang/Object;IB)V  to replace writing to a byte[]
+        */
+       public String byteOrBooleanWrite()
+       {
+          return "arrayWriteByteOrBoolean";
+       }
+
+       /**
+        * @return "arrayReadChar" as the name of the static method with the signature (Ljava/lang/Object;I)C  to replace reading from a char[]
+        */
+       public String charRead()
+       {
+          return "arrayReadChar";
+       }
+
+       /**
+        * @return "arrayWriteChar" as the name of the static method with the signature (Ljava/lang/Object;IC)V to replace writing to a byte[]
+        */
+       public String charWrite()
+       {
+          return "arrayWriteChar";
+       }
+
+       /**
+        * @return "arrayReadDouble" as the name of the static method with the signature (Ljava/lang/Object;I)D to replace reading from a double[]
+        */
+       public String doubleRead()
+       {
+          return "arrayReadDouble";
+       }
+
+       /**
+        * @return "arrayWriteDouble" as the name of the static method with the signature (Ljava/lang/Object;ID)V to replace writing to a double[]
+        */
+       public String doubleWrite()
+       {
+          return "arrayWriteDouble";
+       }
+
+       /**
+        * @return "arrayReadFloat" as the name of the static method with the signature (Ljava/lang/Object;I)F  to replace reading from a float[]
+        */
+       public String floatRead()
+       {
+          return "arrayReadFloat";
+       }
+
+       /**
+        * @return "arrayWriteFloat" as the name of the static method with the signature (Ljava/lang/Object;IF)V  to replace writing to a float[]
+        */
+       public String floatWrite()
+       {
+          return "arrayWriteFloat";
+       }
+
+       /**
+        * @return "arrayReadInt" as the name of the static method with the signature (Ljava/lang/Object;I)I to replace reading from a int[]
+        */
+       public String intRead()
+       {
+          return "arrayReadInt";
+       }
+
+       /**
+        * @return "arrayWriteInt" as the name of the static method with the signature (Ljava/lang/Object;II)V to replace writing to a int[]
+        */
+       public String intWrite()
+       {
+          return "arrayWriteInt";
+       }
+
+       /**
+        * @return "arrayReadLong" as the name of the static method with the signature (Ljava/lang/Object;I)J to replace reading from a long[]
+        */
+       public String longRead()
+       {
+          return "arrayReadLong";
+       }
+
+       /**
+        * @return "arrayWriteLong" as the name of the static method with the signature (Ljava/lang/Object;IJ)V to replace writing to a long[]
+        */
+       public String longWrite()
+       {
+          return "arrayWriteLong";
+       }
+
+       /**
+        * @return "arrayReadObject" as the name of the static method with the signature (Ljava/lang/Object;I)Ljava/lang/Object;  to replace reading from a Object[] (or any subclass of object)
+        */
+       public String objectRead()
+       {
+          return "arrayReadObject";
+       }
+
+       /**
+        * @return "arrayWriteObject" as the name of the static method with the signature (Ljava/lang/Object;ILjava/lang/Object;)V  to replace writing to a Object[] (or any subclass of object)
+        */
+       public String objectWrite()
+       {
+          return "arrayWriteObject";
+       }
+
+       /**
+        * @return "arrayReadShort" as the name of the static method with the signature (Ljava/lang/Object;I)S to replace reading from a short[]
+        */
+       public String shortRead()
+       {
+          return "arrayReadShort";
+       }
+
+       /**
+        * @return "arrayWriteShort" as the name of the static method with the signature (Ljava/lang/Object;IS)V to replace writing to a short[]
+        */
+       public String shortWrite()
+       {
+          return "arrayWriteShort";
+       }
     }
 }

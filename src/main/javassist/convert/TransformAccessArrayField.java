@@ -17,6 +17,7 @@ package javassist.convert;
 
 import javassist.CtClass;
 import javassist.NotFoundException;
+import javassist.CodeConverter.ArrayAccessReplacementMethodNames;
 import javassist.bytecode.BadBytecode;
 import javassist.bytecode.CodeIterator;
 import javassist.bytecode.ConstPool;
@@ -24,16 +25,16 @@ import javassist.bytecode.ConstPool;
 /**
  *  
  * @author <a href="kabir.khan@jboss.com">Kabir Khan</a>
- * @version $Revision: 1.1 $ 
+ * @version $Revision: 1.2 $ 
  */
 public class TransformAccessArrayField extends Transformer 
 {
 //   CtClass componentType;
 
    String methodClassname;
-   MethodNames names;
+   ArrayAccessReplacementMethodNames names;
 
-   public TransformAccessArrayField(Transformer next, String methodClassname, MethodNames names) throws NotFoundException
+   public TransformAccessArrayField(Transformer next, String methodClassname, ArrayAccessReplacementMethodNames names) throws NotFoundException
    {
        super(next);
        this.methodClassname = methodClassname;
@@ -178,172 +179,5 @@ public class TransformAccessArrayField extends Transformer
             return "(Ljava/lang/Object;IJ)V";
       }      
       throw new BadBytecode(opcode);
-   }
-   
-   public interface MethodNames
-   {
-      /**
-       * Give the name of a static method with the signature (Ljava/lang/Object;I)Ljava/lang/Object;
-       */
-      String objectRead();
-      
-      /**
-       * Give the name of a static method with the signature (Ljava/lang/Object;I)B"
-       */
-      String byteOrBooleanRead();
-
-      /**
-       * Give the name of a static method with the signature (Ljava/lang/Object;I)C
-       */
-      String charRead();
-      
-      /**
-       * Give the name of a static method with the signature (Ljava/lang/Object;I)D
-       */
-      String doubleRead();
-      
-      /**
-       * Give the name of a static method with the signature (Ljava/lang/Object;I)F
-       */
-      String floatRead();
-
-      /**
-       * Give the name of a static method with the signature (Ljava/lang/Object;I)I
-       */
-      String intRead();
-
-      /**
-       * Give the name of a static method with the signature (Ljava/lang/Object;I)J
-       */
-      String longRead();
-
-      /**
-       * Give the name of a static method with the signature (Ljava/lang/Object;I)S
-       */
-      String shortRead();
-      
-      /**
-       * Give the name of a static method with the signature (Ljava/lang/Object;ILjava/lang/Object;)V
-       */      
-      String objectWrite();
-
-      /**
-       * Give the name of a static method with the signature (Ljava/lang/Object;IB)V
-       */      
-      String byteOrBooleanWrite();
-
-      /**
-       * Give the name of a static method with the signature (Ljava/lang/Object;IC)V
-       */      
-      String charWrite();
-
-      /**
-       * Give the name of a static method with the signature (Ljava/lang/Object;ID)V
-       */      
-      String doubleWrite();
-
-      /**
-       * Give the name of a static method with the signature (Ljava/lang/Object;IF)V
-       */      
-      String floatWrite();
-
-      /**
-       * Give the name of a static method with the signature (Ljava/lang/Object;II)V
-       */      
-      String intWrite();
-
-      /**
-       * Give the name of a static method with the signature (Ljava/lang/Object;IJ)V
-       */      
-      String longWrite();
-
-      /**
-       * Give the name of a static method with the signature (Ljava/lang/Object;IS)V
-       */      
-      String shortWrite();
-   }
-   
-   public static class DefaultMethodNames implements MethodNames
-   {
-      public String byteOrBooleanRead()
-      {
-         return "arrayReadByteOrBoolean";
-      }
-
-      public String byteOrBooleanWrite()
-      {
-         return "arrayWriteByteOrBoolean";
-      }
-
-      public String charRead()
-      {
-         return "arrayReadChar";
-      }
-
-      public String charWrite()
-      {
-         return "arrayWriteChar";
-      }
-
-      public String doubleRead()
-      {
-         return "arrayReadDouble";
-      }
-
-      public String doubleWrite()
-      {
-         return "arrayWriteDouble";
-      }
-
-      public String floatRead()
-      {
-         return "arrayReadFloat";
-      }
-
-      public String floatWrite()
-      {
-         return "arrayWriteFloat";
-      }
-
-      public String intRead()
-      {
-         return "arrayReadInt";
-      }
-
-      public String intWrite()
-      {
-         return "arrayWriteInt";
-      }
-
-      public String longRead()
-      {
-         return "arrayReadLong";
-      }
-
-      public String longWrite()
-      {
-         return "arrayWriteLong";
-      }
-
-      public String objectRead()
-      {
-         return "arrayReadObject";
-      }
-
-      public String objectWrite()
-      {
-         return "arrayWriteObject";
-      }
-
-      public String shortRead()
-      {
-         return "arrayReadShort";
-      }
-
-      public String shortWrite()
-      {
-         return "arrayWriteShort";
-      }
-      
    }
 }
