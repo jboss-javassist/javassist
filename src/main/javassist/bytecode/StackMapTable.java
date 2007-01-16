@@ -18,6 +18,7 @@ package javassist.bytecode;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.PrintWriter;
 import java.io.IOException;
 import java.util.Map;
 
@@ -51,12 +52,36 @@ public class StackMapTable extends AttributeInfo {
 
     /**
      * Makes a copy.
+     *
+     * @exception RuntimeCopyException  if a <code>BadBytecode</code>
+     *                          exception is thrown, it is
+     *                          converted into
+     *                          <code>RuntimeCopyException</code>.
+     *
      */
-    public AttributeInfo copy(ConstPool newCp, Map classnames) {
-        int s = info.length;
-        byte[] newInfo = new byte[s];
-        System.arraycopy(info, 0, newInfo, 0, s);
-        return new StackMapTable(newCp, newInfo);
+    public AttributeInfo copy(ConstPool newCp, Map classnames)
+        throws RuntimeCopyException
+    {
+        try {
+            return new StackMapTable(newCp,
+                            new Copier(this.constPool, info, newCp).doit());
+        }
+        catch (BadBytecode e) {
+            throw new RuntimeCopyException("bad bytecode. fatal?"); 
+        }
+    }
+
+    /**
+     * An exception that may be thrown by <code>copy()</code>
+     * in <code>StackMapTable</code>.
+     */
+    public static class RuntimeCopyException extends RuntimeException {
+        /**
+         * Constructs an exception.
+         */
+        public RuntimeCopyException(String s) {
+            super(s);
+        }
     }
 
     void write(DataOutputStream out) throws IOException {
@@ -69,12 +94,12 @@ public class StackMapTable extends AttributeInfo {
     public static final int TOP = 0;
 
     /**
-     * <code>Float_variable_info.tag</code>.
+     * <code>Integer_variable_info.tag</code>.
      */
     public static final int INTEGER = 1;
 
     /**
-     * <code>Integer_variable_info.tag</code>.
+     * <code>Float_variable_info.tag</code>.
      */
     public static final int FLOAT = 2;
 
@@ -293,8 +318,8 @@ public class StackMapTable extends AttributeInfo {
          * @param stackData         <code>stack[i].cpool_index</code>
          *                          or <code>stack[i].offset</code>
          */
-        void fullFrame(int pos, int offsetDelta, int[] localTags, int[] localData,
-                       int[] stackTags, int[] stackData) {}
+        public void fullFrame(int pos, int offsetDelta, int[] localTags, int[] localData,
+                              int[] stackTags, int[] stackData) {}
 
         private int verifyTypeInfo(int pos, int n, int[] tags, int[] data) {
             for (int i = 0; i < n; i++) {
@@ -310,12 +335,77 @@ public class StackMapTable extends AttributeInfo {
         }
     }
 
+    static class Copier extends Walker {
+        private Writer writer;
+        private ConstPool srcPool, destPool;
+
+        public Copier(ConstPool src, byte[] data, ConstPool dest) {
+            super(data);
+            writer = new Writer(data.length);
+            srcPool = src;
+            destPool = dest;
+        }
+
+        public byte[] doit() throws BadBytecode {
+            parse();
+            return writer.toByteArray();
+        }
+
+        public void sameFrame(int pos, int offsetDelta) {
+            writer.sameFrame(offsetDelta);
+        }
+
+        public void sameLocals(int pos, int offsetDelta, int stackTag, int stackData) {
+            if (stackTag == OBJECT)
+                stackData = srcPool.copy(stackData, destPool, null); 
+
+            writer.sameLocals(offsetDelta, stackTag, stackData);
+        }
+
+        public void chopFrame(int pos, int offsetDelta, int k) {
+            writer.chopFrame(offsetDelta, k);
+        }
+
+        public void appendFrame(int pos, int offsetDelta, int[] tags, int[] data) {
+            writer.appendFrame(offsetDelta, tags, copyData(tags, data));
+        }
+
+        public void fullFrame(int pos, int offsetDelta, int[] localTags, int[] localData,
+                              int[] stackTags, int[] stackData) {
+            writer.fullFrame(offsetDelta, localTags, copyData(localTags, localData),
+                             stackTags, copyData(stackTags, stackData));
+        }
+
+        private int[] copyData(int[] tags, int[] data) {
+            int[] newData = new int[data.length];
+            for (int i = 0; i < data.length; i++)
+                if (tags[i] == OBJECT)
+                    newData[i] = srcPool.copy(data[i], destPool, null);
+                else
+                    newData[i] = data[i];
+
+            return newData;
+        }
+    }
+
     /**
      * A writer of stack map tables.
      */
     static class Writer {
         ByteArrayOutputStream output;
         int numOfEntries;
+
+        /**
+         * Prints the stack table map.
+         */
+        public static void print(StackMapTable smt, PrintWriter writer) {
+            try {
+                new Printer(smt.get(), writer).parse();
+            }
+            catch (BadBytecode e) {
+                writer.println(e.getMessage());
+            }
+        }
 
         /**
          * Constructs a writer.
@@ -445,6 +535,81 @@ public class StackMapTable extends AttributeInfo {
         private void write16(int value) {
             output.write((value >>> 8) & 0xff);
             output.write(value & 0xff);
+        }
+    }
+
+    static class Printer extends Walker {
+        private PrintWriter writer;
+
+        Printer(byte[] data, PrintWriter pw) {
+            super(data);
+            writer = pw;
+        }
+
+        public void sameFrame(int pos, int offsetDelta) {
+            writer.println("same frame: " + offsetDelta);
+        }
+
+        public void sameLocals(int pos, int offsetDelta, int stackTag, int stackData) {
+            writer.println("same locals: " + offsetDelta);
+            printTypeInfo(stackTag, stackData);
+        }
+
+        public void chopFrame(int pos, int offsetDelta, int k) {
+            writer.println("chop frame: " + offsetDelta + ",    " + k + " last locals");
+        }
+
+        public void appendFrame(int pos, int offsetDelta, int[] tags, int[] data) {
+            writer.println("append frame: " + offsetDelta);
+            for (int i = 0; i < tags.length; i++)
+                printTypeInfo(tags[i], data[i]);
+        }
+
+        public void fullFrame(int pos, int offsetDelta, int[] localTags, int[] localData,
+                              int[] stackTags, int[] stackData) {
+            writer.println("full frame: " + offsetDelta);
+            writer.println("[locals]");
+            for (int i = 0; i < localTags.length; i++)
+                printTypeInfo(localTags[i], localData[i]);
+
+            writer.println("[stack]");
+            for (int i = 0; i < stackTags.length; i++)
+                printTypeInfo(stackTags[i], stackData[i]);
+        }
+
+        private void printTypeInfo(int tag, int data) {
+            String msg = null;
+            switch (tag) {
+            case TOP :
+                msg = "top";
+                break;
+            case INTEGER :
+                msg = "integer";
+                break;
+            case FLOAT :
+                msg = "float";
+                break;
+            case DOUBLE :
+                msg = "double";
+                break;
+            case LONG :
+                msg = "long";
+                break;
+            case NULL :
+                msg = "null";
+                break;
+            case THIS :
+                msg = "this";
+            case OBJECT :
+                msg = "object (cpool_index " + data + ")";
+                break;
+            case UNINIT :
+                msg = "uninitialized (offset " + data + ")";
+                break;
+            }
+
+            writer.print("    ");
+            writer.println(msg);
         }
     }
 }
