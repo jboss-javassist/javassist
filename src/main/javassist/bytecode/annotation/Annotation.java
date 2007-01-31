@@ -20,6 +20,7 @@ import javassist.bytecode.Descriptor;
 import javassist.ClassPool;
 import javassist.CtClass;
 import javassist.CtMethod;
+import javassist.NotFoundException;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -41,6 +42,7 @@ import java.util.Iterator;
  *
  * @author <a href="mailto:bill@jboss.org">Bill Burke</a>
  * @author Shigeru Chiba
+ * @author <a href="mailto:adrian@jboss.org">Adrian Brock</a>
  */
 public class Annotation {
     static class Pair {
@@ -91,9 +93,10 @@ public class Annotation {
      *
      * @param cp        the constant pool table.
      * @param clazz     the interface.
+     * @throws NotFoundException when the clazz is not found 
      */
     public Annotation(ConstPool cp, CtClass clazz)
-        throws javassist.NotFoundException
+        throws NotFoundException
     {
         // todo Enums are not supported right now.
         this(cp.addUtf8Info(Descriptor.of(clazz.getName())), cp);
@@ -103,13 +106,15 @@ public class Annotation {
                 "Only interfaces are allowed for Annotation creation.");
 
         CtMethod methods[] = clazz.getDeclaredMethods();
-        if (methods.length > 0)
+        if (methods.length > 0) {
             members = new HashMap();
+        }
 
         for (int i = 0; i < methods.length; i++) {
             CtClass returnType = methods[i].getReturnType();
             addMemberValue(methods[i].getName(),
                            createMemberValue(cp, returnType));
+            
         }
     }
 
@@ -118,9 +123,11 @@ public class Annotation {
      *
      * @param cp            the constant pool table.
      * @param type          the type of the member.
+     * @return the member value
+     * @throws NotFoundException when the type is not found
      */
     public static MemberValue createMemberValue(ConstPool cp, CtClass type)
-        throws javassist.NotFoundException
+        throws NotFoundException
     {
         if (type == CtClass.booleanType)
             return new BooleanMemberValue(cp);
@@ -201,9 +208,6 @@ public class Annotation {
         members.put(name, pair);
     }
 
-    /**
-     * Returns a string representation of this object.
-     */
     public String toString() {
         StringBuffer buf = new StringBuffer("@");
         buf.append(getTypeName());
@@ -224,6 +228,8 @@ public class Annotation {
 
     /**
      * Obtains the name of the annotation type.
+     * 
+     * @return the type name
      */
     public String getTypeName() {
         return Descriptor.toClassName(pool.getUtf8Info(typeIndex));
@@ -250,6 +256,7 @@ public class Annotation {
      * <code>MemberValue</code> with the default value.
      * The default value can be obtained from the annotation type.
      *
+     * @param name the member name
      * @return null if the member cannot be found or if the value is
      * the default value.
      *
@@ -274,6 +281,8 @@ public class Annotation {
      * 
      * @param cl        class loader for loading an annotation type.
      * @param cp        class pool for obtaining class files.
+     * @return the annotation
+     * @throws ClassNotFoundException when the class cannot found
      */
     public Object toAnnotationType(ClassLoader cl, ClassPool cp)
         throws ClassNotFoundException
@@ -287,6 +296,7 @@ public class Annotation {
      * Writes this annotation.
      *
      * @param writer            the output.
+     * @throws IOException for an error during the write
      */
     public void write(AnnotationsWriter writer) throws IOException {
         String typeName = pool.getUtf8Info(typeIndex);
@@ -302,5 +312,23 @@ public class Annotation {
             writer.memberValuePair(pair.name);
             pair.value.write(writer);
         }
+    }
+    
+    public boolean equals(Object obj) {
+        if (obj == this)
+            return true;
+        if (obj == null || obj instanceof Annotation == false)
+            return false;
+        
+        Annotation other = (Annotation) obj;
+
+        if (getTypeName().equals(other.getTypeName()) == false)
+            return false;
+
+        if (members == null && other.members != null)
+           return false;
+        if (members != null && other.members == null)
+           return false;
+        return members.equals(other.members);
     }
 }
