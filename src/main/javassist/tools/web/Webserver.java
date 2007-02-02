@@ -39,7 +39,6 @@ public class Webserver {
     protected Translator translator;
 
     private final static byte[] endofline = { 0x0d, 0x0a };
-    private byte[] filebuffer = new byte[4096];
 
     private final static int typeHtml = 1;
     private final static int typeClass = 2;
@@ -273,6 +272,7 @@ public class Webserver {
         if (file.canRead()) {
             sendHeader(out, file.length(), fileType);
             FileInputStream fin = new FileInputStream(file);
+            byte[] filebuffer = new byte[4096];
             for (;;) {
                 len = fin.read(filebuffer);
                 if (len <= 0)
@@ -293,6 +293,7 @@ public class Webserver {
                 = getClass().getResourceAsStream("/" + urlName);
             if (fin != null) {
                 ByteArrayOutputStream barray = new ByteArrayOutputStream();
+                byte[] filebuffer = new byte[4096];
                 for (;;) {
                     len = fin.read(filebuffer);
                     if (len <= 0)
