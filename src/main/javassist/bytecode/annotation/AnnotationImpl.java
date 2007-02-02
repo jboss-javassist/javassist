@@ -176,7 +176,10 @@ public class AnnotationImpl implements InvocationHandler {
         throw new RuntimeException("no default value: " + classname + "."
                                    + name + "()");
     }
-    
+
+    /**
+     * Returns a hash code value for this object.
+     */
     public int hashCode() {
         if (cachedHashCode == Integer.MIN_VALUE) {
             int hashCode = 0;
@@ -221,7 +224,7 @@ public class AnnotationImpl implements InvocationHandler {
     }
     
     /**
-     * Check that another annotation equals ourselves
+     * Check that another annotation equals ourselves.
      * 
      * @param obj the other annotation
      * @return the true when equals false otherwise

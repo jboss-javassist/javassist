@@ -208,6 +208,9 @@ public class Annotation {
         members.put(name, pair);
     }
 
+    /**
+     * Returns a string representation of the annotation.
+     */
     public String toString() {
         StringBuffer buf = new StringBuffer("@");
         buf.append(getTypeName());
@@ -313,7 +316,11 @@ public class Annotation {
             pair.value.write(writer);
         }
     }
-    
+
+    /**
+     * Returns true if the given object represents the same annotation
+     * as this object.  The equality test checks the member values.
+     */
     public boolean equals(Object obj) {
         if (obj == this)
             return true;
