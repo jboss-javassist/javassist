@@ -15,7 +15,7 @@
 
 package javassist.compiler;
 
-final class KeywordTable extends java.util.HashMap {
+public final class KeywordTable extends java.util.HashMap {
     public KeywordTable() { super(); }
 
     public int lookup(String name) {
