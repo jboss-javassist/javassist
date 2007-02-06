@@ -68,7 +68,7 @@ public class ClassFileWriter {
             out.println(Modifier.toString(AccessFlag.toModifier(acc))
                         + " " + finfo.getName() + "\t"
                         + finfo.getDescriptor());
-            printAttributes(finfo.getAttributes(), out);
+            printAttributes(finfo.getAttributes(), out, false);
         }
 
         out.println();
@@ -80,15 +80,15 @@ public class ClassFileWriter {
             out.println(Modifier.toString(AccessFlag.toModifier(acc))
                         + " " + minfo.getName() + "\t"
                         + minfo.getDescriptor());
-            printAttributes(minfo.getAttributes(), out);
+            printAttributes(minfo.getAttributes(), out, false);
             out.println();
         }
 
         out.println();
-        printAttributes(cf.getAttributes(), out);
+        printAttributes(cf.getAttributes(), out, true);
     }
 
-    static void printAttributes(List list, PrintWriter out) {
+    static void printAttributes(List list, PrintWriter out, boolean forClass) {
         if (list == null)
             return;
 
@@ -104,8 +104,30 @@ public class ClassFileWriter {
                             + ", " + ca.getExceptionTable().size()
                             + " catch blocks");
                 out.println("<code attribute begin>");
-                printAttributes(ca.getAttributes(), out);
+                printAttributes(ca.getAttributes(), out, forClass);
                 out.println("<code attribute end>");
+            }
+            else if (ai instanceof StackMapTable) {
+                out.println("<stack map table begin>");
+                StackMapTable.Writer.print((StackMapTable)ai, out);
+                out.println("<stack map table end>");
+            }
+            else if (ai instanceof SignatureAttribute) {
+                SignatureAttribute sa = (SignatureAttribute)ai;
+                String sig = sa.getSignature();
+                out.println("signature: " + sig);
+                try {
+                    String s;
+                    if (forClass)
+                        s = SignatureAttribute.toClassSignature(sig).toString();
+                    else
+                        s = SignatureAttribute.toMethodSignature(sig).toString();
+
+                    out.println("           " + s);
+                }
+                catch (BadBytecode e) {
+                    out.println("           syntax error");
+                }
             }
             else
                 out.println("attribute: " + ai.getName()

@@ -550,7 +550,7 @@ public class Descriptor {
         return i2;
     }
 
-    private static CtClass toPrimitiveClass(char c) {
+    static CtClass toPrimitiveClass(char c) {
         CtClass type = null;
         switch (c) {
         case 'Z' :
