@@ -285,6 +285,17 @@ public class CtField extends CtMember {
      * Returns the character string representing the type of the field.
      * If two fields have the same type,
      * <code>getSignature()</code> returns the same string.
+     *
+     * <p>Note that the returned string is not the type signature
+     * contained in the <code>SignatureAttirbute</code>.  It is
+     * a descriptor.  To obtain a type signature, call the following
+     * methods:
+     * 
+     * <ul><pre>getFieldInfo().getAttribute(SignatureAttribute.tag)
+     * </pre></ul>
+     *
+     * @see javassist.bytecode.Descriptor
+     * @see javassist.bytecode.SignatureAttribute
      */
     public String getSignature() {
         return fieldInfo.getDescriptor();

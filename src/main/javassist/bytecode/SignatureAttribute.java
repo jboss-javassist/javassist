@@ -489,6 +489,9 @@ public class SignatureAttribute extends AttributeInfo {
         }
     }
 
+    /**
+     * Type variables.
+     */
     public static class TypeVariable extends ObjectType {
         String name;
 
@@ -516,6 +519,7 @@ public class SignatureAttribute extends AttributeInfo {
      *
      * @param  sig                  the signature.
      * @throws BadBytecode          thrown when a syntactical error is found.
+     * @since 3.5
      */
     public static ClassSignature toClassSignature(String sig) throws BadBytecode {
         try {
@@ -531,10 +535,28 @@ public class SignatureAttribute extends AttributeInfo {
      *
      * @param  sig                  the signature.
      * @throws BadBytecode          thrown when a syntactical error is found.
+     * @since 3.5
      */
     public static MethodSignature toMethodSignature(String sig) throws BadBytecode {
         try {
             return parseMethodSig(sig);
+        }
+        catch (IndexOutOfBoundsException e) {
+            throw error(sig);
+        }
+    }
+
+    /**
+     * Parses the given signature string as a field type signature.
+     *
+     * @param  sig                  the signature string.
+     * @return the field type signature.
+     * @throws BadBytecode          thrown when a syntactical error is found.
+     * @since 3.5
+     */
+    public static ObjectType toFieldSignature(String sig) throws BadBytecode {
+        try {
+            return parseObjectType(sig, new Cursor(), false);
         }
         catch (IndexOutOfBoundsException e) {
             throw error(sig);

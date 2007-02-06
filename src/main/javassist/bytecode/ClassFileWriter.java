@@ -68,7 +68,7 @@ public class ClassFileWriter {
             out.println(Modifier.toString(AccessFlag.toModifier(acc))
                         + " " + finfo.getName() + "\t"
                         + finfo.getDescriptor());
-            printAttributes(finfo.getAttributes(), out, false);
+            printAttributes(finfo.getAttributes(), out, 'f');
         }
 
         out.println();
@@ -80,15 +80,15 @@ public class ClassFileWriter {
             out.println(Modifier.toString(AccessFlag.toModifier(acc))
                         + " " + minfo.getName() + "\t"
                         + minfo.getDescriptor());
-            printAttributes(minfo.getAttributes(), out, false);
+            printAttributes(minfo.getAttributes(), out, 'm');
             out.println();
         }
 
         out.println();
-        printAttributes(cf.getAttributes(), out, true);
+        printAttributes(cf.getAttributes(), out, 'c');
     }
 
-    static void printAttributes(List list, PrintWriter out, boolean forClass) {
+    static void printAttributes(List list, PrintWriter out, char kind) {
         if (list == null)
             return;
 
@@ -104,7 +104,7 @@ public class ClassFileWriter {
                             + ", " + ca.getExceptionTable().size()
                             + " catch blocks");
                 out.println("<code attribute begin>");
-                printAttributes(ca.getAttributes(), out, forClass);
+                printAttributes(ca.getAttributes(), out, kind);
                 out.println("<code attribute end>");
             }
             else if (ai instanceof StackMapTable) {
@@ -118,10 +118,12 @@ public class ClassFileWriter {
                 out.println("signature: " + sig);
                 try {
                     String s;
-                    if (forClass)
+                    if (kind == 'c')
                         s = SignatureAttribute.toClassSignature(sig).toString();
-                    else
+                    else if (kind == 'm')
                         s = SignatureAttribute.toMethodSignature(sig).toString();
+                    else
+                        s = SignatureAttribute.toFieldSignature(sig).toString();
 
                     out.println("           " + s);
                 }

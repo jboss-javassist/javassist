@@ -262,7 +262,16 @@ public abstract class CtBehavior extends CtMember {
      * and the return type, <code>getSignature()</code> returns the
      * same string (the return type of constructors is <code>void</code>).
      *
+     * <p>Note that the returned string is not the type signature
+     * contained in the <code>SignatureAttirbute</code>.  It is
+     * a descriptor.  To obtain a type signature, call the following
+     * methods:
+     * 
+     * <ul><pre>getMethodInfo().getAttribute(SignatureAttribute.tag)
+     * </pre></ul>
+     *
      * @see javassist.bytecode.Descriptor
+     * @see javassist.bytecode.SignatureAttribute
      */
     public String getSignature() {
         return methodInfo.getDescriptor();
