@@ -31,7 +31,7 @@ import javassist.NotFoundException;
  * @author <a href="mailto:bill@jboss.org">Bill Burke</a>
  * @author <a href="adrian@jboss.com">Adrian Brock</a>
  * @author <a href="kabir.khan@jboss.com">Kabir Khan</a>
- * @version $Revision: 1.6 $
+ * @version $Revision: 1.7 $
  */
 public class ScopedClassPool extends ClassPool {
     protected ScopedClassPoolRepository repository;
@@ -41,6 +41,8 @@ public class ScopedClassPool extends ClassPool {
     protected LoaderClassPath classPath;
 
     protected SoftValueHashMap softcache = new SoftValueHashMap();
+    
+    boolean isBootstrapCl = true;
 
     static {
         ClassPool.doPruning = false;
@@ -56,17 +58,39 @@ public class ScopedClassPool extends ClassPool {
      *            the original class pool
      * @param repository
      *            the repository
+     *@deprecated
      */
     protected ScopedClassPool(ClassLoader cl, ClassPool src,
             ScopedClassPoolRepository repository) {
-        super(src);
-        this.repository = repository;
-        this.classLoader = new WeakReference(cl);
-        if (cl != null) {
-            classPath = new LoaderClassPath(cl);
-            this.insertClassPath(classPath);
-        }
-        childFirstLookup = true;
+       this(cl, src, repository, false);
+    }
+    
+    /**
+     * Create a new ScopedClassPool.
+     * 
+     * @param cl
+     *            the classloader
+     * @param src
+     *            the original class pool
+     * @param repository
+     *            the repository
+     * @param isTemp
+     *            Whether this is a temporary pool used to resolve references
+     */
+    protected ScopedClassPool(ClassLoader cl, ClassPool src, ScopedClassPoolRepository repository, boolean isTemp)
+    {
+       super(src);
+       this.repository = repository;
+       this.classLoader = new WeakReference(cl);
+       if (cl != null) {
+           classPath = new LoaderClassPath(cl);
+           this.insertClassPath(classPath);
+       }
+       childFirstLookup = true;
+       if (!isTemp && cl == null)
+       {
+          isBootstrapCl = true;
+       }
     }
 
     /**
@@ -76,9 +100,11 @@ public class ScopedClassPool extends ClassPool {
      */
     public ClassLoader getClassLoader() {
        ClassLoader cl = getClassLoader0();
-       if (cl == null)
+       if (cl == null && !isBootstrapCl)
+       {
           throw new IllegalStateException(
                   "ClassLoader has been garbage collected");
+       }
        return cl;
     }
 

@@ -610,10 +610,7 @@ public class SignatureAttribute extends AttributeInfo {
         ObjectType[] ex = (ObjectType[])exceptions.toArray(new ObjectType[exceptions.size()]);
         return new MethodSignature(tp, p, ret, ex);
     }
-boolean getB()
-{
-   return false;
-}
+
     private static TypeParameter[] parseTypeParams(String sig, Cursor cur)
         throws BadBytecode
     {
