@@ -21,7 +21,7 @@ import javassist.ClassPool;
  * An implementation of factory.
  *
  * @author <a href="kabir.khan@jboss.com">Kabir Khan</a>
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.4 $
  */
 public class ScopedClassPoolFactoryImpl implements ScopedClassPoolFactory {
     /**
@@ -29,7 +29,7 @@ public class ScopedClassPoolFactoryImpl implements ScopedClassPoolFactory {
      */
     public ScopedClassPool create(ClassLoader cl, ClassPool src,
                                   ScopedClassPoolRepository repository) {
-        return new ScopedClassPool(cl, src, repository);
+        return new ScopedClassPool(cl, src, repository, false);
     }
 
     /**
@@ -37,6 +37,6 @@ public class ScopedClassPoolFactoryImpl implements ScopedClassPoolFactory {
      */
     public ScopedClassPool create(ClassPool src,
                                   ScopedClassPoolRepository repository) {
-        return new ScopedClassPool(null, src, repository);
+        return new ScopedClassPool(null, src, repository, true);
     }
 }
