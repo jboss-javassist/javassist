@@ -109,7 +109,7 @@ public class ClassFileWriter {
             }
             else if (ai instanceof StackMapTable) {
                 out.println("<stack map table begin>");
-                StackMapTable.Writer.print((StackMapTable)ai, out);
+                StackMapTable.Printer.print((StackMapTable)ai, out);
                 out.println("<stack map table end>");
             }
             else if (ai instanceof SignatureAttribute) {

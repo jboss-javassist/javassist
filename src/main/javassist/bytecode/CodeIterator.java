@@ -671,6 +671,10 @@ public class CodeIterator implements Opcode {
         if (vta != null)
             vta.shiftPc(where, gapLength, exclusive);
 
+        StackMapTable smt = (StackMapTable)ca.getAttribute(StackMapTable.tag);
+        if (smt != null)
+            smt.shiftPc(where, gapLength, exclusive);
+
         return newcode;
     }
 

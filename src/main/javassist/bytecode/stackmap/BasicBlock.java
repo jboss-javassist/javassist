@@ -29,10 +29,10 @@ public class BasicBlock {
             int n = ltypes.length;
             for (int i = 0; i < n; i++)
                 if (ltypes[i] != localsTypes[i]) {
-                    localsTypes[i] = StackAnalyzer.EMPTY;
+                    localsTypes[i] = StackAnalyzerCore.EMPTY;
                     localsData[i] = null;
                 }
-                else if (ltypes[i] == StackAnalyzer.OBJECT
+                else if (ltypes[i] == StackAnalyzerCore.OBJECT
                          && !ldata[i].equals(localsData[i]))
                     ; // localsData[i] = ??;
         }

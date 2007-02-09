@@ -109,7 +109,7 @@ to ${build.classes.dir}.</echo>
     <javadoc
            Locale="en_US"
            packagenames="javassist.*"
-           excludepackagenames="javassist.compiler.*,javassist.convert.*,javassist.scopedpool.*"
+           excludepackagenames="javassist.compiler.*,javassist.convert.*,javassist.scopedpool.*,javassist.bytecode.stackmap.*"
            sourcepath="src/main"
            defaultexcludes="yes"
            destdir="html"

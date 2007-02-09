@@ -64,6 +64,11 @@ final public class TransformNew extends Transformer {
                 iterator.writeByte(NOP, pos + 2);
                 iterator.writeByte(NOP, pos + 3);
                 ++nested;
+
+                StackMapTable smt
+                    = (StackMapTable)iterator.get().getAttribute(StackMapTable.tag);
+                if (smt != null)
+                    smt.removeNew(pos);
             }
         }
         else if (c == INVOKESPECIAL) {
