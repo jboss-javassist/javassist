@@ -10,6 +10,7 @@
 
   <property environment="env"/>
   <property name="target.jar" value="javassist.jar"/>
+  <property name="target-src.jar" value="javassist-src.jar"/>
   <property name="src.dir" value="${basedir}/src/main"/>
   <property name="build.dir" value="${basedir}/build"/>
   <property name="build.classes.dir" value="${build.dir}/classes"/>
@@ -102,6 +103,11 @@ to ${build.classes.dir}.</echo>
       	  <include name="**/*.class"/>
       </fileset>
      </jar>
+    <jar jarfile="${target-src.jar}" manifest="${src.dir}/META-INF/MANIFEST.MF">
+      <fileset dir="${src.dir}">
+        <include name="javassist/**"/>
+      </fileset>
+    </jar>
   </target>
 
   <target name="javadocs">
