@@ -168,6 +168,13 @@ public final class ClassFile {
             newAttributes.add(visibleAnnotations);
         }
 
+        AttributeInfo signature 
+            = getAttribute(SignatureAttribute.tag);
+        if (signature != null) {
+            signature = signature.copy(cp, null);
+            newAttributes.add(signature);
+        }
+        
         ArrayList list = methods;
         int n = list.size();
         for (int i = 0; i < n; ++i) {

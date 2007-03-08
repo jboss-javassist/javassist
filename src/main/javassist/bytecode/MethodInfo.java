@@ -164,6 +164,13 @@ public final class MethodInfo {
         if (ea != null)
             newAttributes.add(ea);
 
+        AttributeInfo signature 
+            = getAttribute(SignatureAttribute.tag);
+        if (signature != null) {
+            signature = signature.copy(cp, null);
+            newAttributes.add(signature);
+        }
+        
         attribute = newAttributes;
         name = cp.addUtf8Info(getName());
         descriptor = cp.addUtf8Info(getDescriptor());

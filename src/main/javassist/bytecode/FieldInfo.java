@@ -100,6 +100,13 @@ public final class FieldInfo {
             newAttributes.add(visibleAnnotations);
         }
 
+        AttributeInfo signature 
+            = getAttribute(SignatureAttribute.tag);
+        if (signature != null) {
+            signature = signature.copy(cp, null);
+            newAttributes.add(signature);
+        }
+        
         int index = getConstantValue();
         if (index != 0) {
             index = constPool.copy(index, cp, null);
