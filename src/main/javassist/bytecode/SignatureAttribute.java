@@ -442,7 +442,7 @@ public class SignatureAttribute extends AttributeInfo {
         }
     }
 
-    static class NestedClassType extends ClassType {
+    public static class NestedClassType extends ClassType {
         ClassType parent;
         NestedClassType(String s, int b, int e,
                         TypeArgument[] targs, ClassType p) {
