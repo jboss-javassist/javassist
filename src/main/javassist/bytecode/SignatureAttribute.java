@@ -442,6 +442,9 @@ public class SignatureAttribute extends AttributeInfo {
         }
     }
 
+    /**
+     * Nested class types.
+     */
     public static class NestedClassType extends ClassType {
         ClassType parent;
         NestedClassType(String s, int b, int e,
@@ -450,6 +453,10 @@ public class SignatureAttribute extends AttributeInfo {
             parent = p;
         }
 
+        /**
+         * Returns the class that declares this nested class.
+         * This nested class is a member of that declaring class.
+         */
         public ClassType getDeclaringClass() { return parent; }
     }
 
