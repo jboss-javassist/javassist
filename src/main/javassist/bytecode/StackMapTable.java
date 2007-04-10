@@ -41,7 +41,7 @@ public class StackMapTable extends AttributeInfo {
     /**
      * Constructs a <code>stack_map</code> attribute.
      */
-    private StackMapTable(ConstPool cp, byte[] newInfo) {
+    StackMapTable(ConstPool cp, byte[] newInfo) {
         super(cp, tag, newInfo);
     }
 
@@ -143,6 +143,9 @@ public class StackMapTable extends AttributeInfo {
 
         /**
          * Constructs a walker.
+         *
+         * @param smt       the StackMapTable that this walker
+         *                  walks around.
          */
         public Walker(StackMapTable smt) {
             this(smt.get());
@@ -156,7 +159,7 @@ public class StackMapTable extends AttributeInfo {
          *                  It can be obtained by <code>get()</code>
          *                  in the <code>AttributeInfo</code> class.
          */
-        Walker(byte[] data) {
+        public Walker(byte[] data) {
             info = data;
             numOfEntries = ByteArray.readU16bit(data, 0);
         }
@@ -448,6 +451,17 @@ public class StackMapTable extends AttributeInfo {
         }
 
         /**
+         * Constructs and a return a stack map table containing
+         * the written stack map entries.
+         *
+         * @param cp        the constant pool used to write
+         *                  the stack map entries.
+         */
+        public StackMapTable toStackMapTable(ConstPool cp) {
+            return new StackMapTable(cp, toByteArray());
+        }
+
+        /**
          * Writes a <code>same_frame</code> or a <code>same_frame_extended</code>.
          */
         public void sameFrame(int offsetDelta) {
@@ -557,6 +571,22 @@ public class StackMapTable extends AttributeInfo {
             output.write((value >>> 8) & 0xff);
             output.write(value & 0xff);
         }
+    }
+
+    /**
+     * Prints the stack table map.
+     */
+    public void println(PrintWriter w) {
+        Printer.print(this, w);
+    }
+
+    /**
+     * Prints the stack table map.
+     *
+     * @param ps    a print stream such as <code>System.out</code>.
+     */
+    public void println(java.io.PrintStream ps) {
+        Printer.print(this, new java.io.PrintWriter(ps, true));
     }
 
     static class Printer extends Walker {

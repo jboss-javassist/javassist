@@ -1,93 +1,67 @@
+/*
+ * Javassist, a Java-bytecode translator toolkit.
+ * Copyright (C) 1999-2006 Shigeru Chiba. All Rights Reserved.
+ *
+ * The contents of this file are subject to the Mozilla Public License Version
+ * 1.1 (the "License"); you may not use this file except in compliance with
+ * the License.  Alternatively, the contents of this file may be used under
+ * the terms of the GNU Lesser General Public License Version 2.1 or later.
+ *
+ * Software distributed under the License is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+ * for the specific language governing rights and limitations under the
+ * License.
+ */
+
 package javassist.bytecode.stackmap;
 
-import javassist.bytecode.StackMapTable;
 import javassist.bytecode.ByteArray;
 import javassist.bytecode.Opcode;
 import javassist.bytecode.ConstPool;
 import javassist.bytecode.Descriptor;
 import javassist.bytecode.BadBytecode;
+import javassist.ClassPool;
 
-public class StackAnalyzerCore {
-    private ConstPool cpool;
-    private int stackTop;
-    private int[] stackTypes;
-    private Object[] stackData;     // String or Integer
+/*
+ * A class for performing abstract interpretation.
+ * See also MapMaker class. 
+ */
 
-    private int[] localsTypes;
-    private boolean[] localsUpdated;
-    private Object[] localsData;    // String or Integer
+public abstract class Tracer implements TypeTag {
+    protected ClassPool classPool;
+    protected ConstPool cpool;
+    protected String returnType;
 
-    static final int EMPTY = -1;
-    static final int TOP = StackMapTable.TOP;
-    static final int INTEGER = StackMapTable.INTEGER;
-    static final int FLOAT = StackMapTable.FLOAT;
-    static final int DOUBLE = StackMapTable.DOUBLE;
-    static final int LONG = StackMapTable.LONG;
-    static final int NULL = StackMapTable.NULL;
-    static final int THIS = StackMapTable.THIS;
-    static final int OBJECT = StackMapTable.OBJECT;
-    static final int UNINIT = StackMapTable.UNINIT;
+    protected int stackTop;
+    protected TypeData[] stackTypes;
+    protected TypeData[] localsTypes;
 
-    public StackAnalyzerCore(ConstPool cp, int maxStack, int maxLocals) {
+    public Tracer(ClassPool classes, ConstPool cp, int maxStack, int maxLocals,
+                  String retType) {
+        classPool = classes;
         cpool = cp;
+        returnType = retType;
         stackTop = 0;
-        stackTypes = null;
-        localsTypes = null;
-        growStack(maxStack);
-        growLocals(maxLocals);
+        stackTypes = new TypeData[maxStack];
+        localsTypes = new TypeData[maxLocals];
     }
 
-    public void clearUpdatedFlags() {
-        boolean[] updated = localsUpdated;
-        for (int i = 0; i < updated.length; i++)
-            updated[i] = false;
-    }
+    /* If the type is LONG or DOUBLE,
+     * the next local variable is also read.
+     * IINC (or WIDE IINC) calls only readLocal() but it does not call writeLocal().
+     */
+    private void readLocal(int reg) {}
 
-    public void growStack(int size) {
-        int oldSize;
-        int[] types = new int[size];
-        Object[] data = new Object[size];
-        if (stackTypes == null)
-            oldSize = 0;
-        else {
-            oldSize = stackTypes.length;
-            System.arraycopy(stackTypes, 0, types, 0, oldSize);
-            System.arraycopy(stackData, 0, data, 0, oldSize);
-        }
-
-        stackTypes = types;
-        stackData = data;
-        for (int i = oldSize; i < size; i++)
-            stackTypes[i] = EMPTY;
-    }
-
-    public void growLocals(int size) {
-        int oldSize;
-        int[] types = new int[size];
-        boolean[] updated = new boolean[size];
-        Object[] data = new Object[size];
-        if (localsTypes == null)
-            oldSize = 0;
-        else {
-            oldSize = localsTypes.length;
-            System.arraycopy(localsTypes, 0, types, 0, oldSize);
-            System.arraycopy(localsUpdated, 0, updated, 0, oldSize);
-            System.arraycopy(localsData, 0, data, 0, oldSize);
-        }
-
-        localsTypes = types;
-        localsUpdated = updated;
-        localsData = data;
-        for (int i = oldSize; i < size; i++)
-            localsTypes[i] = EMPTY;
-    }
-
-    public void pushType(int type, Object data) {
-        stackTypes[stackTop] = type;
-        stackData[stackTop++] = data;
-    }
+    private void writeLocal(int reg) {}
 
     /**
+     * Does abstract interpretation on the given bytecode instruction.
+     * It records whether or not a local variable (i.e. register) is accessed.
+     * If the instruction requires that a local variable or
+     * a stack element has a more specific type, this method updates the
+     * type of it.
+     *
+     * @pos         the position of the instruction.
      * @return      the size of the instruction at POS.
      */
     protected int doOpcode(int pos, byte[] code) throws BadBytecode {
@@ -104,12 +78,30 @@ public class StackAnalyzerCore {
                 return doOpcode148_201(pos, code, op);
     }
 
-    protected void visitBranch(int pos, byte[] code, int offset) {}
-    protected void visitGoto(int pos, byte[] code, int offset) {}
-    protected void visitTableSwitch(int pos, byte[] code, int n, int offsetPos, int defaultByte) {}
-    protected void visitLookupSwitch(int pos, byte[] code, int n, int pairsPos, int defaultByte) {}
-    protected void visitReturn(int pos, byte[] code) {}
-    protected void visitThrow(int pos, byte[] code) {}
+    protected void visitBranch(int pos, byte[] code, int offset) throws BadBytecode {}
+    protected void visitGoto(int pos, byte[] code, int offset) throws BadBytecode {}
+    protected void visitReturn(int pos, byte[] code) throws BadBytecode {}
+    protected void visitThrow(int pos, byte[] code) throws BadBytecode {}
+
+    /**
+     * @param pos           the position of TABLESWITCH
+     * @param code          bytecode
+     * @param n             the number of case labels
+     * @param offsetPos     the position of the branch-target table.
+     * @param defaultOffset     the offset to the default branch target.
+     */
+    protected void visitTableSwitch(int pos, byte[] code, int n,
+                int offsetPos, int defaultOffset) throws BadBytecode {}
+
+    /**
+     * @param pos           the position of LOOKUPSWITCH
+     * @param code          bytecode
+     * @param n             the number of case labels
+     * @param offsetPos     the position of the table of pairs of a value and a branch target.
+     * @param defaultOffset     the offset to the default branch target.
+     */
+    protected void visitLookupSwitch(int pos, byte[] code, int n,
+                int pairsPos, int defaultOffset) throws BadBytecode {}
 
     /**
      * Invoked when the visited instruction is jsr.
@@ -119,7 +111,7 @@ public class StackAnalyzerCore {
     }
 
     /**
-     * Invoked when the visited instruction is ret.
+     * Invoked when the visited instruction is ret or wide ret.
      */
     protected void visitRET(int pos, byte[] code) throws BadBytecode {
         throwBadBytecode(pos, "ret");
@@ -130,12 +122,13 @@ public class StackAnalyzerCore {
     }
 
     private int doOpcode0_53(int pos, byte[] code, int op) throws BadBytecode {
-        int[] stackTypes = this.stackTypes;
+        int reg;
+        TypeData[] stackTypes = this.stackTypes;
         switch (op) {
         case Opcode.NOP :
             break;
         case Opcode.ACONST_NULL :
-            stackTypes[stackTop++] = NULL;
+            stackTypes[stackTop++] = new TypeData.NullType();
             break;
         case Opcode.ICONST_M1 :
         case Opcode.ICONST_0 :
@@ -173,22 +166,21 @@ public class StackAnalyzerCore {
             doLDC(ByteArray.readU16bit(code, pos + 1));
             return 3;
         case Opcode.ILOAD :
-            return doXLOAD(INTEGER);
+            return doXLOAD(INTEGER, code, pos);
         case Opcode.LLOAD :
-            return doXLOAD(LONG);
+            return doXLOAD(LONG, code, pos);
         case Opcode.FLOAD :
-            return doXLOAD(FLOAT);
+            return doXLOAD(FLOAT, code, pos);
         case Opcode.DLOAD :
-            return doXLOAD(DOUBLE);
+            return doXLOAD(DOUBLE, code, pos);
         case Opcode.ALOAD :
-            stackTypes[stackTop] = OBJECT;
-            stackData[stackTop++] = localsData[code[pos + 1] & 0xff];
-            return 2;
+            return doALOAD(code[pos + 1] & 0xff);
         case Opcode.ILOAD_0 :
         case Opcode.ILOAD_1 :
         case Opcode.ILOAD_2 :
         case Opcode.ILOAD_3 :
             stackTypes[stackTop++] = INTEGER;
+            readLocal(op - Opcode.ILOAD_0);
             break;
         case Opcode.LLOAD_0 :
         case Opcode.LLOAD_1 :
@@ -196,12 +188,14 @@ public class StackAnalyzerCore {
         case Opcode.LLOAD_3 :
             stackTypes[stackTop++] = LONG;
             stackTypes[stackTop++] = TOP;
+            readLocal(op - Opcode.LLOAD_0);
             break;
         case Opcode.FLOAD_0 :
         case Opcode.FLOAD_1 :
         case Opcode.FLOAD_2 :
         case Opcode.FLOAD_3 :
             stackTypes[stackTop++] = FLOAT;
+            readLocal(op - Opcode.FLOAD_0);
             break;
         case Opcode.DLOAD_0 :
         case Opcode.DLOAD_1 :
@@ -209,13 +203,15 @@ public class StackAnalyzerCore {
         case Opcode.DLOAD_3 :
             stackTypes[stackTop++] = DOUBLE;
             stackTypes[stackTop++] = TOP;
+            readLocal(op - Opcode.DLOAD_0);
             break;
         case Opcode.ALOAD_0 :
         case Opcode.ALOAD_1 :
         case Opcode.ALOAD_2 :
         case Opcode.ALOAD_3 :
-            stackTypes[stackTop] = OBJECT;
-            stackData[stackTop++] = localsData[op - Opcode.ALOAD_0];
+            reg = op - Opcode.ALOAD_0;
+            stackTypes[stackTop++] = localsTypes[reg];
+            readLocal(reg);
             break;
         case Opcode.IALOAD :
             stackTypes[--stackTop - 1] = INTEGER;
@@ -233,12 +229,11 @@ public class StackAnalyzerCore {
             break;
         case Opcode.AALOAD : {
             int s = --stackTop - 1;
-            stackTypes[s] = OBJECT;
-            Object data = stackData[s];
-            if (data != null && data instanceof String)
-                stackData[s] = getDerefType((String)data);
-            else
+            TypeData data = stackTypes[s];
+            if (data == null || data.isBasicType())
                 throw new BadBytecode("bad AALOAD");
+            else
+                stackTypes[s] = new TypeData.ArrayElement(data);
 
             break; }
         case Opcode.BALOAD :
@@ -254,12 +249,10 @@ public class StackAnalyzerCore {
     }
 
     private void doLDC(int index) {
-        int[] stackTypes = this.stackTypes;
+        TypeData[] stackTypes = this.stackTypes;
         int tag = cpool.getTag(index);
-        if (tag == ConstPool.CONST_String) {
-            stackTypes[stackTop] = OBJECT;
-            stackData[stackTop++] = "java/lang/String";
-        }
+        if (tag == ConstPool.CONST_String)
+            stackTypes[stackTop++] = new TypeData.ClassName("java.lang.String");
         else if (tag == ConstPool.CONST_Integer)
             stackTypes[stackTop++] = INTEGER;
         else if (tag == ConstPool.CONST_Float)
@@ -272,43 +265,35 @@ public class StackAnalyzerCore {
             stackTypes[stackTop++] = DOUBLE;
             stackTypes[stackTop++] = TOP;
         }
-        else if (tag == ConstPool.CONST_Class) {
-            stackTypes[stackTop] = OBJECT;
-            stackData[stackTop++] = "java/lang/Class";
-        }
+        else if (tag == ConstPool.CONST_Class)
+            stackTypes[stackTop++] = new TypeData.ClassName("java.lang.Class");
         else
             throw new RuntimeException("bad LDC: " + tag);
     }
 
-    private int doXLOAD(int type) {
-        int[] stackTypes = this.stackTypes;
+    private int doXLOAD(TypeData type, byte[] code, int pos) {
+        int localVar = code[pos + 1] & 0xff;
+        return doXLOAD(localVar, type);
+    }
+
+    private int doXLOAD(int localVar, TypeData type) {
         stackTypes[stackTop++] = type;
         if (type == LONG || type == DOUBLE)
             stackTypes[stackTop++] = TOP;
 
+        readLocal(localVar);
         return 2;
     }
 
-    private String getDerefType(String type) throws BadBytecode {
-        if (type.charAt(0) == '[') {
-            String type2 = type.substring(1);
-            if (type2.length() > 0) {
-                char c = type2.charAt(0);
-                if (c == '[')
-                    return type2;
-                else if (c == 'L')
-                    return type2.substring(1, type.length() - 2);
-                else
-                    return type2;
-            }
-        }
-
-        throw new BadBytecode("bad array type for AALOAD: " + type);
+    private int doALOAD(int localVar) { // int localVar, TypeData type) {
+        stackTypes[stackTop++] = localsTypes[localVar];
+        readLocal(localVar);
+        return 2;
     }
 
     private int doOpcode54_95(int pos, byte[] code, int op) {
-        int[] localsTypes = this.localsTypes;
-        int[] stackTypes = this.stackTypes;
+        TypeData[] localsTypes = this.localsTypes;
+        TypeData[] stackTypes = this.stackTypes;
         switch (op) {
         case Opcode.ISTORE :
             return doXSTORE(pos, code, INTEGER);
@@ -319,15 +304,15 @@ public class StackAnalyzerCore {
         case Opcode.DSTORE :
             return doXSTORE(pos, code, DOUBLE);
         case Opcode.ASTORE :
-            return doXSTORE(pos, code, OBJECT);
+            return doASTORE(code[pos + 1] & 0xff);
         case Opcode.ISTORE_0 :
         case Opcode.ISTORE_1 :
         case Opcode.ISTORE_2 :
         case Opcode.ISTORE_3 :
           { int var = op - Opcode.ISTORE_0;
             localsTypes[var] = INTEGER;
-            localsUpdated[var] = true; }
-            stackTop--;
+            writeLocal(var);
+            stackTop--; }
             break;
         case Opcode.LSTORE_0 :
         case Opcode.LSTORE_1 :
@@ -336,8 +321,8 @@ public class StackAnalyzerCore {
           { int var = op - Opcode.LSTORE_0;
             localsTypes[var] = LONG;
             localsTypes[var + 1] = TOP;
-            localsUpdated[var] = true; }
-            stackTop -= 2;
+            writeLocal(var);
+            stackTop -= 2; }
             break;
         case Opcode.FSTORE_0 :
         case Opcode.FSTORE_1 :
@@ -345,8 +330,8 @@ public class StackAnalyzerCore {
         case Opcode.FSTORE_3 :
           { int var = op - Opcode.FSTORE_0;
             localsTypes[var] = FLOAT;
-            localsUpdated[var] = true; }
-            stackTop--;
+            writeLocal(var);
+            stackTop--; }
             break;
         case Opcode.DSTORE_0 :
         case Opcode.DSTORE_1 :
@@ -355,18 +340,16 @@ public class StackAnalyzerCore {
           { int var = op - Opcode.DSTORE_0;
             localsTypes[var] = DOUBLE;
             localsTypes[var + 1] = TOP;
-            localsUpdated[var] = true; }
-            stackTop -= 2;
+            writeLocal(var);
+            stackTop -= 2; }
             break;
         case Opcode.ASTORE_0 :
         case Opcode.ASTORE_1 :
         case Opcode.ASTORE_2 :
         case Opcode.ASTORE_3 :
           { int var = op - Opcode.ASTORE_0;
-            localsTypes[var] = OBJECT;
-            localsUpdated[var] = true;
-            localsData[var] = stackData[--stackTop]; }
-            break;
+            doASTORE(var);
+            break; }
         case Opcode.IASTORE :
         case Opcode.LASTORE :
         case Opcode.FASTORE :
@@ -386,7 +369,6 @@ public class StackAnalyzerCore {
         case Opcode.DUP : {
             int sp = stackTop;
             stackTypes[sp] = stackTypes[sp - 1];
-            stackData[sp] = stackData[sp - 1];
             stackTop = sp + 1;
             break; }
         case Opcode.DUP_X1 :
@@ -395,7 +377,6 @@ public class StackAnalyzerCore {
             doDUP_XX(1, len);
             int sp = stackTop;
             stackTypes[sp - len] = stackTypes[sp];
-            stackData[sp - len] = stackData[sp];
             stackTop = sp + 1;
             break; }
         case Opcode.DUP2 :
@@ -406,23 +387,16 @@ public class StackAnalyzerCore {
         case Opcode.DUP2_X2 : {
             int len = op - Opcode.DUP2_X1 + 3;
             doDUP_XX(2, len);
-            Object[] stackData = this.stackData;
             int sp = stackTop;
             stackTypes[sp - len] = stackTypes[sp];
-            stackData[sp - len] = stackData[sp];
             stackTypes[sp - len + 1] = stackTypes[sp + 1];
-            stackData[sp - len + 1] = stackData[sp + 1];
             stackTop = sp + 2; 
             break; }
         case Opcode.SWAP : {
-            Object[] stackData = this.stackData;
             int sp = stackTop - 1;
-            int t = stackTypes[sp];
-            Object d = stackData[sp];
+            TypeData t = stackTypes[sp];
             stackTypes[sp] = stackTypes[sp - 1];
-            stackData[sp] = stackData[sp - 1];
             stackTypes[sp - 1] = t;
-            stackData[sp - 1] = d;
             break; }
         default :
             throw new RuntimeException("fatal");
@@ -431,45 +405,52 @@ public class StackAnalyzerCore {
         return 1;
     }
 
-    private int doXSTORE(int pos, byte[] code, int type) {
+    private int doXSTORE(int pos, byte[] code, TypeData type) {
         int index = code[pos + 1] & 0xff;
         return doXSTORE(index, type);
     }
 
-    private int doXSTORE(int index, int type) {
+    private int doXSTORE(int index, TypeData type) {
         stackTop--;
+        writeLocal(index);
         localsTypes[index] = type;
-        localsUpdated[index] = true;
         if (type == LONG || type == DOUBLE) {
             stackTop--;
             localsTypes[index + 1] = TOP;
         }
-        else if (type == OBJECT)
-            localsData[index] = stackData[stackTop];
+
+        return 2;
+    }
+
+    private int doASTORE(int index) {
+        stackTop--;
+        writeLocal(index);
+        // implicit upcast might be done.
+        localsTypes[index] = stackTypes[stackTop].copy();
 
         return 2;
     }
 
     private void doDUP_XX(int delta, int len) {
-        int types[] = stackTypes;
-        Object data[] = stackData;
+        TypeData types[] = stackTypes;
         int sp = stackTop;
         int end = sp - len;
         while (sp > end) {
             types[sp + delta] = types[sp];
-            data[sp + delta] = data[sp];
             sp--;
         }
     }
 
     private int doOpcode96_147(int pos, byte[] code, int op) {
         if (op <= Opcode.LXOR) {    // IADD...LXOR
-            stackTop -= Opcode.STACK_GROW[op];
+            stackTop += Opcode.STACK_GROW[op];
             return 1;
         }
 
         switch (op) {
         case Opcode.IINC :
+            readLocal(code[pos + 1] & 0xff);
+            // this does not call writeLocal().
             return 3;
         case Opcode.I2L :
             stackTypes[stackTop] = LONG;
@@ -600,56 +581,56 @@ public class StackAnalyzerCore {
             visitReturn(pos, code);
             break;
         case Opcode.ARETURN :
-            stackTop--;
+            TypeData.setType(stackTypes[--stackTop], returnType, classPool);
             visitReturn(pos, code);
             break;
         case Opcode.RETURN :
             visitReturn(pos, code);
             break;
         case Opcode.GETSTATIC :
-            return doFieldAccess(pos, code, true);
+            return doGetField(pos, code, false);
         case Opcode.PUTSTATIC :
-            return doFieldAccess(pos, code, false);
+            return doPutField(pos, code, false);
         case Opcode.GETFIELD :
-            stackTop--;
-            return doFieldAccess(pos, code, true);
+            return doGetField(pos, code, true);
         case Opcode.PUTFIELD :
-            stackTop--;
-            return doFieldAccess(pos, code, false);
+            return doPutField(pos, code, true);
         case Opcode.INVOKEVIRTUAL :
         case Opcode.INVOKESPECIAL :
-            return doInvokeMethod(pos, code, 1);
+            return doInvokeMethod(pos, code, true);
         case Opcode.INVOKESTATIC :
-            return doInvokeMethod(pos, code, 0);
+            return doInvokeMethod(pos, code, false);
         case Opcode.INVOKEINTERFACE :
-            return doInvokeIntfMethod(pos, code, 1);
+            return doInvokeIntfMethod(pos, code);
         case 186 :
             throw new RuntimeException("bad opcode 186");
         case Opcode.NEW : {
             int i = ByteArray.readU16bit(code, pos + 1);
-            stackTypes[stackTop - 1] = UNINIT;
-            stackData[stackTop - 1] = new Integer(pos);
+            stackTypes[stackTop++]
+                      = new TypeData.UninitData(pos, cpool.getClassInfo(i));
             return 3; }
         case Opcode.NEWARRAY :
             return doNEWARRAY(pos, code);
         case Opcode.ANEWARRAY : {
             int i = ByteArray.readU16bit(code, pos + 1);
-            stackTypes[stackTop - 1] = OBJECT;
-            stackData[stackTop - 1]
-                      = "[L" + cpool.getClassInfo(i).replace('.', '/') + ";";
+            String type = cpool.getClassInfo(i).replace('.', '/');
+            stackTypes[stackTop - 1]
+                    = new TypeData.ClassName("[L" + type + ";");
             return 3; }
         case Opcode.ARRAYLENGTH :
             stackTypes[stackTop - 1] = INTEGER;
             break;
         case Opcode.ATHROW :
-            stackTop--;         // branch?
+            TypeData.setType(stackTypes[--stackTop], "java.lang.Throwable", classPool);
             visitThrow(pos, code);
             break;
         case Opcode.CHECKCAST : {
+            // TypeData.setType(stackData[stackTop - 1], "java.lang.Object", classPool);
             int i = ByteArray.readU16bit(code, pos + 1);
-            stackData[stackTop - 1] = cpool.getClassInfo(i);
+            stackTypes[stackTop - 1] = new TypeData.ClassName(cpool.getClassInfo(i));
             return 3; }
         case Opcode.INSTANCEOF :
+            // TypeData.setType(stackData[stackTop - 1], "java.lang.Object", classPool);
             stackTypes[stackTop - 1] = INTEGER;
             return 3;
         case Opcode.MONITORENTER :
@@ -676,25 +657,25 @@ public class StackAnalyzerCore {
         return 1;
     }
 
-    private int doWIDE(int pos, byte[] code) {
+    private int doWIDE(int pos, byte[] code) throws BadBytecode {
         int op = code[pos + 1] & 0xff;
         switch (op) {
         case Opcode.ILOAD :
-            doXLOAD(INTEGER);
+            doWIDE_XLOAD(pos, code, INTEGER);
             break;
         case Opcode.LLOAD :
-            doXLOAD(LONG);
+            doWIDE_XLOAD(pos, code, LONG);
             break;
         case Opcode.FLOAD :
-            doXLOAD(FLOAT);
+            doWIDE_XLOAD(pos, code, FLOAT);
             break;
         case Opcode.DLOAD :
-            doXLOAD(DOUBLE);
+            doWIDE_XLOAD(pos, code, DOUBLE);
             break;
-        case Opcode.ALOAD :
-            stackTypes[stackTop] = OBJECT;
-            stackData[stackTop++] = localsData[ByteArray.readU16bit(code, pos)];
-            break;
+        case Opcode.ALOAD : {
+            int index = ByteArray.readU16bit(code, pos + 2);
+            doALOAD(index);
+            break; }
         case Opcode.ISTORE :
             return doWIDE_STORE(pos, code, INTEGER);
         case Opcode.LSTORE :
@@ -703,11 +684,15 @@ public class StackAnalyzerCore {
             return doWIDE_STORE(pos, code, FLOAT);
         case Opcode.DSTORE :
             return doWIDE_STORE(pos, code, DOUBLE);
-        case Opcode.ASTORE :
-            return doWIDE_STORE(pos, code, OBJECT);
+        case Opcode.ASTORE : {
+            int index = ByteArray.readU16bit(code, pos + 2);
+            return doASTORE(index); }
         case Opcode.IINC :
+            readLocal(ByteArray.readU16bit(code, pos + 2));
+            // this does not call writeLocal().
             return 6;
         case Opcode.RET :
+            visitRET(pos, code);
             break;
         default :
             throw new RuntimeException("bad WIDE instruction: " + op);
@@ -716,25 +701,47 @@ public class StackAnalyzerCore {
         return 4;
     }
 
-    private int doWIDE_STORE(int pos, byte[] code, int type) {
-        int index = ByteArray.readU16bit(code, pos);
+    private int doWIDE_XLOAD(int pos, byte[] code, TypeData type) {
+        int index = ByteArray.readU16bit(code, pos + 2);
+        return doXLOAD(index, type);
+    }
+
+    private int doWIDE_STORE(int pos, byte[] code, TypeData type) {
+        int index = ByteArray.readU16bit(code, pos + 2);
         return doXSTORE(index, type);
     }
 
-    private int doFieldAccess(int pos, byte[] code, boolean isGet) {
+    private int doPutField(int pos, byte[] code, boolean notStatic) throws BadBytecode {
         int index = ByteArray.readU16bit(code, pos + 1);
         String desc = cpool.getFieldrefType(index);
-        if (isGet)
-            pushMemberType(desc);
-        else
-            stackTop -= Descriptor.dataSize(desc);
+        stackTop -= Descriptor.dataSize(desc);
+        char c = desc.charAt(0);
+        if (c == 'L')
+            TypeData.setType(stackTypes[stackTop], getFieldClassName(desc, 0), classPool);
+        else if (c == '[')
+            TypeData.setType(stackTypes[stackTop], desc, classPool);
 
+        setFieldTarget(notStatic, index);
         return 3;
+    }
+
+    private int doGetField(int pos, byte[] code, boolean notStatic) throws BadBytecode {
+        int index = ByteArray.readU16bit(code, pos + 1);
+        setFieldTarget(notStatic, index);
+        String desc = cpool.getFieldrefType(index);
+        pushMemberType(desc);
+        return 3;
+    }
+
+    private void setFieldTarget(boolean notStatic, int index) throws BadBytecode {
+        if (notStatic) {
+            String className = cpool.getFieldrefClassName(index);
+            TypeData.setType(stackTypes[--stackTop], className, classPool);
+        }
     }
 
     private int doNEWARRAY(int pos, byte[] code) {
         int s = stackTop - 1;
-        stackTypes[s] = OBJECT;
         String type;
         switch (code[pos + 1] & 0xff) {
         case Opcode.T_BOOLEAN :
@@ -765,7 +772,7 @@ public class StackAnalyzerCore {
             throw new RuntimeException("bad newarray");
         }
 
-        stackData[s] = type;
+        stackTypes[s] = new TypeData.ClassName(type);
         return 2;
     }
 
@@ -773,29 +780,31 @@ public class StackAnalyzerCore {
         int i = ByteArray.readU16bit(code, pos + 1);
         int dim = code[pos + 3] & 0xff;
         stackTop -= dim - 1;
-        String type = cpool.getClassInfo(i);
-        StringBuffer sbuf = new StringBuffer();
-        while (dim-- > 0)
-            sbuf.append('[');
 
-        sbuf.append('L').append(type.replace('.', '/')).append(';');
-        stackTypes[stackTop - 1] = OBJECT;
-        stackData[stackTop - 1] = sbuf.toString(); 
+        String type = cpool.getClassInfo(i).replace('.', '/');
+        stackTypes[stackTop - 1] = new TypeData.ClassName(type);
         return 4;
     }
 
-    private int doInvokeMethod(int pos, byte[] code, int targetSize) {
+    private int doInvokeMethod(int pos, byte[] code, boolean notStatic) throws BadBytecode {
         int i = ByteArray.readU16bit(code, pos + 1);
         String desc = cpool.getMethodrefType(i);
-        stackTop -= Descriptor.paramSize(desc) + targetSize;
+        checkParamTypes(desc, 1);
+        if (notStatic) {
+            String className = cpool.getMethodrefClassName(i);
+            TypeData.setType(stackTypes[--stackTop], className, classPool);
+        }
+
         pushMemberType(desc);
         return 3;
     }
 
-    private int doInvokeIntfMethod(int pos, byte[] code, int targetSize) {
+    private int doInvokeIntfMethod(int pos, byte[] code) throws BadBytecode {
         int i = ByteArray.readU16bit(code, pos + 1);
         String desc = cpool.getInterfaceMethodrefType(i);
-        stackTop -= Descriptor.paramSize(desc) + targetSize;
+        checkParamTypes(desc, 1);
+        String className = cpool.getInterfaceMethodrefClassName(i);
+        TypeData.setType(stackTypes[--stackTop], className, classPool);
         pushMemberType(desc);
         return 5;
     }
@@ -809,17 +818,14 @@ public class StackAnalyzerCore {
                                                     + descriptor);
         }
 
-        int[] types = stackTypes;
+        TypeData[] types = stackTypes;
         int index = stackTop;
         switch (descriptor.charAt(top)) {
         case '[' :
-            types[index] = OBJECT;
-            stackData[index] = descriptor.substring(top);
+            types[index] = new TypeData.ClassName(descriptor.substring(top));
             break;
         case 'L' :
-            types[index] = OBJECT;
-            stackData[index] = descriptor.substring(top + 1,
-                                        descriptor.indexOf(';', top));
+            types[index] = new TypeData.ClassName(getFieldClassName(descriptor, top));
             break;
         case 'J' :
             types[index] = LONG;
@@ -842,5 +848,43 @@ public class StackAnalyzerCore {
         }
 
         stackTop++;
+    }
+
+    private static String getFieldClassName(String desc, int index) {
+        return desc.substring(index + 1, desc.length() - 1).replace('/', '.');
+    }
+
+    private void checkParamTypes(String desc, int i) throws BadBytecode {
+        char c = desc.charAt(i);
+        if (c == ')')
+            return;
+
+        int k = i;
+        boolean array = false;
+        while (c == '[') {
+            array = true;
+            c = desc.charAt(++k);
+        }
+
+        if (c == 'L') {
+            k = desc.indexOf(';', k) + 1;
+            if (k <= 0)
+                throw new IndexOutOfBoundsException("bad descriptor");
+        }
+        else
+            k++;
+
+        checkParamTypes(desc, k);
+        if (!array && (c == 'J' || c == 'D'))
+            stackTop -= 2;
+        else
+            stackTop--;
+
+        if (array)
+            TypeData.setType(stackTypes[stackTop],
+                             desc.substring(i, k), classPool);
+        else if (c == 'L')
+            TypeData.setType(stackTypes[stackTop],
+                             desc.substring(i + 1, k - 1).replace('/', '.'), classPool);
     }
 }

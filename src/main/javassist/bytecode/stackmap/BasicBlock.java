@@ -1,55 +1,113 @@
+/*
+ * Javassist, a Java-bytecode translator toolkit.
+ * Copyright (C) 1999-2006 Shigeru Chiba. All Rights Reserved.
+ *
+ * The contents of this file are subject to the Mozilla Public License Version
+ * 1.1 (the "License"); you may not use this file except in compliance with
+ * the License.  Alternatively, the contents of this file may be used under
+ * the terms of the GNU Lesser General Public License Version 2.1 or later.
+ *
+ * Software distributed under the License is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+ * for the specific language governing rights and limitations under the
+ * License.
+ */
+
 package javassist.bytecode.stackmap;
 
 import javassist.bytecode.*;
+import java.util.ArrayList;
 
-public class BasicBlock {
-    public int position;
-    public int stackTop;
-    public int[] stackTypes, localsTypes;
-    public Object[] stackData, localsData;
+public class BasicBlock implements TypeTag, Comparable {
+
+    public int position, length;
+    public int stackTop, numLocals;
+    public TypeData[] stackTypes, localsTypes;
+
+    /* The number of the basic blocks from which a thread of control
+     * may reach this basic block.  The number excludes the preceding
+     * block.  Thus, if it is zero, a thread of control reaches
+     * only from the preceding block.  Such a basic block represents
+     * the boundary of a try block.
+     */
+    public int inbound;
+
+    /* public static void main(String[] args) throws Exception {
+        BasicBlock b = new BasicBlock(0);
+        b.initFirstBlock(8, 1, args[0], args[1], args[2].equals("static"), args[2].equals("const"));
+        System.out.println(b);
+    }*/
 
     private BasicBlock(int pos) {
         position = pos;
+        length = 0;
+        stackTop = numLocals = 0;
+        stackTypes = localsTypes = null;
+        inbound = 1;
     }
 
-    public void set(int st, int[] stypes, Object[] sdata, int[] ltypes, Object[] ldata)
+    public boolean alreadySet() { return stackTypes != null; }
+
+    /*
+     * Computes the correct value of numLocals.
+     * It assumes that:
+     *     correct numLocals <= current numLocals 
+     */
+    public void resetNumLocals() {
+        if (localsTypes != null) {
+            int nl = numLocals;
+            while (nl > 0 && localsTypes[nl - 1] == TypeTag.TOP)
+                --nl;
+
+            numLocals = nl;
+        }
+    }
+
+    public void setStackMap(int st, TypeData[] stack,
+                            int nl, TypeData[] locals)
         throws BadBytecode
     {
-        if (stackTypes == null) {
-            stackTop = st;
-            stackTypes = copy(stypes);
-            stackData = copy(sdata);
-            localsTypes = copy(ltypes);
-            localsData = copy(ldata);
+        stackTop = st;
+        stackTypes = stack;
+        numLocals = nl;
+        localsTypes = locals;
+    }
+
+    private void updateLength(int nextPos) {
+        length = nextPos - position;
+    }
+
+    public String toString() {
+        StringBuffer sbuf = new StringBuffer();
+        sbuf.append("Block at ");
+        sbuf.append(position);
+        sbuf.append(" stack={");
+        printTypes(sbuf, stackTop, stackTypes);
+        sbuf.append("} locals={");
+        printTypes(sbuf, numLocals, localsTypes);
+        sbuf.append('}');
+        return sbuf.toString();
+    }
+
+    private static void printTypes(StringBuffer sbuf, int size,
+                                   TypeData[] types) {
+        if (types == null)
+            return;
+
+        for (int i = 0; i < size; i++) {
+            if (i > 0)
+                sbuf.append(", ");
+
+            TypeData td = types[i];
+            sbuf.append(td == null ? "<>" : td.toString());
         }
-        else {
-            if (st != stackTop)
-                throw new BadBytecode("verification failure");
-
-            int n = ltypes.length;
-            for (int i = 0; i < n; i++)
-                if (ltypes[i] != localsTypes[i]) {
-                    localsTypes[i] = StackAnalyzerCore.EMPTY;
-                    localsData[i] = null;
-                }
-                else if (ltypes[i] == StackAnalyzerCore.OBJECT
-                         && !ldata[i].equals(localsData[i]))
-                    ; // localsData[i] = ??;
-        }
     }
 
-    private static int[] copy(int[] a) {
-        int[] b = new int[a.length];
-        System.arraycopy(a, 0, b, 0, a.length);
-        return b;
-    }
-
-    private static Object[] copy(Object[] a) {
-        Object[] b = new Object[a.length];
-        System.arraycopy(a, 0, b, 0, a.length);
-        return b;
-    }
-
+    /**
+     * Finds the basic block including the given position.
+     *
+     * @param pos       the position.
+     */
     public static BasicBlock find(BasicBlock[] blocks, int pos) throws BadBytecode {
         int n = blocks.length;
         for (int i = 0; i < n; i++)
@@ -59,102 +117,254 @@ public class BasicBlock {
         throw new BadBytecode("no basic block: " + pos);
     }
 
-    public static BasicBlock[] makeBlocks(CodeIterator ci, ExceptionTable et)
+    /**
+     * Divides the given code fragment into basic blocks.
+     */
+    public static BasicBlock[] makeBlocks(MethodInfo minfo) throws BadBytecode {
+        CodeAttribute ca = minfo.getCodeAttribute();
+        CodeIterator ci = ca.iterator();
+        ConstPool pool = minfo.getConstPool();
+        BasicBlock[] blocks = makeBlocks(ci, 0, ci.getCodeLength(), ca.getExceptionTable(), 0, pool);
+        boolean isStatic = (minfo.getAccessFlags() & AccessFlag.STATIC) != 0;
+        blocks[0].initFirstBlock(ca.getMaxStack(), ca.getMaxLocals(),
+                                 pool.getClassName(), minfo.getDescriptor(),
+                                 isStatic, minfo.isConstructor());
+        return blocks;
+    }
+
+    /**
+     * Divides the given code fragment into basic blocks.
+     *
+     * @param begin         the position where the basic block analysis starts. 
+     * @param end           exclusive.
+     * @param et            the appended exception table entries.
+     * @param etOffset      the offset added to the handlerPc entries in the exception table.
+     * @param pool          the constant pool.
+     */
+    public static BasicBlock[] makeBlocks(CodeIterator ci, int begin, int end,
+                                           ExceptionTable et, int etOffset, ConstPool pool)
         throws BadBytecode
     {
         ci.begin();
-        int[] targets = new int[16];
-        int size = 0;
+        ci.move(begin);
+        ArrayList targets = new ArrayList();
+        targets.add(new BasicBlock(begin));
         while (ci.hasNext()) {
             int index = ci.next();
+            if (index >= end)
+                break;
+
             int op = ci.byteAt(index);
             if ((Opcode.IFEQ <= op && op <= Opcode.IF_ACMPNE)
                 || op == Opcode.IFNULL || op == Opcode.IFNONNULL)
-                targets = add(targets, size++, index + ci.s16bitAt(index + 1));
+                targets.add(new BasicBlock(index + ci.s16bitAt(index + 1)));
             else if (Opcode.GOTO <= op && op <= Opcode.LOOKUPSWITCH)
                 switch (op) {
                 case Opcode.GOTO :
-                    targets = add(targets, size++, index + ci.s16bitAt(index + 1));
-                    break;
                 case Opcode.JSR :
-                case Opcode.RET :
-                    throw new BadBytecode("jsr/ret at " + index);
+                    targets.add(new BasicBlock(index + ci.s16bitAt(index + 1)));
+                    break;
+                // case Opcode.RET :
+                //    throw new BadBytecode("ret at " + index);
                 case Opcode.TABLESWITCH : {
                     int pos = (index & ~3) + 4;
-                    targets = add(targets, size++, index + ci.s32bitAt(pos));   // default offset
+                    targets.add(new BasicBlock(index + ci.s32bitAt(pos)));   // default branch target
                     int low = ci.s32bitAt(pos + 4);
                     int high = ci.s32bitAt(pos + 8);
                     int p = pos + 12;
                     int n = p + (high - low + 1) * 4;
                     while (p < n) {
-                        targets = add(targets, size++, index + ci.s32bitAt(p));
+                        targets.add(new BasicBlock(index + ci.s32bitAt(p)));
                         p += 4;
                     }
                     break; }
                 case Opcode.LOOKUPSWITCH : {
                     int pos = (index & ~3) + 4;
-                    targets = add(targets, size++, index + ci.s32bitAt(pos));   // default offset
+                    targets.add(new BasicBlock(index + ci.s32bitAt(pos)));   // default branch target
                     int p = pos + 8 + 4;
                     int n = p + ci.s32bitAt(pos + 4) * 8;
                     while (p < n) {
-                        targets = add(targets, size++, index + ci.s32bitAt(p));
+                        targets.add(new BasicBlock(index + ci.s32bitAt(p)));
                         p += 8;
                     }
                     break; }
                 }
-            else if (op == Opcode.GOTO_W)
-                targets = add(targets, size++, index + ci.s32bitAt(index + 1));
-            else if (op == Opcode.JSR_W)
-                throw new BadBytecode("jsr_w at " + index);
+            else if (op == Opcode.GOTO_W || op == Opcode.JSR_W)
+                targets.add(new BasicBlock(index + ci.s32bitAt(index + 1)));
         }
 
         if (et != null) {
             int i = et.size();
             while (--i >= 0) {
-                targets = add(targets, size++, et.startPc(i));
-                targets = add(targets, size++, et.handlerPc(i));
+                BasicBlock bb = new BasicBlock(et.startPc(i) + etOffset);
+                bb.inbound = 0;
+                targets.add(bb);
+                targets.add(new BasicBlock(et.handlerPc(i) + etOffset));
             }
         }
 
-        return trimArray(targets);
+        return trimArray(targets, end);
     }
 
-    private static int[] add(int[] targets, int size, int value) {
-        if (targets.length >= size) {
-            int[] a = new int[size << 1];
-            System.arraycopy(targets, 0, a, 0, targets.length);
-            targets = a;
+    public int compareTo(Object obj) {
+        if (obj instanceof BasicBlock) {
+            int pos = ((BasicBlock)obj).position;
+            return position - pos;
         }
 
-        targets[size++] = value;
-        return targets;
+        return -1;
     }
 
-    private static BasicBlock[] trimArray(int[] targets) {
-        int size = targets.length;
-        java.util.Arrays.sort(targets);
+    /**
+     * @param endPos        exclusive
+     */
+    private static BasicBlock[] trimArray(ArrayList targets, int endPos) {
+        Object[] targetArray = targets.toArray();
+        int size = targetArray.length;
+        java.util.Arrays.sort(targetArray);
         int s = 0;
-        int t0 = 0;
+        int t0 = -1;
         for (int i = 0; i < size; i++) {
-            int t = targets[i];
+            int t = ((BasicBlock)targetArray[i]).position;
             if (t != t0) {
                 s++;
                 t0 = t;
             }
         }
 
-        BasicBlock[] results = new BasicBlock[s + 1];
-        results[0] = new BasicBlock(0);
-        t0 = 0;
-        for (int i = 0, j = 1; i < size; i++) { 
-            int t = targets[i];
-            if (t != t0) {
-                BasicBlock b = new BasicBlock(t);
-                results[j++] = b;
+        BasicBlock[] results = new BasicBlock[s];
+        BasicBlock bb0 = (BasicBlock)targetArray[0];
+        results[0] = bb0;
+        t0 = bb0.position;
+        int j = 1;
+        for (int i = 1; i < size; i++) {
+            BasicBlock bb = (BasicBlock)targetArray[i];
+            int t = bb.position;
+            if (t == t0)
+                results[j - 1].inbound += bb.inbound;
+            else {
+                results[j - 1].updateLength(t);
+                results[j++] = bb;
                 t0 = t;
             }
         }
 
+        results[j - 1].updateLength(endPos);
         return results;
+    }
+
+    /**
+     * Initializes the first block by the given method descriptor.
+     *
+     * @param block             the first basic block that this method initializes.
+     * @param className         a dot-separated fully qualified class name.
+     *                          For example, <code>javassist.bytecode.stackmap.BasicBlock</code>.
+     * @param methodDesc        method descriptor.
+     * @param isStatic          true if the method is a static method.
+     * @param isConstructor     true if the method is a constructor.
+     */
+    void initFirstBlock(int maxStack, int maxLocals, String className,
+                        String methodDesc, boolean isStatic, boolean isConstructor)
+        throws BadBytecode
+    {
+        if (methodDesc.charAt(0) != '(')
+            throw new BadBytecode("no method descriptor: " + methodDesc);
+
+        stackTop = 0;
+        stackTypes = new TypeData[maxStack];
+        TypeData[] locals = new TypeData[maxLocals];
+        if (isConstructor)
+            locals[0] = new TypeData.UninitThis(className);
+        else if (!isStatic)
+            locals[0] = new TypeData.ClassName(className);
+
+        int n = isStatic ? -1 : 0;
+        int i = 1;
+        do {
+            try {
+                i = descToTag(methodDesc, i, ++n, locals);
+            }
+            catch (StringIndexOutOfBoundsException e) {
+                throw new BadBytecode("bad method descriptor: "
+                                      + methodDesc);
+            }
+        } while (i > 0);
+
+        numLocals = n;
+        localsTypes = locals;
+        position = 0;
+        inbound = 0;
+    }
+
+    private static int descToTag(String desc, int i,
+                                 int n, TypeData[] types)
+        throws BadBytecode
+    {
+        int i0 = i;
+        int arrayDim = 0;
+        char c = desc.charAt(i);
+        if (c == ')')
+            return 0;
+
+        while (c == '[') {
+            ++arrayDim;
+            c = desc.charAt(++i);
+        }
+
+        if (c == 'L') {
+            int i2 = desc.indexOf(';', ++i);
+            if (arrayDim > 0)
+                types[n] = new TypeData.ClassName(desc.substring(i0, ++i2));
+            else
+                types[n] = new TypeData.ClassName(desc.substring(i0 + 1, ++i2 - 1)
+                                                      .replace('/', '.'));
+            return i2;
+        }
+        else if (arrayDim > 0) {
+            types[n] = new TypeData.ClassName(desc.substring(i0, ++i));
+            return i;
+        }
+        else {
+            TypeData t = toPrimitiveTag(c);
+            if (t == null)
+                throw new BadBytecode("bad method descriptor: " + desc);
+
+            types[n] = t;
+            return i + 1;
+        }
+    }
+
+    private static TypeData toPrimitiveTag(char c) {
+        switch (c) {
+        case 'Z' :
+        case 'C' :
+        case 'B' :
+        case 'S' :
+        case 'I' :
+            return INTEGER;
+        case 'J' :
+            return LONG;
+        case 'F' :
+            return FLOAT;
+        case 'D' :
+            return DOUBLE;
+        case 'V' :
+        default :
+            return null;
+        }
+    }
+
+    public static String getRetType(String desc) {
+        int i = desc.indexOf(')');
+        if (i < 0)
+            return "java.lang.Object";
+
+        char c = desc.charAt(i + 1);
+        if (c == '[')
+            return desc.substring(i + 1);
+        else if (c == 'L')
+            return desc.substring(i + 2, desc.length() - 1).replace('/', '.');
+        else
+            return "java.lang.Object";
     }
 }
