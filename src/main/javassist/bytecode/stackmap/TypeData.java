@@ -28,38 +28,9 @@ public abstract class TypeData {
      * array type is a subtype of Cloneable and Serializable 
      */
 
-    protected ArrayList equivalences;
+    protected TypeData() {}
 
-    protected TypeData() {
-        equivalences = new ArrayList();
-        equivalences.add(this);
-    }
-
-    public void merge(TypeData neighbor) {
-        if (this == neighbor)
-            return;
-
-        ArrayList list = equivalences;
-        ArrayList list2 = neighbor.equivalences;
-        if (list == list2)
-            return;
-
-        int n = list2.size();
-        for (int i = 0; i < n; i++) {
-            TypeData td = (TypeData)list2.get(i);
-            add(list, td);
-            td.equivalences = list;
-        }
-    }
-
-    private static void add(ArrayList list, TypeData td) {
-        int n = list.size();
-        for (int i = 0; i < n; i++)
-            if (list.get(i) == td)
-                return;
-
-        list.add(td);
-    }
+    public abstract void merge(TypeData neighbor);
 
     /**
      * Sets the type name of this object type.  If the given type name is
@@ -69,7 +40,7 @@ public abstract class TypeData {
      * @param className     dot-separated name unless the type is an array type. 
      */
     static void setType(TypeData td, String className, ClassPool cp) throws BadBytecode {
-        if (td == null)
+        if (td == TypeTag.TOP)
             throw new BadBytecode("unset variable");
         else
             td.setType(className, cp);
@@ -90,14 +61,13 @@ public abstract class TypeData {
      */
     public abstract TypeData copy();
 
-    public boolean isBasicType() { return false; }
-    public boolean isObjectType() { return false; }
+    public abstract boolean isObjectType();
+    public boolean is2WordType() { return false; }
     public boolean isNullType() { return false; }
 
     public abstract String getName() throws BadBytecode;
     protected abstract void setType(String s, ClassPool cp) throws BadBytecode;
     public abstract void evalExpectedType(ClassPool cp) throws BadBytecode;
-    protected abstract boolean hasExpectedType();   // only TypeName can return true.
     public abstract String getExpected() throws BadBytecode;
 
     /**
@@ -112,6 +82,8 @@ public abstract class TypeData {
             typeTag = tag;
         }
 
+        public void merge(TypeData neighbor) {}
+
         public boolean equals(Object obj) {
             return this == obj;
         }
@@ -119,7 +91,12 @@ public abstract class TypeData {
         public int getTypeTag() { return typeTag; }
         public int getTypeData(ConstPool cp) { return 0; }
 
-        public boolean isBasicType() { return true; }
+        public boolean isObjectType() { return false; }
+
+        public boolean is2WordType() {
+            return typeTag == StackMapTable.LONG
+                    || typeTag == StackMapTable.DOUBLE;
+        }
 
         public TypeData copy() {
             return this;
@@ -135,10 +112,6 @@ public abstract class TypeData {
             return name;
         }
 
-        protected boolean hasExpectedType() {
-            return false;
-        }
-
         protected void setType(String s, ClassPool cp) throws BadBytecode {
             throw new BadBytecode("conflict:" + name + " and " + s);
         }
@@ -147,14 +120,48 @@ public abstract class TypeData {
     }
 
     protected static abstract class TypeName extends TypeData {
+        protected ArrayList equivalences;
+
         private String expectedName;
         private CtClass cache;
         private boolean evalDone;
 
         protected TypeName() {
+            equivalences = new ArrayList();
+            equivalences.add(this);
             expectedName = null;
             cache = null;
             evalDone = false;
+        }
+
+        public void merge(TypeData neighbor) {
+            if (this == neighbor)
+                return;
+
+            if (!(neighbor instanceof TypeName))
+                return;     // neighbor might be UninitData
+
+            TypeName neighbor2 = (TypeName)neighbor;
+            ArrayList list = equivalences;
+            ArrayList list2 = neighbor2.equivalences;
+            if (list == list2)
+                return;
+
+            int n = list2.size();
+            for (int i = 0; i < n; i++) {
+                TypeName tn = (TypeName)list2.get(i);
+                add(list, tn);
+                tn.equivalences = list;
+            }
+        }
+
+        private static void add(ArrayList list, TypeData td) {
+            int n = list.size();
+            for (int i = 0; i < n; i++)
+                if (list.get(i) == td)
+                    return;
+
+            list.add(td);
         }
 
         /* NullType overrides this method.
@@ -206,7 +213,7 @@ public abstract class TypeData {
             int n = equiv.size();
             for (int i = 0; i < n; i++) {
                 TypeData td = (TypeData)equiv.get(i);
-                if (td.hasExpectedType()) {
+                if (td instanceof TypeName) {
                     TypeName tn = (TypeName)td;
                     if (update(cp, name, tn.expectedName))
                         name = tn.expectedName;
@@ -218,7 +225,7 @@ public abstract class TypeData {
 
             for (int i = 0; i < n; i++) {
                 TypeData td = (TypeData)equiv.get(i);
-                if (td.hasExpectedType()) {
+                if (td instanceof TypeName) {
                     TypeName tn = (TypeName)td;
                     tn.expectedName = name;
                     tn.cache = null;
@@ -241,7 +248,7 @@ public abstract class TypeData {
             return origName;
         }
 
-        protected boolean hasExpectedType() { return true; }
+        protected boolean isTypeName() { return true; }
 
         private boolean update(ClassPool cp, String oldName, String typeName) throws BadBytecode {
             if (typeName == null)
@@ -410,6 +417,8 @@ public abstract class TypeData {
             this.initialized = false;
         }
 
+        public void merge(TypeData neighbor) {}
+
         public int getTypeTag() { return StackMapTable.UNINIT; }
         public int getTypeData(ConstPool cp) { return offset; }
 
@@ -433,13 +442,13 @@ public abstract class TypeData {
             return new ClassName(className);
         }
 
+        public boolean isObjectType() { return true; }
+
         protected void setType(String typeName, ClassPool cp) throws BadBytecode {
             initialized = true;
         }
 
         public void evalExpectedType(ClassPool cp) throws BadBytecode {}
-
-        protected boolean hasExpectedType() { return false; }
 
         public String getName() {
             return className;

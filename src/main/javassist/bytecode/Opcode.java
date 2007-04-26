@@ -432,7 +432,7 @@ public interface Opcode {
         0, // newarray, 188
         0, // anewarray, 189
         0, // arraylength, 190
-        0, // athrow, 191               stack is cleared
+        -1, // athrow, 191              stack is cleared
         0, // checkcast, 192
         0, // instanceof, 193
         -1, // monitorenter, 194

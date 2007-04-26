@@ -24,6 +24,16 @@ public class BasicBlock implements TypeTag, Comparable {
     public int stackTop, numLocals;
     public TypeData[] stackTypes, localsTypes;
 
+    /* The version number of the values of numLocals and localsTypes.
+     * These values are repeatedly updated while MapMaker#make()
+     * is running.  This field represents when the values are recorded.
+     */
+    public int version;
+
+    /* a flag used by MapMaker#recordUsage()
+     */
+    public int[] localsUsage;
+
     /* The number of the basic blocks from which a thread of control
      * may reach this basic block.  The number excludes the preceding
      * block.  Thus, if it is zero, a thread of control reaches
@@ -31,6 +41,22 @@ public class BasicBlock implements TypeTag, Comparable {
      * the boundary of a try block.
      */
     public int inbound;
+
+    public static class Branch {
+        public Branch next;
+        public int target;
+        public int typeIndex;   // exception type
+        public Branch(Branch next, int target, int type) {
+            this.next = next;
+            this.target = target;
+            this.typeIndex = type;
+        }
+    }
+
+    /* A list of catch clauses that a thread may jump
+     * from this block to.
+     */
+    public Branch catchBlocks;
 
     /* public static void main(String[] args) throws Exception {
         BasicBlock b = new BasicBlock(0);
@@ -44,9 +70,13 @@ public class BasicBlock implements TypeTag, Comparable {
         stackTop = numLocals = 0;
         stackTypes = localsTypes = null;
         inbound = 1;
+        localsUsage = null;
+        catchBlocks = null;
     }
 
-    public boolean alreadySet() { return stackTypes != null; }
+    public boolean alreadySet(int ver) {
+        return stackTypes != null && ver == version;
+    }
 
     /*
      * Computes the correct value of numLocals.
@@ -56,8 +86,15 @@ public class BasicBlock implements TypeTag, Comparable {
     public void resetNumLocals() {
         if (localsTypes != null) {
             int nl = numLocals;
-            while (nl > 0 && localsTypes[nl - 1] == TypeTag.TOP)
+            while (nl > 0 && localsTypes[nl - 1] == TypeTag.TOP) {
+                if (nl > 1) {
+                    TypeData td = localsTypes[nl - 2];
+                    if (td == TypeTag.LONG || td == TypeTag.DOUBLE)
+                        break;
+                }
+
                 --nl;
+            }
 
             numLocals = nl;
         }
@@ -119,9 +156,14 @@ public class BasicBlock implements TypeTag, Comparable {
 
     /**
      * Divides the given code fragment into basic blocks.
+     * It returns null if the given MethodInfo does not include
+     * a CodeAttribute.
      */
     public static BasicBlock[] makeBlocks(MethodInfo minfo) throws BadBytecode {
         CodeAttribute ca = minfo.getCodeAttribute();
+        if (ca == null)
+            return null;
+
         CodeIterator ci = ca.iterator();
         ConstPool pool = minfo.getConstPool();
         BasicBlock[] blocks = makeBlocks(ci, 0, ci.getCodeLength(), ca.getExceptionTable(), 0, pool);
@@ -148,7 +190,9 @@ public class BasicBlock implements TypeTag, Comparable {
         ci.begin();
         ci.move(begin);
         ArrayList targets = new ArrayList();
-        targets.add(new BasicBlock(begin));
+        BasicBlock bb0 = new BasicBlock(begin);
+        bb0.inbound = 0;    // the first block is not a branch target.
+        targets.add(bb0);
         while (ci.hasNext()) {
             int index = ci.next();
             if (index >= end)
@@ -203,7 +247,9 @@ public class BasicBlock implements TypeTag, Comparable {
             }
         }
 
-        return trimArray(targets, end);
+        BasicBlock[] blocks = trimArray(targets, end);
+        markCatch(et, etOffset, blocks);
+        return blocks;
     }
 
     public int compareTo(Object obj) {
@@ -253,6 +299,28 @@ public class BasicBlock implements TypeTag, Comparable {
         return results;
     }
 
+    private static void markCatch(ExceptionTable et, int etOffset,
+            BasicBlock[] blocks)
+    {
+        if (et == null)
+            return;
+
+        int nblocks = blocks.length;
+        int n = et.size();
+        for (int i = 0; i < n; i++) {
+            int start = et.startPc(i) + etOffset;
+            int end = et.endPc(i) + etOffset;
+            int handler = et.handlerPc(i) + etOffset;
+            int type = et.catchType(i);
+            for (int k = 0; k < nblocks; k++) {
+                BasicBlock bb = blocks[k];
+                int p = bb.position;
+                if (start <= p && p < end)
+                    bb.catchBlocks = new Branch(bb.catchBlocks, handler, type);
+            }
+        }
+    }
+
     /**
      * Initializes the first block by the given method descriptor.
      *
@@ -280,20 +348,18 @@ public class BasicBlock implements TypeTag, Comparable {
 
         int n = isStatic ? -1 : 0;
         int i = 1;
-        do {
-            try {
-                i = descToTag(methodDesc, i, ++n, locals);
-            }
-            catch (StringIndexOutOfBoundsException e) {
-                throw new BadBytecode("bad method descriptor: "
-                                      + methodDesc);
-            }
-        } while (i > 0);
+        try {
+            while ((i = descToTag(methodDesc, i, ++n, locals)) > 0)
+                if (locals[n].is2WordType())
+                    locals[++n] = TOP;
+        }
+        catch (StringIndexOutOfBoundsException e) {
+            throw new BadBytecode("bad method descriptor: "
+                                  + methodDesc);
+        }
 
         numLocals = n;
         localsTypes = locals;
-        position = 0;
-        inbound = 0;
     }
 
     private static int descToTag(String desc, int i,

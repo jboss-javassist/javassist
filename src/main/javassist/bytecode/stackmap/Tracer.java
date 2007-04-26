@@ -36,6 +36,11 @@ public abstract class Tracer implements TypeTag {
     protected TypeData[] stackTypes;
     protected TypeData[] localsTypes;
 
+    static final int UNKNOWN = 0;
+    static final int READ = 1;
+    static final int UPDATED = 2;
+    protected int[] localsUsage;
+
     public Tracer(ClassPool classes, ConstPool cp, int maxStack, int maxLocals,
                   String retType) {
         classPool = classes;
@@ -44,15 +49,22 @@ public abstract class Tracer implements TypeTag {
         stackTop = 0;
         stackTypes = new TypeData[maxStack];
         localsTypes = new TypeData[maxLocals];
+        localsUsage = new int[maxLocals];
     }
 
     /* If the type is LONG or DOUBLE,
      * the next local variable is also read.
      * IINC (or WIDE IINC) calls only readLocal() but it does not call writeLocal().
      */
-    private void readLocal(int reg) {}
+    protected final void readLocal(int reg) {
+        if (localsUsage[reg] == UNKNOWN)
+            localsUsage[reg] = READ;
+    }
 
-    private void writeLocal(int reg) {}
+    protected final void writeLocal(int reg) {
+        if (localsUsage[reg] == UNKNOWN)
+            localsUsage[reg] = UPDATED;
+    }
 
     /**
      * Does abstract interpretation on the given bytecode instruction.
@@ -230,7 +242,7 @@ public abstract class Tracer implements TypeTag {
         case Opcode.AALOAD : {
             int s = --stackTop - 1;
             TypeData data = stackTypes[s];
-            if (data == null || data.isBasicType())
+            if (data == null || !data.isObjectType())
                 throw new BadBytecode("bad AALOAD");
             else
                 stackTypes[s] = new TypeData.ArrayElement(data);
@@ -278,7 +290,7 @@ public abstract class Tracer implements TypeTag {
 
     private int doXLOAD(int localVar, TypeData type) {
         stackTypes[stackTop++] = type;
-        if (type == LONG || type == DOUBLE)
+        if (type.is2WordType())
             stackTypes[stackTop++] = TOP;
 
         readLocal(localVar);
@@ -414,7 +426,7 @@ public abstract class Tracer implements TypeTag {
         stackTop--;
         writeLocal(index);
         localsTypes[index] = type;
-        if (type == LONG || type == DOUBLE) {
+        if (type.is2WordType()) {
             stackTop--;
             localsTypes[index + 1] = TOP;
         }
@@ -433,7 +445,7 @@ public abstract class Tracer implements TypeTag {
 
     private void doDUP_XX(int delta, int len) {
         TypeData types[] = stackTypes;
-        int sp = stackTop;
+        int sp = stackTop - 1;
         int end = sp - len;
         while (sp > end) {
             types[sp + delta] = types[sp];
@@ -614,8 +626,13 @@ public abstract class Tracer implements TypeTag {
         case Opcode.ANEWARRAY : {
             int i = ByteArray.readU16bit(code, pos + 1);
             String type = cpool.getClassInfo(i).replace('.', '/');
+            if (type.charAt(0) == '[')
+                type = "[" + type;
+            else
+                type = "[L" + type + ";";
+
             stackTypes[stackTop - 1]
-                    = new TypeData.ClassName("[L" + type + ";");
+                    = new TypeData.ClassName(type);
             return 3; }
         case Opcode.ARRAYLENGTH :
             stackTypes[stackTop - 1] = INTEGER;

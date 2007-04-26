@@ -509,9 +509,10 @@ public class StackMapTable extends AttributeInfo {
         }
 
         /**
-         * Writes a <code>append_frame</code>.
+         * Writes a <code>append_frame</code>.  The number of the appended
+         * locals is specified by the length of <code>tags</code>.
          *
-         * @param tag           <code>locals[].tag</code>.
+         * @param tags           <code>locals[].tag</code>.
          *                      The length of this array must be
          *                      either 1, 2, or 3.
          * @param data          <code>locals[].cpool_index</code>
@@ -531,6 +532,9 @@ public class StackMapTable extends AttributeInfo {
 
         /**
          * Writes a <code>full_frame</code>.
+         * <code>number_of_locals</code> and <code>number_of_stack_items</code>
+         * are specified by the the length of <code>localTags</code> and
+         * <code>stackTags</code>.
          *
          * @param localTags     <code>locals[].tag</code>.
          * @param localData     <code>locals[].cpool_index</code>
