@@ -68,8 +68,7 @@ public final class ClassFile {
         constPool = new ConstPool(classname);
         thisClass = constPool.getThisClassInfo();
         if (isInterface)
-            accessFlags = AccessFlag.SUPER | AccessFlag.INTERFACE
-                    | AccessFlag.ABSTRACT;
+            accessFlags = AccessFlag.INTERFACE | AccessFlag.ABSTRACT;
         else
             accessFlags = AccessFlag.SUPER;
 
@@ -237,7 +236,10 @@ public final class ClassFile {
      * @see javassist.bytecode.AccessFlag
      */
     public void setAccessFlags(int acc) {
-        accessFlags = acc | AccessFlag.SUPER;
+        if ((acc & AccessFlag.INTERFACE) == 0)
+            acc |= AccessFlag.SUPER;
+
+        accessFlags = acc;
     }
 
     /**

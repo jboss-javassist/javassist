@@ -414,8 +414,7 @@ class CtClassType extends CtClass {
         }
 
         checkModify();
-        int acc = AccessFlag.of(mod) | AccessFlag.SUPER;
-        cf.setAccessFlags(acc);
+        cf.setAccessFlags(AccessFlag.of(mod));
     }
 
     public Object[] getAnnotations() throws ClassNotFoundException {
