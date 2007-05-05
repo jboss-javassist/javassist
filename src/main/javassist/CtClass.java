@@ -738,7 +738,7 @@ public abstract class CtClass {
     /**
      * Returns an array containing <code>CtMethod</code> objects
      * representing all the non-private methods of the class.
-     * That array includes pon-private methods inherited from the
+     * That array includes non-private methods inherited from the
      * superclasses.
      */
     public CtMethod[] getMethods() {
