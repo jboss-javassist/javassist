@@ -595,6 +595,7 @@ public class StackMapTable extends AttributeInfo {
 
     static class Printer extends Walker {
         private PrintWriter writer;
+        private int offset;
 
         /**
          * Prints the stack table map.
@@ -611,30 +612,36 @@ public class StackMapTable extends AttributeInfo {
         Printer(byte[] data, PrintWriter pw) {
             super(data);
             writer = pw;
+            offset = -1;
         }
 
         public void sameFrame(int pos, int offsetDelta) {
-            writer.println("same frame: " + offsetDelta);
+            offset += offsetDelta + 1;
+            writer.println(offset + " same frame: " + offsetDelta);
         }
 
         public void sameLocals(int pos, int offsetDelta, int stackTag, int stackData) {
-            writer.println("same locals: " + offsetDelta);
+            offset += offsetDelta + 1;
+            writer.println(offset + " same locals: " + offsetDelta);
             printTypeInfo(stackTag, stackData);
         }
 
         public void chopFrame(int pos, int offsetDelta, int k) {
-            writer.println("chop frame: " + offsetDelta + ",    " + k + " last locals");
+            offset += offsetDelta + 1;
+            writer.println(offset + " chop frame: " + offsetDelta + ",    " + k + " last locals");
         }
 
         public void appendFrame(int pos, int offsetDelta, int[] tags, int[] data) {
-            writer.println("append frame: " + offsetDelta);
+            offset += offsetDelta + 1;
+            writer.println(offset + " append frame: " + offsetDelta);
             for (int i = 0; i < tags.length; i++)
                 printTypeInfo(tags[i], data[i]);
         }
 
         public void fullFrame(int pos, int offsetDelta, int[] localTags, int[] localData,
                               int[] stackTags, int[] stackData) {
-            writer.println("full frame: " + offsetDelta);
+            offset += offsetDelta + 1;
+            writer.println(offset + " full frame: " + offsetDelta);
             writer.println("[locals]");
             for (int i = 0; i < localTags.length; i++)
                 printTypeInfo(localTags[i], localData[i]);

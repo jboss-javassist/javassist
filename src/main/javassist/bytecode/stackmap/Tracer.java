@@ -36,11 +36,6 @@ public abstract class Tracer implements TypeTag {
     protected TypeData[] stackTypes;
     protected TypeData[] localsTypes;
 
-    static final int UNKNOWN = 0;
-    static final int READ = 1;
-    static final int UPDATED = 2;
-    protected int[] localsUsage;
-
     public Tracer(ClassPool classes, ConstPool cp, int maxStack, int maxLocals,
                   String retType) {
         classPool = classes;
@@ -49,21 +44,37 @@ public abstract class Tracer implements TypeTag {
         stackTop = 0;
         stackTypes = new TypeData[maxStack];
         localsTypes = new TypeData[maxLocals];
-        localsUsage = new int[maxLocals];
     }
 
-    /* If the type is LONG or DOUBLE,
-     * the next local variable is also read.
-     * IINC (or WIDE IINC) calls only readLocal() but it does not call writeLocal().
-     */
-    protected final void readLocal(int reg) {
-        if (localsUsage[reg] == UNKNOWN)
-            localsUsage[reg] = READ;
+    public Tracer(Tracer t, boolean copyStack) {
+        classPool = t.classPool;
+        cpool = t.cpool;
+        returnType = t.returnType;
+
+        stackTop = t.stackTop;
+        int size = t.stackTypes.length;
+        stackTypes = new TypeData[size];
+        if (copyStack)
+            copyFrom(t.stackTop, t.stackTypes, stackTypes);
+
+        int size2 = t.localsTypes.length;
+        localsTypes = new TypeData[size2];
+        copyFrom(size2, t.localsTypes, localsTypes);
     }
 
-    protected final void writeLocal(int reg) {
-        if (localsUsage[reg] == UNKNOWN)
-            localsUsage[reg] = UPDATED;
+    protected static int copyFrom(int n, TypeData[] srcTypes, TypeData[] destTypes) {
+        int k = -1;
+        for (int i = 0; i < n; i++) {
+            TypeData t = srcTypes[i];
+            destTypes[i] = t == TOP ? TOP : t.getSelf();
+            if (t != TOP)
+                if (t.is2WordType())
+                    k = i + 1;
+                else
+                    k = i;
+        }
+
+        return k + 1;
     }
 
     /**
@@ -192,7 +203,6 @@ public abstract class Tracer implements TypeTag {
         case Opcode.ILOAD_2 :
         case Opcode.ILOAD_3 :
             stackTypes[stackTop++] = INTEGER;
-            readLocal(op - Opcode.ILOAD_0);
             break;
         case Opcode.LLOAD_0 :
         case Opcode.LLOAD_1 :
@@ -200,14 +210,12 @@ public abstract class Tracer implements TypeTag {
         case Opcode.LLOAD_3 :
             stackTypes[stackTop++] = LONG;
             stackTypes[stackTop++] = TOP;
-            readLocal(op - Opcode.LLOAD_0);
             break;
         case Opcode.FLOAD_0 :
         case Opcode.FLOAD_1 :
         case Opcode.FLOAD_2 :
         case Opcode.FLOAD_3 :
             stackTypes[stackTop++] = FLOAT;
-            readLocal(op - Opcode.FLOAD_0);
             break;
         case Opcode.DLOAD_0 :
         case Opcode.DLOAD_1 :
@@ -215,7 +223,6 @@ public abstract class Tracer implements TypeTag {
         case Opcode.DLOAD_3 :
             stackTypes[stackTop++] = DOUBLE;
             stackTypes[stackTop++] = TOP;
-            readLocal(op - Opcode.DLOAD_0);
             break;
         case Opcode.ALOAD_0 :
         case Opcode.ALOAD_1 :
@@ -223,7 +230,6 @@ public abstract class Tracer implements TypeTag {
         case Opcode.ALOAD_3 :
             reg = op - Opcode.ALOAD_0;
             stackTypes[stackTop++] = localsTypes[reg];
-            readLocal(reg);
             break;
         case Opcode.IALOAD :
             stackTypes[--stackTop - 1] = INTEGER;
@@ -293,13 +299,11 @@ public abstract class Tracer implements TypeTag {
         if (type.is2WordType())
             stackTypes[stackTop++] = TOP;
 
-        readLocal(localVar);
         return 2;
     }
 
     private int doALOAD(int localVar) { // int localVar, TypeData type) {
         stackTypes[stackTop++] = localsTypes[localVar];
-        readLocal(localVar);
         return 2;
     }
 
@@ -323,7 +327,6 @@ public abstract class Tracer implements TypeTag {
         case Opcode.ISTORE_3 :
           { int var = op - Opcode.ISTORE_0;
             localsTypes[var] = INTEGER;
-            writeLocal(var);
             stackTop--; }
             break;
         case Opcode.LSTORE_0 :
@@ -333,7 +336,6 @@ public abstract class Tracer implements TypeTag {
           { int var = op - Opcode.LSTORE_0;
             localsTypes[var] = LONG;
             localsTypes[var + 1] = TOP;
-            writeLocal(var);
             stackTop -= 2; }
             break;
         case Opcode.FSTORE_0 :
@@ -342,7 +344,6 @@ public abstract class Tracer implements TypeTag {
         case Opcode.FSTORE_3 :
           { int var = op - Opcode.FSTORE_0;
             localsTypes[var] = FLOAT;
-            writeLocal(var);
             stackTop--; }
             break;
         case Opcode.DSTORE_0 :
@@ -352,7 +353,6 @@ public abstract class Tracer implements TypeTag {
           { int var = op - Opcode.DSTORE_0;
             localsTypes[var] = DOUBLE;
             localsTypes[var + 1] = TOP;
-            writeLocal(var);
             stackTop -= 2; }
             break;
         case Opcode.ASTORE_0 :
@@ -424,7 +424,6 @@ public abstract class Tracer implements TypeTag {
 
     private int doXSTORE(int index, TypeData type) {
         stackTop--;
-        writeLocal(index);
         localsTypes[index] = type;
         if (type.is2WordType()) {
             stackTop--;
@@ -436,7 +435,6 @@ public abstract class Tracer implements TypeTag {
 
     private int doASTORE(int index) {
         stackTop--;
-        writeLocal(index);
         // implicit upcast might be done.
         localsTypes[index] = stackTypes[stackTop].copy();
 
@@ -461,7 +459,6 @@ public abstract class Tracer implements TypeTag {
 
         switch (op) {
         case Opcode.IINC :
-            readLocal(code[pos + 1] & 0xff);
             // this does not call writeLocal().
             return 3;
         case Opcode.I2L :
@@ -705,7 +702,6 @@ public abstract class Tracer implements TypeTag {
             int index = ByteArray.readU16bit(code, pos + 2);
             return doASTORE(index); }
         case Opcode.IINC :
-            readLocal(ByteArray.readU16bit(code, pos + 2));
             // this does not call writeLocal().
             return 6;
         case Opcode.RET :

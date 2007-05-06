@@ -122,7 +122,7 @@ public abstract class TypeData {
     protected static abstract class TypeName extends TypeData {
         protected ArrayList equivalences;
 
-        private String expectedName;
+        protected String expectedName;
         private CtClass cache;
         private boolean evalDone;
 
@@ -275,6 +275,8 @@ public abstract class TypeData {
             }
         }
 
+        /* See also NullType.getExpected().
+         */
         public String getExpected() throws BadBytecode {
             ArrayList equiv = equivalences;
             if (equiv.size() == 1)
@@ -358,6 +360,19 @@ public abstract class TypeData {
                 return 0;
             else
                 return super.getTypeData2(cp, type);
+        }
+
+        public String getExpected() throws BadBytecode {
+            String en = expectedName;
+            if (en == null) {
+                ArrayList equiv = equivalences;
+                if (equiv.size() == 1)
+                    return getName();
+                else
+                    return "java.lang.Object";
+            }
+            else
+                return en;
         }
     }
 

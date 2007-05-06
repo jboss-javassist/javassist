@@ -22,11 +22,7 @@ import javassist.bytecode.*;
  * Stack map maker.
  */
 public class MapMaker extends Tracer {
-    private boolean moveon;     // used for returning another value from doOpcode().
-    private boolean loopDetected;
-    private int iteration;
-    private BasicBlock[] blocks;
-
+    /*
     public static void main(String[] args) throws Exception {
         boolean useMain2 = args[0].equals("0");
         if (useMain2 && args.length > 1) {
@@ -49,7 +45,7 @@ public class MapMaker extends Tracer {
             MethodInfo minfo = (MethodInfo)minfos.get(i);
             CodeAttribute ca = minfo.getCodeAttribute();
             if (ca != null)
-                ca.setAttribute(MapMaker.getMap(cp, minfo)); 
+                ca.setAttribute(make(cp, minfo));
         }
 
         cc.writeFile("tmp");
@@ -60,253 +56,162 @@ public class MapMaker extends Tracer {
         //javassist.CtClass cc = cp.get(args[1]);
         javassist.CtClass cc = cp.makeClass(new java.io.FileInputStream(args[1]));
         MethodInfo minfo;
-        MapMaker mm;
         if (args[2].equals("_init_"))
-            // minfo = cc.getDeclaredConstructors()[0].getMethodInfo();
-            minfo = cc.getClassInitializer().getMethodInfo();
+            minfo = cc.getDeclaredConstructors()[0].getMethodInfo();
+            // minfo = cc.getClassInitializer().getMethodInfo();
         else
             minfo = cc.getDeclaredMethod(args[2]).getMethodInfo();
 
-        mm = makeMapMaker(cp, minfo);
-        if (mm == null)
-            System.out.println("single basic block");
-        else {
-            BasicBlock[] blocks = mm.getBlocks();
-            for (int i = 0; i < blocks.length; i++)
-                System.out.println(blocks[i]);
-
-            StackMapTable smt = mm.toStackMap();
+        CodeAttribute ca = minfo.getCodeAttribute();
+        if (ca == null) {
+            System.out.println("abstarct method");
+            return;
         }
+
+        TypedBlock[] blocks = TypedBlock.makeBlocks(minfo, ca, false);
+        MapMaker mm = new MapMaker(cp, minfo, ca);
+        mm.make(blocks, ca.getCode());
+        for (int i = 0; i < blocks.length; i++)
+            System.out.println(blocks[i]);
     }
+    */
 
     /**
      * Computes the stack map table of the given method and returns it.
      * It returns null if the given method does not have to have a
      * stack map table.
      */
-    public static StackMapTable getMap(ClassPool classes, MethodInfo minfo)
-        throws BadBytecode
-    {
-        MapMaker mm = makeMapMaker(classes, minfo);
-        if (mm == null)
-            return null;
-        else
-            return mm.toStackMap();
-    }
-
-    /**
-     * Makes basic blocks with stack maps.  If the number of the basic blocks
-     * is one, this method returns null.  If the given method info does not
-     * include a code attribute, this method also returns null.
-     */
-    public static MapMaker makeMapMaker(ClassPool classes, MethodInfo minfo)
+    public static StackMapTable make(ClassPool classes, MethodInfo minfo)
         throws BadBytecode
     {
         CodeAttribute ca = minfo.getCodeAttribute();
         if (ca == null)
             return null;
 
-        CodeIterator ci = ca.iterator();
-        ConstPool pool = minfo.getConstPool();
-        ExceptionTable et = ca.getExceptionTable();
-        BasicBlock[] blocks = BasicBlock.makeBlocks(ci, 0, ci.getCodeLength(),
-                                                    et, 0, pool);
-        if (blocks.length < 2)
-            if (blocks.length == 0 || blocks[0].inbound < 1) 
-                return null;
+        TypedBlock[] blocks = TypedBlock.makeBlocks(minfo, ca, true);
+        if (blocks == null)
+            return null;
 
-        boolean isStatic = (minfo.getAccessFlags() & AccessFlag.STATIC) != 0;
-        int maxStack = ca.getMaxStack();
-        int maxLocals = ca.getMaxLocals();
-        BasicBlock top = blocks[0];
-        String desc = minfo.getDescriptor();
-        top.initFirstBlock(maxStack, maxLocals, pool.getClassName(), desc,
-                           isStatic, minfo.isConstructor());
-        String retType = BasicBlock.getRetType(desc);
-        MapMaker mm = new MapMaker(classes, pool, maxStack, maxLocals,
-                                   blocks, retType, blocks[0], 0);
-        mm.make(ca.getCode(), et);
-        return mm;
+        MapMaker mm = new MapMaker(classes, minfo, ca);
+        mm.make(blocks, ca.getCode());
+        return mm.toStackMap(blocks);
+    }
+
+    public MapMaker(ClassPool classes, MethodInfo minfo, CodeAttribute ca) {
+        super(classes, minfo.getConstPool(),
+              ca.getMaxStack(), ca.getMaxLocals(),
+              TypedBlock.getRetType(minfo.getDescriptor()));
+    }
+
+    protected MapMaker(MapMaker old, boolean copyStack) {
+        super(old, copyStack);
     }
 
     /**
-     * Constructs a tracer.
+     * Runs an analyzer (Phase 1 and 2).
      */
-    MapMaker(ClassPool classes, ConstPool cp,
-             int maxStack, int maxLocals, BasicBlock[] bb,
-             String retType, BasicBlock init, int iterate)
+    void make(TypedBlock[] blocks, byte[] code)
+        throws BadBytecode
     {
-        this(classes, cp, maxStack, maxLocals, bb, retType, iterate);
-        TypeData[] srcTypes = init.localsTypes;
+        TypedBlock first = blocks[0];
+        TypeData[] srcTypes = first.localsTypes;
         copyFrom(srcTypes.length, srcTypes, this.localsTypes);
-    }
-
-    private MapMaker(ClassPool classes, ConstPool cp,
-            int maxStack, int maxLocals, BasicBlock[] bb,
-            String retType, int iterateNo)
-    {
-        super(classes, cp, maxStack, maxLocals, retType);
-        blocks = bb;
-        loopDetected = false;
-        iteration = iterateNo;
-    }
-
-    public BasicBlock[] getBlocks() { return blocks; }
-
-    /**
-     * Runs an analyzer.
-     */
-    void make(byte[] code, ExceptionTable et) throws BadBytecode {
-        blocks[0].version = iteration;
-        make(code, blocks[0]);
-        if (loopDetected) {
-            blocks[0].version = ++iteration;
-            make(code, blocks[0]);
-        }
+        make(code, first);
 
         int n = blocks.length;
         for (int i = 0; i < n; i++)
             evalExpected(blocks[i]);
     }
 
-    // Phase 1: Code Tracing
+    // Phase 1
 
-    private void make(byte[] code, BasicBlock bb)
+    private void make(byte[] code, TypedBlock tb)
         throws BadBytecode
     {
-        int pos = bb.position;
-        int end = pos + bb.length;
-        traceExceptions(code, bb.catchBlocks);
-        moveon = true;
-        while (moveon && pos < end)
+        BasicBlock.Catch handlers = tb.toCatch;
+        while (handlers != null) {
+            traceException(code, handlers);
+            handlers = handlers.next;
+        }
+
+        int pos = tb.position;
+        int end = pos + tb.length;
+        while (pos < end)
             pos += doOpcode(pos, code);
 
-        if (moveon && pos < code.length) {
-            this.copyFrom(this);
-            nextBlock(pos, code, 0);
+        if (tb.exit != null) {
+            for (int i = 0; i < tb.exit.length; i++) {
+                TypedBlock e = (TypedBlock)tb.exit[i];
+                if (e.alreadySet())
+                    mergeMap(e, true);
+                else {
+                    recordStackMap(e);
+                    MapMaker maker = new MapMaker(this, true);
+                    maker.make(code, e);
+                }
+            }
         }
     }
 
-    private void nextBlock(int pos, byte[] code, int offset) throws BadBytecode {
-        BasicBlock bb = BasicBlock.find(blocks, pos + offset);
-        if (bb.alreadySet(iteration)) {
-            mergeMap(stackTypes, bb.stackTypes);
-            mergeMap(localsTypes, bb.localsTypes);
-            mergeUsage(bb);
-        }
+    private void traceException(byte[] code, TypedBlock.Catch handler)
+        throws BadBytecode
+    {
+        TypedBlock tb = (TypedBlock)handler.body;
+        if (tb.alreadySet())
+            mergeMap(tb, false);
         else {
-            recordStackMap(bb);
-            bb.version = iteration;
-            MapMaker maker = new MapMaker(classPool, cpool, stackTypes.length,
-                                localsTypes.length, blocks, returnType, iteration);
-            maker.copyFrom(this);
-            maker.make(code, bb);
-            recordUsage(bb, maker);
-            if (maker.loopDetected)
-                this.loopDetected = true;
+            recordStackMap(tb, handler.typeIndex);
+            MapMaker maker = new MapMaker(this, false);
+
+            /* the following code is equivalent to maker.copyFrom(this)
+             * except stackTypes are not copied.
+             */ 
+            maker.stackTypes[0] = tb.stackTypes[0].getSelf();
+            maker.stackTop = 1;
+            maker.make(code, tb);
         }
     }
 
-    private void traceExceptions(byte[] code, BasicBlock.Branch branches)
+    private void mergeMap(TypedBlock dest, boolean mergeStack) {
+        boolean[] inputs = dest.inputs;
+        int n = inputs.length;
+        for (int i = 0; i < n; i++)
+            if (inputs[i])
+                merge(localsTypes[i], dest.localsTypes[i]); 
+
+        if (mergeStack) {
+            n = stackTop;
+            for (int i = 0; i < n; i++)
+                merge(stackTypes[i], dest.stackTypes[i]);
+        }
+    }
+
+    private void merge(TypeData td, TypeData target) {
+        boolean tdIsObj = false;
+        boolean targetIsObj = false;
+        // td or target is null if it is TOP. 
+        if (td != TOP && td.isObjectType())
+            tdIsObj = true;
+
+        if (target != TOP && target.isObjectType())
+            targetIsObj = true;
+
+        if (tdIsObj && targetIsObj)
+            target.merge(td);
+    }
+
+    private void recordStackMap(TypedBlock target)
         throws BadBytecode
     {
-        while (branches != null) {
-            int pos = branches.target;
-            BasicBlock bb = BasicBlock.find(blocks, pos);
-            if (bb.alreadySet(iteration)) {
-                mergeMap(localsTypes, bb.localsTypes);
-                mergeUsage(bb);
-            }
-            else {
-                recordStackMap(bb, branches.typeIndex);
-                bb.version = iteration;
-                MapMaker maker = new MapMaker(classPool, cpool, stackTypes.length,
-                                   localsTypes.length, blocks, returnType, iteration);
-
-                /* the following code is equivalent to maker.copyFrom(this)
-                 * except stackTypes are not copied.
-                 */ 
-                maker.stackTypes[0] = bb.stackTypes[0].getSelf();
-                maker.stackTop = 1;
-                TypeData[] srcTypes = this.localsTypes;
-                copyFrom(srcTypes.length, srcTypes, maker.localsTypes);
-
-                maker.make(code, bb);
-                recordUsage(bb, maker);
-                if (maker.loopDetected)
-                    this.loopDetected = true;
-            }
-
-            branches = branches.next;
-        }
-    }
-
-    private static void mergeMap(TypeData[] srcTypes, TypeData[] destTypes) {
-        int n = srcTypes.length;
-        for (int i = 0; i < n; i++) {
-            TypeData s = srcTypes[i];
-            TypeData d = destTypes[i];
-            boolean sIsObj = false;
-            boolean dIsObj = false;
-            // s or b is null if it is TOP. 
-            if (s != TOP && s.isObjectType())
-                sIsObj = true;
-
-            if (d != TOP && d.isObjectType())
-                dIsObj = true;
-
-            if (sIsObj && dIsObj)
-                d.merge(s);
-            else if (s != d)
-                destTypes[i] = TOP;
-        }
-    }
-
-    private void copyFrom(MapMaker src) {
-        int sp = src.stackTop;
-        this.stackTop = sp;
-        copyFrom(sp, src.stackTypes, this.stackTypes);
-        TypeData[] srcTypes = src.localsTypes;
-        copyFrom(srcTypes.length, srcTypes, this.localsTypes);
-    }
-
-    private static int copyFrom(int n, TypeData[] srcTypes, TypeData[] destTypes) {
-        int k = -1;
-        for (int i = 0; i < n; i++) {
-            TypeData t = srcTypes[i];
-            destTypes[i] = t == null ? null : t.getSelf();
-            if (t != TOP)
-                if (t.is2WordType())
-                    k = i + 1;
-                else
-                    k = i;
-        }
-
-        return k + 1;
-    }
-
-    private void recordStackMap(BasicBlock target)
-        throws BadBytecode
-    {
-        int n = localsTypes.length;
-        TypeData[] tLocalsTypes = new TypeData[n];
-        int k = copyFrom(n, localsTypes, tLocalsTypes);
-
-        n = stackTypes.length;
-        TypeData[] tStackTypes = new TypeData[n];
+        TypeData[] tStackTypes = new TypeData[stackTypes.length];
         int st = stackTop;
         copyFrom(st, stackTypes, tStackTypes);
-
-        target.setStackMap(st, tStackTypes, k, tLocalsTypes);
+        recordStackMap0(target, st, tStackTypes);
     }
 
-    private void recordStackMap(BasicBlock target, int exceptionType)
+    private void recordStackMap(TypedBlock target, int exceptionType)
         throws BadBytecode
     {
-        int n = localsTypes.length;
-        TypeData[] tLocalsTypes = new TypeData[n];
-        int k = copyFrom(n, localsTypes, tLocalsTypes);
-
         String type;
         if (exceptionType == 0)
             type = "java.lang.Throwable";
@@ -316,44 +221,27 @@ public class MapMaker extends Tracer {
         TypeData[] tStackTypes = new TypeData[stackTypes.length];
         tStackTypes[0] = new TypeData.ClassName(type);
 
-        target.setStackMap(1, tStackTypes, k, tLocalsTypes);
+        recordStackMap0(target, 1, tStackTypes);
     }
 
-    private void recordUsage(BasicBlock target, MapMaker next) {
-        int[] nextUsage = next.localsUsage;
-        TypeData[] tData = target.localsTypes;
-        int n = tData.length;
-        for (int i = blocks[0].numLocals; i < n; i++)
-            if (nextUsage[i] == READ)
-                readLocal(i);
-            else
-                tData[i] = TOP;
+    private void recordStackMap0(TypedBlock target, int st, TypeData[] tStackTypes)
+        throws BadBytecode
+    {
+        int n = localsTypes.length;
+        TypeData[] tLocalsTypes = new TypeData[n];
+        int k = copyFrom(n, localsTypes, tLocalsTypes);
 
-        int[] usage = new int[nextUsage.length];
-        n = usage.length;
+        boolean[] inputs = target.inputs;
         for (int i = 0; i < n; i++)
-            usage[i] = nextUsage[i];
+            if (!inputs[i])
+                tLocalsTypes[i] = TOP;
 
-        target.localsUsage = usage;
-    }
-
-    private void mergeUsage(BasicBlock target) {
-        int[] usage = target.localsUsage;
-        if (usage == null) {
-            // detected a loop.
-            loopDetected = true;
-        }
-        else {
-            int n = usage.length;
-            for (int i = 0; i < n; i++)
-                if (usage[i] == READ)
-                    readLocal(i);
-        }
+        target.setStackMap(st, tStackTypes, k, tLocalsTypes);
     }
 
     // Phase 2
 
-    void evalExpected(BasicBlock target) throws BadBytecode {
+    void evalExpected(TypedBlock target) throws BadBytecode {
         ClassPool cp = classPool;
         evalExpected(cp, target.stackTop, target.stackTypes);
         TypeData[] types = target.localsTypes;
@@ -373,20 +261,19 @@ public class MapMaker extends Tracer {
 
     // Phase 3
 
-    public StackMapTable toStackMap() {
-        BasicBlock[] blocks = this.blocks;
+    public StackMapTable toStackMap(TypedBlock[] blocks) {
         StackMapTable.Writer writer = new StackMapTable.Writer(32);
         int n = blocks.length;
-        BasicBlock prev = blocks[0];
+        TypedBlock prev = blocks[0];
         int offsetDelta = prev.length;
-        if (prev.inbound > 0) {     // the first instruction is a branch target.
+        if (prev.incoming > 0) {     // the first instruction is a branch target.
             writer.sameFrame(0);
             offsetDelta--;
         }
 
         for (int i = 1; i < n; i++) {
-            BasicBlock bb = blocks[i];
-            if (bb.inbound > 0) {
+            TypedBlock bb = blocks[i];
+            if (isTarget(bb, blocks[i - 1])) {
                 bb.resetNumLocals();
                 int diffL = stackMapDiff(prev.numLocals, prev.localsTypes,
                                          bb.numLocals, bb.localsTypes);
@@ -402,8 +289,21 @@ public class MapMaker extends Tracer {
         return writer.toStackMapTable(cpool);
     }
 
-    private void toStackMapBody(StackMapTable.Writer writer, BasicBlock bb,
-                                int diffL, int offsetDelta, BasicBlock prev) {
+    /**
+     * Returns true if cur is a branch target.
+     */
+    private boolean isTarget(TypedBlock cur, TypedBlock prev) {
+        int in = cur.incoming;
+        if (in > 1)
+            return true;
+        else if (in < 1)
+            return false;
+
+        return prev.stop;
+    }
+
+    private void toStackMapBody(StackMapTable.Writer writer, TypedBlock bb,
+                                int diffL, int offsetDelta, TypedBlock prev) {
         // if diffL is -100, two TypeData arrays do not share
         // any elements.
 
@@ -521,44 +421,4 @@ public class MapMaker extends Tracer {
 
         return num;
     }
-
-    // Branch actions
-
-    protected void visitBranch(int pos, byte[] code, int offset) throws BadBytecode {
-        nextBlock(pos, code, offset);
-    }
-
-    protected void visitGoto(int pos, byte[] code, int offset) throws BadBytecode {
-        nextBlock(pos, code, offset);
-        moveon = false;
-    }
-
-    protected void visitTableSwitch(int pos, byte[] code, int n, int offsetPos, int defaultOffset)
-        throws BadBytecode
-    {
-        nextBlock(pos, code, defaultOffset);
-        for (int i = 0; i < n; i++) {
-            nextBlock(pos, code, ByteArray.read32bit(code, offsetPos));
-            offsetPos += 4;
-        }
-
-        moveon = false;
-    }
-
-    protected void visitLookupSwitch(int pos, byte[] code, int n, int pairsPos, int defaultOffset)
-        throws BadBytecode
-    {
-        nextBlock(pos, code, defaultOffset);
-        pairsPos += 4;
-        for (int i = 0; i < n; i++) {
-            nextBlock(pos, code, ByteArray.read32bit(code, pairsPos));
-            pairsPos += 8;
-        }
-
-        moveon = false;
-    }
-
-    protected void visitReturn(int pos, byte[] code) { moveon = false; }
-
-    protected void visitThrow(int pos, byte[] code) { moveon = false; }
 }
