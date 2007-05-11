@@ -822,12 +822,9 @@ public class TypeChecker extends Visitor implements Opcode, TokenId {
                 mem.setField(f);
                 return f;
             }
-            else if (op == '.')
+            else if (op == '.') {
                 try {
                     e.oprand1().accept(this);
-                    if (exprType == CLASS && arrayDim == 0)
-                        return resolver.lookupFieldByJvmName(className,
-                                                    (Symbol)e.oprand2());
                 }
                 catch (NoFieldException nfe) {
                     if (nfe.getExpr() != e.oprand1())
@@ -837,19 +834,54 @@ public class TypeChecker extends Visitor implements Opcode, TokenId {
                      * If EXPR might be part of a qualified class name,
                      * lookupFieldByJvmName2() throws NoFieldException.
                      */
-                    Member fname = (Member)e.oprand2();
-                    String jvmClassName = nfe.getField();
-                    CtField f = resolver.lookupFieldByJvmName2(jvmClassName,
-                                                               fname, expr);
-                    e.setOperator(MEMBER);
-                    e.setOprand1(new Symbol(MemberResolver.jvmToJavaName(
-                                                            jvmClassName)));
-                    fname.setField(f);
-                    return f;
+                    return fieldAccess2(e, nfe.getField());
                 }
+
+                CompileError err = null;
+                try {
+                    if (exprType == CLASS && arrayDim == 0)
+                        return resolver.lookupFieldByJvmName(className,
+                                                    (Symbol)e.oprand2());
+                }
+                catch (CompileError ce) {
+                    err = ce;
+                }
+
+                /* If a filed name is the same name as a package's,
+                 * a static member of a class in that package is not
+                 * visible.  For example,
+                 *
+                 * class Foo {
+                 *   int javassist;
+                 * }
+                 *
+                 * It is impossible to add the following method:
+                 *
+                 * String m() { return javassist.CtClass.intType.toString(); }
+                 *
+                 * because javassist is a field name.  However, this is
+                 * often inconvenient, this compiler allows it.  The following
+                 * code is for that.
+                 */
+                ASTree oprnd1 = e.oprand1(); 
+                if (oprnd1 instanceof Symbol)
+                    return fieldAccess2(e, ((Symbol)oprnd1).get());
+
+                if (err != null)
+                    throw err;
+            }
         }
 
         throw new CompileError("bad filed access");
+    }
+
+    private CtField fieldAccess2(Expr e, String jvmClassName) throws CompileError {
+        Member fname = (Member)e.oprand2();
+        CtField f = resolver.lookupFieldByJvmName2(jvmClassName, fname, e);
+        e.setOperator(MEMBER);
+        e.setOprand1(new Symbol(MemberResolver.jvmToJavaName(jvmClassName)));
+        fname.setField(f);
+        return f;
     }
 
     public void atClassObject(Expr expr) throws CompileError {
