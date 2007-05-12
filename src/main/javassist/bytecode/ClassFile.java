@@ -46,6 +46,12 @@ public final class ClassFile {
     String cachedSuperclass;
 
     /**
+     * The major version number of class files created
+     * from scratch.  The value is 45 (JDK 1.1).
+     */
+    public static final int MAJOR_VERSION = 45;
+
+    /**
      * Constructs a class file from a byte stream.
      */
     public ClassFile(DataInputStream in) throws IOException {
@@ -63,7 +69,7 @@ public final class ClassFile {
      *            a fully-qualified super class name
      */
     public ClassFile(boolean isInterface, String classname, String superclass) {
-        major = 45;
+        major = MAJOR_VERSION;
         minor = 3; // JDK 1.1 or later
         constPool = new ConstPool(classname);
         thisClass = constPool.getThisClassInfo();

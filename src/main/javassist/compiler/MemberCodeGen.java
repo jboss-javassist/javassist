@@ -24,9 +24,13 @@ import java.util.ArrayList;
 /* Code generator methods depending on javassist.* classes.
  */
 public class MemberCodeGen extends CodeGen {
+    public static final int JAVA5_VER = 49;
+    public static final int JAVA6_VER = 50;
+
     protected MemberResolver resolver;
     protected CtClass   thisClass;
     protected MethodInfo thisMethod;
+    protected int version;      // the major version of a class file.
 
     protected boolean resultStatic;
 
@@ -35,6 +39,11 @@ public class MemberCodeGen extends CodeGen {
         resolver = new MemberResolver(cp);
         thisClass = cc;
         thisMethod = null;
+        ClassFile cf = cc.getClassFile2();
+        if (cf == null)
+            version = 0;
+        else
+            version = cf.getMajorVersion();
     }
 
     /**
@@ -71,17 +80,27 @@ public class MemberCodeGen extends CodeGen {
 
     static class JsrHook extends ReturnHook {
         ArrayList jsrList;
+        CodeGen cgen;
         int var;
 
         JsrHook(CodeGen gen) {
             super(gen);
             jsrList = new ArrayList();
-            var = gen.getMaxLocals();
-            gen.incMaxLocals(1);
+            cgen = gen;
+            var = -1;
+        }
+
+        private int getVar(int size) {
+            if (var < 0) {
+                var = cgen.getMaxLocals();
+                cgen.incMaxLocals(size);
+            }
+
+            return var;
         }
 
         private void jsrJmp(Bytecode b) {
-            b.addOpcode(JSR);
+            b.addOpcode(Opcode.GOTO);
             jsrList.add(new Integer(b.currentPc()));
             b.addIndex(0);
         }
@@ -92,27 +111,27 @@ public class MemberCodeGen extends CodeGen {
                 jsrJmp(b);
                 break;
             case ARETURN :
-                b.addAstore(var);
+                b.addAstore(getVar(1));
                 jsrJmp(b);
                 b.addAload(var);
                 break;
             case IRETURN :
-                b.addIstore(var);
+                b.addIstore(getVar(1));
                 jsrJmp(b);
                 b.addIload(var);
                 break;
             case LRETURN :
-                b.addLstore(var);
+                b.addLstore(getVar(2));
                 jsrJmp(b);
                 b.addLload(var);
                 break;
             case DRETURN :
-                b.addDstore(var);
+                b.addDstore(getVar(2));
                 jsrJmp(b);
                 b.addDload(var);
                 break;
             case FRETURN :
-                b.addFstore(var);
+                b.addFstore(getVar(1));
                 jsrJmp(b);
                 b.addFload(var);
                 break;
@@ -177,7 +196,6 @@ public class MemberCodeGen extends CodeGen {
             }
         }
 
-        int pcFinally = -1;
         if (finallyBlock != null) {
             jsrHook.remove(this);
             // catch (any) clause
@@ -185,38 +203,42 @@ public class MemberCodeGen extends CodeGen {
             bc.addExceptionHandler(start, pcAnyCatch, pcAnyCatch, 0);
             bc.growStack(1);
             bc.addAstore(var);
-            bc.addOpcode(JSR);
-            int pcJsrIndex = bc.currentPc();
-            bc.addIndex(0);       // correct later
-            bc.addAload(var);
-            bc.addOpcode(ATHROW);
-
-            // finally clause
-            pcFinally = bc.currentPc();
-            bc.write16bit(pcJsrIndex, pcFinally - pcJsrIndex + 1);
-            int retAddr = getMaxLocals();
-            incMaxLocals(1);
-            bc.growStack(1);    // return address
-            bc.addAstore(retAddr);
             hasReturned = false;
             finallyBlock.accept(this);
             if (!hasReturned) {
-                bc.addOpcode(RET);
-                bc.add(retAddr);
+                bc.addAload(var);
+                bc.addOpcode(ATHROW);
             }
+
+            addFinally(jsrHook.jsrList, finallyBlock);
         }
 
         int pcEnd = bc.currentPc();
         patchGoto(gotoList, pcEnd);
+        hasReturned = !tryNotReturn;
         if (finallyBlock != null) {
-            patchGoto(jsrHook.jsrList, pcFinally);
-            if (tryNotReturn) {
-                bc.addOpcode(JSR);
-                bc.addIndex(pcFinally - pcEnd);
+            if (tryNotReturn)
+                finallyBlock.accept(this);
+        }
+    }
+
+    /**
+     * Adds a finally clause for earch return statement.
+     */
+    private void addFinally(ArrayList returnList, Stmnt finallyBlock)
+        throws CompileError
+    {
+        Bytecode bc = bytecode;
+        int n = returnList.size();
+        for (int i = 0; i < n; ++i) {
+            int pc = ((Integer)returnList.get(i)).intValue();
+            bc.write16bit(pc, bc.currentPc() - pc + 1);
+            finallyBlock.accept(this);
+            if (!hasReturned) {
+                bc.addOpcode(Opcode.GOTO);
+                bc.addIndex(pc + 3 - bc.currentPc());
             }
         }
-
-        hasReturned = !tryNotReturn;
     }
 
     public void atNewExpr(NewExpr expr) throws CompileError {
@@ -893,6 +915,10 @@ public class MemberCodeGen extends CodeGen {
         String name = finfo.getName();
         String type = finfo.getDescriptor();
         return cp.addFieldrefInfo(ci, name, type);
+    }
+
+    protected void atClassObject2(String cname) throws CompileError {
+        super.atClassObject2(cname);
     }
 
     protected void atFieldPlusPlus(int token, boolean isPost,

@@ -1547,6 +1547,15 @@ public abstract class CodeGen extends Visitor implements Opcode, TokenId {
             cname = MemberResolver.jvmToJavaName(cname);
         }
 
+        atClassObject2(cname);
+        exprType = CLASS;
+        arrayDim = 0;
+        className = "java/lang/Class";
+    }
+
+    /* MemberCodeGen overrides this method.
+     */
+    protected void atClassObject2(String cname) throws CompileError {
         int start = bytecode.currentPc();
         bytecode.addLdc(cname);
         bytecode.addInvokestatic("java.lang.Class", "forName",
@@ -1581,10 +1590,6 @@ public abstract class CodeGen extends Visitor implements Opcode, TokenId {
                                  + "Ljava/lang/NoClassDefFoundError;");
         bytecode.addOpcode(ATHROW);
         bytecode.write16bit(pc, bytecode.currentPc() - pc + 1);
-
-        exprType = CLASS;
-        arrayDim = 0;
-        className = "java/lang/Class";
     }
 
     public void atArrayRead(ASTree array, ASTree index)

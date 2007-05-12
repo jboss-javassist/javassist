@@ -22,6 +22,7 @@
 
 </ul>
 
+<p><a href="#generics">6. Generics</a>
 
 <p><br>
 
@@ -217,6 +218,70 @@ on those objects.  For more details, see the javadoc manual
 of <code>javassist.bytecode.AnnotationsAttribute</code> class
 and the <code>javassist.bytecode.annotation</code> package.
 
+<p>Javassist also let you access annotations by the higher-level
+API.
+If you want to access annotations through <code>CtClass</code>,
+call <code>getAnnotations()</code> in <code>CtClass</code> or
+<code>CtBehavior</code>.
+
+<p><br>
+
+<h2><a name="generics">6. Generics</a></h2>
+
+<p>The lower-level API of Javassist fully supports generics
+introduced by Java 5.  On the other hand, the higher-level
+API such as <code>CtClass</code> does not directly support
+generics.  However, this is not a serious problem for bytecode
+transformation.
+
+<p>The generics of Java is implemented by the erasure technique.
+After compilation, all type parameters are dropped off.  For
+example, suppose that your source code declare a parameterized
+type <code>Vector&lt;String&gt;</code>:
+
+<ul><pre>
+Vector&lt;String&gt; v = new Vector&lt;String&gt();
+  :
+String s = v.get(0);
+</pre></ul>
+
+<p>The compiled bytecode is equivalent to the following code:
+
+<ul><pre>
+Vector v = new Vector();
+  :
+String s = (String)v.get(0);
+</pre></ul>
+
+<p>So when you write a bytecode transformer, you can just drop
+off all type parameters.  For example, if you have a class:
+
+<ul><pre>
+public class Wrapper&lt;T&gt; {
+  T value;
+  public Wrapper(T t) { value = t; }
+}
+</pre></ul>
+
+<p>and want to add an interface <code>Getter&lt;T&gt;</code> to the
+class <code>Wrapper&lt;T&gt;</code>:
+
+<ul><pre>
+public interface Getter&lt;T&gt; {
+  T get();
+}
+</pre></ul>
+
+<p>Then the interface you really have to add is <code>Getter</code>
+(the type parameters <code>&lt;T&gt;<code> drops off)
+and the method you also have to add to the <code>Wrapper</code>
+class is this simple one:
+
+<ul><pre>
+public Object get() { return value; }
+</pre></ul>
+
+<p>Note that no type parameters are necessary.
 
 <p><br>
 
