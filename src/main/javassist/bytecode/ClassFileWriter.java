@@ -46,7 +46,7 @@ public class ClassFileWriter {
             = AccessFlag.toModifier(cf.getAccessFlags()
                                     & ~AccessFlag.SYNCHRONIZED);
         out.println("major: " + cf.major + ", minor: " + cf.minor
-                    + "modifiers: " + Integer.toHexString(cf.getAccessFlags()));
+                    + " modifiers: " + Integer.toHexString(cf.getAccessFlags()));
         out.println(Modifier.toString(mod) + " class "
                     + cf.getName() + " extends " + cf.getSuperclass());
 

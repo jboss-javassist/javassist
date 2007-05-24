@@ -236,7 +236,7 @@ transformation.
 
 <p>The generics of Java is implemented by the erasure technique.
 After compilation, all type parameters are dropped off.  For
-example, suppose that your source code declare a parameterized
+example, suppose that your source code declares a parameterized
 type <code>Vector&lt;String&gt;</code>:
 
 <ul><pre>
@@ -273,7 +273,7 @@ public interface Getter&lt;T&gt; {
 </pre></ul>
 
 <p>Then the interface you really have to add is <code>Getter</code>
-(the type parameters <code>&lt;T&gt;<code> drops off)
+(the type parameters <code>&lt;T&gt;</code> drops off)
 and the method you also have to add to the <code>Wrapper</code>
 class is this simple one:
 
@@ -289,6 +289,6 @@ public Object get() { return value; }
 
 <hr>
 Java(TM) is a trademark of Sun Microsystems, Inc.<br>
-Copyright (C) 2000-2005 by Shigeru Chiba, All rights reserved.
+Copyright (C) 2000-2007 by Shigeru Chiba, All rights reserved.
 </body>
 </html>

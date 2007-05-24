@@ -584,7 +584,8 @@ public class ClassPool {
      * @see javassist.ByteArrayClassPath
      */
     public CtClass makeClass(InputStream classfile)
-        throws IOException, RuntimeException {
+        throws IOException, RuntimeException
+    {
         classfile = new BufferedInputStream(classfile);
         CtClass clazz = new CtClassType(classfile, this);
         clazz.checkModify();

@@ -263,7 +263,7 @@ public abstract class TypeData {
                     cache = cp.get(oldName);
     
                 CtClass cache2 = cp.get(typeName);
-                if (cache2.subclassOf(cache)) {
+                if (cache2.subtypeOf(cache)) {
                     cache = cache2;
                     return true;
                 }
