@@ -586,11 +586,33 @@ public class ClassPool {
     public CtClass makeClass(InputStream classfile)
         throws IOException, RuntimeException
     {
+        return makeClass(classfile, true);
+    }
+
+    /**
+     * Creates a new class (or interface) from the given class file.
+     * If there already exists a class with the same name, the new class
+     * overwrites that previous class.
+     *
+     * <p>This method is used for creating a <code>CtClass</code> object
+     * directly from a class file.  The qualified class name is obtained
+     * from the class file; you do not have to explicitly give the name.
+     *
+     * @param classfile class file.
+     * @param ifNotFrozen       throws a RuntimeException if this parameter is true
+     *                          and there is a frozen class with the same name.
+     * @see javassist.ByteArrayClassPath
+     */
+    public CtClass makeClass(InputStream classfile, boolean ifNotFrozen)
+        throws IOException, RuntimeException
+    {
         classfile = new BufferedInputStream(classfile);
         CtClass clazz = new CtClassType(classfile, this);
         clazz.checkModify();
         String classname = clazz.getName();
-        checkNotFrozen(classname);
+        if (ifNotFrozen)
+            checkNotFrozen(classname);
+
         cacheCtClass(classname, clazz, true);
         return clazz;
     }
