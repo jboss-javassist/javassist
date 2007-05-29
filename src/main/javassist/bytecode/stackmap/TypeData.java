@@ -209,19 +209,19 @@ public abstract class TypeData {
                 return;
 
             ArrayList equiv = this.equivalences;
-            String name = this.expectedName;
             int n = equiv.size();
-            for (int i = 0; i < n; i++) {
-                TypeData td = (TypeData)equiv.get(i);
-                if (td instanceof TypeName) {
-                    TypeName tn = (TypeName)td;
-                    if (update(cp, name, tn.expectedName))
-                        name = tn.expectedName;
+            String name = evalExpectedType2(equiv, n);
+            if (name == null) {
+                name = this.expectedName;
+                for (int i = 0; i < n; i++) {
+                    TypeData td = (TypeData)equiv.get(i);
+                    if (td instanceof TypeName) {
+                        TypeName tn = (TypeName)td;
+                        if (update(cp, name, tn.expectedName))
+                            name = tn.expectedName;
+                    }
                 }
             }
-
-            if (name == null)
-                name = evalExpectedType2(equivalences, n);
 
             for (int i = 0; i < n; i++) {
                 TypeData td = (TypeData)equiv.get(i);
@@ -257,6 +257,14 @@ public abstract class TypeData {
                 return true;
             else if (oldName.equals(typeName))
                 return false;
+            else if (typeName.charAt(0) == '['
+                     && oldName.equals("[Ljava.lang.Object;")) {
+                /* this rule is not correct but Tracer class sets the type
+                   of the operand of arraylength to java.lang.Object[].
+                   Thus, int[] etc. must be a subtype of java.lang.Object[].
+                 */
+                return true;
+            }
 
             try {
                 if (cache == null)
@@ -365,10 +373,10 @@ public abstract class TypeData {
         public String getExpected() throws BadBytecode {
             String en = expectedName;
             if (en == null) {
-                ArrayList equiv = equivalences;
-                if (equiv.size() == 1)
-                    return getName();
-                else
+              // ArrayList equiv = equivalences;
+              // if (equiv.size() == 1)
+              //    return getName();
+              // else
                     return "java.lang.Object";
             }
             else
@@ -415,6 +423,16 @@ public abstract class TypeData {
                 return "[" + elementType;
             else
                 return "[L" + elementType.replace('.', '/') + ";";
+        }
+
+        public static String getElementType(String arrayType) {
+            char c = arrayType.charAt(1);
+            if (c == 'L')
+                return arrayType.substring(2, arrayType.length() - 1).replace('/', '.');                    
+            else if (c == '[')
+                return arrayType.substring(1);
+            else
+                return arrayType;
         }
     }
 

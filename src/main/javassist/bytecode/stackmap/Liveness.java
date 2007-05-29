@@ -60,6 +60,7 @@ public class Liveness {
 
     private void computeLiveness1(TypedBlock tb) {
         if (tb.updating) {
+            // a loop was detected.
             computeLiveness1u(tb);
             return;
         }
@@ -193,12 +194,12 @@ public class Liveness {
         boolean changed = false;
         for (int i = 0; i < n; i++) {
             TypedBlock tb = blocks[i];
-            if (tb.status == DONE)
-                tb.status = NOT_YET;
-            else {
+            if (tb.status == CHANGED_NOW) {
                 tb.status = CHANGED_LAST;
                 changed = true;
             }
+            else
+                tb.status = NOT_YET;
         }
 
         return changed;

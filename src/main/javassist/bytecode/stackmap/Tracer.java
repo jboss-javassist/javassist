@@ -307,7 +307,7 @@ public abstract class Tracer implements TypeTag {
         return 2;
     }
 
-    private int doOpcode54_95(int pos, byte[] code, int op) {
+    private int doOpcode54_95(int pos, byte[] code, int op) throws BadBytecode {
         TypeData[] localsTypes = this.localsTypes;
         TypeData[] stackTypes = this.stackTypes;
         switch (op) {
@@ -366,11 +366,18 @@ public abstract class Tracer implements TypeTag {
         case Opcode.LASTORE :
         case Opcode.FASTORE :
         case Opcode.DASTORE :
+            stackTop -= (op == Opcode.LASTORE || op == Opcode.DASTORE) ? 4 : 3;
+            break;
         case Opcode.AASTORE :
+            TypeData.setType(stackTypes[stackTop - 1],
+                             TypeData.ArrayElement.getElementType(stackTypes[stackTop - 3].getName()),
+                             classPool);
+            stackTop -= 3;
+            break;
         case Opcode.BASTORE :
         case Opcode.CASTORE :
         case Opcode.SASTORE :
-            stackTop -= (op == Opcode.LASTORE || op == Opcode.DASTORE) ? 4 : 3;
+            stackTop -= 3;
             break;
         case Opcode.POP :
             stackTop--;
@@ -437,7 +444,6 @@ public abstract class Tracer implements TypeTag {
         stackTop--;
         // implicit upcast might be done.
         localsTypes[index] = stackTypes[stackTop].copy();
-
         return 2;
     }
 
@@ -632,6 +638,7 @@ public abstract class Tracer implements TypeTag {
                     = new TypeData.ClassName(type);
             return 3; }
         case Opcode.ARRAYLENGTH :
+            TypeData.setType(stackTypes[stackTop - 1], "[Ljava.lang.Object;", classPool);
             stackTypes[stackTop - 1] = INTEGER;
             break;
         case Opcode.ATHROW :
@@ -639,17 +646,18 @@ public abstract class Tracer implements TypeTag {
             visitThrow(pos, code);
             break;
         case Opcode.CHECKCAST : {
-            // TypeData.setType(stackData[stackTop - 1], "java.lang.Object", classPool);
+            // TypeData.setType(stackTypes[stackTop - 1], "java.lang.Object", classPool);
             int i = ByteArray.readU16bit(code, pos + 1);
             stackTypes[stackTop - 1] = new TypeData.ClassName(cpool.getClassInfo(i));
             return 3; }
         case Opcode.INSTANCEOF :
-            // TypeData.setType(stackData[stackTop - 1], "java.lang.Object", classPool);
+            // TypeData.setType(stackTypes[stackTop - 1], "java.lang.Object", classPool);
             stackTypes[stackTop - 1] = INTEGER;
             return 3;
         case Opcode.MONITORENTER :
         case Opcode.MONITOREXIT :
             stackTop--;
+            // TypeData.setType(stackTypes[stackTop], "java.lang.Object", classPool);
             break;
         case Opcode.WIDE :
             return doWIDE(pos, code);

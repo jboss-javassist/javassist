@@ -114,6 +114,7 @@ public class MapMaker extends Tracer {
         throws BadBytecode
     {
         TypedBlock first = blocks[0];
+        fixParamTypes(first);
         TypeData[] srcTypes = first.localsTypes;
         copyFrom(srcTypes.length, srcTypes, this.localsTypes);
         make(code, first);
@@ -121,6 +122,26 @@ public class MapMaker extends Tracer {
         int n = blocks.length;
         for (int i = 0; i < n; i++)
             evalExpected(blocks[i]);
+    }
+
+    /*
+     * If a parameter type is String but it is used only as Object
+     * within the method body, this MapMaker class will report its type
+     * is Object.  To avoid this, fixParamTypes calls TypeData.setType()
+     * on each parameter type.
+     */
+    private void fixParamTypes(TypedBlock first) throws BadBytecode {
+        TypeData[] types = first.localsTypes;
+        int n = types.length;
+        for (int i = 0; i < n; i++) {
+            TypeData t = types[i];
+            if (t instanceof TypeData.ClassName) {
+                /* Skip the following statement if t.isNullType() is true
+                 * although a parameter type is never null type.
+                 */
+                TypeData.setType(t, t.getName(), classPool);
+            }
+        }
     }
 
     // Phase 1
@@ -283,7 +304,6 @@ public class MapMaker extends Tracer {
             }
             else
                 offsetDelta += bb.length;
-
         }
 
         return writer.toStackMapTable(cpool);

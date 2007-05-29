@@ -7,7 +7,10 @@ public class TypedBlock extends BasicBlock {
     public TypeData[] stackTypes, localsTypes;
 
     // set by a Liveness object.
+    // inputs[i] is true if the i-th variable is used within this block.  
     public boolean[] inputs;
+
+    // working area for Liveness class. 
     public boolean updating;
     public int status;
     public byte[] localsUsage;
