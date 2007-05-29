@@ -113,7 +113,7 @@ public abstract class TypeData {
         }
 
         protected void setType(String s, ClassPool cp) throws BadBytecode {
-            throw new BadBytecode("conflict:" + name + " and " + s);
+            throw new BadBytecode("conflict: " + name + " and " + s);
         }
 
         public String toString() { return name; }

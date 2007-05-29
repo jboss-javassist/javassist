@@ -24,13 +24,13 @@ import java.util.ArrayList;
 /* Code generator methods depending on javassist.* classes.
  */
 public class MemberCodeGen extends CodeGen {
+    public static final int JAVA1_VER = 45;
     public static final int JAVA5_VER = 49;
     public static final int JAVA6_VER = 50;
 
     protected MemberResolver resolver;
     protected CtClass   thisClass;
     protected MethodInfo thisMethod;
-    protected int version;      // the major version of a class file.
 
     protected boolean resultStatic;
 
@@ -39,11 +39,18 @@ public class MemberCodeGen extends CodeGen {
         resolver = new MemberResolver(cp);
         thisClass = cc;
         thisMethod = null;
-        ClassFile cf = cc.getClassFile2();
+    }
+
+    /**
+     * Returns the major version of the class file
+     * targeted by this compilation.
+     */
+    public int getMajorVersion() {
+        ClassFile cf = thisClass.getClassFile2();
         if (cf == null)
-            version = 0;
+            return JAVA1_VER;
         else
-            version = cf.getMajorVersion();
+            return cf.getMajorVersion();
     }
 
     /**
@@ -918,7 +925,10 @@ public class MemberCodeGen extends CodeGen {
     }
 
     protected void atClassObject2(String cname) throws CompileError {
-        super.atClassObject2(cname);
+        if (getMajorVersion() < JAVA5_VER)
+            super.atClassObject2(cname);
+        else
+            bytecode.addLdc(bytecode.getConstPool().addClassInfo(cname));
     }
 
     protected void atFieldPlusPlus(int token, boolean isPost,
