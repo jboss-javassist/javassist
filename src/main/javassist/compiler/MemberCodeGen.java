@@ -24,9 +24,7 @@ import java.util.ArrayList;
 /* Code generator methods depending on javassist.* classes.
  */
 public class MemberCodeGen extends CodeGen {
-    public static final int JAVA1_VER = 45;
     public static final int JAVA5_VER = 49;
-    public static final int JAVA6_VER = 50;
 
     protected MemberResolver resolver;
     protected CtClass   thisClass;
@@ -48,7 +46,7 @@ public class MemberCodeGen extends CodeGen {
     public int getMajorVersion() {
         ClassFile cf = thisClass.getClassFile2();
         if (cf == null)
-            return JAVA1_VER;
+            return ClassFile.MAJOR_VERSION;     // JDK 1.3
         else
             return cf.getMajorVersion();
     }

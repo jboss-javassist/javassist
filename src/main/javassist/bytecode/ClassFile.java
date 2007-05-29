@@ -47,9 +47,9 @@ public final class ClassFile {
 
     /**
      * The major version number of class files created
-     * from scratch.  The value is 45 (JDK 1.1).
+     * from scratch.  The value is 47 (JDK 1.3).
      */
-    public static final int MAJOR_VERSION = 45;
+    public static final int MAJOR_VERSION = 47;
 
     /**
      * Constructs a class file from a byte stream.
@@ -70,7 +70,7 @@ public final class ClassFile {
      */
     public ClassFile(boolean isInterface, String classname, String superclass) {
         major = MAJOR_VERSION;
-        minor = 3; // JDK 1.1 or later
+        minor = 0; // JDK 1.3 or later
         constPool = new ConstPool(classname);
         thisClass = constPool.getThisClassInfo();
         if (isInterface)
