@@ -676,7 +676,7 @@ public final class ClassFile {
         int i, n;
         int magic = in.readInt();
         if (magic != 0xCAFEBABE)
-            throw new IOException("non class file");
+            throw new IOException("bad magic number: " + Integer.toHexString(magic));
 
         minor = in.readUnsignedShort();
         major = in.readUnsignedShort();
