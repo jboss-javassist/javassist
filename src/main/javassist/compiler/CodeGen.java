@@ -53,7 +53,13 @@ public abstract class CodeGen extends Visitor implements Opcode, TokenId {
      */
     protected static abstract class ReturnHook {
         ReturnHook next;
-        protected abstract void doit(Bytecode b, int opcode);
+
+        /**
+         * Returns true if the generated code ends with return,
+         * throw, or goto. 
+         */
+        protected abstract boolean doit(Bytecode b, int opcode);
+
         protected ReturnHook(CodeGen gen) {
             next = gen.returnHooks;
             gen.returnHooks = this;
@@ -607,7 +613,10 @@ public abstract class CodeGen extends Visitor implements Opcode, TokenId {
         }
 
         for (ReturnHook har = returnHooks; har != null; har = har.next)
-            har.doit(bytecode, op);
+            if (har.doit(bytecode, op)) {
+                hasReturned = true;
+                return;
+            }
 
         bytecode.addOpcode(op);
         hasReturned = true;
@@ -645,9 +654,10 @@ public abstract class CodeGen extends Visitor implements Opcode, TokenId {
         bc.addOpcode(MONITORENTER);
 
         ReturnHook rh = new ReturnHook(this) {
-            protected void doit(Bytecode b, int opcode) {
+            protected boolean doit(Bytecode b, int opcode) {
                 b.addAload(var);
                 b.addOpcode(MONITOREXIT);
+                return false;
             }
         };
 
@@ -665,10 +675,13 @@ public abstract class CodeGen extends Visitor implements Opcode, TokenId {
             bc.addIndex(0);
         }
 
-        int pc4 = bc.currentPc();
-        rh.doit(bc, 0);         // the 2nd arg is ignored.
-        bc.addOpcode(ATHROW);
-        bc.addExceptionHandler(pc, pc2, pc4, 0);
+        if (pc < pc2) {         // if the body is not empty
+            int pc4 = bc.currentPc();
+            rh.doit(bc, 0);         // the 2nd arg is ignored.
+            bc.addOpcode(ATHROW);
+            bc.addExceptionHandler(pc, pc2, pc4, 0);
+        }
+
         if (!hasReturned)
             bc.write16bit(pc3, bc.currentPc() - pc3 + 1);
 

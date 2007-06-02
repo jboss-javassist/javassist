@@ -67,8 +67,10 @@ public class CtNewConstructor {
         Javac compiler = new Javac(declaring);
         try {
             CtMember obj = compiler.compile(src);
-            if (obj instanceof CtConstructor)
+            if (obj instanceof CtConstructor) {
+                // a stack map table has been already created.
                 return (CtConstructor)obj;
+            }
         }
         catch (CompileError e) {
             throw new CannotCompileException(e);
@@ -145,6 +147,7 @@ public class CtNewConstructor {
 
         code.add(Bytecode.RETURN);
 
+        // no need to construct a stack map table.
         cons.getMethodInfo2().setCodeAttribute(code.toCodeAttribute());
         return cons;
     }

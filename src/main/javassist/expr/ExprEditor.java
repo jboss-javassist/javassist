@@ -101,12 +101,21 @@ public class ExprEditor {
             }
         }
 
-        // codeAttr might be modified by other partys
+        // codeAttr might be modified by other partiess
         // so I check the current value of max-locals.
         if (codeAttr.getMaxLocals() < context.maxLocals)
             codeAttr.setMaxLocals(context.maxLocals);
 
         codeAttr.setMaxStack(codeAttr.getMaxStack() + context.maxStack);
+        try {
+            if (edited)
+                minfo.rebuildStackMapIf6(clazz.getClassPool(),
+                                         clazz.getClassFile2());
+        }
+        catch (BadBytecode b) {
+            throw new CannotCompileException(b.getMessage(), b);
+        }
+
         return edited;
     }
 

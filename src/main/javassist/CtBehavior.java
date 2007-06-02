@@ -62,6 +62,7 @@ public abstract class CtBehavior extends CtMember {
                         map.put(srcSuperName, destSuperName);
             }
 
+            // a stack map table is copied from srcInfo.
             methodInfo = new MethodInfo(cp, srcInfo.getName(), srcInfo, map);
             if (isCons && patch)
                 methodInfo.setSuperclass(destSuperName);
@@ -349,9 +350,10 @@ public abstract class CtBehavior extends CtMember {
                         String delegateObj, String delegateMethod)
         throws CannotCompileException
     {
-        declaringClass.checkModify();
+        CtClass cc = declaringClass;
+        cc.checkModify();
         try {
-            Javac jv = new Javac(declaringClass);
+            Javac jv = new Javac(cc);
             if (delegateMethod != null)
                 jv.recordProceed(delegateObj, delegateMethod);
 
@@ -359,8 +361,11 @@ public abstract class CtBehavior extends CtMember {
             methodInfo.setCodeAttribute(b.toCodeAttribute());
             methodInfo.setAccessFlags(methodInfo.getAccessFlags()
                                       & ~AccessFlag.ABSTRACT);
+            methodInfo.rebuildStackMapIf6(cc.getClassPool(), cc.getClassFile2());
         }
         catch (CompileError e) {
+            throw new CannotCompileException(e);
+        } catch (BadBytecode e) {
             throw new CannotCompileException(e);
         }
     }
@@ -380,6 +385,7 @@ public abstract class CtBehavior extends CtMember {
                 ConstPool cp = destInfo.getConstPool();
                 CodeAttribute ca = (CodeAttribute)cattr.copy(cp, map);
                 destInfo.setCodeAttribute(ca);
+                // a stack map table is copied to destInfo.
             }
         }
         catch (CodeAttribute.RuntimeCopyException e) {
@@ -466,7 +472,7 @@ public abstract class CtBehavior extends CtMember {
             CtField field = new CtField(type, fname, cc);
             field.setModifiers(Modifier.PUBLIC | Modifier.STATIC);
             cc.addField(field, CtField.Initializer.byNew(type));
-            insertBefore(fname + ".enter();");
+            insertBefore(fname + ".enter();", false);
             String src = fname + ".exit();";
             insertAfter(src, true);
         }
@@ -561,13 +567,20 @@ public abstract class CtBehavior extends CtMember {
      * @see CtConstructor#insertBeforeBody(String)
      */
     public void insertBefore(String src) throws CannotCompileException {
-        declaringClass.checkModify();
+        insertBefore(src, true);
+    }
+
+    private void insertBefore(String src, boolean rebuild)
+        throws CannotCompileException
+    {
+        CtClass cc = declaringClass;
+        cc.checkModify();
         CodeAttribute ca = methodInfo.getCodeAttribute();
         if (ca == null)
             throw new CannotCompileException("no method body");
 
         CodeIterator iterator = ca.iterator();
-        Javac jv = new Javac(declaringClass);
+        Javac jv = new Javac(cc);
         try {
             int nvars = jv.recordParams(getParameterTypes(),
                                         Modifier.isStatic(getModifiers()));
@@ -586,6 +599,8 @@ public abstract class CtBehavior extends CtMember {
 
             int pos = iterator.insertEx(b.get());
             iterator.insert(b.getExceptionTable(), pos);
+            if (rebuild)
+                methodInfo.rebuildStackMapIf6(cc.getClassPool(), cc.getClassFile2());
         }
         catch (NotFoundException e) {
             throw new CannotCompileException(e);
@@ -627,7 +642,8 @@ public abstract class CtBehavior extends CtMember {
     public void insertAfter(String src, boolean asFinally)
         throws CannotCompileException
     {
-        declaringClass.checkModify();
+        CtClass cc = declaringClass;
+        cc.checkModify();
         ConstPool pool = methodInfo.getConstPool();
         CodeAttribute ca = methodInfo.getCodeAttribute();
         if (ca == null)
@@ -637,7 +653,7 @@ public abstract class CtBehavior extends CtMember {
         int retAddr = ca.getMaxLocals();
         Bytecode b = new Bytecode(pool, 0, retAddr + 1);
         b.setStackDepth(ca.getMaxStack() + 1);
-        Javac jv = new Javac(b, declaringClass);
+        Javac jv = new Javac(b, cc);
         try {
             int nvars = jv.recordParams(getParameterTypes(),
                                         Modifier.isStatic(getModifiers()));
@@ -677,6 +693,8 @@ public abstract class CtBehavior extends CtMember {
                     subr = iterator.getCodeLength() - gapLen;
                 }
             }
+
+            methodInfo.rebuildStackMapIf6(cc.getClassPool(), cc.getClassFile2());
         }
         catch (NotFoundException e) {
             throw new CannotCompileException(e);
@@ -855,13 +873,14 @@ public abstract class CtBehavior extends CtMember {
                          String exceptionName)
         throws CannotCompileException
     {
-        declaringClass.checkModify();
+        CtClass cc = declaringClass;
+        cc.checkModify();
         ConstPool cp = methodInfo.getConstPool();
         CodeAttribute ca = methodInfo.getCodeAttribute();
         CodeIterator iterator = ca.iterator();
         Bytecode b = new Bytecode(cp, ca.getMaxStack(), ca.getMaxLocals());
         b.setStackDepth(1);
-        Javac jv = new Javac(b, declaringClass);
+        Javac jv = new Javac(b, cc);
         try {
             jv.recordParams(getParameterTypes(),
                             Modifier.isStatic(getModifiers()));
@@ -883,11 +902,14 @@ public abstract class CtBehavior extends CtMember {
             ca.getExceptionTable().add(getStartPosOfBody(ca), len, len,
                                        cp.addClassInfo(exceptionType));
             iterator.append(b.getExceptionTable(), pos);
+            methodInfo.rebuildStackMapIf6(cc.getClassPool(), cc.getClassFile2());
         }
         catch (NotFoundException e) {
             throw new CannotCompileException(e);
         }
         catch (CompileError e) {
+            throw new CannotCompileException(e);
+        } catch (BadBytecode e) {
             throw new CannotCompileException(e);
         }
     }
@@ -961,9 +983,10 @@ public abstract class CtBehavior extends CtMember {
         if (!modify)
             return lineNum;
 
-        declaringClass.checkModify();
+        CtClass cc = declaringClass;
+        cc.checkModify();
         CodeIterator iterator = ca.iterator();
-        Javac jv = new Javac(declaringClass);
+        Javac jv = new Javac(cc);
         try {
             jv.recordLocalVariables(ca, index);
             jv.recordParams(getParameterTypes(),
@@ -983,6 +1006,7 @@ public abstract class CtBehavior extends CtMember {
 
             iterator.insert(index, b.get());
             iterator.insert(b.getExceptionTable(), index);
+            methodInfo.rebuildStackMapIf6(cc.getClassPool(), cc.getClassFile2());
             return lineNum;
         }
         catch (NotFoundException e) {

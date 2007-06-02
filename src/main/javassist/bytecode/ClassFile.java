@@ -46,10 +46,28 @@ public final class ClassFile {
     String cachedSuperclass;
 
     /**
+     * The major version number of class files
+     * for JDK 1.3.
+     */
+    public static final int JAVA_3 = 47;
+
+    /**
+     * The major version number of class files
+     * for JDK 1.5.
+     */
+    public static final int JAVA_5 = 49;
+
+    /**
+     * The major version number of class files
+     * for JDK 1.6.
+     */
+    public static final int JAVA_6 = 50;
+
+    /**
      * The major version number of class files created
      * from scratch.  The value is 47 (JDK 1.3).
      */
-    public static final int MAJOR_VERSION = 47;
+    public static final int MAJOR_VERSION = JAVA_3;
 
     /**
      * Constructs a class file from a byte stream.
@@ -540,6 +558,8 @@ public final class ClassFile {
 
     /**
      * Appends a method to the class.
+     * If there is a bridge method with the same name and signature,
+     * then the bridge method is removed before a new method is added.
      *
      * @throws DuplicateMemberException         when the method is already included.
      */
@@ -558,20 +578,38 @@ public final class ClassFile {
         String name = newMinfo.getName();
         String descriptor = newMinfo.getDescriptor();
         ListIterator it = methods.listIterator(0);
-        while (it.hasNext()) {
-            MethodInfo minfo = (MethodInfo)it.next();
-            if (minfo.getName().equals(name)
-                    && notBridgeMethod(minfo) && notBridgeMethod(newMinfo)
-                    && Descriptor.eqParamTypes(minfo.getDescriptor(),
-                                               descriptor))
+        while (it.hasNext())
+            if (isDuplicated(newMinfo, name, descriptor, (MethodInfo)it.next(), it))
                 throw new DuplicateMemberException("duplicate method: " + name
-                                                 + " in " + this.getName());
+                                                   + " in " + this.getName());
+    }
+
+    private static boolean isDuplicated(MethodInfo newMethod, String newName,
+                                        String newDesc, MethodInfo minfo,
+                                        ListIterator it)
+    {
+        if (!minfo.getName().equals(newName))
+            return false;
+
+        String desc = minfo.getDescriptor();
+        if (!Descriptor.eqParamTypes(desc, newDesc))
+           return false;
+
+        if (desc.equals(newDesc)) {
+            if (notBridgeMethod(minfo))
+                return true;
+            else {
+                it.remove();
+                return false;
+            }
         }
+        else
+           return notBridgeMethod(minfo) && notBridgeMethod(newMethod);
     }
 
     /* For a bridge method, see Sec. 15.12.4.5 of JLS 3rd Ed.
      */
-    private boolean notBridgeMethod(MethodInfo minfo) {
+    private static boolean notBridgeMethod(MethodInfo minfo) {
         return (minfo.getAccessFlags() & AccessFlag.BRIDGE) == 0;
     }
 

@@ -262,6 +262,7 @@ public final class CtMethod extends CtBehavior {
         methodInfo.setCodeAttribute(cattr);
         methodInfo.setAccessFlags(methodInfo.getAccessFlags()
                                   & ~AccessFlag.ABSTRACT);
+        // rebuilding a stack map table is not needed.
     }
 
     // inner classes

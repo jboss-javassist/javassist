@@ -24,8 +24,6 @@ import java.util.ArrayList;
 /* Code generator methods depending on javassist.* classes.
  */
 public class MemberCodeGen extends CodeGen {
-    public static final int JAVA5_VER = 49;
-
     protected MemberResolver resolver;
     protected CtClass   thisClass;
     protected MethodInfo thisMethod;
@@ -106,11 +104,11 @@ public class MemberCodeGen extends CodeGen {
 
         private void jsrJmp(Bytecode b) {
             b.addOpcode(Opcode.GOTO);
-            jsrList.add(new Integer(b.currentPc()));
+            jsrList.add(new int[] {b.currentPc(), var});
             b.addIndex(0);
         }
 
-        protected void doit(Bytecode b, int opcode) {
+        protected boolean doit(Bytecode b, int opcode) {
             switch (opcode) {
             case Opcode.RETURN :
                 jsrJmp(b);
@@ -143,6 +141,47 @@ public class MemberCodeGen extends CodeGen {
             default :
                 throw new RuntimeException("fatal");
             }
+
+            return false;
+        }
+    }
+
+    static class JsrHook2 extends ReturnHook {
+        int var;
+        int target;
+
+        JsrHook2(CodeGen gen, int[] retTarget) {
+            super(gen);
+            target = retTarget[0];
+            var = retTarget[1];
+        }
+
+        protected boolean doit(Bytecode b, int opcode) {
+            switch (opcode) {
+            case Opcode.RETURN :
+                break;
+            case ARETURN :
+                b.addAstore(var);
+                break;
+            case IRETURN :
+                b.addIstore(var);
+                break;
+            case LRETURN :
+                b.addLstore(var);
+                break;
+            case DRETURN :
+                b.addDstore(var);
+                break;
+            case FRETURN :
+                b.addFstore(var);
+                break;
+            default :
+                throw new RuntimeException("fatal");
+            }
+
+            b.addOpcode(Opcode.GOTO);
+            b.addIndex(target - b.currentPc() + 3);
+            return true;
         }
     }
 
@@ -236,9 +275,12 @@ public class MemberCodeGen extends CodeGen {
         Bytecode bc = bytecode;
         int n = returnList.size();
         for (int i = 0; i < n; ++i) {
-            int pc = ((Integer)returnList.get(i)).intValue();
+            final int[] ret = (int[])returnList.get(i);
+            int pc = ret[0];
             bc.write16bit(pc, bc.currentPc() - pc + 1);
+            ReturnHook hook = new JsrHook2(this, ret);
             finallyBlock.accept(this);
+            hook.remove(this);
             if (!hasReturned) {
                 bc.addOpcode(Opcode.GOTO);
                 bc.addIndex(pc + 3 - bc.currentPc());
@@ -923,7 +965,7 @@ public class MemberCodeGen extends CodeGen {
     }
 
     protected void atClassObject2(String cname) throws CompileError {
-        if (getMajorVersion() < JAVA5_VER)
+        if (getMajorVersion() < ClassFile.JAVA_5)
             super.atClassObject2(cname);
         else
             bytecode.addLdc(bytecode.getConstPool().addClassInfo(cname));

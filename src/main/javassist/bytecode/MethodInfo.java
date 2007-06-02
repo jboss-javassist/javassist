@@ -21,6 +21,8 @@ import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import javassist.ClassPool;
+import javassist.bytecode.stackmap.MapMaker;
 
 /**
  * <code>method_info</code> structure.
@@ -368,6 +370,40 @@ public final class MethodInfo {
             attribute = new LinkedList();
 
         attribute.add(cattr);
+    }
+
+    /**
+     * Rebuilds a stack map table if the class file is for Java 6
+     * or later.  Java 5 or older Java VMs do not recognize a stack
+     * map table. 
+     *
+     * @param pool          used for making type hierarchy.
+     * @param cf            rebuild if this class file is for Java 6 or later.
+     * @see #rebuildStackMap(ClassPool)
+     * @since 3.6
+     */
+    public void rebuildStackMapIf6(ClassPool pool, ClassFile cf)
+        throws BadBytecode
+    {
+        if (cf.getMajorVersion() >= ClassFile.JAVA_6)
+            rebuildStackMap(pool);
+    }
+
+    /**
+     * Rebuilds a stack map table.  If no stack map table is included,
+     * a new one is created.  If this <code>MethodInfo</code> does not
+     * include a code attribute, nothing happens.
+     *
+     * @param pool          used for making type hierarchy.
+     * @see StackMapTable
+     * @since 3.6
+     */
+    public void rebuildStackMap(ClassPool pool) throws BadBytecode {
+        CodeAttribute ca = getCodeAttribute();
+        if (ca != null) {
+            StackMapTable smt = MapMaker.make(pool, this);
+            ca.setAttribute(smt);
+        }
     }
 
     /**

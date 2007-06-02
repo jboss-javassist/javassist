@@ -27,6 +27,7 @@ import javassist.Modifier;
 import javassist.bytecode.Bytecode;
 import javassist.bytecode.CodeAttribute;
 import javassist.bytecode.LocalVariableAttribute;
+import javassist.bytecode.BadBytecode;
 import javassist.bytecode.Opcode;
 import javassist.NotFoundException;
 
@@ -89,8 +90,17 @@ public class Javac {
         try {
             if (mem instanceof FieldDecl)
                 return compileField((FieldDecl)mem);
-            else
-                return compileMethod(p, (MethodDecl)mem);
+            else {
+                CtBehavior cb = compileMethod(p, (MethodDecl)mem);
+                CtClass decl = cb.getDeclaringClass();
+                cb.getMethodInfo2()
+                  .rebuildStackMapIf6(decl.getClassPool(),
+                                      decl.getClassFile2());
+                return cb;
+            }
+        }
+        catch (BadBytecode bb) {
+            throw new CompileError(bb.getMessage());
         }
         catch (CannotCompileException e) {
             throw new CompileError(e.getMessage());
@@ -128,7 +138,7 @@ public class Javac {
         return f;
     }
 
-    private CtMember compileMethod(Parser p, MethodDecl md)
+    private CtBehavior compileMethod(Parser p, MethodDecl md)
         throws CompileError
     {
         int mod = MemberResolver.getModifiers(md.getModifiers());

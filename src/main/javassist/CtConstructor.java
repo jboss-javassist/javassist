@@ -44,7 +44,7 @@ public final class CtConstructor extends CtBehavior {
      * must be added to a class with <code>CtClass.addConstructor()</code>.
      *
      * <p>The created constructor does not include a constructor body,
-     * must be specified with <code>setBody()</code>.
+     * which must be specified with <code>setBody()</code>.
      *
      * @param declaring         the class to which the created method is added.
      * @param parameters        a list of the parameter types
@@ -244,7 +244,8 @@ public final class CtConstructor extends CtBehavior {
      *                  It must be a single statement or block.
      */
     public void insertBeforeBody(String src) throws CannotCompileException {
-        declaringClass.checkModify();
+        CtClass cc = declaringClass;
+        cc.checkModify();
         if (isClassInitializer())
             throw new CannotCompileException("class initializer");
 
@@ -253,7 +254,7 @@ public final class CtConstructor extends CtBehavior {
         Bytecode b = new Bytecode(methodInfo.getConstPool(),
                                   ca.getMaxStack(), ca.getMaxLocals());
         b.setStackDepth(ca.getMaxStack());
-        Javac jv = new Javac(b, declaringClass);
+        Javac jv = new Javac(b, cc);
         try {
             jv.recordParams(getParameterTypes(), false);
             jv.compileStmnt(src);
@@ -262,6 +263,7 @@ public final class CtConstructor extends CtBehavior {
             iterator.skipConstructor();
             int pos = iterator.insertEx(b.get());
             iterator.insert(b.getExceptionTable(), pos);
+            methodInfo.rebuildStackMapIf6(cc.getClassPool(), cc.getClassFile2());
         }
         catch (NotFoundException e) {
             throw new CannotCompileException(e);
@@ -346,8 +348,16 @@ public final class CtConstructor extends CtBehavior {
         if (isConstructor()) {
             MethodInfo minfo = method.getMethodInfo2();
             CodeAttribute ca = minfo.getCodeAttribute();
-            if (ca != null)
+            if (ca != null) {
                 removeConsCall(ca);
+                try {
+                    methodInfo.rebuildStackMapIf6(declaring.getClassPool(),
+                                                  declaring.getClassFile2());
+                }
+                catch (BadBytecode e) {
+                    throw new CannotCompileException(e);
+                }
+            }
         }
 
         method.setName(name);

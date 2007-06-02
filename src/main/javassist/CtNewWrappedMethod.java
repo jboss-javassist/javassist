@@ -63,6 +63,9 @@ class CtNewWrappedMethod {
         return code;
     }
 
+    /* The generated method body does not need a stack map table
+     * because it does not contain a branch instruction.
+     */
     protected static int makeBody0(CtClass clazz, ClassFile classfile,
                                    CtMethod wrappedBody,
                                    boolean isStatic, CtClass[] parameters,
@@ -146,6 +149,7 @@ class CtNewWrappedMethod {
                                              map);
             int acc = body.getAccessFlags();
             body.setAccessFlags(AccessFlag.setPrivate(acc));
+            // a stack map is copied.  rebuilding it is not needed. 
             classfile.addMethod(body);
             bodies.put(src, bodyname);
         }

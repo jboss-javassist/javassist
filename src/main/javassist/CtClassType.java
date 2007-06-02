@@ -1350,6 +1350,13 @@ class CtClassType extends CtClass {
                 throw new CannotCompileException(e);
             }
         }
+
+        try {
+            m.rebuildStackMapIf6(classPool, cf);
+        }
+        catch (BadBytecode e) {
+            throw new CannotCompileException(e);
+        }
     }
 
     private void modifyConstructors(ClassFile cf)
@@ -1375,6 +1382,7 @@ class CtClassType extends CtClass {
                                                 classPool);
                         int stacksize = makeFieldInitializer(init, params);
                         insertAuxInitializer(codeAttr, init, stacksize);
+                        minfo.rebuildStackMapIf6(classPool, cf);
                     }
                     catch (BadBytecode e) {
                         throw new CannotCompileException(e);
