@@ -764,19 +764,26 @@ public class ProxyFactory {
 
         code.addAload(0);
         code.addGetstatic(thisClassName, DEFAULT_INTERCEPTOR, HANDLER_TYPE);
-        code.addOpcode(Opcode.DUP);
+        code.addPutfield(thisClassName, HANDLER, HANDLER_TYPE);
+        code.addGetstatic(thisClassName, DEFAULT_INTERCEPTOR, HANDLER_TYPE);
         code.addOpcode(Opcode.IFNONNULL);
-        code.addIndex(7);
-        code.addOpcode(Opcode.POP);
+        code.addIndex(10);
+        code.addAload(0);
         code.addGetstatic(NULL_INTERCEPTOR_HOLDER, DEFAULT_INTERCEPTOR, HANDLER_TYPE);
         code.addPutfield(thisClassName, HANDLER, HANDLER_TYPE);
+        int pc = code.currentPc();
 
         code.addAload(0);
         int s = addLoadParameters(code, cons.getParameterTypes(), 1);
         code.addInvokespecial(superClass.getName(), "<init>", desc);
         code.addOpcode(Opcode.RETURN);
         code.setMaxLocals(s + 1);
-        minfo.setCodeAttribute(code.toCodeAttribute());
+        CodeAttribute ca = code.toCodeAttribute();
+        minfo.setCodeAttribute(ca);
+
+        StackMapTable.Writer writer = new StackMapTable.Writer(32);
+        writer.sameFrame(pc);
+        ca.setAttribute(writer.toStackMapTable(cp));
         return minfo;
     }
 
@@ -840,7 +847,8 @@ public class ProxyFactory {
         callFindMethod(code, "findSuperMethod", arrayVar, origIndex, meth.getName(), desc);
         callFindMethod(code, "findMethod", arrayVar, delIndex, delegatorName, desc);
 
-        code.write16bit(pc, code.currentPc() - pc + 1);
+        int pc2 = code.currentPc();
+        code.write16bit(pc, pc2 - pc + 1);
         code.addAload(0);
         code.addGetfield(thisClassName, HANDLER, HANDLER_TYPE);
         code.addAload(0);
@@ -861,7 +869,12 @@ public class ProxyFactory {
         addUnwrapper(code, retType);
         addReturn(code, retType);
 
-        forwarder.setCodeAttribute(code.toCodeAttribute());
+        CodeAttribute ca = code.toCodeAttribute();
+        forwarder.setCodeAttribute(ca);
+        StackMapTable.Writer writer = new StackMapTable.Writer(32);
+        writer.appendFrame(pc2, new int[] { StackMapTable.OBJECT },
+                           new int[] { cp.addClassInfo(HOLDER_TYPE) });
+        ca.setAttribute(writer.toStackMapTable(cp));
         return forwarder;
     }
 
