@@ -1,6 +1,6 @@
 /*
  * Javassist, a Java-bytecode translator toolkit.
- * Copyright (C) 1999-2006 Shigeru Chiba. All Rights Reserved.
+ * Copyright (C) 1999-2007 Shigeru Chiba. All Rights Reserved.
  *
  * The contents of this file are subject to the Mozilla Public License Version
  * 1.1 (the "License"); you may not use this file except in compliance with
@@ -504,7 +504,7 @@ public class CodeConverter {
      * as array access replacements.
      *
      * @author <a href="kabir.khan@jboss.com">Kabir Khan</a>
-     * @version $Revision: 1.12 $
+     * @version $Revision: 1.13 $
      */
     public interface ArrayAccessReplacementMethodNames
     {
@@ -613,7 +613,7 @@ public class CodeConverter {
      * accesses to array elements.
      *
      * @author <a href="kabir.khan@jboss.com">Kabir Khan</a>
-     * @version $Revision: 1.12 $
+     * @version $Revision: 1.13 $
      */
     public static class DefaultArrayAccessReplacementMethodNames
         implements ArrayAccessReplacementMethodNames

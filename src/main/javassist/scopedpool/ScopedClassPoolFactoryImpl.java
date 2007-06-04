@@ -1,6 +1,6 @@
 /*
  * Javassist, a Java-bytecode translator toolkit.
- * Copyright (C) 2006 JBoss Inc. All Rights Reserved.
+ * Copyright (C) 1999-2007 Shigeru Chiba. All Rights Reserved.
  *
  * The contents of this file are subject to the Mozilla Public License Version
  * 1.1 (the "License"); you may not use this file except in compliance with
@@ -21,7 +21,7 @@ import javassist.ClassPool;
  * An implementation of factory.
  *
  * @author <a href="kabir.khan@jboss.com">Kabir Khan</a>
- * @version $Revision: 1.4 $
+ * @version $Revision: 1.5 $
  */
 public class ScopedClassPoolFactoryImpl implements ScopedClassPoolFactory {
     /**

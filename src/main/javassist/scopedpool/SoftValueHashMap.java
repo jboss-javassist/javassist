@@ -1,6 +1,6 @@
 /*
  * Javassist, a Java-bytecode translator toolkit.
- * Copyright (C) 2006 JBoss Inc. All Rights Reserved.
+ * Copyright (C) 1999-2007 Shigeru Chiba. All Rights Reserved.
  *
  * The contents of this file are subject to the Mozilla Public License Version
  * 1.1 (the "License"); you may not use this file except in compliance with
@@ -26,7 +26,7 @@ import java.util.Set;
  * This Map will remove entries when the value in the map has been cleaned from
  * garbage collection
  * 
- * @version <tt>$Revision: 1.3 $</tt>
+ * @version <tt>$Revision: 1.4 $</tt>
  * @author <a href="mailto:bill@jboss.org">Bill Burke</a>
  */
 public class SoftValueHashMap extends AbstractMap implements Map {
