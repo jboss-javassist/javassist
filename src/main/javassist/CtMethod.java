@@ -32,7 +32,6 @@ public final class CtMethod extends CtBehavior {
 
     CtMethod(MethodInfo minfo, CtClass declaring) {
         super(declaring, minfo);
-        next = null;
         cachedStringRep = null;
     }
 
@@ -133,6 +132,14 @@ public final class CtMethod extends CtBehavior {
      */
     public int hashCode() {
         return getStringRep().hashCode();
+    }
+
+    /**
+     * This method is invoked when setName() or replaceClassName()
+     * in CtClass is called.
+     */
+    void nameReplaced() {
+        cachedStringRep = null;
     }
 
     /* This method is also called by CtClassType.getMethods0(). 

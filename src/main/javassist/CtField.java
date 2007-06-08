@@ -97,7 +97,6 @@ public class CtField extends CtMember {
         throws CannotCompileException
     {
         super(clazz);
-        next = null;
         ClassFile cf = clazz.getClassFile2();
         if (cf == null)
             throw new CannotCompileException("bad declaring class: "
@@ -109,7 +108,6 @@ public class CtField extends CtMember {
     CtField(FieldInfo fi, CtClass clazz) {
         super(clazz);
         fieldInfo = fi;
-        next = null;
     }
 
     /**

@@ -52,7 +52,7 @@ public abstract class CtClass {
     /**
      * The version number of this release.
      */
-    public static final String version = "3.6.0BETA";
+    public static final String version = "3.6.0beta2";
 
     /**
      * Prints the version number and the copyright notice.
@@ -1126,7 +1126,8 @@ public abstract class CtClass {
      * save memory consumption.
      *
      * <p>If <code>ClassPool.doPruning</code> is true, the automatic pruning
-     * is on by default.  Otherwise, it is off.
+     * is on by default.  Otherwise, it is off.  The default value of
+     * <code>ClassPool.doPruning</code> is false.
      * 
      * @param stop      disallow pruning if true.  Otherwise, allow.
      * @return the previous status of pruning.  true if pruning is already stopped.
@@ -1150,15 +1151,22 @@ public abstract class CtClass {
      * are still accessible.
      *
      * <p><code>toBytecode()</code>, <code>writeFile()</code>, and
-     * <code>toClass()</code> internally call this method. 
+     * <code>toClass()</code> internally call this method if
+     * automatic pruning is on. 
+     *
+     * <p>According to some experiments, pruning does not really reduce
+     * memory consumption.  Only about 20%.  Since pruning takes time,
+     * it might not pay off.  So the automatic pruning is off by default.
+     *
+     * @see #stopPruning(boolean)
+     * @see #detach()
+     * @see ClassPool#doPruning
      *
      * @see #toBytecode()
      * @see #toClass()
      * @see #writeFile()
      * @see #instrument(CodeConverter)
      * @see #instrument(ExprEditor)
-     *
-     * @see #stopPruning(boolean)
      */
     public void prune() {}
 

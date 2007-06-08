@@ -152,6 +152,9 @@ class CtNewWrappedMethod {
             // a stack map is copied.  rebuilding it is not needed. 
             classfile.addMethod(body);
             bodies.put(src, bodyname);
+            CtMember.Cache cache = clazz.hasMemberCache();
+            if (cache != null)
+                cache.addMethod(new CtMethod(body, clazz));
         }
 
         return bodyname;

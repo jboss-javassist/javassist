@@ -111,12 +111,13 @@ public class ClassPool {
      * are called.  The automatic pruning can be turned on/off individually
      * for each <code>CtClass</code> object.
      *
-     * <p>The initial value is true.
+     * <p>The initial value is false.
      *
      * @see CtClass#prune()
      * @see CtClass#stopPruning(boolean)
+     * @see CtClass#detach()
      */
-    public static boolean doPruning = true;
+    public static boolean doPruning = false;
 
     /* releaseUnmodifiedClassFile was introduced for avoiding a bug
        of JBoss AOP.  So the value should be true except for JBoss AOP.

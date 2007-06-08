@@ -35,7 +35,6 @@ import javassist.compiler.CompileError;
 public final class CtConstructor extends CtBehavior {
     protected CtConstructor(MethodInfo minfo, CtClass declaring) {
         super(declaring, minfo);
-        next = null;
     }
 
     /**

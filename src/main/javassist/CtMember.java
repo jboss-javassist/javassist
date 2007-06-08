@@ -20,63 +20,119 @@ package javassist;
  * or a method.
  */
 public abstract class CtMember {
-    protected CtMember next;          // for internal use
+    CtMember next;          // for internal use
     protected CtClass declaringClass;
 
-    protected CtMember(CtClass clazz) { declaringClass = clazz; }
+    /* Make a circular link of CtMembers declared in the
+     * same class so that they are garbage-collected together
+     * at the same time.
+     */
+    static class Cache extends CtMember {
+        protected void extendToString(StringBuffer buffer) {}
+        public Object[] getAnnotations()
+            throws ClassNotFoundException { return null; }
+        public byte[] getAttribute(String name) { return null; }
+        public Object[] getAvailableAnnotations()
+            throws ClassNotFoundException { return null; }
+        public int getModifiers() { return 0; }
+        public String getName() { return null; }
+        public String getSignature() { return null; }
+        public void setAttribute(String name, byte[] data) {}
+        public void setModifiers(int mod) {}
 
-    static CtMember append(CtMember list, CtMember previousTail, CtMember tail) {
-        tail.next = null;
-        if (list == null)
-            return tail;
-        else {
-            previousTail.next = tail;
-            return list;
-        }
-    }
+        private CtMember methodTail;
+        private CtMember consTail;     // constructor tail
+        private CtMember fieldTail;
 
-    static CtMember append(CtMember list, CtMember tail) {
-        tail.next = null;
-        if (list == null)
-            return tail;
-        else {
-            CtMember lst = list;
-            while (lst.next != null)
-                lst = lst.next;
-
-            lst.next = tail;
-            return list;
-        }
-    }
-
-    static int count(CtMember f) {
-        int n = 0;
-        while (f != null) {
-            ++n;
-            f = f.next;
+        Cache(CtClassType decl) {
+            super(decl);
+            methodTail = this;
+            consTail = this;
+            fieldTail = this;
+            fieldTail.next = this;
         }
 
-        return n;
-    }
+        CtMember methodHead() { return this; }
+        CtMember lastMethod() { return methodTail; }
+        CtMember consHead() { return methodTail; }      // may include a static initializer
+        CtMember lastCons() { return consTail; }
+        CtMember fieldHead() { return consTail; }
+        CtMember lastField() { return fieldTail; }
 
-    static CtMember remove(CtMember list, CtMember m) {
-        CtMember top = list;
-        if (list == null)
-            return null;
-        else if (list == m)
-            return list.next;
-        else
-            while (list.next != null) {
-                if (list.next == m) {
-                    list.next = list.next.next;
-                    break;
-                }
-
-                list = list.next;
+        void addMethod(CtMember method) {
+            method.next = methodTail.next;
+            methodTail.next = method;
+            if (methodTail == consTail) {
+                consTail = method;
+                if (methodTail == fieldTail)
+                    fieldTail = method;
             }
 
-        return top;
+            methodTail = method;
+        }
+
+        /* Both constructors and a class initializer.
+         */
+        void addConstructor(CtMember cons) {
+            cons.next = consTail.next;
+            consTail.next = cons;
+            if (consTail == fieldTail)
+                fieldTail = cons;
+
+            consTail = cons;
+        }
+
+        void addField(CtMember field) {
+            field.next = this; // or fieldTail.next
+            fieldTail.next = field;
+            fieldTail = field;
+        }
+
+        static int count(CtMember head, CtMember tail) {
+            int n = 0;
+            while (head != tail) {
+                n++;
+                head = head.next;
+            }
+
+            return n;
+        }
+
+        void remove(CtMember mem) {
+            CtMember m = this;
+            CtMember node;
+            while ((node = m.next) != this) {
+                if (node == mem) {
+                    m.next = node.next;
+                    if (node == methodTail)
+                        methodTail = m;
+                    else if (node == consTail)
+                        consTail = m;
+                    else if (node == fieldTail)
+                        fieldTail = m;
+
+                    break;
+                }
+                else
+                    m = m.next;
+            }
+        }
     }
+
+    protected CtMember(CtClass clazz) {
+        declaringClass = clazz;
+        next = null;
+    }
+
+    final CtMember next() { return next; }
+
+    /**
+     * This method is invoked when setName() or replaceClassName()
+     * in CtClass is called.
+     *
+     * @see CtMethod#nameReplaced()
+     */
+    void nameReplaced() {}
 
     public String toString() {
         StringBuffer buffer = new StringBuffer(getClass().getName());

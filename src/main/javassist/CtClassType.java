@@ -15,7 +15,10 @@
 
 package javassist;
 
+import java.lang.ref.WeakReference;
 import java.io.BufferedInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -60,12 +63,9 @@ class CtClassType extends CtClass {
     boolean wasPruned;
     boolean memberRemoved;
     ClassFile classfile;
+    byte[] rawClassfile;    // backup storage
 
-    private CtMember fieldsCache;
-    private CtMember methodsCache;
-    private CtMember constructorsCache;
-    private CtConstructor classInitializerCache;
-
+    private WeakReference memberCache;
     private AccessorMaker accessors;
 
     private FieldInitLink fieldInitializers;
@@ -76,17 +76,19 @@ class CtClassType extends CtClass {
     int getCounter;
     private static int readCounter = 0;
     private static final int READ_THRESHOLD = 100;  // see getClassFile2()
+    private static final int GET_THRESHOLD = 2;     // see releaseClassFiles()
 
     CtClassType(String name, ClassPool cp) {
         super(name);
         classPool = cp;
         wasChanged = wasFrozen = wasPruned = memberRemoved = false;
         classfile = null;
+        rawClassfile = null;
+        memberCache = null;
         accessors = null;
         fieldInitializers = null;
         hiddenMethods = null;
         uniqueNumberSeed = 0;
-        eraseCache();
         getCounter = 0;
     }
 
@@ -136,36 +138,23 @@ class CtClassType extends CtClass {
             buffer.append(" extends ??");
         }
 
-        CtMember field = getFieldsCache();
-        buffer.append(" fields=");
-        while (field != null) {
-            buffer.append(field);
-            buffer.append(", ");
-            field = field.next;
-        }
-
-        CtMember c = getConstructorsCache();
-        buffer.append(" constructors=");
-        while (c != null) {
-            buffer.append(c);
-            buffer.append(", ");
-            c = c.next;
-        }
-
-        CtMember m = getMethodsCache();
-        buffer.append(" methods=");
-        while (m != null) {
-            buffer.append(m);
-            buffer.append(", ");
-            m = m.next;
-        }
+        CtMember.Cache memCache = getMembers();
+        exToString(buffer, " fields=",
+                memCache.fieldHead(), memCache.lastField());
+        exToString(buffer, " constructors=",
+                memCache.consHead(), memCache.lastCons());
+        exToString(buffer, " methods=",
+                   memCache.methodHead(), memCache.lastMethod());
     }
 
-    protected void eraseCache() {
-        fieldsCache = null;
-        constructorsCache = null;
-        classInitializerCache = null;
-        methodsCache = null;
+    private void exToString(StringBuffer buffer, String msg,
+                            CtMember head, CtMember tail) {
+        buffer.append(msg);
+        while (head != tail) {
+            head = head.next();
+            buffer.append(head);
+            buffer.append(", ");
+        }
     }
 
     public AccessorMaker getAccessorMaker() {
@@ -176,13 +165,27 @@ class CtClassType extends CtClass {
     }
 
     public ClassFile getClassFile2() {
-        if (classfile != null)
-            return classfile;
+        ClassFile cfile = classfile;
+        if (cfile != null)
+            return cfile;
 
-        if (readCounter++ > READ_THRESHOLD
-                                    && ClassPool.releaseUnmodifiedClassFile) {
+        if (readCounter++ > READ_THRESHOLD) {
+            getCounter += 2;
             releaseClassFiles();
             readCounter = 0;
+        }
+
+        if (rawClassfile != null) {
+            try {
+                classfile = new ClassFile(new DataInputStream(
+                                            new ByteArrayInputStream(rawClassfile)));
+                rawClassfile = null;
+                getCounter = GET_THRESHOLD;
+                return classfile;
+            }
+            catch (IOException e) {
+                throw new RuntimeException(e.toString(), e);
+            }
         }
 
         InputStream fin = null;
@@ -192,19 +195,20 @@ class CtClassType extends CtClass {
                 throw new NotFoundException(getName());
 
             fin = new BufferedInputStream(fin);
-            classfile = new ClassFile(new DataInputStream(fin));
-            if (!classfile.getName().equals(qualifiedName))
+            ClassFile cf = new ClassFile(new DataInputStream(fin));
+            if (!cf.getName().equals(qualifiedName))
                 throw new RuntimeException("cannot find " + qualifiedName + ": " 
-                        + classfile.getName() + " found in "
+                        + cf.getName() + " found in "
                         + qualifiedName.replace('.', '/') + ".class");
 
-            return classfile;
+            classfile = cf;
+            return cf;
         }
         catch (NotFoundException e) {
-            throw new RuntimeException(e.toString());
+            throw new RuntimeException(e.toString(), e);
         }
         catch (IOException e) {
-            throw new RuntimeException(e.toString());
+            throw new RuntimeException(e.toString(), e);
         }
         finally {
             if (fin != null)
@@ -215,14 +219,41 @@ class CtClassType extends CtClass {
         }
     }
 
+    /**
+     * Converts a ClassFile object into a byte array
+     * for saving memory space.
+     */
+    public synchronized void saveClassFile() {
+        /* getMembers() and releaseClassFile() are also synchronized.
+         */
+        if (classfile == null || hasMemberCache() != null)
+            return;
+
+        ByteArrayOutputStream barray = new ByteArrayOutputStream();
+        DataOutputStream out = new DataOutputStream(barray);
+        try {
+            classfile.write(out);
+            barray.close();
+            rawClassfile = barray.toByteArray();
+            classfile = null;
+        }
+        catch (IOException e) {}
+    }
+
+    public synchronized void releaseClassFile() {
+        if (!isModified())
+            classfile = null;
+    }
+
     /* Inherited from CtClass.  Called by get() in ClassPool.
      *
      * @see javassist.CtClass#incGetCounter()
+     * @see #toBytecode(DataOutputStream)
      */
     void incGetCounter() { ++getCounter; }
 
     /**
-     * Releases the class files and cached CtBehaviors
+     * Releases the class files
      * of the CtClasses that have not been recently used
      * if they are unmodified. 
      */
@@ -232,10 +263,11 @@ class CtClassType extends CtClass {
             Object obj = e.nextElement();
             if (obj instanceof CtClassType) {
                 CtClassType cct = (CtClassType)obj;
-                if (cct.getCounter < 2 && !cct.isModified()) {
-                    cct.eraseCache();
-                    cct.classfile = null;
-                }
+                if (cct.getCounter < GET_THRESHOLD)
+                    if (!cct.isModified() && ClassPool.releaseUnmodifiedClassFile)
+                        cct.releaseClassFile();
+                    else if (cct.isFrozen() && !cct.wasPruned)
+                        cct.saveClassFile();
 
                 cct.getCounter = 0;
             }
@@ -314,7 +346,7 @@ class CtClassType extends CtClass {
         ClassFile cf = getClassFile2();
         super.setName(name);
         cf.setName(name);
-        eraseCache();
+        nameReplaced();
         classPool.classNameChanged(oldname, this);
     }
 
@@ -333,7 +365,7 @@ class CtClassType extends CtClass {
         super.replaceClassName(classnames);
         ClassFile cf = getClassFile2();
         cf.renameClass(classnames);
-        eraseCache();
+        nameReplaced();
 
         if (newClassName != null) {
             super.setName(newClassName);
@@ -350,7 +382,7 @@ class CtClassType extends CtClass {
         else {
             super.replaceClassName(oldname, newname);
             getClassFile2().renameClass(oldname, newname);
-            eraseCache();
+            nameReplaced();
         }
     }
 
@@ -702,6 +734,69 @@ class CtClassType extends CtClass {
         return c;
     }
 
+    /* flush cached names.
+     */
+    private void nameReplaced() {
+        CtMember.Cache cache = hasMemberCache();
+        if (cache != null) {
+            CtMember mth = cache.methodHead();
+            CtMember tail = cache.lastMethod();
+            while (mth != tail) {
+                mth = mth.next();
+                mth.nameReplaced();
+            }
+        }
+    }
+
+    /**
+     * Returns null if members are not cached.
+     */
+    protected CtMember.Cache hasMemberCache() {
+        if (memberCache != null)
+            return (CtMember.Cache)memberCache.get();
+        else
+            return null;
+    }
+
+    protected synchronized CtMember.Cache getMembers() {
+        CtMember.Cache cache = null;
+        if (memberCache == null
+            || (cache = (CtMember.Cache)memberCache.get()) == null) {
+            cache = new CtMember.Cache(this);
+            makeFieldCache(cache);
+            makeBehaviorCache(cache);
+            memberCache = new WeakReference(cache);
+        }
+
+        return cache;
+    }
+
+    private void makeFieldCache(CtMember.Cache cache) {
+        List list = getClassFile2().getFields();
+        int n = list.size();
+        for (int i = 0; i < n; ++i) {
+            FieldInfo finfo = (FieldInfo)list.get(i);
+            CtField newField = new CtField(finfo, this);
+            cache.addField(newField);
+        }
+    }
+
+    private void makeBehaviorCache(CtMember.Cache cache) {
+        List list = getClassFile2().getMethods();
+        int n = list.size();
+        for (int i = 0; i < n; ++i) {
+            MethodInfo minfo = (MethodInfo)list.get(i);
+            if (minfo.isMethod()) {
+                CtMethod newMethod = new CtMethod(minfo, this);
+                cache.addMethod(newMethod);
+            }
+            else {
+                CtConstructor newCons = new CtConstructor(minfo, this);
+                cache.addConstructor(newCons);
+            }
+        }
+    }
+
     public CtField[] getFields() {
         ArrayList alist = new ArrayList();
         getFields(alist, this);
@@ -726,12 +821,13 @@ class CtClassType extends CtClass {
         }
         catch (NotFoundException e) {}
 
-        CtMember cf = ((CtClassType)cc).getFieldsCache();
-        while (cf != null) {
-            if (!Modifier.isPrivate(cf.getModifiers()))
-                alist.add(cf);
-
-            cf = cf.next;
+        CtMember.Cache memCache = ((CtClassType)cc).getMembers();
+        CtMember field = memCache.fieldHead();
+        CtMember tail = memCache.lastField();
+        while (field != tail) {
+            field = field.next();
+            if (!Modifier.isPrivate(field.getModifiers()))
+                alist.add(field);
         }
     }
 
@@ -766,35 +862,18 @@ class CtClassType extends CtClass {
     }
 
     public CtField[] getDeclaredFields() {
-        CtMember cf = getFieldsCache();
-        int num = CtField.count(cf);
+        CtMember.Cache memCache = getMembers();
+        CtMember field = memCache.fieldHead();
+        CtMember tail = memCache.lastField();
+        int num = CtMember.Cache.count(field, tail);
         CtField[] cfs = new CtField[num];
         int i = 0;
-        while (cf != null) {
-            cfs[i++] = (CtField)cf;
-            cf = cf.next;
+        while (field != tail) {
+            field = field.next();
+            cfs[i++] = (CtField)field;
         }
 
         return cfs;
-    }
-
-    protected CtMember getFieldsCache() {
-        if (fieldsCache == null) {
-            List list = getClassFile2().getFields();
-            int n = list.size();
-            CtMember allFields = null;
-            CtField tail = null;
-            for (int i = 0; i < n; ++i) {
-                FieldInfo finfo = (FieldInfo)list.get(i);
-                CtField newTail = new CtField(finfo, this);
-                allFields = CtMember.append(allFields, tail, newTail);
-                tail = newTail;
-            }
-
-            fieldsCache = allFields;
-        }
-
-        return fieldsCache;
     }
 
     public CtField getDeclaredField(String name) throws NotFoundException {
@@ -806,115 +885,131 @@ class CtClassType extends CtClass {
     }
 
     private CtField getDeclaredField2(String name) {
-        CtMember cf = getFieldsCache();
-        while (cf != null) {
-            if (cf.getName().equals(name))
-                return (CtField)cf;
-
-            cf = cf.next;
+        CtMember.Cache memCache = getMembers();
+        CtMember field = memCache.fieldHead();
+        CtMember tail = memCache.lastField();
+        while (field != tail) {
+            field = field.next();
+            if (field.getName().equals(name))
+                return (CtField)field;
         }
 
         return null;
     }
 
     public CtBehavior[] getDeclaredBehaviors() {
-        CtMember cc = getConstructorsCache();
-        CtMember cm = getMethodsCache();
-        int num = CtMember.count(cm) + CtMember.count(cc);
-        CtBehavior[] cb = new CtBehavior[num];
+        CtMember.Cache memCache = getMembers();
+        CtMember cons = memCache.consHead();
+        CtMember consTail = memCache.lastCons();
+        int cnum = CtMember.Cache.count(cons, consTail);
+        CtMember mth = memCache.methodHead();
+        CtMember mthTail = memCache.lastMethod();
+        int mnum = CtMember.Cache.count(mth, mthTail);
+
+        CtBehavior[] cb = new CtBehavior[cnum + mnum];
         int i = 0;
-        while (cc != null) {
-            cb[i++] = (CtBehavior)cc;
-            cc = cc.next;
+        while (cons != consTail) {
+            cons = cons.next();
+            cb[i++] = (CtBehavior)cons;
         }
 
-        while (cm != null) {
-            cb[i++] = (CtBehavior)cm;
-            cm = cm.next;
+        while (mth != mthTail) {
+            mth = mth.next();
+            cb[i++] = (CtBehavior)mth;
         }
 
         return cb;
     }
 
     public CtConstructor[] getConstructors() {
-        CtConstructor[] cons = getDeclaredConstructors();
-        if (cons.length == 0)
-            return cons;
+        CtMember.Cache memCache = getMembers();
+        CtMember cons = memCache.consHead();
+        CtMember consTail = memCache.lastCons();
 
         int n = 0;
-        int i = cons.length;
-        while (--i >= 0)
-            if (!Modifier.isPrivate(cons[i].getModifiers()))
-                ++n;
+        CtMember mem = cons;
+        while (mem != consTail) {
+            mem = mem.next();
+            if (isPubCons((CtConstructor)mem))
+                n++;
+        }
 
         CtConstructor[] result = new CtConstructor[n];
-        n = 0;
-        i = cons.length;
-        while (--i >= 0) {
-            CtConstructor c = cons[i];
-            if (!Modifier.isPrivate(c.getModifiers()))
-                result[n++] = c;
+        int i = 0;
+        mem = cons;
+        while (mem != consTail) {
+            mem = mem.next();
+            CtConstructor cc = (CtConstructor)mem;
+            if (isPubCons(cc))
+                result[i++] = cc;
         }
 
         return result;
     }
 
+    private static boolean isPubCons(CtConstructor cons) {
+        return !Modifier.isPrivate(cons.getModifiers())
+                && cons.isConstructor();
+    }
+
     public CtConstructor getConstructor(String desc)
         throws NotFoundException
     {
-        CtConstructor cc = (CtConstructor)getConstructorsCache();
-        while (cc != null) {
-            if (cc.getMethodInfo2().getDescriptor().equals(desc))
-                return cc;
+        CtMember.Cache memCache = getMembers();
+        CtMember cons = memCache.consHead();
+        CtMember consTail = memCache.lastCons();
 
-            cc = (CtConstructor)cc.next;
+        while (cons != consTail) {
+            cons = cons.next();
+            CtConstructor cc = (CtConstructor)cons;
+            if (cc.getMethodInfo2().getDescriptor().equals(desc)
+                && cc.isConstructor())
+                return cc;
         }
 
         return super.getConstructor(desc);
     }
 
     public CtConstructor[] getDeclaredConstructors() {
-        CtMember cc = getConstructorsCache();
-        int num = CtMember.count(cc);
-        CtConstructor[] ccs = new CtConstructor[num];
+        CtMember.Cache memCache = getMembers();
+        CtMember cons = memCache.consHead();
+        CtMember consTail = memCache.lastCons();
+
+        int n = 0;
+        CtMember mem = cons;
+        while (mem != consTail) {
+            mem = mem.next();
+            CtConstructor cc = (CtConstructor)mem;
+            if (cc.isConstructor())
+                n++;
+        }
+
+        CtConstructor[] result = new CtConstructor[n];
         int i = 0;
-        while (cc != null) {
-            ccs[i++] = (CtConstructor)cc;
-            cc = cc.next;
+        mem = cons;
+        while (mem != consTail) {
+            mem = mem.next();
+            CtConstructor cc = (CtConstructor)mem;
+            if (cc.isConstructor())
+                result[i++] = cc;
         }
 
-        return ccs;
-    }
-
-    protected CtMember getConstructorsCache() {
-        if (constructorsCache == null) {
-            List list = getClassFile2().getMethods();
-            int n = list.size();
-            CtMember allConstructors = null;
-            CtConstructor tail = null;
-            for (int i = 0; i < n; ++i) {
-                MethodInfo minfo = (MethodInfo)list.get(i);
-                if (minfo.isConstructor()) {
-                    CtConstructor newTail = new CtConstructor(minfo, this);
-                    allConstructors = CtMember.append(allConstructors, tail, newTail);
-                    tail = newTail;
-                }
-            }
-
-            constructorsCache = allConstructors;
-        }
-
-        return constructorsCache;
+        return result;
     }
 
     public CtConstructor getClassInitializer() {
-        if (classInitializerCache == null) {
-            MethodInfo minfo = getClassFile2().getStaticInitializer();
-            if (minfo != null)
-                classInitializerCache = new CtConstructor(minfo, this);
+        CtMember.Cache memCache = getMembers();
+        CtMember cons = memCache.consHead();
+        CtMember consTail = memCache.lastCons();
+
+        while (cons != consTail) {
+            cons = cons.next();
+            CtConstructor cc = (CtConstructor)cons;
+            if (cc.isClassInitializer())
+                return cc;
         }
 
-        return classInitializerCache;
+        return null;
     }
 
     public CtMethod[] getMethods() {
@@ -940,12 +1035,14 @@ class CtClassType extends CtClass {
         catch (NotFoundException e) {}
 
         if (cc instanceof CtClassType) {
-            CtMember cm = ((CtClassType)cc).getMethodsCache();
-            while (cm != null) {
-                if (!Modifier.isPrivate(cm.getModifiers()))
-                    h.put(((CtMethod)cm).getStringRep(), cm);
+            CtMember.Cache memCache = ((CtClassType)cc).getMembers();
+            CtMember mth = memCache.methodHead();
+            CtMember mthTail = memCache.lastMethod();
 
-                cm = cm.next;
+            while (mth != mthTail) {
+                mth = mth.next();
+                if (!Modifier.isPrivate(mth.getModifiers()))
+                    h.put(((CtMethod)mth).getStringRep(), mth);
             }
         }
     }
@@ -964,13 +1061,15 @@ class CtClassType extends CtClass {
     private static CtMethod getMethod0(CtClass cc,
                                        String name, String desc) {
         if (cc instanceof CtClassType) {
-            CtMethod cm = (CtMethod)((CtClassType)cc).getMethodsCache();
-            while (cm != null) {
-                if (cm.getName().equals(name)
-                    && cm.getMethodInfo2().getDescriptor().equals(desc))
-                    return cm;
+            CtMember.Cache memCache = ((CtClassType)cc).getMembers();
+            CtMember mth = memCache.methodHead();
+            CtMember mthTail = memCache.lastMethod();
 
-                cm = (CtMethod)cm.next;
+            while (mth != mthTail) {
+                mth = mth.next();
+                if (mth.getName().equals(name)
+                        && ((CtMethod)mth).getMethodInfo2().getDescriptor().equals(desc))
+                    return (CtMethod)mth;
             }
         }
 
@@ -998,25 +1097,28 @@ class CtClassType extends CtClass {
     }
 
     public CtMethod[] getDeclaredMethods() {
-        CtMember cm = getMethodsCache();
-        int num = CtMember.count(cm);
+        CtMember.Cache memCache = getMembers();
+        CtMember mth = memCache.methodHead();
+        CtMember mthTail = memCache.lastMethod();
+        int num = CtMember.Cache.count(mth, mthTail);
         CtMethod[] cms = new CtMethod[num];
         int i = 0;
-        while (cm != null) {
-            cms[i++] = (CtMethod)cm;
-            cm = cm.next;
+        while (mth != mthTail) {
+            mth = mth.next();
+            cms[i++] = (CtMethod)mth;
         }
 
         return cms;
     }
 
     public CtMethod getDeclaredMethod(String name) throws NotFoundException {
-        CtMember m = getMethodsCache();
-        while (m != null) {
-            if (m.getName().equals(name))
-                return (CtMethod)m;
-
-            m = m.next;
+        CtMember.Cache memCache = getMembers();
+        CtMember mth = memCache.methodHead();
+        CtMember mthTail = memCache.lastMethod();
+        while (mth != mthTail) {
+            mth = mth.next();
+            if (mth.getName().equals(name))
+                return (CtMethod)mth;
         }
 
         throw new NotFoundException(name + "(..) is not found in "
@@ -1027,38 +1129,19 @@ class CtClassType extends CtClass {
         throws NotFoundException
     {
         String desc = Descriptor.ofParameters(params);
-        CtMethod m = (CtMethod)getMethodsCache();
-        while (m != null) {
-            if (m.getName().equals(name)
-                && m.getMethodInfo2().getDescriptor().startsWith(desc))
-                return m;
+        CtMember.Cache memCache = getMembers();
+        CtMember mth = memCache.methodHead();
+        CtMember mthTail = memCache.lastMethod();
 
-            m = (CtMethod)m.next;
+        while (mth != mthTail) {
+            mth = mth.next();
+            if (mth.getName().equals(name)
+                    && ((CtMethod)mth).getMethodInfo2().getDescriptor().startsWith(desc))
+                return (CtMethod)mth;
         }
 
         throw new NotFoundException(name + "(..) is not found in "
                                     + getName());
-    }
-
-    protected CtMember getMethodsCache() {
-        if (methodsCache == null) {
-            List list = getClassFile2().getMethods();
-            int n = list.size();
-            CtMember allMethods = null;
-            CtMethod tail = null;
-            for (int i = 0; i < n; ++i) {
-                MethodInfo minfo = (MethodInfo)list.get(i);
-                if (minfo.isMethod()) {
-                    CtMethod newTail = new CtMethod(minfo, this);
-                    allMethods = CtMember.append(allMethods, tail, newTail);
-                    tail = newTail;
-                }
-            }
-
-            methodsCache = allMethods;
-        }
-
-        return methodsCache;
     }
 
     public void addField(CtField f, String init)
@@ -1091,8 +1174,7 @@ class CtClassType extends CtClass {
                 catch (NotFoundException e) {}
         }
 
-        getFieldsCache();
-        fieldsCache = CtField.append(fieldsCache, f);
+        getMembers().addField(f);
         getClassFile2().addField(f.getFieldInfo2());
 
         if (init != null) {
@@ -1114,7 +1196,7 @@ class CtClassType extends CtClass {
         FieldInfo fi = f.getFieldInfo2();
         ClassFile cf = getClassFile2();
         if (cf.getFields().remove(fi)) {
-            fieldsCache = CtMember.remove(fieldsCache, f);
+            getMembers().remove(f);
             memberRemoved = true;
         }
         else
@@ -1142,8 +1224,7 @@ class CtClassType extends CtClass {
         if (c.getDeclaringClass() != this)
             throw new CannotCompileException("cannot add");
 
-        getConstructorsCache();
-        constructorsCache = (CtConstructor)CtMember.append(constructorsCache, c);
+        getMembers().addConstructor(c);
         getClassFile2().addMethod(c.getMethodInfo2());
     }
 
@@ -1152,7 +1233,7 @@ class CtClassType extends CtClass {
         MethodInfo mi = m.getMethodInfo2();
         ClassFile cf = getClassFile2();
         if (cf.getMethods().remove(mi)) {
-            constructorsCache = CtMember.remove(constructorsCache, m);
+            getMembers().remove(m);
             memberRemoved = true;
         }
         else
@@ -1164,8 +1245,7 @@ class CtClassType extends CtClass {
         if (m.getDeclaringClass() != this)
             throw new CannotCompileException("cannot add");
 
-        getMethodsCache();
-        methodsCache = CtMember.append(methodsCache, m);
+        getMembers().addMethod(m);
         getClassFile2().addMethod(m.getMethodInfo2());
         if ((m.getModifiers() & Modifier.ABSTRACT) != 0)
             setModifiers(getModifiers() | Modifier.ABSTRACT);
@@ -1176,7 +1256,7 @@ class CtClassType extends CtClass {
         MethodInfo mi = m.getMethodInfo2();
         ClassFile cf = getClassFile2();
         if (cf.getMethods().remove(mi)) {
-            methodsCache = CtMember.remove(methodsCache, m);
+            getMembers().remove(m);
             memberRemoved = true;
         }
         else
@@ -1262,10 +1342,10 @@ class CtClassType extends CtClass {
             else {
                 classPool.writeClassfile(getName(), out);
                 // to save memory
-                eraseCache();
-                classfile = null;
+                // classfile = null;
             }
 
+            getCounter = 0;
             wasFrozen = true;
         }
         catch (NotFoundException e) {
@@ -1328,6 +1408,9 @@ class CtClassType extends CtClass {
             m.setAccessFlags(AccessFlag.STATIC);
             m.setCodeAttribute(code.toCodeAttribute());
             cf.addMethod(m);
+            CtMember.Cache cache = hasMemberCache();
+            if (cache != null)
+                cache.addConstructor(new CtConstructor(m, this));
         }
         else {
             CodeAttribute codeAttr = m.getCodeAttribute();

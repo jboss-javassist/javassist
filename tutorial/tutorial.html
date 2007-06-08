@@ -140,19 +140,37 @@ not permitted.  This is for warning the developers when they attempt
 to modify a class file that has been already loaded since the JVM does
 not allow reloading a class.
 
-<p>When Javassist freezes a <code>CtClass</code> object, it also
-prunes the data structure contained in that object.  To reduce memory
-consumption, Javassist discards unnecessary attributes
+<p>A frozen <code>CtClass</code> can be defrost so that
+modifications of the class definition will be permitted.  For example,
+
+<ul><pre>
+CtClasss cc = ...;
+    :
+cc.writeFile();
+cc.defrost();
+cc.setSuperclass(...);    // OK since the class is not frozen.
+</pre></ul>
+
+<p>After <code>defrost()</code> is called, the <code>CtClass</code>
+object can be modified again.
+
+<p>If <code>ClassPool.doPruning</code> is set to <code>true</code>,
+then Javassist prunes the data structure contained
+in a <code>CtClass</code> object
+when Javassist freezes that object.
+To reduce memory
+consumption, pruning discards unnecessary attributes
 (<code>attribute_info</code> structures) in that object.
 For example, <code>Code_attribute</code> structures (method bodies)
 are discarded.
 Thus, after a
 <code>CtClass</code> object is pruned, the bytecode of a method is not
-accessible although method names, signatures, and annotations
-are still accessible.
+accessible except method names, signatures, and annotations.
+The pruned <code>CtClass</code> object cannot be defrost again.
+The default value of <code>ClassPool.doPruning</code> is <code>false</code>.
 
-<p>To disallow pruning a <code>CtClass</code>, <code>stopPruning()</code>
-must be called in advance:
+<p>To disallow pruning a particular <code>CtClass</code>,
+<code>stopPruning()</code> must be called on that object in advance:
 
 <ul><pre>
 CtClasss cc = ...;
@@ -162,27 +180,17 @@ cc.writeFile();                             // convert to a class file.
 // cc is not pruned.
 </pre></ul>
 
-<p>If a <code>CtClass</code> is not pruned, it can be defrost so that
-modifications of the class definition can be permitted.  For example,
-
-<ul><pre>
-CtClasss cc = ...;
-cc.stopPruning(true);
-    :
-cc.writeFile();
-cc.defrost();
-cc.setSuperclass(...);    // OK since the class is not frozen.
-</pre></ul>
-
-<p>To disallow pruning for all the <code>CtClass</code>es, set
-<code>ClassPool.doPruning</code> to <code>false</code>.
+<p>The <code>CtClass</code> object <code>cc</code> is not pruned.
+Thus it can be defrost after <code>writeFile()</code> is called.
 
 <ul><b>Note:</b>
-While debugging, you might want to temporarily stop pruning and write a modified
-class file to a disk drive.  <code>debugWriteFile()</code> is a convenient method
-for that purpose.  It stops pruning, write a class file, defrost it, and turn
-pruning on again (if it was initially on).
+While debugging, you might want to temporarily stop pruning and freezing
+and write a modified class file to a disk drive.
+<code>debugWriteFile()</code> is a convenient method
+for that purpose.  It stops pruning, writes a class file, defrosts it,
+and turns pruning on again (if it was initially on).
 </ul>
+
 
 
 <h4>Class search path</h4>

@@ -28,7 +28,6 @@ class CtNewClass extends CtClassType {
                boolean isInterface, CtClass superclass) {
         super(name, cp);
         wasChanged = true;
-        eraseCache();
         String superName;
         if (superclass == null)
             superName = null;

@@ -284,7 +284,14 @@ see javassist.Dump.
 <p>-version 3.6
 
 <ul>
- 	<li>The stack map table introduced since Java 6 has been supported.
+    <li>The stack map table introduced since Java 6 has been supported.
+    <li>CtClass#getDeclaredBehaviors() now returns a class initializer
+        as well as methods and constructors.
+    <li>The default status of automatic pruning was made off.
+        Instead of pruning, this version of Javassist compresses
+        the data structure of a class file after toBytecode() is called.
+        The compressed class file is automatically decompressed when needed.
+        This saves memory space better than pruning.
     <li><a href="http://jira.jboss.com/jira/browse/JASSIST-33">JIRA JASSIST-33</a> has been fixed.
 </ul>
 
