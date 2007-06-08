@@ -170,7 +170,6 @@ class CtClassType extends CtClass {
             return cfile;
 
         if (readCounter++ > READ_THRESHOLD) {
-            getCounter += 2;
             releaseClassFiles();
             readCounter = 0;
         }
