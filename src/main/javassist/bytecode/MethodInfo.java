@@ -194,7 +194,7 @@ public final class MethodInfo {
      */
     public void setName(String newName) {
         name = constPool.addUtf8Info(newName);
-       cachedName = newName;
+        cachedName = newName;
     }
 
     /**
