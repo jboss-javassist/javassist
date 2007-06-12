@@ -64,6 +64,21 @@
         </dependency>
       </dependencies>
     </profile>
+     <profile>
+      <id>jdk16</id>
+      <activation>
+        <jdk>1.6</jdk>
+      </activation>
+      <dependencies>
+        <dependency>
+          <groupId>com.sun</groupId>
+          <artifactId>tools</artifactId>
+          <version>1.6</version>
+          <scope>system</scope>
+          <systemPath>${java.home}/../lib/tools.jar</systemPath>
+        </dependency>
+      </dependencies>
+    </profile>
   </profiles>
   <repositories>
     <repository>
