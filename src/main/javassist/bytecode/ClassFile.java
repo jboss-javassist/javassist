@@ -326,6 +326,7 @@ public final class ClassFile {
      * Sets the super class.
      * 
      * <p>
+     * The new super class should inherit from the old super class.
      * This method modifies constructors so that they call constructors declared
      * in the new super class.
      */

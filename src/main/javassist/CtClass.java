@@ -553,7 +553,8 @@ public abstract class CtClass {
 
     /**
      * Changes a super class unless this object represents an interface.
-     * The new super class must be compatible with the old one.
+     * The new super class must be compatible with the old one; for example,
+     * it should inherit from the old super class.
      *
      * <p>If this object represents an interface, this method is equivalent
      * to <code>addInterface()</code>; it appends <code>clazz</code> to
