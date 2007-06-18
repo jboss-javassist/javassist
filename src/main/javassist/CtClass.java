@@ -560,6 +560,9 @@ public abstract class CtClass {
      * to <code>addInterface()</code>; it appends <code>clazz</code> to
      * the list of the super interfaces extended by that interface.
      * Note that an interface can extend multiple super interfaces.
+     *
+     * @see #replaceClassName(String, String)
+     * @see #replaceClassName(ClassMap)
      */
     public void setSuperclass(CtClass clazz) throws CannotCompileException {
         checkModify();

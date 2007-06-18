@@ -106,9 +106,11 @@ public abstract class CtMember {
                     m.next = node.next;
                     if (node == methodTail)
                         methodTail = m;
-                    else if (node == consTail)
+
+                    if (node == consTail)
                         consTail = m;
-                    else if (node == fieldTail)
+
+                    if (node == fieldTail)
                         fieldTail = m;
 
                     break;

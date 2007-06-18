@@ -126,6 +126,24 @@ public final class CtMethod extends CtBehavior {
     }
 
     /**
+     * Creates a method from a <code>MethodInfo</code> object.
+     *
+     * @param declaring     the class declaring the method.
+     * @throws CannotCompileException       if the the <code>MethodInfo</code>
+     *          object and the declaring class have different
+     *          <code>ConstPool</code> objects
+     * @since 3.6
+     */
+    public static CtMethod make(MethodInfo minfo, CtClass declaring)
+        throws CannotCompileException
+    {
+        if (declaring.getClassFile2().getConstPool() != minfo.getConstPool())
+            throw new CannotCompileException("bad declaring class");
+
+        return new CtMethod(minfo, declaring);
+    }
+
+    /**
      * Returns a hash code value for the method.
      * If two methods have the same name and signature, then
      * the hash codes for the two methods are equal.
