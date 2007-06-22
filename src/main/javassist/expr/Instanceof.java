@@ -90,6 +90,7 @@ public class Instanceof extends Expr {
      * @param statement         a Java statement.
      */
     public void replace(String statement) throws CannotCompileException {
+        thisClass.getClassFile();   // to call checkModify().
         ConstPool constPool = getConstPool();
         int pos = currentPos;
         int index = iterator.u16bitAt(pos + 1);

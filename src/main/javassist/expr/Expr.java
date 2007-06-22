@@ -247,6 +247,11 @@ public abstract class Expr implements Opcode {
         }
     }
 
+    // The implementation of replace() should call thisClass.checkModify()
+    // so that isModify() will return true.  Otherwise, thisClass.classfile
+    // might be released during compilation and the compiler might generate
+    // bytecode with a wrong copy of ConstPool.
+
     /**
      * Replaces this expression with the bytecode derived from
      * the given source text.

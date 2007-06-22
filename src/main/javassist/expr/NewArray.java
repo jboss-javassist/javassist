@@ -170,6 +170,7 @@ public class NewArray extends Expr {
         throws CompileError, NotFoundException, BadBytecode,
                CannotCompileException
     {
+        thisClass.getClassFile();   // to call checkModify().
         ConstPool constPool = getConstPool();
         int pos = currentPos;
         CtClass retType;

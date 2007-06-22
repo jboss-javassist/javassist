@@ -160,6 +160,8 @@ public class NewExpr extends Expr {
      * @param statement         a Java statement.
      */
     public void replace(String statement) throws CannotCompileException {
+        thisClass.getClassFile();   // to call checkModify().
+
         final int bytecodeSize = 3;
         int pos = newPos;
 
