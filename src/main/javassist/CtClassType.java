@@ -240,7 +240,7 @@ class CtClassType extends CtClass {
     }
 
     public synchronized void releaseClassFile() {
-        if (!isModified())
+        if (classfile != null && !isModified() && hasMemberCache() == null)
             classfile = null;
     }
 
@@ -256,7 +256,7 @@ class CtClassType extends CtClass {
      * of the CtClasses that have not been recently used
      * if they are unmodified. 
      */
-    private void releaseClassFiles() {
+    public void releaseClassFiles() {
         Enumeration e = classPool.classes.elements();
         while (e.hasMoreElements()) {
             Object obj = e.nextElement();
