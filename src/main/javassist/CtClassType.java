@@ -25,7 +25,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
@@ -73,10 +72,8 @@ class CtClassType extends CtClass {
     private int uniqueNumberSeed;
 
     private boolean doPruning = ClassPool.doPruning;
-    int getCounter;
-    private static int readCounter = 0;
-    private static final int READ_THRESHOLD = 100;  // see getClassFile2()
-    private static final int GET_THRESHOLD = 2;     // see releaseClassFiles()
+    private int getCount;
+    private static final int GET_THRESHOLD = 2;     // see compress()
 
     CtClassType(String name, ClassPool cp) {
         super(name);
@@ -89,7 +86,7 @@ class CtClassType extends CtClass {
         fieldInitializers = null;
         hiddenMethods = null;
         uniqueNumberSeed = 0;
-        getCounter = 0;
+        getCount = 0;
     }
 
     CtClassType(InputStream ins, ClassPool cp) throws IOException {
@@ -169,17 +166,13 @@ class CtClassType extends CtClass {
         if (cfile != null)
             return cfile;
 
-        if (readCounter++ > READ_THRESHOLD) {
-            releaseClassFiles();
-            readCounter = 0;
-        }
-
+        classPool.compress();
         if (rawClassfile != null) {
             try {
                 classfile = new ClassFile(new DataInputStream(
                                             new ByteArrayInputStream(rawClassfile)));
                 rawClassfile = null;
-                getCounter = GET_THRESHOLD;
+                getCount = GET_THRESHOLD;
                 return classfile;
             }
             catch (IOException e) {
@@ -218,11 +211,33 @@ class CtClassType extends CtClass {
         }
     }
 
-    /**
+   /* Inherited from CtClass.  Called by get() in ClassPool.
+    *
+    * @see javassist.CtClass#incGetCounter()
+    * @see #toBytecode(DataOutputStream)
+    */
+   final void incGetCounter() { ++getCount; }
+
+   /**
+    * Invoked from ClassPool#compress().
+    * It releases the class files that have not been recently used
+    * if they are unmodified. 
+    */
+   void compress() {
+       if (getCount < GET_THRESHOLD)
+           if (!isModified() && ClassPool.releaseUnmodifiedClassFile)
+               removeClassFile();
+           else if (isFrozen() && !wasPruned)
+               saveClassFile();
+
+       getCount = 0;
+   }
+
+   /**
      * Converts a ClassFile object into a byte array
      * for saving memory space.
      */
-    public synchronized void saveClassFile() {
+    private synchronized void saveClassFile() {
         /* getMembers() and releaseClassFile() are also synchronized.
          */
         if (classfile == null || hasMemberCache() != null)
@@ -239,38 +254,9 @@ class CtClassType extends CtClass {
         catch (IOException e) {}
     }
 
-    public synchronized void releaseClassFile() {
+    private synchronized void removeClassFile() {
         if (classfile != null && !isModified() && hasMemberCache() == null)
             classfile = null;
-    }
-
-    /* Inherited from CtClass.  Called by get() in ClassPool.
-     *
-     * @see javassist.CtClass#incGetCounter()
-     * @see #toBytecode(DataOutputStream)
-     */
-    void incGetCounter() { ++getCounter; }
-
-    /**
-     * Releases the class files
-     * of the CtClasses that have not been recently used
-     * if they are unmodified. 
-     */
-    public void releaseClassFiles() {
-        Enumeration e = classPool.classes.elements();
-        while (e.hasMoreElements()) {
-            Object obj = e.nextElement();
-            if (obj instanceof CtClassType) {
-                CtClassType cct = (CtClassType)obj;
-                if (cct.getCounter < GET_THRESHOLD)
-                    if (!cct.isModified() && ClassPool.releaseUnmodifiedClassFile)
-                        cct.releaseClassFile();
-                    else if (cct.isFrozen() && !cct.wasPruned)
-                        cct.saveClassFile();
-
-                cct.getCounter = 0;
-            }
-        }
     }
 
     public ClassPool getClassPool() { return classPool; }
@@ -1344,7 +1330,7 @@ class CtClassType extends CtClass {
                 // classfile = null;
             }
 
-            getCounter = 0;
+            getCount = 0;
             wasFrozen = true;
         }
         catch (NotFoundException e) {

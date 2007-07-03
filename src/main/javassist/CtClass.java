@@ -1330,4 +1330,9 @@ public abstract class CtClass {
     public String makeUniqueName(String prefix) {
         throw new RuntimeException("not available in " + getName());
     }
+
+    /* Invoked from ClassPool#compress().
+     * This method is overridden by CtClassType.
+     */
+    void compress() {}
 }

@@ -29,6 +29,7 @@ import java.security.ProtectionDomain;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import javassist.bytecode.Descriptor;
 
 /**
@@ -119,6 +120,9 @@ public class ClassPool {
      */
     public static boolean doPruning = false;
 
+    private int compressCount;
+    private static final int COMPRESS_THRESHOLD = 100;
+
     /* releaseUnmodifiedClassFile was introduced for avoiding a bug
        of JBoss AOP.  So the value should be true except for JBoss AOP.
      */
@@ -184,6 +188,7 @@ public class ClassPool {
         }
 
         this.cflow = null;
+        this.compressCount = 0;
         clearImportedPackages();
     }
 
@@ -260,6 +265,19 @@ public class ClassPool {
      */
     public String toString() {
         return source.toString();
+    }
+
+    /**
+     * This method is periodically invoked so that memory
+     * footprint will be minimized.
+     */
+    void compress() {
+        if (compressCount++ > COMPRESS_THRESHOLD) {
+            compressCount = 0;
+            Enumeration e = classes.elements();
+            while (e.hasMoreElements())
+                ((CtClass)e.nextElement()).compress();
+        }
     }
 
     /**
@@ -607,6 +625,7 @@ public class ClassPool {
     public CtClass makeClass(InputStream classfile, boolean ifNotFrozen)
         throws IOException, RuntimeException
     {
+        compress();
         classfile = new BufferedInputStream(classfile);
         CtClass clazz = new CtClassType(classfile, this);
         clazz.checkModify();
