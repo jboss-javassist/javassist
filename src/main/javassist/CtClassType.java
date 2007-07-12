@@ -275,7 +275,7 @@ class CtClassType extends CtClass {
 
     public boolean isFrozen() { return wasFrozen; }
 
-    void freeze() { wasFrozen = true; }
+    public void freeze() { wasFrozen = true; }
 
     void checkModify() throws RuntimeException {
         if (isFrozen()) {

@@ -263,7 +263,14 @@ public abstract class CtClass {
      */
     public boolean isFrozen() { return true; }
 
-    void freeze() {}
+    /**
+     * Makes the class frozen.
+     *
+     * @see #isFrozen()
+     * @see #defrost()
+     * @since 3.6
+     */
+    public void freeze() {}
 
     /* Note: this method is overridden by CtClassType
      */
