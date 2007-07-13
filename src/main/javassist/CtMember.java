@@ -32,8 +32,7 @@ public abstract class CtMember {
         public Object[] getAnnotations()
             throws ClassNotFoundException { return null; }
         public byte[] getAttribute(String name) { return null; }
-        public Object[] getAvailableAnnotations()
-            throws ClassNotFoundException { return null; }
+        public Object[] getAvailableAnnotations() { return null; }
         public int getModifiers() { return 0; }
         public String getName() { return null; }
         public String getSignature() { return null; }
@@ -225,9 +224,7 @@ public abstract class CtMember {
      * @see CtClass#getAvailableAnnotations()
      * @since 3.3
      */
-    public abstract Object[] getAvailableAnnotations()
-        throws ClassNotFoundException;
-
+    public abstract Object[] getAvailableAnnotations();
 
     /**
      * Obtains the name of the member.
