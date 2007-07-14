@@ -59,7 +59,7 @@ public abstract class CtBehavior extends CtMember {
                     if (srcSuperName.equals(CtClass.javaLangObject))
                         patch = true;
                     else
-                        map.put(srcSuperName, destSuperName);
+                        map.putIfNone(srcSuperName, destSuperName);
             }
 
             // a stack map table is copied from srcInfo.

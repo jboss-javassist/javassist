@@ -74,7 +74,8 @@ public final class CtConstructor extends CtBehavior {
      * with the name of the class and the superclass that
      * the created constructor is added to.
      * This is done whichever <code>map</code> is null or not.
-     * To prevent this replacement, call <code>ClassMap.fix()</code>.
+     * To prevent this replacement, call <code>ClassMap.fix()</code>
+     * or <code>put()</code> to explicitly specify replacement.
      *
      * <p><b>Note:</b> if the <code>.class</code> notation (for example,
      * <code>String.class</code>) is included in an expression, the
