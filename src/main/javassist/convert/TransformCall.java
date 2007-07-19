@@ -17,7 +17,9 @@ package javassist.convert;
 
 import javassist.CtClass;
 import javassist.CtMethod;
+import javassist.ClassPool;
 import javassist.Modifier;
+import javassist.NotFoundException;
 import javassist.bytecode.*;
 
 public class TransformCall extends Transformer {
@@ -55,7 +57,10 @@ public class TransformCall extends Transformer {
 
     /**
      * Modify INVOKEINTERFACE, INVOKESPECIAL, INVOKESTATIC and INVOKEVIRTUAL
-     * so that a different method is invoked.
+     * so that a different method is invoked.  The class name in the operand
+     * of these instructions might be a subclass of the target class specified
+     * by <code>classname</code>.   This method transforms the instruction
+     * in that case unless the subclass overrides the target method.
      */
     public int transform(CtClass clazz, int pos, CodeIterator iterator,
                          ConstPool cp) throws BadBytecode
@@ -64,13 +69,39 @@ public class TransformCall extends Transformer {
         if (c == INVOKEINTERFACE || c == INVOKESPECIAL
                         || c == INVOKESTATIC || c == INVOKEVIRTUAL) {
             int index = iterator.u16bitAt(pos + 1);
-            int typedesc = cp.isMember(classname, methodname, index);
-            if (typedesc != 0)
-                if (cp.getUtf8Info(typedesc).equals(methodDescriptor))
-                    pos = match(c, pos, iterator, typedesc, cp);
+            String cname = cp.eqMember(methodname, methodDescriptor, index);
+            if (cname != null && matchClass(cname, clazz.getClassPool())) {
+                int ntinfo = cp.getMemberNameAndType(index);
+                pos = match(c, pos, iterator,
+                            cp.getNameAndTypeDescriptor(ntinfo), cp);
+            }
         }
 
         return pos;
+    }
+
+    private boolean matchClass(String name, ClassPool pool) {
+        if (classname.equals(name))
+            return true;
+
+        try {
+            CtClass clazz = pool.get(name);
+            CtClass declClazz = pool.get(classname);
+            if (clazz.subtypeOf(declClazz))
+                try {
+                    CtMethod m = clazz.getMethod(methodname, methodDescriptor);
+                    return m.getDeclaringClass().getName().equals(classname);
+                }
+                catch (NotFoundException e) {
+                    // maybe the original method has been removed.
+                    return true;
+                }
+        }
+        catch (NotFoundException e) {
+            return false;
+        }
+
+        return false;
     }
 
     protected int match(int c, int pos, CodeIterator iterator,

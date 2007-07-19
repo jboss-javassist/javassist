@@ -207,6 +207,34 @@ public final class ConstPool {
 
     /**
      * Reads the <code>class_index</code> field of the
+     * <code>CONSTANT_Fieldref_info</code>,
+     * <code>CONSTANT_Methodref_info</code>,
+     * or <code>CONSTANT_Interfaceref_info</code>,
+     * structure at the given index.
+     *
+     * @since 3.6
+     */
+    public int getMemberClass(int index) {
+        MemberrefInfo minfo = (MemberrefInfo)getItem(index);
+        return minfo.classIndex;
+    }
+
+    /**
+     * Reads the <code>name_and_type_index</code> field of the
+     * <code>CONSTANT_Fieldref_info</code>,
+     * <code>CONSTANT_Methodref_info</code>,
+     * or <code>CONSTANT_Interfaceref_info</code>,
+     * structure at the given index.
+     *
+     * @since 3.6
+     */
+    public int getMemberNameAndType(int index) {
+        MemberrefInfo minfo = (MemberrefInfo)getItem(index);
+        return minfo.nameAndTypeIndex;
+    }
+
+    /**
+     * Reads the <code>class_index</code> field of the
      * <code>CONSTANT_Fieldref_info</code> structure
      * at the given index.
      */
@@ -274,7 +302,7 @@ public final class ConstPool {
         if (f == null)
             return null;
         else {
-            NameAndTypeInfo n = (NameAndTypeInfo) getItem(f.nameAndTypeIndex);
+            NameAndTypeInfo n = (NameAndTypeInfo)getItem(f.nameAndTypeIndex);
             if(n == null)
                 return null;
             else
@@ -577,6 +605,34 @@ public final class ConstPool {
         }
 
         return 0;       // false
+    }
+
+    /**
+     * Determines whether <code>CONSTANT_Methodref_info</code>,
+     * <code>CONSTANT_Fieldref_info</code>, or
+     * <code>CONSTANT_InterfaceMethodref_info</code> structure
+     * at the given index has the name and the descriptor
+     * given as the arguments.
+     *
+     * @param membername        the member name
+     * @param desc              the descriptor of the member.
+     * @param index             the index into the constant pool table
+     *
+     * @return          the name of the target class specified by
+     *                  the <code>..._info</code> structure
+     *                  at <code>index</code>.
+     *                  Otherwise, null if that structure does not 
+     *                  match the given member name and descriptor.
+     */
+    public String eqMember(String membername, String desc, int index) {
+        MemberrefInfo minfo = (MemberrefInfo)getItem(index);
+        NameAndTypeInfo ntinfo
+                = (NameAndTypeInfo)getItem(minfo.nameAndTypeIndex);
+        if (getUtf8Info(ntinfo.memberName).equals(membername)
+            && getUtf8Info(ntinfo.typeDescriptor).equals(desc))
+            return getClassInfo(minfo.classIndex);
+        else
+            return null;       // false
     }
 
     private int addItem(ConstInfo info) {
