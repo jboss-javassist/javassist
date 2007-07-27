@@ -141,6 +141,7 @@ Copyright (C) 1999-2007 Shigeru Chiba. All Rights Reserved.</i>]]></bottom>
           <exclude name="build/**"/>
           <exclude name="local/**"/>
           <exclude name="${dist-version}.zip"/>
+          <exclude name="${target-src.jar}"/>
        </zipfileset>
     </zip>
   </target>
