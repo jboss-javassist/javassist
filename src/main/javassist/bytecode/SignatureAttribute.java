@@ -287,14 +287,14 @@ public class SignatureAttribute extends AttributeInfo {
         /**
          * Returns the kind of this type argument.
          *
-         * @return ' ' (not-wildcard), '*' (wildcard), '+' (wildcard with
-         * upper bound), or '-' (wildcard with lower bound). 
+         * @return <code>' '</code> (not-wildcard), <code>'*'</code> (wildcard), <code>'+'</code> (wildcard with
+         * upper bound), or <code>'-'</code> (wildcard with lower bound). 
          */
         public char getKind() { return wildcard; }
 
         /**
-         * Returns true if this type argument is a wildcard type such as
-         * ?, ? extends String, or ? super Integer.
+         * Returns true if this type argument is a wildcard type
+         * such as <code>?</code>, <code>? extends String</code>, or <code>? super Integer</code>.
          */
         public boolean isWildcard() { return wildcard != ' '; }
 
