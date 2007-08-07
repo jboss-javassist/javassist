@@ -10,9 +10,12 @@
   <groupId>org.jboss</groupId>
   <artifactId>javassist</artifactId>
   <packaging>jar</packaging>
+  <description>Javassist (JAVA programming ASSISTant) makes Java bytecode manipulation
+     simple.  It is a class library for editing bytecodes in Java.
+  </description>
   <version>3.6.0-SNAPSHOT</version>
   <name>Javassist</name>
-  <url>http://labs.jboss.com/portal/jbossaop</url>
+  <url>http://www.csg.is.titech.ac.jp/~chiba/javassist/</url>
   <build>
     <sourceDirectory>src/main/</sourceDirectory>
     <testSourceDirectory>src/test/</testSourceDirectory>
@@ -27,9 +30,11 @@
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-surefire-plugin</artifactId>
+        <artifactId>maven-jar-plugin</artifactId>
         <configuration>
-          <testFailureIgnore>true</testFailureIgnore>
+          <archive>
+            <manifestFile>${project.build.sourceDirectory}/META-INF/MANIFEST.MF</manifestFile>
+          </archive>
         </configuration>
       </plugin>
     </plugins>
@@ -46,6 +51,7 @@
           <artifactId>tools</artifactId>
           <version>1.4</version>
           <scope>system</scope>
+          <optional>true</optional>
           <systemPath>${java.home}/../lib/tools.jar</systemPath>
         </dependency>
       </dependencies>
@@ -61,6 +67,7 @@
           <artifactId>tools</artifactId>
           <version>1.5</version>
           <scope>system</scope>
+          <optional>true</optional>
           <systemPath>${java.home}/../lib/tools.jar</systemPath>
         </dependency>
       </dependencies>
@@ -76,6 +83,7 @@
           <artifactId>tools</artifactId>
           <version>1.6</version>
           <scope>system</scope>
+          <optional>true</optional>
           <systemPath>${java.home}/../lib/tools.jar</systemPath>
         </dependency>
       </dependencies>
