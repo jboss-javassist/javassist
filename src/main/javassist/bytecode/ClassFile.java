@@ -65,9 +65,18 @@ public final class ClassFile {
 
     /**
      * The major version number of class files created
-     * from scratch.  The value is 47 (JDK 1.3).
+     * from scratch.  The default value is 47 (JDK 1.3)
+     * or 49 (JDK 1.5) if the JVM supports <code>java.lang.StringBuilder</code>.
      */
-    public static final int MAJOR_VERSION = JAVA_3;
+    public static int MAJOR_VERSION = JAVA_3;
+
+    static {
+        try {
+            Class.forName("java.lang.StringBuilder");
+            MAJOR_VERSION = JAVA_5;
+        }
+        catch (Throwable t) {}
+    }
 
     /**
      * Constructs a class file from a byte stream.

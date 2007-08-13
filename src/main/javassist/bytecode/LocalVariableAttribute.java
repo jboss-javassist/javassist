@@ -260,8 +260,11 @@ public class LocalVariableAttribute extends AttributeInfo {
 
             ByteArray.write16bit(name, dest, j + 4);
 
-            if (type != 0)
-                type = cp.copy(type, newCp, null);
+            if (type != 0)  {
+                String sig = cp.getUtf8Info(type);
+                sig = Descriptor.rename(sig, classnames);
+                type = newCp.addUtf8Info(sig);
+            }
 
             ByteArray.write16bit(type, dest, j + 6);
             ByteArray.write16bit(index, dest, j + 8);
