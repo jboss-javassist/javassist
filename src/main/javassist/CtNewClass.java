@@ -29,12 +29,14 @@ class CtNewClass extends CtClassType {
         super(name, cp);
         wasChanged = true;
         String superName;
-        if (superclass == null)
+        if (isInterface || superclass == null)
             superName = null;
         else
             superName = superclass.getName();
 
         classfile = new ClassFile(isInterface, name, superName);
+        if (isInterface && superclass != null)
+            classfile.setInterfaces(new String[] { superclass.getName() });
 
         setModifiers(Modifier.setPublic(getModifiers()));
         hasConstructor = isInterface;
