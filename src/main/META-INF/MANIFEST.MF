@@ -2,7 +2,7 @@ Manifest-Version: 1.1
 Specification-Title: Javassist
 Created-By: Shigeru Chiba, Tokyo Institute of Technology
 Specification-Vendor: Shigeru Chiba, Tokyo Institute of Technology
-Specification-Version: 3.6.2.CR2
+Specification-Version: 3.6.0.GA
 Main-Class: javassist.CtClass
 
 Name: javassist/
