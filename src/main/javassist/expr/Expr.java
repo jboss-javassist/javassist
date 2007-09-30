@@ -61,6 +61,14 @@ public abstract class Expr implements Opcode {
         thisMethod = m;
     }
 
+    /**
+     * Returns the class that declares the method enclosing
+     * this expression.
+     *
+     * @since 3.7
+     */
+    public CtClass getEnclosingClass() { return thisClass; }
+
     protected final ConstPool getConstPool() {
         return thisMethod.getConstPool();
     }
