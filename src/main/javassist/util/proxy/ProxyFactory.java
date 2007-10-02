@@ -586,6 +586,7 @@ public class ProxyFactory {
         finfo.setAccessFlags(AccessFlag.PRIVATE | AccessFlag.STATIC);
         cf.addField(finfo);
         MethodInfo minfo = new MethodInfo(cp, "<clinit>", "()V");
+        minfo.setAccessFlags(AccessFlag.STATIC);
         Bytecode code = new Bytecode(cp, 0, 0);
         code.addIconst(size * 2);
         code.addAnewarray("java.lang.reflect.Method");
