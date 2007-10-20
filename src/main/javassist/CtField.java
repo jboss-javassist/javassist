@@ -413,10 +413,18 @@ public class CtField extends CtMember {
     public static abstract class Initializer {
         /**
          * Makes an initializer that assigns a constant integer value.
-         * The field must be integer type.
+         * The field must be integer, short, char, or byte type.
          */
         public static Initializer constant(int i) {
             return new IntInitializer(i);
+        }
+
+        /**
+         * Makes an initializer that assigns a constant boolean value.
+         * The field must be boolean type.
+         */
+        public static Initializer constant(boolean b) {
+            return new IntInitializer(b ? 1 : 0);
         }
 
         /**
@@ -751,7 +759,7 @@ public class CtField extends CtMember {
 
         // Check whether this initializer is valid for the field type.
         // If it is invaild, this method throws an exception.
-        void check(CtClass type) throws CannotCompileException {}
+        void check(String desc) throws CannotCompileException {}
 
         // produce codes for initialization
         abstract int compile(CtClass type, String name, Bytecode code,
@@ -1100,8 +1108,9 @@ public class CtField extends CtMember {
 
         IntInitializer(int v) { value = v; }
 
-        void check(CtClass type) throws CannotCompileException {
-            if (type != CtClass.intType)
+        void check(String desc) throws CannotCompileException {
+            char c = desc.charAt(0);
+            if (c != 'I' && c != 'S' && c != 'B' && c != 'C' && c != 'Z')
                 throw new CannotCompileException("type mismatch");
         }
 
@@ -1124,10 +1133,7 @@ public class CtField extends CtMember {
         }
 
         int getConstantValue(ConstPool cp, CtClass type) {
-            if (type == CtClass.intType)
-                return cp.addIntegerInfo(value);
-            else
-                return 0;
+            return cp.addIntegerInfo(value);
         }
     }
 
@@ -1136,8 +1142,8 @@ public class CtField extends CtMember {
 
         LongInitializer(long v) { value = v; }
 
-        void check(CtClass type) throws CannotCompileException {
-            if (type != CtClass.longType)
+        void check(String desc) throws CannotCompileException {
+            if (!desc.equals("J"))
                 throw new CannotCompileException("type mismatch");
         }
 
@@ -1172,8 +1178,8 @@ public class CtField extends CtMember {
 
         DoubleInitializer(double v) { value = v; }
 
-        void check(CtClass type) throws CannotCompileException {
-            if (type != CtClass.doubleType)
+        void check(String desc) throws CannotCompileException {
+            if (!desc.equals("D"))
                 throw new CannotCompileException("type mismatch");
         }
 
@@ -1207,11 +1213,6 @@ public class CtField extends CtMember {
         String value;
 
         StringInitializer(String v) { value = v; }
-
-        void check(CtClass type) throws CannotCompileException {
-            if (!type.getName().equals(javaLangString))
-                throw new CannotCompileException("type mismatch");
-        }
 
         int compile(CtClass type, String name, Bytecode code,
                     CtClass[] parameters, Javac drv)
@@ -1278,8 +1279,8 @@ public class CtField extends CtMember {
 
         MultiArrayInitializer(CtClass t, int[] d) { type = t; dim = d; }
 
-        void check(CtClass type) throws CannotCompileException {
-            if (!type.isArray())
+        void check(String desc) throws CannotCompileException {
+            if (desc.charAt(0) != '[')
                 throw new CannotCompileException("type mismatch");
         }
 

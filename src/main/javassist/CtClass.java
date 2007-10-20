@@ -898,6 +898,11 @@ public abstract class CtClass {
      * <p>Here, the type of variable <code>cc</code> is <code>CtClass</code>.
      * The type of <code>f</code> is <code>CtField</code>.
      *
+     * <p>Note: do not change the modifier of the field
+     * (in particular, do not add or remove <code>static</code>
+     * to/from the modifier)
+     * after it is added to the class by <code>addField()</code>.
+     *
      * @param init      an expression for the initial value.
      *
      * @see javassist.CtField.Initializer#byExpr(String)

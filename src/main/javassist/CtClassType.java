@@ -1146,6 +1146,7 @@ class CtClassType extends CtClass {
             init = f.getInit();
 
         if (init != null) {
+            init.check(f.getSignature());
             int mod = f.getModifiers();
             if (Modifier.isStatic(mod) && Modifier.isFinal(mod))
                 try {
