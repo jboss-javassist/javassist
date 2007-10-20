@@ -436,6 +436,14 @@ public class CtField extends CtMember {
         }
 
         /**
+         * Makes an initializer that assigns a constant float value.
+         * The field must be float type.
+         */
+        public static Initializer constant(float l) {
+            return new FloatInitializer(l);
+        }
+
+        /**
          * Makes an initializer that assigns a constant double value.
          * The field must be double type.
          */
@@ -1168,6 +1176,42 @@ public class CtField extends CtMember {
         int getConstantValue(ConstPool cp, CtClass type) {
             if (type == CtClass.longType)
                 return cp.addLongInfo(value);
+            else
+                return 0;
+        }
+    }
+
+    static class FloatInitializer extends Initializer {
+        float value;
+
+        FloatInitializer(float v) { value = v; }
+
+        void check(String desc) throws CannotCompileException {
+            if (!desc.equals("F"))
+                throw new CannotCompileException("type mismatch");
+        }
+
+        int compile(CtClass type, String name, Bytecode code,
+                    CtClass[] parameters, Javac drv)
+            throws CannotCompileException
+        {
+            code.addAload(0);
+            code.addFconst(value);
+            code.addPutfield(Bytecode.THIS, name, Descriptor.of(type));
+            return 3;   // stack size
+        }
+
+        int compileIfStatic(CtClass type, String name, Bytecode code,
+                            Javac drv) throws CannotCompileException
+        {
+            code.addFconst(value);
+            code.addPutstatic(Bytecode.THIS, name, Descriptor.of(type));
+            return 2;   // stack size
+        }
+
+        int getConstantValue(ConstPool cp, CtClass type) {
+            if (type == CtClass.floatType)
+                return cp.addFloatInfo(value);
             else
                 return 0;
         }
