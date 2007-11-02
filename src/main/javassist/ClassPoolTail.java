@@ -72,6 +72,51 @@ final class DirClassPath implements ClassPath {
     }
 }
 
+final class JarDirClassPath implements ClassPath {
+    JarClassPath[] jars;
+
+    JarDirClassPath(String dirName) throws NotFoundException {
+        File[] files = new File(dirName).listFiles(new FilenameFilter() {
+            public boolean accept(File dir, String name) {
+                name = name.toLowerCase();
+                return name.endsWith(".jar") || name.endsWith(".zip");
+            }
+        });
+
+        jars = new JarClassPath[files.length];
+        for (int i = 0; i < files.length; i++)
+            jars[i] = new JarClassPath(files[i].getPath());
+    }
+
+    public InputStream openClassfile(String classname) throws NotFoundException {
+        if (jars != null)
+            for (int i = 0; i < jars.length; i++) {
+                InputStream is = jars[i].openClassfile(classname);
+                if (is != null)
+                    return is;
+            }
+
+        return null;    // not found
+    }
+
+    public URL find(String classname) {
+        if (jars != null)
+            for (int i = 0; i < jars.length; i++) {
+                URL url = jars[i].find(classname);
+                if (url != null)
+                    return url;
+            }
+
+        return null;    // not found
+    }
+
+    public void close() {
+        if (jars != null)
+            for (int i = 0; i < jars.length; i++)
+                jars[i].close();
+    }
+}
+
 final class JarClassPath implements ClassPath {
     JarFile jarfile;
     String jarfileURL;
@@ -206,11 +251,16 @@ final class ClassPoolTail {
     private static ClassPath makePathObject(String pathname)
         throws NotFoundException
     {
-        int i = pathname.lastIndexOf('.');
-        if (i >= 0) {
-            String ext = pathname.substring(i).toLowerCase();
-            if (ext.equals(".jar") || ext.equals(".zip"))
-                return new JarClassPath(pathname);
+        String lower = pathname.toLowerCase();
+        if (lower.endsWith(".jar") || lower.endsWith(".zip"))
+            return new JarClassPath(pathname);
+
+        int len = pathname.length();
+        if (len > 2 && pathname.charAt(len - 1) == '*'
+            && (pathname.charAt(len - 2) == '/'
+                || pathname.charAt(len - 2) == File.separatorChar)) {
+            String dir = pathname.substring(0, len - 2);
+            return new JarDirClassPath(dir);
         }
 
         return new DirClassPath(pathname);

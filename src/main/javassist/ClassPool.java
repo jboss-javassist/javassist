@@ -757,6 +757,9 @@ public class ClassPool {
      *
      * @param pathname      the path name of the directory or jar file.
      *                      It must not end with a path separator ("/").
+     *                      If the path name ends with "/*", then all the
+     *                      jar files matching the path name are inserted.
+     *
      * @return the inserted class path.
      * @throws NotFoundException    if the jar file is not found.
      */
@@ -772,6 +775,9 @@ public class ClassPool {
      *
      * @param pathname the path name of the directory or jar file.
      *                 It must not end with a path separator ("/").
+     *                      If the path name ends with "/*", then all the
+     *                      jar files matching the path name are appended.
+     *
      * @return the appended class path.
      * @throws NotFoundException if the jar file is not found.
      */
