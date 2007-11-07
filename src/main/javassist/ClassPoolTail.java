@@ -83,9 +83,11 @@ final class JarDirClassPath implements ClassPath {
             }
         });
 
-        jars = new JarClassPath[files.length];
-        for (int i = 0; i < files.length; i++)
-            jars[i] = new JarClassPath(files[i].getPath());
+        if (files != null) {
+            jars = new JarClassPath[files.length];
+            for (int i = 0; i < files.length; i++)
+                jars[i] = new JarClassPath(files[i].getPath());
+        }
     }
 
     public InputStream openClassfile(String classname) throws NotFoundException {
