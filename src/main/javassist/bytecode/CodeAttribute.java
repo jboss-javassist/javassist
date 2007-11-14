@@ -356,6 +356,8 @@ public class CodeAttribute extends AttributeInfo implements Opcode {
                 if (index < 0x100)
                     newcode[i + 1] = (byte)index;
                 else {
+                    newcode[i] = NOP;
+                    newcode[i + 1] = NOP;
                     LdcEntry ldc = new LdcEntry();
                     ldc.where = i;
                     ldc.index = index;
