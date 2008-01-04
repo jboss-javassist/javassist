@@ -775,7 +775,11 @@ public abstract class CtBehavior extends CtMember {
                 b.addLconst(0);
                 b.addLstore(returnVarNo);
             }
-            else if (c != 'V') { // int, boolean, char, short, ...
+            else if (c == 'V') {
+                b.addOpcode(Opcode.ACONST_NULL);
+                b.addAstore(returnVarNo);
+            }
+            else { // int, boolean, char, short, ...
                 b.addIconst(0);
                 b.addIstore(returnVarNo);
             }
