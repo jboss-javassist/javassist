@@ -21,6 +21,8 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Member;
 import java.lang.reflect.Modifier;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.security.ProtectionDomain;
 import java.util.HashMap;
 import java.util.WeakHashMap;
@@ -659,7 +661,7 @@ public class ProxyFactory {
     private void makeConstructors(String thisClassName, ClassFile cf,
             ConstPool cp, String classname) throws CannotCompileException
     {
-        Constructor[] cons = superClass.getDeclaredConstructors();
+        Constructor[] cons = SecurityActions.getDeclaredConstructors(superClass);
         for (int i = 0; i < cons.length; i++) {
             Constructor c = cons[i];
             int mod = c.getModifiers();
@@ -741,7 +743,7 @@ public class ProxyFactory {
         if (parent != null)
             getMethods(hash, parent);
 
-        Method[] methods = clazz.getDeclaredMethods();
+        Method[] methods = SecurityActions.getDeclaredMethods(clazz);
         for (int i = 0; i < methods.length; i++)
             if (!Modifier.isPrivate(methods[i].getModifiers())) {
                 Method m = methods[i];
@@ -1040,5 +1042,42 @@ public class ProxyFactory {
         code.addOpcode(Opcode.ARETURN);
         minfo.setCodeAttribute(code.toCodeAttribute());
         return minfo;
+    }
+    
+    private static class SecurityActions
+    {
+       private static Method[] getDeclaredMethods(final Class clazz)
+       {
+          if (System.getSecurityManager() == null)
+          {
+             return clazz.getDeclaredMethods();
+          }
+          else
+          {
+             return (Method[])AccessController.doPrivileged(new PrivilegedAction() {
+
+               public Object run()
+               {
+                  return clazz.getDeclaredMethods();
+               }});
+          }
+       }
+       
+       private static Constructor[] getDeclaredConstructors(final Class clazz)
+       {
+          if (System.getSecurityManager() == null)
+          {
+             return clazz.getDeclaredConstructors();
+          }
+          else
+          {
+             return (Constructor[])AccessController.doPrivileged(new PrivilegedAction() {
+
+               public Object run()
+               {
+                  return clazz.getDeclaredConstructors();
+               }});
+          }
+       }
     }
 }
