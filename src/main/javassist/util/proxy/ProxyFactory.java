@@ -21,8 +21,6 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Member;
 import java.lang.reflect.Modifier;
-import java.security.AccessController;
-import java.security.PrivilegedAction;
 import java.security.ProtectionDomain;
 import java.util.HashMap;
 import java.util.WeakHashMap;
@@ -350,9 +348,9 @@ public class ProxyFactory {
         if (thisClass != null && value != null)
             try {
                 Field f = thisClass.getField(fieldName);
-                f.setAccessible(true);
+                SecurityActions.setAccessible(f, true);
                 f.set(null, value);
-                f.setAccessible(false);
+                SecurityActions.setAccessible(f, false);
             }
             catch (Exception e) {
                 throw new RuntimeException(e);
@@ -1042,42 +1040,5 @@ public class ProxyFactory {
         code.addOpcode(Opcode.ARETURN);
         minfo.setCodeAttribute(code.toCodeAttribute());
         return minfo;
-    }
-    
-    private static class SecurityActions
-    {
-       private static Method[] getDeclaredMethods(final Class clazz)
-       {
-          if (System.getSecurityManager() == null)
-          {
-             return clazz.getDeclaredMethods();
-          }
-          else
-          {
-             return (Method[])AccessController.doPrivileged(new PrivilegedAction() {
-
-               public Object run()
-               {
-                  return clazz.getDeclaredMethods();
-               }});
-          }
-       }
-       
-       private static Constructor[] getDeclaredConstructors(final Class clazz)
-       {
-          if (System.getSecurityManager() == null)
-          {
-             return clazz.getDeclaredConstructors();
-          }
-          else
-          {
-             return (Constructor[])AccessController.doPrivileged(new PrivilegedAction() {
-
-               public Object run()
-               {
-                  return clazz.getDeclaredConstructors();
-               }});
-          }
-       }
     }
 }

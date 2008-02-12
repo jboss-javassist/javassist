@@ -39,11 +39,15 @@ public class FactoryHelper {
     static {
         try {
             Class cl = Class.forName("java.lang.ClassLoader");
-            defineClass1 = cl.getDeclaredMethod("defineClass",
+            defineClass1 = SecurityActions.getDeclaredMethod(
+                        cl,
+                        "defineClass",
                         new Class[] { String.class, byte[].class,
                                       int.class, int.class });
 
-            defineClass2 = cl.getDeclaredMethod("defineClass",
+            defineClass2 = SecurityActions.getDeclaredMethod(
+                        cl,
+                        "defineClass",
                         new Class[] { String.class, byte[].class,
                               int.class, int.class, ProtectionDomain.class });
         }
@@ -173,9 +177,9 @@ public class FactoryHelper {
                                         ClassLoader loader, Object[] args)
         throws Exception
     {
-        method.setAccessible(true);
+        SecurityActions.setAccessible(method, true);
         Class clazz = (Class)method.invoke(loader, args);
-        method.setAccessible(false);
+        SecurityActions.setAccessible(method, false);
         return clazz;
     }
 
