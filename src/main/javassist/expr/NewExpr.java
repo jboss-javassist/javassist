@@ -168,7 +168,8 @@ public class NewExpr extends Expr {
 
         /* delete the preceding NEW and DUP (or DUP_X1, SWAP) instructions.
          */
-        int end = pos + canReplace();
+        int codeSize = canReplace();
+        int end = pos + codeSize;
         for (int i = pos; i < end; ++i)
             iterator.writeByte(NOP, i);
 
@@ -203,7 +204,8 @@ public class NewExpr extends Expr {
             bytecode.addStore(retVar, newType);     // initialize $_
 
             jc.compileStmnt(statement);
-            bytecode.addAload(retVar);
+            if (codeSize > 3)   // if the original code includes DUP.
+                bytecode.addAload(retVar);
 
             replace0(pos, bytecode, bytecodeSize);
         }
