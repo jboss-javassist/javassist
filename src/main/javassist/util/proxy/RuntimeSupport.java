@@ -103,7 +103,7 @@ public class RuntimeSupport {
     }
 
     private static Method findMethod2(Class clazz, String name, String desc) {
-        Method[] methods = clazz.getDeclaredMethods();
+        Method[] methods = SecurityActions.getDeclaredMethods(clazz);
         int n = methods.length;
         for (int i = 0; i < n; i++)
             if (methods[i].getName().equals(name)
