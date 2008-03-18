@@ -229,6 +229,7 @@ public class StackMapTable extends AttributeInfo {
         public void sameFrame(int pos, int offsetDelta) throws BadBytecode {}
 
         private int sameLocals(int pos, int type) throws BadBytecode {
+            int top = pos;
             int offset;
             if (type < 128)
                 offset = type - 64;
@@ -244,7 +245,7 @@ public class StackMapTable extends AttributeInfo {
                 pos += 2;
             }
 
-            sameLocals(pos, offset, tag, data);
+            sameLocals(top, offset, tag, data);
             return pos + 2;
         }
 
