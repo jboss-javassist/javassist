@@ -332,10 +332,15 @@ public class Annotation {
         if (getTypeName().equals(other.getTypeName()) == false)
             return false;
 
-        if (members == null && other.members != null)
-           return false;
-        if (members != null && other.members == null)
-           return false;
-        return members.equals(other.members);
+        HashMap otherMembers = other.members;
+        if (members == otherMembers)
+            return true;
+        else if (members == null)
+            return otherMembers == null;
+        else
+            if (otherMembers == null)
+                return false;
+            else
+                return members.equals(otherMembers);
     }
 }
