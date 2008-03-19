@@ -73,7 +73,9 @@ public class ClassMetaobject implements Serializable {
             javaClass = getClassObject(params[0]);
         }
         catch (ClassNotFoundException e) {
-            javaClass = null;
+            throw new RuntimeException("not found: " + params[0]
+                                       + ", useContextClassLoader: "
+                                       + Boolean.toString(useContextClassLoader), e);
         }
 
         constructors = javaClass.getConstructors();
