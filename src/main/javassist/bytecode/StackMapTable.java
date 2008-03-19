@@ -675,6 +675,7 @@ public class StackMapTable extends AttributeInfo {
                 break;
             case THIS :
                 msg = "this";
+                break;
             case OBJECT :
                 msg = "object (cpool_index " + data + ")";
                 break;
