@@ -52,7 +52,10 @@ public class Desc {
             return getClassObject(name);
         }
         catch (ClassNotFoundException e) {
-            throw new RuntimeException("$class: internal error");
+            throw new RuntimeException(
+                    "$class: internal error, could not find class '" + name 
+                    + "' (Desc.useContextClassLoader: " 
+                    + Boolean.toString(useContextClassLoader) + ")", e); 
         }
     }
 
