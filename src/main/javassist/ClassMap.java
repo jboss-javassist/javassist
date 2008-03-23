@@ -76,7 +76,7 @@ public class ClassMap extends java.util.HashMap {
      * internal form used in the JVM before putting it in
      * the hashtable.
      *
-     * <p>If <code>oldname</code> is equivalent to
+     * <p>If <code>oldname</code> is identical to
      * <code>newname</code>, then this method does not
      * perform anything; it does not record the mapping from
      * <code>oldname</code> to <code>newname</code>.  See
