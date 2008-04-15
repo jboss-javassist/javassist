@@ -743,7 +743,7 @@ public class StackMapTable extends AttributeInfo {
                 else if (offsetDelta < 64) {
                     byte[] newinfo = insertGap(info, pos, 2);
                     newinfo[pos] = (byte)entry;
-                    ByteArray.write16bit(newDelta, info, pos + 1);
+                    ByteArray.write16bit(newDelta, newinfo, pos + 1);
                     updatedInfo = newinfo;
                 }
                 else
