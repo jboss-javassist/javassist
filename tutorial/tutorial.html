@@ -1043,7 +1043,7 @@ adds a new field <code>hiddenValue</code> to <code>java.lang.String</code>:
 <ul><pre>ClassPool pool = ClassPool.getDefault();
 CtClass cc = pool.get("java.lang.String");
 cc.addField(new CtField(CtClass.intType, "hiddenValue", cc));
-cc.writeFile("java.lang.String", ".");</pre></ul>
+cc.writeFile(".");</pre></ul>
 
 <p>This program produces a file <code>"./java/lang/String.class"</code>.
 
