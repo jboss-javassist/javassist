@@ -520,6 +520,74 @@ public abstract class CtBehavior extends CtMember {
     }
 
     /**
+     * Inserts a new parameter, which becomes the first parameter.
+     */
+    public void insertParameter(CtClass type)
+        throws CannotCompileException
+    {
+        declaringClass.checkModify();
+        String desc = methodInfo.getDescriptor();
+        String desc2 = Descriptor.insertParameter(type, desc);
+        try {
+            addParameter2(Modifier.isStatic(getModifiers()) ? 0 : 1, type, desc);
+        }
+        catch (BadBytecode e) {
+            throw new CannotCompileException(e);
+        }
+
+        methodInfo.setDescriptor(desc2);
+    }
+
+    /**
+     * Appends a new parameter, which becomes the last parameter.
+     */
+    public void addParameter(CtClass type)
+        throws CannotCompileException
+    {
+        declaringClass.checkModify();
+        String desc = methodInfo.getDescriptor();
+        String desc2 = Descriptor.appendParameter(type, desc);
+        int offset = Modifier.isStatic(getModifiers()) ? 0 : 1;
+        try {
+            addParameter2(offset + Descriptor.paramSize(desc), type, desc);
+        }
+        catch (BadBytecode e) {
+            throw new CannotCompileException(e);
+        }
+
+        methodInfo.setDescriptor(desc2);
+    }
+
+    private void addParameter2(int where, CtClass type, String desc)
+        throws BadBytecode
+    {
+        CodeAttribute ca = methodInfo.getCodeAttribute();
+        if (ca != null) {
+            int size = 1;
+            char typeDesc = 'L';
+            int classInfo = 0;
+            if (type.isPrimitive()) {
+                CtPrimitiveType cpt = (CtPrimitiveType)type;
+                size = cpt.getDataSize();
+                typeDesc = cpt.getDescriptor();
+            }
+            else
+                classInfo = methodInfo.getConstPool().addClassInfo(type);
+
+            ca.insertLocalVar(where, size);
+            LocalVariableAttribute va
+                            = (LocalVariableAttribute)
+                              ca.getAttribute(LocalVariableAttribute.tag);
+            if (va != null)
+                va.shiftIndex(where, size);
+
+            StackMapTable smt = (StackMapTable)ca.getAttribute(StackMapTable.tag);
+            if (smt != null)
+                smt.insertLocal(where, StackMapTable.typeTagOf(typeDesc), classInfo);
+        }
+    }
+
+    /**
      * Modifies the method/constructor body.
      *
      * @param converter         specifies how to modify.

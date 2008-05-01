@@ -129,19 +129,23 @@ public class MemberResolver implements TokenId {
         else
             onlyExact = maybe != null;
 
+        int mod = clazz.getModifiers();
+        boolean isIntf = Modifier.isInterface(mod);
         try {
-            CtClass pclazz = clazz.getSuperclass();
-            if (pclazz != null) {
-                Method r = lookupMethod(pclazz, methodName, argTypes,
-                                        argDims, argClassNames, onlyExact);
-                if (r != null)
-                    return r;
+            // skip searching java.lang.Object if clazz is an interface type.
+            if (!isIntf) {
+                CtClass pclazz = clazz.getSuperclass();
+                if (pclazz != null) {
+                    Method r = lookupMethod(pclazz, methodName, argTypes,
+                                            argDims, argClassNames, onlyExact);
+                    if (r != null)
+                        return r;
+                }
             }
         }
         catch (NotFoundException e) {}
 
-        int mod = clazz.getModifiers();
-        if (Modifier.isAbstract(mod) || Modifier.isInterface(mod))
+        if (isIntf || Modifier.isAbstract(mod))
             try {
                 CtClass[] ifs = clazz.getInterfaces();
                 int size = ifs.length;
@@ -151,6 +155,17 @@ public class MemberResolver implements TokenId {
                                             onlyExact);
                     if (r != null)
                         return r;
+                }
+
+                if (isIntf) {
+                    // finally search java.lang.Object.
+                    CtClass pclazz = clazz.getSuperclass();
+                    if (pclazz != null) {
+                        Method r = lookupMethod(pclazz, methodName, argTypes,
+                                                argDims, argClassNames, onlyExact);
+                        if (r != null)
+                            return r;
+                    }
                 }
             }
             catch (NotFoundException e) {}

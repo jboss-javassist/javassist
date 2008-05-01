@@ -395,25 +395,154 @@ public class CodeAttribute extends AttributeInfo implements Opcode {
         newcode[i] = (byte)(index >> 8);
         newcode[i + 1] = (byte)index;
     }
-}
 
-final class LdcEntry {
-    LdcEntry next;
-    int where;
-    int index;
+    static class LdcEntry {
+        LdcEntry next;
+        int where;
+        int index;
 
-    static byte[] doit(byte[] code, LdcEntry ldc, ExceptionTable etable,
-                       CodeAttribute ca)
+        static byte[] doit(byte[] code, LdcEntry ldc, ExceptionTable etable,
+                           CodeAttribute ca)
+            throws BadBytecode
+        {
+            while (ldc != null) {
+                int where = ldc.where;
+                code = CodeIterator.insertGap(code, where, 1, false, etable, ca);
+                code[where] = (byte)Opcode.LDC_W;
+                ByteArray.write16bit(ldc.index, code, where + 1);
+                ldc = ldc.next;
+            }
+
+            return code;
+        }
+    }
+
+    /**
+     * Changes the index numbers of the local variables
+     * to append a new parameter.
+     * This method does not update <code>LocalVariableAttribute</code>
+     * or <code>StackMapTable</code>.  These attributes must be
+     * explicitly updated.
+     *
+     * @param where         the index of the new parameter.
+     * @param size         the type size of the new parameter (1 or 2).
+     *
+     * @see LocalVariableAttribute#shiftIndex(int, int)
+     * @see StackMapTable#insertLocal(int, int, int)
+     */
+    public void insertLocalVar(int where, int size) throws BadBytecode {
+        CodeIterator ci = iterator();
+        while (ci.hasNext())
+            shiftIndex(ci, where, size);
+
+        setMaxLocals(getMaxLocals() + size);
+    }
+
+    /**
+     * @param lessThan      If the index of the local variable is
+     *                      less than this value, it does not change.
+     *                      Otherwise, the index is increased.
+     * @param delta         the indexes of the local variables are
+     *                      increased by this value.
+     */
+    private static void shiftIndex(CodeIterator ci, int lessThan, int delta) throws BadBytecode {
+        int index = ci.next();
+        int opcode = ci.byteAt(index);
+        if (opcode < ILOAD)
+            return;
+        else if (opcode < IASTORE) {
+            if (opcode < ILOAD_0) {
+                // iload, lload, fload, dload, aload
+                shiftIndex8(ci, index, opcode, lessThan, delta);
+            }
+            else if (opcode < IALOAD) {
+                // iload_0, ..., aload_3
+                shiftIndex0(ci, index, opcode, lessThan, delta, ILOAD_0, ILOAD);
+            }
+            else if (opcode < ISTORE)
+                return;
+            else if (opcode < ISTORE_0) {
+                // istore, lstore, ...
+                shiftIndex8(ci, index, opcode, lessThan, delta);
+            }
+            else {
+                // istore_0, ..., astore_3
+                shiftIndex0(ci, index, opcode, lessThan, delta, ISTORE_0, ISTORE);
+            }
+        }
+        else if (opcode == IINC) {
+            int var = ci.byteAt(index + 1);
+            if (var < lessThan)
+                return;
+
+            var += delta;
+            if (var < 0x100)
+                ci.writeByte(var, index + 1);
+            else {
+                int plus = ci.byteAt(index + 2);
+                ci.insertExGap(3);
+                ci.writeByte(WIDE, index);
+                ci.writeByte(IINC, index + 1);
+                ci.write16bit(var, index + 2);
+                ci.write16bit(plus, index + 4);
+            }
+        }
+        else if (opcode == RET)
+            shiftIndex8(ci, index, opcode, lessThan, delta);
+        else if (opcode == WIDE) {
+            int var = ci.u16bitAt(index + 2);
+            if (var < lessThan)
+                return;
+
+            var += delta;
+            ci.write16bit(var, index + 2);
+        }
+    }
+
+    private static void shiftIndex8(CodeIterator ci, int index, int opcode,
+                                    int lessThan, int delta)
+         throws BadBytecode
+    {
+        int var = ci.byteAt(index + 1);
+        if (var < lessThan)
+            return;
+
+        var += delta;
+        if (var < 0x100)
+            ci.writeByte(var, index + 1);
+        else {
+            ci.insertExGap(2);
+            ci.writeByte(WIDE, index);
+            ci.writeByte(opcode, index + 1);
+            ci.write16bit(var, index + 2);
+        }
+    }
+
+    private static void shiftIndex0(CodeIterator ci, int index, int opcode,
+                                    int lessThan, int delta,
+                                    int opcode_i_0, int opcode_i)
         throws BadBytecode
     {
-        while (ldc != null) {
-            int where = ldc.where;
-            code = CodeIterator.insertGap(code, where, 1, false, etable, ca);
-            code[where] = (byte)Opcode.LDC_W;
-            ByteArray.write16bit(ldc.index, code, where + 1);
-            ldc = ldc.next;
-        }
+        int var = (opcode - opcode_i_0) % 4;
+        if (var < lessThan)
+            return;
 
-        return code;
+        var += delta;
+        if (var < 4)
+            ci.writeByte(opcode + delta, index);
+        else {
+            opcode = (opcode - opcode_i_0) / 4 + opcode_i;
+            if (var < 0x100) {
+                ci.insertExGap(1);
+                ci.writeByte(opcode, index);
+                ci.writeByte(var, index + 1);
+            }
+            else {
+                ci.insertExGap(3);
+                ci.writeByte(WIDE, index);
+                ci.writeByte(opcode, index + 1);
+                ci.write16bit(var, index + 2);
+            }
+        }
     }
 }

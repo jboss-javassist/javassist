@@ -92,6 +92,22 @@ public class LocalVariableAttribute extends AttributeInfo {
     }
 
     /**
+     * For each <code>local_variable_table[i].index</code>,
+     * this method increases <code>index</code> by <code>delta</code>.
+     *
+     * @param lessThan      the index does not change if it
+     *                      is less than this value.
+     */
+    public void shiftIndex(int lessThan, int delta) {
+        int size = info.length;
+        for (int i = 2; i < size; i += 10){
+            int org = ByteArray.readU16bit(info, i + 8);
+            if (org >= lessThan)
+                ByteArray.write16bit(org + delta, info, i + 8);
+        }
+    }
+
+    /**
      * Returns <code>local_variable_table_length</code>.
      * This represents the number of entries in the table.
      */

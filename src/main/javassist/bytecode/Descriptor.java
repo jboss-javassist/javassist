@@ -353,6 +353,43 @@ public class Descriptor {
     }
 
     /**
+     * Appends a parameter type to the parameter list represented
+     * by the given descriptor.  The appended parameter becomes
+     * the last parameter.
+     *
+     * @param type      the type of the appended parameter.
+     * @param desc      descriptor
+     */
+    public static String appendParameter(CtClass type, String descriptor) {
+        int i = descriptor.indexOf(')');
+        if (i < 0)
+            return descriptor;
+        else {
+            StringBuffer newdesc = new StringBuffer();
+            newdesc.append(descriptor.substring(0, i));
+            toDescriptor(newdesc, type);
+            newdesc.append(descriptor.substring(i));
+            return newdesc.toString();
+        }
+    }
+
+    /**
+     * Inserts a parameter type at the beginning of the parameter
+     * list represented
+     * by the given descriptor.
+     *
+     * @param type              the type of the inserted parameter.
+     * @param descriptor        the descriptor of the method.
+     */
+    public static String insertParameter(CtClass type,
+                                         String descriptor) {
+        if (descriptor.charAt(0) != '(')
+            return descriptor;
+        else
+            return "(" + of(type) + descriptor.substring(1);
+    }
+
+    /**
      * Changes the return type included in the given descriptor.
      *
      * <p><code>classname</code> must not be an array type.

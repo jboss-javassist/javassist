@@ -1216,6 +1216,8 @@ public abstract class CtClass {
      * object in the current directory.
      * Once this method is called, further modifications are not
      * possible any more.
+     *
+     * @see #debugWriteFile()
      */
     public void writeFile()
         throws NotFoundException, IOException, CannotCompileException
@@ -1230,6 +1232,7 @@ public abstract class CtClass {
      * possible any more.
      *
      * @param directoryName     it must end without a directory separator.
+     * @see #debugWriteFile(String)
      */
     public void writeFile(String directoryName)
         throws CannotCompileException, IOException
@@ -1263,9 +1266,22 @@ public abstract class CtClass {
      * This method would be useful for debugging.
      */
     public void debugWriteFile() {
+        debugWriteFile(".");
+    }
+
+    /**
+     * Writes a class file as <code>writeFile()</code> does although this
+     * method does not prune or freeze the class after writing the class
+     * file.  Note that, once <code>writeFile()</code> or <code>toBytecode()</code>
+     * is called, it cannot be called again since the class is pruned and frozen.
+     * This method would be useful for debugging.
+     *
+     * @param directoryName     it must end without a directory separator.
+     */
+    public void debugWriteFile(String directoryName) {
         try {
             boolean p = stopPruning(true);
-            writeFile();
+            writeFile(directoryName);
             defrost();
             stopPruning(p);
         }

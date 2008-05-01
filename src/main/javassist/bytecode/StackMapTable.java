@@ -425,6 +425,94 @@ public class StackMapTable extends AttributeInfo {
     }
 
     /**
+     * Updates this stack map table when a new local variable is added.
+     *
+     * @param index          the index of the added local variable.
+     * @param tag            the type tag of that local variable. 
+     * @param classInfo      the index of the <code>CONSTANT_Class_info</code> structure
+     *                       in a constant pool table.  This should be zero unless the tag
+     *                       is <code>ITEM_Object</code>.
+     *
+     * @see #typeTagOf(char)
+     * @see ConstPool
+     */
+    public void insertLocal(int index, int tag, int classInfo)
+        throws BadBytecode
+    {
+        byte[] data = new InsertLocal(this.get(), index, tag, classInfo).doit();
+        this.set(data);
+    }
+
+    /**
+     * Returns the tag of the type specified by the
+     * descriptor.  This method returns <code>INTEGER</code>
+     * unless the descriptor is either D (double), F (float),
+     * J (long), L (class type), or [ (array).
+     *
+     * @param descriptor        the type descriptor.
+     * @see Descriptor
+     */
+    public static int typeTagOf(char descriptor) {
+        switch (descriptor) {
+        case 'D' :
+            return DOUBLE;
+        case 'F' :
+            return FLOAT;
+        case 'J' :
+            return LONG;
+        case 'L' :
+        case '[' :
+            return OBJECT;
+        // case 'V' :
+        default :
+            return INTEGER;
+        }
+    }
+
+    static class InsertLocal extends SimpleCopy {
+        private int varIndex;
+        private int varTag, varData;
+
+        public InsertLocal(byte[] data, int varIndex, int varTag, int varData) {
+            super(data);
+            this.varIndex = varIndex;
+            this.varTag = varTag;
+            this.varData = varData;
+        }
+
+        public void fullFrame(int pos, int offsetDelta, int[] localTags, int[] localData,
+                              int[] stackTags, int[] stackData) {
+            int len = localTags.length;
+            if (len < varIndex) {
+                super.fullFrame(pos, offsetDelta, localTags, localData, stackTags, stackData);
+                return;
+            }
+
+            int typeSize = (varTag == LONG || varTag == DOUBLE) ? 2 : 1;
+            int[] localTags2 = new int[len + typeSize];
+            int[] localData2 = new int[len + typeSize];
+            int index = varIndex;
+            int j = 0;
+            for (int i = 0; i < len; i++) {
+                if (j == index)
+                    j += typeSize;
+
+                localTags2[j] = localTags[i];
+                localData2[j++] = localData[i];
+            }
+
+            localTags2[index] = varTag;
+            localData2[index] = varData;
+            if (typeSize > 1) {
+                localTags2[index + 1] = TOP;
+                localData2[index + 1] = 0;
+            }
+
+            super.fullFrame(pos, offsetDelta, localTags2, localData2, stackTags, stackData);
+        }
+    }
+
+    /**
      * A writer of stack map tables.
      */
     public static class Writer {
