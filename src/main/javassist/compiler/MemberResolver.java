@@ -107,19 +107,24 @@ public class MemberResolver implements TokenId {
         throws CompileError
     {
         Method maybe = null;
-        List list = clazz.getClassFile2().getMethods();
-        int n = list.size();
-        for (int i = 0; i < n; ++i) {
-            MethodInfo minfo = (MethodInfo)list.get(i);
-            if (minfo.getName().equals(methodName)) {
-                int res = compareSignature(minfo.getDescriptor(),
+        ClassFile cf = clazz.getClassFile2();
+        // If the class is an array type, the class file is null.
+        // If so, search the super class java.lang.Object for clone() etc.
+        if (cf != null) {
+            List list = cf.getMethods();
+            int n = list.size();
+            for (int i = 0; i < n; ++i) {
+                MethodInfo minfo = (MethodInfo)list.get(i);
+                if (minfo.getName().equals(methodName)) {
+                    int res = compareSignature(minfo.getDescriptor(),
                                            argTypes, argDims, argClassNames);
-                if (res != NO) {
-                    Method r = new Method(clazz, minfo, res);
-                    if (res == YES)
-                        return r;
-                    else if (maybe == null || maybe.notmatch > res)
-                        maybe = r;
+                    if (res != NO) {
+                        Method r = new Method(clazz, minfo, res);
+                        if (res == YES)
+                            return r;
+                        else if (maybe == null || maybe.notmatch > res)
+                            maybe = r;
+                    }
                 }
             }
         }
