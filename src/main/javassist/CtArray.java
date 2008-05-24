@@ -41,7 +41,8 @@ final class CtArray extends CtClass {
 
         String cname = clazz.getName();
         if (cname.equals(javaLangObject)
-            || cname.equals("java.lang.Cloneable"))
+            || cname.equals("java.lang.Cloneable")
+            || cname.equals("java.io.Serializable"))
             return true;
 
         return clazz.isArray()

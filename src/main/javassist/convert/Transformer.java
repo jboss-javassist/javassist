@@ -15,9 +15,14 @@
 
 package javassist.convert;
 
-import javassist.bytecode.*;
-import javassist.CtClass;
 import javassist.CannotCompileException;
+import javassist.CtClass;
+import javassist.bytecode.BadBytecode;
+import javassist.bytecode.CodeAttribute;
+import javassist.bytecode.CodeIterator;
+import javassist.bytecode.ConstPool;
+import javassist.bytecode.MethodInfo;
+import javassist.bytecode.Opcode;
 
 /**
  * Transformer and its subclasses are used for executing
@@ -35,6 +40,10 @@ public abstract class Transformer implements Opcode {
     public Transformer getNext() { return next; }
 
     public void initialize(ConstPool cp, CodeAttribute attr) {}
+    
+    public void initialize(ConstPool cp, CtClass clazz, MethodInfo minfo) throws CannotCompileException { 
+    	initialize(cp, minfo.getCodeAttribute());
+    }
 
     public void clean() {}
 

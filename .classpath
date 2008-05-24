@@ -3,5 +3,6 @@
 	<classpathentry excluding="javassist/util/HotSwapper.java" kind="src" path="src/main"/>
 	<classpathentry kind="src" path="src/test"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry kind="output" path="build/classes"/>
+	<classpathentry kind="lib" path="lib/junit.jar"/>
+	<classpathentry kind="output" path="eclipse-output/classes"/>
 </classpath>

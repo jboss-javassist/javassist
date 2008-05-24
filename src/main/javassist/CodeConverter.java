@@ -470,9 +470,8 @@ public class CodeConverter {
         CodeAttribute codeAttr = minfo.getCodeAttribute();
         if (codeAttr == null || transformers == null)
             return;
-
         for (t = transformers; t != null; t = t.getNext())
-            t.initialize(cp, codeAttr);
+            t.initialize(cp, clazz, minfo);
 
         CodeIterator iterator = codeAttr.iterator();
         while (iterator.hasNext()) {
@@ -504,7 +503,7 @@ public class CodeConverter {
      * as array access replacements.
      *
      * @author <a href="kabir.khan@jboss.com">Kabir Khan</a>
-     * @version $Revision: 1.13 $
+     * @version $Revision: 1.14 $
      */
     public interface ArrayAccessReplacementMethodNames
     {
@@ -613,7 +612,7 @@ public class CodeConverter {
      * accesses to array elements.
      *
      * @author <a href="kabir.khan@jboss.com">Kabir Khan</a>
-     * @version $Revision: 1.13 $
+     * @version $Revision: 1.14 $
      */
     public static class DefaultArrayAccessReplacementMethodNames
         implements ArrayAccessReplacementMethodNames

@@ -11,9 +11,13 @@
   <property environment="env"/>
   <property name="target.jar" value="javassist.jar"/>
   <property name="target-src.jar" value="javassist-src.jar"/>
+  <property name="lib.dir" value="${basedir}/lib"/>
   <property name="src.dir" value="${basedir}/src/main"/>
   <property name="build.dir" value="${basedir}/build"/>
   <property name="build.classes.dir" value="${build.dir}/classes"/>
+  <property name="test.src.dir" value="${basedir}/src/test"/>
+  <property name="test.build.dir" value="${basedir}/build/test-classes"/>
+  <property name="test.reports.dir" value = "${basedir}/build/test-output"/>
 
   <property name="run.dir" value="${build.classes.dir}"/>
 
@@ -24,12 +28,29 @@
 
   <property name="build.classpath" refid="classpath"/>
 
+  <path id="test.compile.classpath">
+    <pathelement location="${build.classes.dir}"/>
+    <pathelement location="${lib.dir}/junit.jar"/>
+  </path>
+
+  <property name="test.compile.classpath" refid="test.compile.classpath"/>
+
+  <path id="test.classpath">
+    <pathelement location="${test.build.dir}"/>
+    <pathelement location="${lib.dir}/junit.jar"/>
+    <pathelement location="${build.classes.dir}"/>
+  </path>
+
+  <property name="test.classpath" refid="test.classpath"/>
+
   <!-- =================================================================== -->
   <!-- Prepares the build directory                                        -->
   <!-- =================================================================== -->
   <target name="prepare" >
     <mkdir dir="${build.dir}"/>
     <mkdir dir="${build.classes.dir}"/>
+    <mkdir dir="${test.build.dir}"/>
+    <mkdir dir="${test.reports.dir}"/>
   </target>
 
   <!-- =================================================================== -->
@@ -44,6 +65,30 @@
            includes="**">
             <classpath refid="classpath"/>
     </javac>
+  </target>
+
+  <target name="test-compile" depends="compile">
+    <javac srcdir="${test.src.dir}"
+           destdir="${test.build.dir}"
+           debug="on"
+           deprecation="on"
+           optimize="off"
+           includes="**">
+            <classpath refid="test.compile.classpath"/>
+    </javac>
+  </target>
+
+  <target name="test" depends="test-compile">
+    <junit fork="true" printsummary="true">
+      <classpath refid="test.classpath"/>
+      <formatter type="plain"/>
+      <formatter type="xml"/>
+      <batchtest todir="${test.reports.dir}">
+         <fileset dir="${test.build.dir}">
+           <include name="**/*Test.*"/>
+         </fileset>
+      </batchtest>
+    </junit>
   </target>
 
   <target name="sample" depends="compile">

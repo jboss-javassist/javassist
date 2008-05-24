@@ -26,4 +26,8 @@ public class BadBytecode extends Exception {
     public BadBytecode(String msg) {
         super(msg);
     }
+
+    public BadBytecode(String msg, Throwable cause) {
+        super(msg, cause);
+    }
 }
