@@ -201,11 +201,9 @@ public class MultiType extends Type {
 
     private boolean inMergeSource(MultiType source) {
         while (source != null) {
-            if (source == this) {
-                System.out.println("INMERGESOURCE!");
+            if (source == this)
                 return true;
 
-            }
             source = source.mergeSource;
         }
 
