@@ -52,9 +52,10 @@ public class ErrorFinder {
         System.out.println("START: " + methodName);
         Analyzer analyzer = new Analyzer();
 
+        long time = System.currentTimeMillis();
         try {
             analyzer.analyze(clazz, method.getMethodInfo2());
-            System.out.println("SUCCESS: " + methodName);
+            System.out.println("SUCCESS: " + methodName + " - " + (System.currentTimeMillis() - time));
         } catch (Exception e) {
             System.out.println("FAIL: " + methodName + " - " + (e.getMessage() == null ? e.getClass().getName() : e.getMessage()));
         }
