@@ -282,8 +282,8 @@ public class Executor implements Opcode {
                 int insert = end - (opcode - DUP2_X1) - 1;
                 Type type1 = frame.getStack(frame.getTopIndex() - 1);
                 Type type2 = frame.peek();
-                 frame.push(type1);
-                 frame.push(type2);
+                frame.push(type1);
+                frame.push(type2);
                 while (end > insert) {
                     frame.setStack(end, frame.getStack(end - 2));
                     end--;
