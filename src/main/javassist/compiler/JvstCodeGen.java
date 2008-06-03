@@ -95,7 +95,7 @@ public class JvstCodeGen extends MemberCodeGen {
         }
         else if (name.equals(dollarTypeName)) {
             if (dollarType == null)
-                throw new CompileError(dollarType + " is not available");
+                throw new CompileError(dollarTypeName + " is not available");
 
             bytecode.addLdc(Descriptor.of(dollarType));
             callGetType("getType");
