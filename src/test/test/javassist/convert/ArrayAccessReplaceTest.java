@@ -20,6 +20,7 @@ public class ArrayAccessReplaceTest extends TestCase {
         CodeConverter converter = new CodeConverter();
         converter.replaceArrayAccess(echoClass, new CodeConverter.DefaultArrayAccessReplacementMethodNames());
         simpleClass.instrument(converter);
+        //simpleClass.writeFile("/tmp");
         simple = (SimpleInterface) simpleClass.toClass(new URLClassLoader(new URL[0], getClass().getClassLoader()), Class.class.getProtectionDomain()).newInstance();
     }
 
@@ -30,7 +31,6 @@ public class ArrayAccessReplaceTest extends TestCase {
         CodeConverter converter = new CodeConverter();
         converter.replaceArrayAccess(clazz, new CodeConverter.DefaultArrayAccessReplacementMethodNames());
         clazz.instrument(converter);
-        clazz.writeFile("/tmp");
         ComplexInterface instance = (ComplexInterface) clazz.toClass(new URLClassLoader(new URL[0], getClass().getClassLoader()), Class.class.getProtectionDomain()).newInstance();
         assertEquals(Integer.valueOf(5), instance.complexRead(4));
     }
@@ -134,6 +134,16 @@ public class ArrayAccessReplaceTest extends TestCase {
 
         for (int i = 0; i < 100; i++) {
             assertEquals(new Foo(i), simple.getFoo(i));
+        }
+    }
+
+    public void testMulti() throws Exception {
+        for (int i = 2; i < 100; i++) {
+            simple.setMultiFoo(0, 1, i, new Foo(i));
+        }
+
+        for (int i = 2; i < 100; i++) {
+            assertEquals(new Foo(i), simple.getMultiFoo(0, 1, i));
         }
     }
 
@@ -261,6 +271,9 @@ public class ArrayAccessReplaceTest extends TestCase {
 
         public void setFoo(int pos, Foo value);
         public Foo getFoo(int pos);
+
+        public void setMultiFoo(int one, int two, int three, Foo foo);
+        public Foo getMultiFoo(int one, int two, int three);
     }
 
     public static class Simple implements SimpleInterface {
@@ -274,6 +287,12 @@ public class ArrayAccessReplaceTest extends TestCase {
         private double[] doubles;
         private Object[] objects;
         private Foo[] foos;
+        private Foo[][][] multi;
+
+        public Simple() {
+           multi[0] = new Foo[0][0];
+           multi[0][1] = new Foo[0];
+        }
 
         public boolean getBoolean(int pos) {
             return booleans[pos];
@@ -313,6 +332,10 @@ public class ArrayAccessReplaceTest extends TestCase {
 
         public short getShort(int pos) {
             return shorts[pos];
+        }
+
+        public Foo getMultiFoo(int one, int two, int three) {
+            return multi[one][two][three];
         }
 
         public void setBoolean(int pos, boolean value) {
@@ -355,6 +378,9 @@ public class ArrayAccessReplaceTest extends TestCase {
             shorts[pos] = value;
         }
 
+        public void setMultiFoo(int one, int two, int three, Foo foo) {
+            multi[one][two][three] = foo;
+        }
     }
 
     public static interface ComplexInterface {

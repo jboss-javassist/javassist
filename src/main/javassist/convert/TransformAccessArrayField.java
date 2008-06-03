@@ -15,39 +15,41 @@
 package javassist.convert;
 
 import javassist.CannotCompileException;
+import javassist.ClassPool;
 import javassist.CtClass;
 import javassist.NotFoundException;
 import javassist.CodeConverter.ArrayAccessReplacementMethodNames;
 import javassist.bytecode.BadBytecode;
 import javassist.bytecode.CodeIterator;
 import javassist.bytecode.ConstPool;
+import javassist.bytecode.Descriptor;
 import javassist.bytecode.MethodInfo;
 import javassist.bytecode.analysis.Analyzer;
 import javassist.bytecode.analysis.Frame;
 
 /**
  * A transformer which replaces array access with static method invocations.
- * 
+ *
  * @author <a href="kabir.khan@jboss.com">Kabir Khan</a>
  * @author Jason T. Greene
- * @version $Revision: 1.5 $
+ * @version $Revision: 1.6 $
  */
 public final class TransformAccessArrayField extends Transformer {
-	private final String methodClassname;
-	private final ArrayAccessReplacementMethodNames names;
-	private Frame[] frames;
-	private int offset;
+    private final String methodClassname;
+    private final ArrayAccessReplacementMethodNames names;
+    private Frame[] frames;
+    private int offset;
 
-	public TransformAccessArrayField(Transformer next, String methodClassname,
-			ArrayAccessReplacementMethodNames names) throws NotFoundException {
-		super(next);
-		this.methodClassname = methodClassname;
-		this.names = names;
+    public TransformAccessArrayField(Transformer next, String methodClassname,
+            ArrayAccessReplacementMethodNames names) throws NotFoundException {
+        super(next);
+        this.methodClassname = methodClassname;
+        this.names = names;
 
-	}
+    }
 
-	public void initialize(ConstPool cp, CtClass clazz, MethodInfo minfo) throws CannotCompileException {
-	    /*
+    public void initialize(ConstPool cp, CtClass clazz, MethodInfo minfo) throws CannotCompileException {
+        /*
          * This transformer must be isolated from other transformers, since some
          * of them affect the local variable and stack maximums without updating
          * the code attribute to reflect the changes. This screws up the
@@ -56,7 +58,7 @@ public final class TransformAccessArrayField extends Transformer {
          * detect it, and redo analysis, which is not cheap. Instead, we are
          * better off doing all changes in initialize() before everyone else has
          * a chance to muck things up.
-         */ 
+         */
         CodeIterator iterator = minfo.getCodeAttribute().iterator();
         while (iterator.hasNext()) {
             try {
@@ -82,183 +84,183 @@ public final class TransformAccessArrayField extends Transformer {
         }
     }
 
-	public void clean() {
-		frames = null;
-		offset = -1;
-	}
+    public void clean() {
+        frames = null;
+        offset = -1;
+    }
 
-	public int transform(CtClass tclazz, int pos, CodeIterator iterator,
-			ConstPool cp) throws BadBytecode {
-	    // Do nothing, see above comment
-		return pos;
-	}
+    public int transform(CtClass tclazz, int pos, CodeIterator iterator,
+            ConstPool cp) throws BadBytecode {
+        // Do nothing, see above comment
+        return pos;
+    }
 
-	private Frame getFrame(int pos) throws BadBytecode {
-		return frames[pos - offset]; // Adjust pos
-	}
+    private Frame getFrame(int pos) throws BadBytecode {
+        return frames[pos - offset]; // Adjust pos
+    }
 
-	private void initFrames(CtClass clazz, MethodInfo minfo) throws BadBytecode {
-		if (frames == null) {
-			frames = ((new Analyzer())).analyze(clazz, minfo);
-			offset = 0; // start tracking changes
-		}
-	}
+    private void initFrames(CtClass clazz, MethodInfo minfo) throws BadBytecode {
+        if (frames == null) {
+            frames = ((new Analyzer())).analyze(clazz, minfo);
+            offset = 0; // start tracking changes
+        }
+    }
 
-	private int updatePos(int pos, int increment) {
-		if (offset > -1)
-			offset += increment;
+    private int updatePos(int pos, int increment) {
+        if (offset > -1)
+            offset += increment;
 
-		return pos + increment;
-	}
+        return pos + increment;
+    }
 
-	private String getTopType(int pos) throws BadBytecode {
-	    Frame frame = getFrame(pos);
-	    if (frame == null)
-	        return null;
-	    
-	    CtClass clazz = frame.peek().getCtClass();
-	    return clazz != null ? clazz.getName() : null;
-	}
+    private String getTopType(int pos) throws BadBytecode {
+        Frame frame = getFrame(pos);
+        if (frame == null)
+            return null;
 
-	private int replace(ConstPool cp, CodeIterator iterator, int pos,
-			int opcode, String signature) throws BadBytecode {
-	    String castType = null;
-		String methodName = getMethodName(opcode);
-		if (methodName != null) {
-		    // See if the object must be cast
-		    if (opcode == AALOAD) {
-		        castType = getTopType(iterator.lookAhead());
-		        // Do not replace an AALOAD instruction that we do not have a type for
-		        // This happens when the state is guaranteed to be null (Type.UNINIT)
-		        // So we don't really care about this case. 
-		        if (castType == null)
-		            return pos; 
-		        if ("java.lang.Object".equals(castType))
-		            castType = null;
-		    }
+        CtClass clazz = frame.peek().getCtClass();
+        return clazz != null ? Descriptor.toJvmName(clazz) : null;
+    }
 
-		    // The gap may include extra padding
-		    int gapLength = iterator.insertGap(pos, castType != null ? 5 : 2);
-			
-			int mi = cp.addClassInfo(methodClassname);
-			int methodref = cp.addMethodrefInfo(mi, methodName, signature);
-			iterator.writeByte(INVOKESTATIC, pos);
-			iterator.write16bit(methodref, pos + 1);
-			
-			if (castType != null) {
-			    int index = cp.addClassInfo(castType);
-			    iterator.writeByte(CHECKCAST, pos + 3);
-			    iterator.write16bit(index, pos + 4);
-			}
-			
-			pos = updatePos(pos, gapLength);
-		}
+    private int replace(ConstPool cp, CodeIterator iterator, int pos,
+            int opcode, String signature) throws BadBytecode {
+        String castType = null;
+        String methodName = getMethodName(opcode);
+        if (methodName != null) {
+            // See if the object must be cast
+            if (opcode == AALOAD) {
+                castType = getTopType(iterator.lookAhead());
+                // Do not replace an AALOAD instruction that we do not have a type for
+                // This happens when the state is guaranteed to be null (Type.UNINIT)
+                // So we don't really care about this case.
+                if (castType == null)
+                    return pos;
+                if ("java/lang/Object".equals(castType))
+                    castType = null;
+            }
 
-		return pos;
-	}
+            // The gap may include extra padding
+            int gapLength = iterator.insertGap(pos, castType != null ? 5 : 2);
 
-	private String getMethodName(int opcode) {
-		String methodName = null;
-		switch (opcode) {
-		case AALOAD:
-			methodName = names.objectRead();
-			break;
-		case BALOAD:
-			methodName = names.byteOrBooleanRead();
-			break;
-		case CALOAD:
-			methodName = names.charRead();
-			break;
-		case DALOAD:
-			methodName = names.doubleRead();
-			break;
-		case FALOAD:
-			methodName = names.floatRead();
-			break;
-		case IALOAD:
-			methodName = names.intRead();
-			break;
-		case SALOAD:
-			methodName = names.shortRead();
-			break;
-		case LALOAD:
-			methodName = names.longRead();
-			break;
-		case AASTORE:
-			methodName = names.objectWrite();
-			break;
-		case BASTORE:
-			methodName = names.byteOrBooleanWrite();
-			break;
-		case CASTORE:
-			methodName = names.charWrite();
-			break;
-		case DASTORE:
-			methodName = names.doubleWrite();
-			break;
-		case FASTORE:
-			methodName = names.floatWrite();
-			break;
-		case IASTORE:
-			methodName = names.intWrite();
-			break;
-		case SASTORE:
-			methodName = names.shortWrite();
-			break;
-		case LASTORE:
-			methodName = names.longWrite();
-			break;
-		}
+            int mi = cp.addClassInfo(methodClassname);
+            int methodref = cp.addMethodrefInfo(mi, methodName, signature);
+            iterator.writeByte(INVOKESTATIC, pos);
+            iterator.write16bit(methodref, pos + 1);
 
-		if (methodName.equals(""))
-			methodName = null;
+            if (castType != null) {
+                int index = cp.addClassInfo(castType);
+                iterator.writeByte(CHECKCAST, pos + 3);
+                iterator.write16bit(index, pos + 4);
+            }
 
-		return methodName;
-	}
+            pos = updatePos(pos, gapLength);
+        }
 
-	private String getLoadReplacementSignature(int opcode) throws BadBytecode {
-		switch (opcode) {
-		case AALOAD:
-			return "(Ljava/lang/Object;I)Ljava/lang/Object;";
-		case BALOAD:
-			return "(Ljava/lang/Object;I)B";
-		case CALOAD:
-			return "(Ljava/lang/Object;I)C";
-		case DALOAD:
-			return "(Ljava/lang/Object;I)D";
-		case FALOAD:
-			return "(Ljava/lang/Object;I)F";
-		case IALOAD:
-			return "(Ljava/lang/Object;I)I";
-		case SALOAD:
-			return "(Ljava/lang/Object;I)S";
-		case LALOAD:
-			return "(Ljava/lang/Object;I)J";
-		}
+        return pos;
+    }
 
-		throw new BadBytecode(opcode);
-	}
+    private String getMethodName(int opcode) {
+        String methodName = null;
+        switch (opcode) {
+        case AALOAD:
+            methodName = names.objectRead();
+            break;
+        case BALOAD:
+            methodName = names.byteOrBooleanRead();
+            break;
+        case CALOAD:
+            methodName = names.charRead();
+            break;
+        case DALOAD:
+            methodName = names.doubleRead();
+            break;
+        case FALOAD:
+            methodName = names.floatRead();
+            break;
+        case IALOAD:
+            methodName = names.intRead();
+            break;
+        case SALOAD:
+            methodName = names.shortRead();
+            break;
+        case LALOAD:
+            methodName = names.longRead();
+            break;
+        case AASTORE:
+            methodName = names.objectWrite();
+            break;
+        case BASTORE:
+            methodName = names.byteOrBooleanWrite();
+            break;
+        case CASTORE:
+            methodName = names.charWrite();
+            break;
+        case DASTORE:
+            methodName = names.doubleWrite();
+            break;
+        case FASTORE:
+            methodName = names.floatWrite();
+            break;
+        case IASTORE:
+            methodName = names.intWrite();
+            break;
+        case SASTORE:
+            methodName = names.shortWrite();
+            break;
+        case LASTORE:
+            methodName = names.longWrite();
+            break;
+        }
 
-	private String getStoreReplacementSignature(int opcode) throws BadBytecode {
-		switch (opcode) {
-		case AASTORE:
-			return "(Ljava/lang/Object;ILjava/lang/Object;)V";
-		case BASTORE:
-			return "(Ljava/lang/Object;IB)V";
-		case CASTORE:
-			return "(Ljava/lang/Object;IC)V";
-		case DASTORE:
-			return "(Ljava/lang/Object;ID)V";
-		case FASTORE:
-			return "(Ljava/lang/Object;IF)V";
-		case IASTORE:
-			return "(Ljava/lang/Object;II)V";
-		case SASTORE:
-			return "(Ljava/lang/Object;IS)V";
-		case LASTORE:
-			return "(Ljava/lang/Object;IJ)V";
-		}
+        if (methodName.equals(""))
+            methodName = null;
 
-		throw new BadBytecode(opcode);
-	}
+        return methodName;
+    }
+
+    private String getLoadReplacementSignature(int opcode) throws BadBytecode {
+        switch (opcode) {
+        case AALOAD:
+            return "(Ljava/lang/Object;I)Ljava/lang/Object;";
+        case BALOAD:
+            return "(Ljava/lang/Object;I)B";
+        case CALOAD:
+            return "(Ljava/lang/Object;I)C";
+        case DALOAD:
+            return "(Ljava/lang/Object;I)D";
+        case FALOAD:
+            return "(Ljava/lang/Object;I)F";
+        case IALOAD:
+            return "(Ljava/lang/Object;I)I";
+        case SALOAD:
+            return "(Ljava/lang/Object;I)S";
+        case LALOAD:
+            return "(Ljava/lang/Object;I)J";
+        }
+
+        throw new BadBytecode(opcode);
+    }
+
+    private String getStoreReplacementSignature(int opcode) throws BadBytecode {
+        switch (opcode) {
+        case AASTORE:
+            return "(Ljava/lang/Object;ILjava/lang/Object;)V";
+        case BASTORE:
+            return "(Ljava/lang/Object;IB)V";
+        case CASTORE:
+            return "(Ljava/lang/Object;IC)V";
+        case DASTORE:
+            return "(Ljava/lang/Object;ID)V";
+        case FASTORE:
+            return "(Ljava/lang/Object;IF)V";
+        case IASTORE:
+            return "(Ljava/lang/Object;II)V";
+        case SASTORE:
+            return "(Ljava/lang/Object;IS)V";
+        case LASTORE:
+            return "(Ljava/lang/Object;IJ)V";
+        }
+
+        throw new BadBytecode(opcode);
+    }
 }
