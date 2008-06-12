@@ -72,7 +72,7 @@ public class ScannerTest extends TestCase {
         assertNotNull(sub);
         assertEquals(sub.start(), start);
         for (int i = 0; i < callers.length; i++)
-            assertTrue(sub.callers().contains(Integer.valueOf(callers[i])));
+            assertTrue(sub.callers().contains(new Integer(callers[i])));
     }
 
     private static void generate(ClassPool pool) throws CannotCompileException, IOException, NotFoundException {

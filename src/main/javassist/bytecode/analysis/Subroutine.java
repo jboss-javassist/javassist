@@ -33,11 +33,11 @@ public class Subroutine {
 
     public Subroutine(int start, int caller) {
         this.start = start;
-        callers.add(Integer.valueOf(caller));
+        callers.add(new Integer(caller));
     }
 
     public void addCaller(int caller) {
-        callers.add(Integer.valueOf(caller));
+        callers.add(new Integer(caller));
     }
 
     public int start() {
@@ -45,11 +45,11 @@ public class Subroutine {
     }
 
     public void access(int index) {
-        access.add(Integer.valueOf(index));
+        access.add(new Integer(index));
     }
 
     public boolean isAccessed(int index) {
-        return access.contains(Integer.valueOf(index));
+        return access.contains(new Integer(index));
     }
 
     public Collection accessed() {

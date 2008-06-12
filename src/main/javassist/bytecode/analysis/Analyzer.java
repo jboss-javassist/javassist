@@ -221,7 +221,7 @@ public class Analyzer implements Opcode {
             try {
                 type = index == 0 ? Type.THROWABLE : Type.get(classes.get(constPool.getClassInfo(index)));
             } catch (NotFoundException e) {
-                throw new IllegalStateException(e);
+                throw new IllegalStateException(e.getMessage());
             }
 
             exceptions[i] = new ExceptionInfo(table.startPc(i), table.endPc(i), table.handlerPc(i), type);

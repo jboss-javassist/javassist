@@ -32,7 +32,7 @@ public class ArrayAccessReplaceTest extends TestCase {
         converter.replaceArrayAccess(clazz, new CodeConverter.DefaultArrayAccessReplacementMethodNames());
         clazz.instrument(converter);
         ComplexInterface instance = (ComplexInterface) clazz.toClass(new URLClassLoader(new URL[0], getClass().getClassLoader()), Class.class.getProtectionDomain()).newInstance();
-        assertEquals(Integer.valueOf(5), instance.complexRead(4));
+        assertEquals(new Integer(5), instance.complexRead(4));
     }
 
     public void testBoolean() throws Exception {
@@ -119,11 +119,11 @@ public class ArrayAccessReplaceTest extends TestCase {
 
     public void testObject() throws Exception {
         for (int i = 0; i < 100; i++) {
-            simple.setObject(i, Integer.valueOf(i));
+            simple.setObject(i, new Integer(i));
         }
 
         for (int i = 0; i < 100; i++) {
-            assertEquals(Integer.valueOf(i), simple.getObject(i));
+            assertEquals(new Integer(i), simple.getObject(i));
         }
     }
 
@@ -158,67 +158,67 @@ public class ArrayAccessReplaceTest extends TestCase {
         public static Map shortMap = new HashMap();
 
         public static Object arrayReadObject(Object array, int index) {
-            return objectMap.get(Integer.valueOf(index));
+            return objectMap.get(new Integer(index));
         }
 
         public static void arrayWriteObject(Object array, int index, Object element) {
-            objectMap.put(Integer.valueOf(index), element);
+            objectMap.put(new Integer(index), element);
         }
 
         public static byte arrayReadByteOrBoolean(Object array, int index) {
-            return ((Byte)byteMap.get(Integer.valueOf(index))).byteValue();
+            return ((Byte)byteMap.get(new Integer(index))).byteValue();
         }
 
         public static void arrayWriteByteOrBoolean(Object array, int index, byte element) {
-            byteMap.put(Integer.valueOf(index), Byte.valueOf(element));
+            byteMap.put(new Integer(index), new Byte(element));
         }
 
         public static char arrayReadChar(Object array, int index) {
-            return ((Character)charMap.get(Integer.valueOf(index))).charValue();
+            return ((Character)charMap.get(new Integer(index))).charValue();
         }
 
         public static void arrayWriteChar(Object array, int index, char element) {
-            charMap.put(Integer.valueOf(index), Character.valueOf(element));
+            charMap.put(new Integer(index), new Character(element));
         }
 
         public static double arrayReadDouble(Object array, int index) {
-            return ((Double)doubleMap.get(Integer.valueOf(index))).doubleValue();
+            return ((Double)doubleMap.get(new Integer(index))).doubleValue();
         }
 
         public static void arrayWriteDouble(Object array, int index, double element) {
-            doubleMap.put(Integer.valueOf(index), Double.valueOf(element));
+            doubleMap.put(new Integer(index), new Double(element));
         }
 
         public static float arrayReadFloat(Object array, int index) {
-            return ((Float)floatMap.get(Integer.valueOf(index))).floatValue();
+            return ((Float)floatMap.get(new Integer(index))).floatValue();
         }
 
         public static void arrayWriteFloat(Object array, int index, float element) {
-            floatMap.put(Integer.valueOf(index), Float.valueOf(element));
+            floatMap.put(new Integer(index), new Float(element));
         }
 
         public static int arrayReadInt(Object array, int index) {
-            return ((Integer)intMap.get(Integer.valueOf(index))).intValue();
+            return ((Integer)intMap.get(new Integer(index))).intValue();
         }
 
         public static void arrayWriteInt(Object array, int index, int element) {
-            intMap.put(Integer.valueOf(index), Integer.valueOf(element));
+            intMap.put(new Integer(index), new Integer(element));
         }
 
         public static long arrayReadLong(Object array, int index) {
-            return ((Long)longMap.get(Integer.valueOf(index))).longValue();
+            return ((Long)longMap.get(new Integer(index))).longValue();
         }
 
         public static void arrayWriteLong(Object array, int index, long element) {
-            longMap.put(Integer.valueOf(index), Long.valueOf(element));
+            longMap.put(new Integer(index), new Long(element));
         }
 
         public static short arrayReadShort(Object array, int index) {
-            return ((Short)shortMap.get(Integer.valueOf(index))).shortValue();
+            return ((Short)shortMap.get(new Integer(index))).shortValue();
         }
 
         public static void arrayWriteShort(Object array, int index, short element) {
-            shortMap.put(Integer.valueOf(index), Short.valueOf(element));
+            shortMap.put(new Integer(index), new Short(element));
         }
     }
 
@@ -393,7 +393,7 @@ public class ArrayAccessReplaceTest extends TestCase {
         private static Integer justRead;
 
         public static Object arrayReadObject(Object array, int offset) {
-            return Integer.valueOf(justRead.intValue() + offset);
+            return new Integer(justRead.intValue() + offset);
         }
 
         public static void arrayWriteObject(Object array, int offset, Object element) {
@@ -401,7 +401,7 @@ public class ArrayAccessReplaceTest extends TestCase {
         }
 
         public Object getInteger(int i) {
-            return (Object) Integer.valueOf(i);
+            return (Object) new Integer(i);
         }
 
         public Number complexRead(int x) {

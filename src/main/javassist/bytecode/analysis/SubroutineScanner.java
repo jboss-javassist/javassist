@@ -61,10 +61,10 @@ public class SubroutineScanner implements Opcode {
 
     private void scan(int pos, CodeIterator iter, Subroutine sub) throws BadBytecode {
         // Skip already processed blocks
-        if (done.contains(Integer.valueOf(pos)))
+        if (done.contains(new Integer(pos)))
             return;
 
-        done.add(Integer.valueOf(pos));
+        done.add(new Integer(pos));
 
         int old = iter.lookAhead();
         iter.move(pos);
@@ -102,10 +102,10 @@ public class SubroutineScanner implements Opcode {
         if (Util.isJumpInstruction(opcode)) {
             int target = Util.getJumpTarget(pos, iter);
             if (opcode == JSR || opcode == JSR_W) {
-                Subroutine s = (Subroutine) subTable.get(Integer.valueOf(target));
+                Subroutine s = (Subroutine) subTable.get(new Integer(target));
                 if (s == null) {
                     s = new Subroutine(target, pos);
-                    subTable.put(Integer.valueOf(target), s);
+                    subTable.put(new Integer(target), s);
                     scan(target, iter, s);
                 } else {
                     s.addCaller(pos);
