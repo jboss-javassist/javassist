@@ -6,7 +6,7 @@
 
 <project name="javassist" default="jar" basedir=".">
 
-  <property name="dist-version" value="javassist-3.7.1"/>
+  <property name="dist-version" value="javassist-3.8.0"/>
 
   <property environment="env"/>
   <property name="target.jar" value="javassist.jar"/>
@@ -182,9 +182,10 @@ Copyright (C) 1999-2008 Shigeru Chiba. All Rights Reserved.</i>]]></bottom>
        <zipfileset dir="${basedir}" prefix="${dist-version}">
           <include name="**"/>
           <exclude name=".*"/>
-	  <exclude name=".*/**"/>
+          <exclude name=".*/**"/>
           <exclude name="build/**"/>
-          <exclude name="local/**"/>
+       	  <exclude name="local/**"/>
+       	  <exclude name="eclipse-output/**"/>
           <exclude name="${dist-version}.zip"/>
           <exclude name="${target-src.jar}"/>
        </zipfileset>

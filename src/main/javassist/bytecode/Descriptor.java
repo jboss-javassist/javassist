@@ -358,7 +358,7 @@ public class Descriptor {
      * the last parameter.
      *
      * @param type      the type of the appended parameter.
-     * @param desc      descriptor
+     * @param descriptor      the original descriptor.
      */
     public static String appendParameter(CtClass type, String descriptor) {
         int i = descriptor.indexOf(')');

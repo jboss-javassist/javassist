@@ -48,7 +48,7 @@ public class AnnotationImpl implements InvocationHandler {
         // Try to resolve the JDK annotation type method
         try {
             Class clazz = Class.forName(JDK_ANNOTATION_CLASS_NAME);
-            JDK_ANNOTATION_TYPE_METHOD = clazz.getMethod("annotationType", null);
+            JDK_ANNOTATION_TYPE_METHOD = clazz.getMethod("annotationType", (Class[])null);
         }
         catch (Exception ignored) {
             // Probably not JDK5+
@@ -243,7 +243,7 @@ public class AnnotationImpl implements InvocationHandler {
             }
         }
 
-        Class otherAnnotationType = (Class) JDK_ANNOTATION_TYPE_METHOD.invoke(obj, null);
+        Class otherAnnotationType = (Class) JDK_ANNOTATION_TYPE_METHOD.invoke(obj, (Object[])null);
         if (getAnnotationType().equals(otherAnnotationType) == false)
            return false;
         
@@ -260,7 +260,7 @@ public class AnnotationImpl implements InvocationHandler {
                    value = mv.getValue(classLoader, pool, methods[i]);
                if (value == null)
                    value = getDefault(name, methods[i]);
-               otherValue = methods[i].invoke(obj, null);
+               otherValue = methods[i].invoke(obj, (Object[])null);
             }
             catch (RuntimeException e) {
                 throw e;
