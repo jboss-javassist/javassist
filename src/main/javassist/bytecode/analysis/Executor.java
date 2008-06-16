@@ -575,7 +575,7 @@ public class Executor implements Opcode {
             case 186:
                 throw new RuntimeException("Bad opcode 186");
             case NEW:
-                frame.push(typeFromDesc(constPool.getClassInfo(iter.u16bitAt(pos + 1))));
+                frame.push(resolveClassInfo(constPool.getClassInfo(iter.u16bitAt(pos + 1))));
                 break;
             case NEWARRAY:
                 evalNewArray(pos, iter, frame);
@@ -705,7 +705,7 @@ public class Executor implements Opcode {
         Type type = zeroExtend(typeFromDesc(desc));
 
         if (opcode == GETFIELD) {
-            Type objectType = typeFromDesc(constPool.getFieldrefClassName(index));
+            Type objectType = resolveClassInfo(constPool.getFieldrefClassName(index));
             verifyAssignable(objectType, simplePop(frame));
         }
 
@@ -720,8 +720,8 @@ public class Executor implements Opcode {
         while (i > 0)
             verifyAssignable(zeroExtend(types[--i]), simplePop(frame));
 
-        String classDesc = constPool.getInterfaceMethodrefClassName(index);
-        Type objectType = typeFromDesc(classDesc);
+        String classInfo = constPool.getInterfaceMethodrefClassName(index);
+        Type objectType = resolveClassInfo(classInfo);
         verifyAssignable(objectType, simplePop(frame));
 
         Type returnType = returnTypeFromDesc(desc);
@@ -738,7 +738,7 @@ public class Executor implements Opcode {
             verifyAssignable(zeroExtend(types[--i]), simplePop(frame));
 
         if (opcode != INVOKESTATIC) {
-            Type objectType = typeFromDesc(constPool.getMethodrefClassName(index));
+            Type objectType = resolveClassInfo(constPool.getMethodrefClassName(index));
             verifyAssignable(objectType, simplePop(frame));
         }
 
@@ -825,7 +825,7 @@ public class Executor implements Opcode {
 
     private void evalNewObjectArray(int pos, CodeIterator iter, Frame frame) throws BadBytecode {
         // Convert to x[] format
-        Type type = typeFromDesc(constPool.getClassInfo(iter.u16bitAt(pos + 1)));
+        Type type = resolveClassInfo(constPool.getClassInfo(iter.u16bitAt(pos + 1)));
         String name = type.getCtClass().getName();
         int opcode = iter.byteAt(pos);
         int dimensions;
@@ -851,7 +851,7 @@ public class Executor implements Opcode {
         verifyAssignable(type, simplePop(frame));
 
         if (opcode == PUTFIELD) {
-            Type objectType = typeFromDesc(constPool.getFieldrefClassName(index));
+            Type objectType = resolveClassInfo(constPool.getFieldrefClassName(index));
             verifyAssignable(objectType, simplePop(frame));
         }
     }
@@ -989,6 +989,25 @@ public class Executor implements Opcode {
         frame.setLocal(index, type);
         if (type.getSize() == 2)
             frame.setLocal(index + 1, Type.TOP);
+    }
+
+    private Type resolveClassInfo(String info) throws BadBytecode {
+        CtClass clazz = null;
+        try {
+            if (info.charAt(0) == '[') {
+                clazz = Descriptor.toCtClass(info, classPool);
+            } else {
+                clazz = classPool.get(info);
+            }
+
+        } catch (NotFoundException e) {
+            throw new BadBytecode("Could not find class in descriptor [pos = " + lastPos + "]: " + e.getMessage());
+        }
+
+        if (clazz == null)
+            throw new BadBytecode("Could not obtain type for descriptor [pos = " + lastPos + "]: " + info);
+
+        return Type.get(clazz);
     }
 
     private Type typeFromDesc(String desc) throws BadBytecode {
