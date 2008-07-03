@@ -60,7 +60,7 @@ class CtClassType extends CtClass {
     boolean wasChanged;
     private boolean wasFrozen;
     boolean wasPruned;
-    boolean memberRemoved;
+    boolean gcConstPool;    // if true, the constant pool entries will be garbage collected. 
     ClassFile classfile;
     byte[] rawClassfile;    // backup storage
 
@@ -78,7 +78,7 @@ class CtClassType extends CtClass {
     CtClassType(String name, ClassPool cp) {
         super(name);
         classPool = cp;
-        wasChanged = wasFrozen = wasPruned = memberRemoved = false;
+        wasChanged = wasFrozen = wasPruned = gcConstPool = false;
         classfile = null;
         rawClassfile = null;
         memberCache = null;
@@ -1183,7 +1183,7 @@ class CtClassType extends CtClass {
         ClassFile cf = getClassFile2();
         if (cf.getFields().remove(fi)) {
             getMembers().remove(f);
-            memberRemoved = true;
+            gcConstPool = true;
         }
         else
             throw new NotFoundException(f.toString());
@@ -1220,7 +1220,7 @@ class CtClassType extends CtClass {
         ClassFile cf = getClassFile2();
         if (cf.getMethods().remove(mi)) {
             getMembers().remove(m);
-            memberRemoved = true;
+            gcConstPool = true;
         }
         else
             throw new NotFoundException(m.toString());
@@ -1243,7 +1243,7 @@ class CtClassType extends CtClass {
         ClassFile cf = getClassFile2();
         if (cf.getMethods().remove(mi)) {
             getMembers().remove(m);
-            memberRemoved = true;
+            gcConstPool = true;
         }
         else
             throw new NotFoundException(m.toString());
@@ -1302,6 +1302,8 @@ class CtClassType extends CtClass {
         getClassFile2().prune();
     }
 
+    public void rebuildClassFile() { gcConstPool = true; }
+
     public void toBytecode(DataOutputStream out)
         throws CannotCompileException, IOException
     {
@@ -1309,9 +1311,9 @@ class CtClassType extends CtClass {
             if (isModified()) {
                 checkPruned("toBytecode");
                 ClassFile cf = getClassFile2();
-                if (memberRemoved) {
+                if (gcConstPool) {
                     cf.compact();
-                    memberRemoved = false;
+                    gcConstPool = false;
                 }
 
                 modifyClassConstructor(cf);

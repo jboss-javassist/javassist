@@ -362,6 +362,7 @@ public abstract class CtBehavior extends CtMember {
             methodInfo.setAccessFlags(methodInfo.getAccessFlags()
                                       & ~AccessFlag.ABSTRACT);
             methodInfo.rebuildStackMapIf6(cc.getClassPool(), cc.getClassFile2());
+            declaringClass.rebuildClassFile();
         }
         catch (CompileError e) {
             throw new CannotCompileException(e);
@@ -396,6 +397,7 @@ public abstract class CtBehavior extends CtMember {
 
         destInfo.setAccessFlags(destInfo.getAccessFlags()
                                 & ~AccessFlag.ABSTRACT);
+        destClass.rebuildClassFile();
     }
 
     /**

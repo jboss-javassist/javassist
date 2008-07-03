@@ -180,14 +180,13 @@ Copyright (C) 1999-2008 Shigeru Chiba. All Rights Reserved.</i>]]></bottom>
     <delete file="${dist-version}.zip"/>
     <zip zipfile="${dist-version}.zip">
        <zipfileset dir="${basedir}" prefix="${dist-version}">
-          <include name="**"/>
-          <exclude name=".*"/>
-          <exclude name=".*/**"/>
-          <exclude name="build/**"/>
-       	  <exclude name="local/**"/>
-       	  <exclude name="eclipse-output/**"/>
-          <exclude name="${dist-version}.zip"/>
-          <exclude name="${target-src.jar}"/>
+       	  <include name="html/**"/>
+       	  <include name="sample/**"/>
+       	  <include name="src/**"/>
+       	  <include name="tutorial/**"/>
+       	  <include name="*.html"/>
+       	  <include name="*.xml"/>
+       	  <include name="${target.jar}"/>
        </zipfileset>
     </zip>
   </target>
