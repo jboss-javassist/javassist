@@ -441,6 +441,33 @@ public class ClassPool {
     }
 
     /**
+     * Returns a <code>CtClass</code> object with the given name.
+     * This is almost equivalent to <code>get(String)</code> except
+     * that classname can be an array-type "descriptor" (an encoded
+     * type name) such as <code>[Ljava/lang/Object;</code>.
+     *
+     * <p>Using this method is not recommended; this method should be 
+     * used only to obtain the <code>CtClass</code> object
+     * with a name returned from <code>getClassInfo</code> in
+     * <code>javassist.bytecode.ClassPool</code>.  <code>getClassInfo</code>
+     * returns a fully-qualified class name but, if the class is an array
+     * type, it returns a descriptor.
+     *
+     * @param classname         a fully-qualified class name or a descriptor
+     *                          representing an array type.
+     * @see #get(String)
+     * @see javassist.bytecode.ConstPool#getClassInfo(int)
+     * @see javassist.bytecode.Descriptor#toCtClass(String, ClassPool)
+     * @since 3.8.1
+     */
+    public CtClass getCtClass(String classname) throws NotFoundException {
+        if (classname.charAt(0) == '[')
+            return Descriptor.toCtClass(classname, this);
+        else
+            return get(classname);
+    }
+
+    /**
      * @param useCache      false if the cached CtClass must be ignored.
      * @param searchParent  false if the parent class pool is not searched.
      * @return null     if the class could not be found.
@@ -463,8 +490,9 @@ public class ClassPool {
 
         clazz = createCtClass(classname, useCache);
         if (clazz != null) {
+            // clazz.getName() != classname if classname is "[L<name>;".
             if (useCache)
-                cacheCtClass(classname, clazz, false);
+                cacheCtClass(clazz.getName(), clazz, false);
 
             return clazz;
         }

@@ -41,6 +41,11 @@ public class Descriptor {
     /**
      * Converts a class name from the internal representation used in
      * the JVM to the normal one used in Java.
+     * This method does not deal with an array type name such as
+     * "[Ljava/lang/Object;" and "[I;".  For such names, use
+     * <code>toClassName()</code>.
+     *
+     * @see #toClassName(String)
      */
     public static String toJavaName(String classname) {
         return classname.replace('/', '.');
@@ -525,7 +530,7 @@ public class Descriptor {
      * it accepts <code>Ljava.lang.Object;</code>
      * as well as <code>Ljava/lang/Object;</code>.
      *
-     * @param desc descriptor
+     * @param desc descriptor.
      * @param cp   the class pool used for obtaining
      *             a <code>CtClass</code> object.
      */

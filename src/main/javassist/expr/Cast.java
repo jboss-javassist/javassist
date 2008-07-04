@@ -65,7 +65,7 @@ public class Cast extends Expr {
         int pos = currentPos;
         int index = iterator.u16bitAt(pos + 1);
         String name = cp.getClassInfo(index);
-        return Descriptor.toCtClass(name, thisClass.getClassPool());
+        return thisClass.getClassPool().getCtClass(name);
     }
 
     /**

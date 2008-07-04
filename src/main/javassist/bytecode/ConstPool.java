@@ -175,7 +175,11 @@ public final class ConstPool {
      * at the given index.
      *
      * @return  a fully-qualified class or interface name specified
-     *          by <code>name_index</code>.
+     *          by <code>name_index</code>.  If the type is an array
+     *          type, this method returns an encoded name like
+     *          <code>[java.lang.Object;</code> (note that the separators
+     *          are not slashes but dots).
+     * @see javassist.ClassPool#getCtClass(String)
      */
     public String getClassInfo(int index) {
         ClassInfo c = (ClassInfo)getItem(index);

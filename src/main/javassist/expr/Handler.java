@@ -73,7 +73,7 @@ public class Handler extends Expr {
     public CtClass getType() throws NotFoundException {
         ConstPool cp = getConstPool();
         String name = cp.getClassInfo(etable.catchType(index));
-        return Descriptor.toCtClass(name, thisClass.getClassPool());
+        return thisClass.getClassPool().getCtClass(name);
     }
 
     /**
