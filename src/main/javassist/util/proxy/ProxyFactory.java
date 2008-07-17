@@ -126,6 +126,8 @@ import javassist.bytecode.*;
  *
  * @see MethodHandler
  * @since 3.1
+ * @author Muga Nishizawa
+ * @author Shigeru Chiba
  */
 public class ProxyFactory {
     private Class superClass;
