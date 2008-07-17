@@ -6,7 +6,7 @@
 
 <project name="javassist" default="jar" basedir=".">
 
-  <property name="dist-version" value="javassist-3.8.0"/>
+  <property name="dist-version" value="javassist-3.8.1"/>
 
   <property environment="env"/>
   <property name="target.jar" value="javassist.jar"/>
@@ -67,6 +67,19 @@
     </javac>
   </target>
 
+  <target name="compile14" depends="prepare">
+    <javac srcdir="${src.dir}"
+           destdir="${build.classes.dir}"
+           debug="on"
+           deprecation="on"
+	       source="1.4"
+	       target="1.4"
+           optimize="off"
+           includes="**">
+      <classpath refid="classpath"/>
+    </javac>
+  </target>
+	
   <target name="test-compile" depends="compile">
     <javac srcdir="${test.src.dir}"
            destdir="${test.build.dir}"
@@ -142,7 +155,7 @@
 to ${build.classes.dir}.</echo>
   </target>
 
-  <target name="jar" depends="compile">
+  <target name="jar" depends="compile14">
     <jar jarfile="${target.jar}" manifest="${src.dir}/META-INF/MANIFEST.MF">
       <fileset dir="${build.classes.dir}">
       	  <include name="**/*.class"/>
