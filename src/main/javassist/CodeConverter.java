@@ -98,6 +98,32 @@ public class CodeConverter {
     }
 
     /**
+     * Modify a method body so that instantiation of the class
+     * specified by <code>oldClass</code>
+     * is replaced with instantiation of another class <code>newClass</code>.
+     * For example,
+     * <code>replaceNew(ctPoint, ctPoint2)</code>
+     * (where <code>ctPoint</code> and <code>ctPoint2</code> are
+     * compile-time classes for class <code>Point</code> and class
+     * <code>Point2</code>, respectively)
+     * replaces all occurrences of:
+     *
+     * <ul><code>new Point(x, y)</code></ul>
+     *
+     * in the method body with:
+     *
+     * <ul><code>new Point2(x, y)</code></ul>
+     *
+     * <p>Note that <code>Point2</code> must be type-compatible with <code>Point</code>.
+     * It must have the same set of methods, fields, and constructors as the
+     * replaced class. 
+     */
+    public void replaceNew(CtClass oldClass, CtClass newClass) {
+        transformers = new TransformNewClass(transformers, oldClass.getName(),
+                                             newClass.getName());
+    }
+
+    /**
      * Modify a method body so that field read/write expressions access
      * a different field from the original one.
      *
@@ -503,7 +529,7 @@ public class CodeConverter {
      * as array access replacements.
      *
      * @author <a href="kabir.khan@jboss.com">Kabir Khan</a>
-     * @version $Revision: 1.14 $
+     * @version $Revision: 1.15 $
      */
     public interface ArrayAccessReplacementMethodNames
     {
@@ -612,7 +638,7 @@ public class CodeConverter {
      * accesses to array elements.
      *
      * @author <a href="kabir.khan@jboss.com">Kabir Khan</a>
-     * @version $Revision: 1.14 $
+     * @version $Revision: 1.15 $
      */
     public static class DefaultArrayAccessReplacementMethodNames
         implements ArrayAccessReplacementMethodNames
