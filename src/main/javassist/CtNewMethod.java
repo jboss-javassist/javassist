@@ -357,7 +357,7 @@ public class CtNewMethod {
      * Creates a wrapped method.  The wrapped method receives parameters
      * in the form of an array of <code>Object</code>.
      *
-     * <p>The body of the created method is a copy of the body of a method
+     * <p>The body of the created method is a copy of the body of the method
      * specified by <code>body</code>.  However, it is wrapped in
      * parameter-conversion code.
      *
@@ -423,7 +423,7 @@ public class CtNewMethod {
      * <ul><pre>public class intVector extends java.util.Vector {
      *     public void add(int p0) {
      *         Object[] args = new Object[] { p0 };
-     *         // begin of copied body
+     *         // begin of the copied body
      *         super.addElement(args[0]);
      *         Object result = null;
      *         // end
