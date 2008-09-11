@@ -547,6 +547,8 @@ public class ClassPool {
      * This method throws an exception if the class is already frozen or
      * if this class pool cannot edit the class since it is in a parent
      * class pool.
+     *
+     * @see checkNotExists(String)
      */
     void checkNotFrozen(String classname) throws RuntimeException {
         CtClass clazz = getCached(classname);
@@ -565,6 +567,25 @@ public class ClassPool {
             if (clazz.isFrozen())
                 throw new RuntimeException(classname
                                         + ": frozen class (cannot edit)");
+    }
+
+    /*
+     * This method returns null if this or its parent class pool does
+     * not contain a CtClass object with the class name.
+     *
+     * @see checkNotFrozen(String)
+     */
+    CtClass checkNotExists(String classname) {
+        CtClass clazz = getCached(classname);
+        if (clazz == null)
+            if (!childFirstLookup && parent != null) {
+                try {
+                    clazz = parent.get0(classname, true);
+                }
+                catch (NotFoundException e) {}
+            }
+
+        return clazz;
     }
 
     /* for CtClassType.getClassFile2().  Don't delegate to the parent.
@@ -628,6 +649,7 @@ public class ClassPool {
      * @param classfile class file.
      * @throws RuntimeException if there is a frozen class with the
      *                          the same name.
+     * @see #makeClassIfNew(InputStream)
      * @see javassist.ByteArrayClassPath
      */
     public CtClass makeClass(InputStream classfile)
@@ -663,6 +685,38 @@ public class ClassPool {
 
         cacheCtClass(classname, clazz, true);
         return clazz;
+    }
+
+    /**
+     * Creates a new class (or interface) from the given class file.
+     * If there already exists a class with the same name, this method
+     * returns the existing class; a new class is never created from
+     * the given class file.
+     *
+     * <p>This method is used for creating a <code>CtClass</code> object
+     * directly from a class file.  The qualified class name is obtained
+     * from the class file; you do not have to explicitly give the name.
+     *
+     * @param classfile             the class file.
+     * @see #makeClass(InputStream)
+     * @see javassist.ByteArrayClassPath
+     * @since 3.9
+     */
+    public CtClass makeClassIfNew(InputStream classfile)
+        throws IOException, RuntimeException
+    {
+        compress();
+        classfile = new BufferedInputStream(classfile);
+        CtClass clazz = new CtClassType(classfile, this);
+        clazz.checkModify();
+        String classname = clazz.getName();
+        CtClass found = checkNotExists(classname);
+        if (found != null)
+            return found;
+        else {
+            cacheCtClass(classname, clazz, true);
+            return clazz;
+        }
     }
 
     /**
