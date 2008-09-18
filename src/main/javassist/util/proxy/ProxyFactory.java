@@ -827,7 +827,7 @@ public class ProxyFactory {
         /*
          * if (methods[index * 2] == null) {
          *   methods[index * 2]
-         *     = RuntimeSupport.findMethod(this, <overridden name>, <desc>);
+         *     = RuntimeSupport.findSuperMethod(this, <overridden name>, <desc>);
          *   methods[index * 2 + 1]
          *     = RuntimeSupport.findMethod(this, <delegator name>, <desc>);
          *     or = null // the original method is abstract.
@@ -840,7 +840,10 @@ public class ProxyFactory {
         int arrayVar = args + 1;
         code.addGetstatic(thisClassName, HOLDER, HOLDER_TYPE);
         code.addAstore(arrayVar);
-        code.addAload(arrayVar);
+
+        callFind2Methods(code, meth.getName(), delegatorName, origIndex, desc, arrayVar);
+
+        /* code.addAload(arrayVar);
         code.addIconst(origIndex);
         code.addOpcode(Opcode.AALOAD);
         code.addOpcode(Opcode.IFNONNULL);
@@ -851,7 +854,8 @@ public class ProxyFactory {
         callFindMethod(code, "findMethod", arrayVar, delIndex, delegatorName, desc);
 
         int pc2 = code.currentPc();
-        code.write16bit(pc, pc2 - pc + 1);
+        code.write16bit(pc, pc2 - pc + 1);*/
+
         code.addAload(0);
         code.addGetfield(thisClassName, HANDLER, HANDLER_TYPE);
         code.addAload(0);
@@ -874,10 +878,10 @@ public class ProxyFactory {
 
         CodeAttribute ca = code.toCodeAttribute();
         forwarder.setCodeAttribute(ca);
-        StackMapTable.Writer writer = new StackMapTable.Writer(32);
+        /*StackMapTable.Writer writer = new StackMapTable.Writer(32);
         writer.appendFrame(pc2, new int[] { StackMapTable.OBJECT },
                            new int[] { cp.addClassInfo(HOLDER_TYPE) });
-        ca.setAttribute(writer.toStackMapTable(cp));
+        ca.setAttribute(writer.toStackMapTable(cp));*/
         return forwarder;
     }
 
@@ -1008,6 +1012,25 @@ public class ProxyFactory {
         }
 
         code.addOpcode(Opcode.AASTORE);
+    }
+
+    private static void callFind2Methods(Bytecode code, String superMethod, String thisMethod,
+                                         int index, String desc, int arrayVar) {
+        String findClass = RuntimeSupport.class.getName();
+        String findDesc
+            = "(Ljava/lang/Object;Ljava/lang/String;Ljava/lang/String;ILjava/lang/String;[Ljava/lang/reflect/Method;)V";
+
+        code.addAload(0);
+        code.addLdc(superMethod);
+        if (thisMethod == null)
+            code.addOpcode(Opcode.ACONST_NULL);
+        else
+            code.addLdc(thisMethod);
+
+        code.addIconst(index);
+        code.addLdc(desc);
+        code.addAload(arrayVar);
+        code.addInvokestatic(findClass, "find2Methods", findDesc);
     }
 
     private static void addUnwrapper(Bytecode code, Class type) {

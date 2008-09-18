@@ -39,6 +39,26 @@ public class RuntimeSupport {
     };
 
     /**
+     * Finds two methods specified by the parameters and stores them
+     * into the given array.
+     *
+     * @throws RuntimeException     if the methods are not found.
+     * @see javassist.util.proxy.ProxyFactory
+     */
+    public static void find2Methods(Object self, String superMethod,
+                                    String thisMethod, int index,
+                                    String desc, java.lang.reflect.Method[] methods)
+    {
+        synchronized (methods) {
+            if (methods[index] == null) {
+                methods[index + 1] = thisMethod == null ? null
+                                     : findMethod(self, thisMethod, desc);
+                methods[index] = findSuperMethod(self, superMethod, desc);
+            }
+        }
+    }
+
+    /**
      * Finds a method with the given name and descriptor.
      * It searches only the class of self.
      *
