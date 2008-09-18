@@ -843,19 +843,6 @@ public class ProxyFactory {
 
         callFind2Methods(code, meth.getName(), delegatorName, origIndex, desc, arrayVar);
 
-        /* code.addAload(arrayVar);
-        code.addIconst(origIndex);
-        code.addOpcode(Opcode.AALOAD);
-        code.addOpcode(Opcode.IFNONNULL);
-        int pc = code.currentPc();
-        code.addIndex(0);
-
-        callFindMethod(code, "findSuperMethod", arrayVar, origIndex, meth.getName(), desc);
-        callFindMethod(code, "findMethod", arrayVar, delIndex, delegatorName, desc);
-
-        int pc2 = code.currentPc();
-        code.write16bit(pc, pc2 - pc + 1);*/
-
         code.addAload(0);
         code.addGetfield(thisClassName, HANDLER, HANDLER_TYPE);
         code.addAload(0);
@@ -878,10 +865,6 @@ public class ProxyFactory {
 
         CodeAttribute ca = code.toCodeAttribute();
         forwarder.setCodeAttribute(ca);
-        /*StackMapTable.Writer writer = new StackMapTable.Writer(32);
-        writer.appendFrame(pc2, new int[] { StackMapTable.OBJECT },
-                           new int[] { cp.addClassInfo(HOLDER_TYPE) });
-        ca.setAttribute(writer.toStackMapTable(cp));*/
         return forwarder;
     }
 
@@ -992,28 +975,8 @@ public class ProxyFactory {
     }
 
     /**
-     * @param methodName        might be null.
+     * @param thisMethod        might be null.
      */
-    private static void callFindMethod(Bytecode code, String findMethod,
-            int arrayVar, int index, String methodName, String desc) {
-        String findClass = RuntimeSupport.class.getName();
-        String findDesc
-            = "(Ljava/lang/Object;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/reflect/Method;";
-
-        code.addAload(arrayVar);
-        code.addIconst(index);
-        if (methodName == null)
-            code.addOpcode(Opcode.ACONST_NULL);
-        else {
-            code.addAload(0);
-            code.addLdc(methodName);
-            code.addLdc(desc);
-            code.addInvokestatic(findClass, findMethod, findDesc);
-        }
-
-        code.addOpcode(Opcode.AASTORE);
-    }
-
     private static void callFind2Methods(Bytecode code, String superMethod, String thisMethod,
                                          int index, String desc, int arrayVar) {
         String findClass = RuntimeSupport.class.getName();
