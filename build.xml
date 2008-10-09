@@ -6,7 +6,7 @@
 
 <project name="javassist" default="jar" basedir=".">
 
-  <property name="dist-version" value="javassist-3.8.1"/>
+  <property name="dist-version" value="javassist-3.9.0"/>
 
   <property environment="env"/>
   <property name="target.jar" value="javassist.jar"/>
@@ -195,7 +195,7 @@ Copyright (C) 1999-2008 Shigeru Chiba. All Rights Reserved.</i>]]></bottom>
        <zipfileset dir="${basedir}" prefix="${dist-version}">
        	  <include name="html/**"/>
        	  <include name="sample/**"/>
-       	  <include name="src/**"/>
+       	  <include name="src/main/**"/>
        	  <include name="tutorial/**"/>
        	  <include name="*.html"/>
        	  <include name="*.xml"/>
