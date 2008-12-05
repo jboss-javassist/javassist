@@ -16,6 +16,8 @@
 package javassist;
 
 import java.io.*;
+import java.lang.reflect.Modifier;
+
 import javassist.bytecode.*;
 import java.util.*;
 import java.security.*;
@@ -79,11 +81,19 @@ public class SerialVersionUID {
             // class name.
             String javaName = javaName(clazz);
             out.writeUTF(javaName);
-            
+
+            CtMethod[] methods = clazz.getDeclaredMethods();
+
             // class modifiers.
-            out.writeInt(clazz.getModifiers() & (Modifier.PUBLIC |
-                Modifier.FINAL | Modifier.INTERFACE | Modifier.ABSTRACT));
-           
+            int classMods = clazz.getModifiers();
+            if ((classMods & Modifier.INTERFACE) != 0)
+                if (methods.length > 0)
+                    classMods = classMods | Modifier.ABSTRACT;
+                else
+                    classMods = classMods & ~Modifier.ABSTRACT;
+
+            out.writeInt(classMods);
+
             // interfaces.
             String[] interfaces = classFile.getInterfaces();
             for (int i = 0; i < interfaces.length; i++)
@@ -144,7 +154,6 @@ public class SerialVersionUID {
             }
 
             // methods.
-            CtMethod[] methods = clazz.getDeclaredMethods();
             Arrays.sort(methods, new Comparator() {
                 public int compare(Object o1, Object o2) {
                     CtMethod m1 = (CtMethod)o1;
@@ -160,7 +169,11 @@ public class SerialVersionUID {
 
             for (int i = 0; i < methods.length; i++) {
                 CtMethod method = methods[i];
-                int mods = method.getModifiers();
+                int mods = method.getModifiers()
+                           & (Modifier.PUBLIC | Modifier.PRIVATE
+                              | Modifier.PROTECTED | Modifier.STATIC
+                              | Modifier.FINAL | Modifier.SYNCHRONIZED
+                              | Modifier.NATIVE | Modifier.ABSTRACT | Modifier.STRICT);
                 if ((mods & Modifier.PRIVATE) == 0) {
                     out.writeUTF(method.getName());
                     out.writeInt(mods);
