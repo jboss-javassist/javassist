@@ -746,7 +746,7 @@ public abstract class CtBehavior extends CtMember {
             iterator.append(b.getExceptionTable(), gapPos);
 
             if (asFinally)
-                ca.getExceptionTable().add(0, gapPos, gapPos, 0);
+                ca.getExceptionTable().add(getStartPosOfBody(ca), gapPos, gapPos, 0); 
 
             int gapLen = iterator.getCodeLength() - gapPos - handlerLen;
             int subr = iterator.getCodeLength() - gapLen;

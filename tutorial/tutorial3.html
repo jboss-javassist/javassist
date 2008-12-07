@@ -24,6 +24,8 @@
 
 <p><a href="#generics">6. Generics</a>
 
+<p><a href="#j2me">7. J2ME</a>
+
 <p><br>
 
 <a name="intro">
@@ -282,6 +284,29 @@ public Object get() { return value; }
 </pre></ul>
 
 <p>Note that no type parameters are necessary.
+
+<p><br>
+
+<h2><a name="j2me">7. J2ME</a></h2>
+
+<p>If you modify a class file for the J2ME execution environment,
+you must perform <it>preverification</it>.  Preverifying is basically
+producing a stack map table, which was introduced into J2SE at JDK 1.6.
+However, Javassist does not automatically produce a stack map table
+for class files compiled by the J2ME compiler.  You have to manually
+produce stack map tables for the modified methods.
+
+<p>For a given method represented by a <code>CtMethod</code> object <code>m</code>,
+you can produce a stack map table by calling the following methods:
+
+<ul><pre>
+m.getMethodInfo().rebuildStackMap(cpool);
+</pre></ul>
+
+<p>Here, <code>cpool</code> is a <code>ClassPool</code> object, which is
+available by calling <code>getClassPool()</code> on a <code>CtClass</code>
+object.  A <code>ClassPool</code> object is responsible for finding
+class files from given class pathes.
 
 <p><br>
 
