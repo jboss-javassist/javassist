@@ -130,6 +130,7 @@ public class InstructionPrinter implements Opcode {
             case NEWARRAY:
                 return opstring + " " + arrayInfo(iter.byteAt(pos + 1));
             case ANEWARRAY:
+            case CHECKCAST:
                 return opstring + " " + classInfo(pool, iter.u16bitAt(pos + 1));
             case WIDE:
                 return wide(iter, pos);
