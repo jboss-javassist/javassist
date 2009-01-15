@@ -434,7 +434,7 @@ public final class MethodInfo {
      * <p>
      * This method modifies a call to <code>super()</code>, which should be
      * at the head of a constructor body, so that a constructor in a different
-     * super class is called. This method does not change actural parameters.
+     * super class is called. This method does not change actual parameters.
      * Hence the new super class must have a constructor with the same signature
      * as the original one.
      * 
