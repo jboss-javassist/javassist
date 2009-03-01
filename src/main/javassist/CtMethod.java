@@ -30,6 +30,9 @@ import javassist.bytecode.*;
 public final class CtMethod extends CtBehavior {
     protected String cachedStringRep;
 
+    /**
+     * @see #make(MethodInfo minfo, CtClass declaring)
+     */
     CtMethod(MethodInfo minfo, CtClass declaring) {
         super(declaring, minfo);
         cachedStringRep = null;

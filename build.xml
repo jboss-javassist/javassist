@@ -6,7 +6,7 @@
 
 <project name="javassist" default="jar" basedir=".">
 
-  <property name="dist-version" value="javassist-3.9.0"/>
+  <property name="dist-version" value="javassist-3.10.0"/>
 
   <property environment="env"/>
   <property name="target.jar" value="javassist.jar"/>
@@ -185,7 +185,7 @@ to ${build.classes.dir}.</echo>
            windowtitle="Javassist API">
       <doctitle><![CDATA[<h1>Javassist</h1>]]></doctitle>
       <bottom><![CDATA[<i>Javassist, a Java-bytecode translator toolkit.<br>
-Copyright (C) 1999-2008 Shigeru Chiba. All Rights Reserved.</i>]]></bottom>
+Copyright (C) 1999-2009 Shigeru Chiba. All Rights Reserved.</i>]]></bottom>
     </javadoc>
   </target>
 

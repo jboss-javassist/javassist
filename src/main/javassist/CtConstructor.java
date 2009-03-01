@@ -318,7 +318,7 @@ public final class CtConstructor extends CtBehavior {
 
     /**
      * Makes a copy of this constructor and converts it into a method.
-     * The signature of the mehtod is the same as the that of this constructor.
+     * The signature of the method is the same as the that of this constructor.
      * The return type is <code>void</code>.  The resulting method must be
      * appended to the class specified by <code>declaring</code>.
      * If this constructor is a static initializer, the resulting method takes
@@ -329,12 +329,16 @@ public final class CtConstructor extends CtBehavior {
      * eliminated from the resulting method. 
      *
      * <p>The immediate super class of the class declaring this constructor
-     * must be also a super class of the class declaring the resulting method.
+     * must be also a super class of the class declaring the resulting method
+     * (this is obviously true if the second parameter <code>declaring</code> is
+     * the same as the class declaring this constructor).
      * If the constructor accesses a field, the class declaring the resulting method
      * must also declare a field with the same name and type.
      *
      * @param name              the name of the resulting method.
      * @param declaring         the class declaring the resulting method.
+     *                          It is normally the same as the class declaring this
+     *                          constructor.
      * @param map       the hash table associating original class names
      *                  with substituted names.  The original class names will be
      *                  replaced while making a copy.

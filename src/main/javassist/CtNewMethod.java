@@ -94,6 +94,7 @@ public class CtNewMethod {
      *                  If it is <code>null</code>, the created method
      *                  does nothing except returning zero or null.
      * @param declaring    the class to which the created method is added.
+     * @see #make(int, CtClass, String, CtClass[], CtClass[], String, CtClass)
      */
     public static CtMethod make(CtClass returnType,
                                 String mname, CtClass[] parameters,
@@ -106,7 +107,8 @@ public class CtNewMethod {
     }
 
     /**
-     * Creates a method.
+     * Creates a method.  <code>modifiers</code> can contain
+     * <code>Modifier.STATIC</code>.
      *
      * @param modifiers         access modifiers.
      * @param returnType        the type of the returned value.

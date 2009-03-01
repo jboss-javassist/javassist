@@ -37,14 +37,23 @@ import javassist.bytecode.MethodInfo;
 public final class FramePrinter {
     private final PrintStream stream;
 
+    /**
+     * Constructs a bytecode printer.
+     */
     public FramePrinter(PrintStream stream) {
         this.stream = stream;
     }
 
+    /**
+     * Prints all the methods declared in the given class. 
+     */
     public static void print(CtClass clazz, PrintStream stream) {
         (new FramePrinter(stream)).print(clazz);
     }
 
+    /**
+     * Prints all the methods declared in the given class. 
+     */
     public void print(CtClass clazz) {
         CtMethod[] methods = clazz.getDeclaredMethods();
         for (int i = 0; i < methods.length; i++) {
@@ -62,6 +71,9 @@ public final class FramePrinter {
         }
     }
 
+    /**
+     * Prints the instructions and the frame states of the given method.
+     */
     public void print(CtMethod method) {
         stream.println("\n" + getMethodString(method));
         MethodInfo info = method.getMethodInfo2();
@@ -132,5 +144,4 @@ public final class FramePrinter {
         while (count-- > 0)
             stream.print(' ');
     }
-
 }
