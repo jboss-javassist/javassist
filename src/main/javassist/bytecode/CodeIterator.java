@@ -718,12 +718,13 @@ public class CodeIterator implements Opcode {
 
                 int i0 = i;
                 int i2 = (i & ~3) + 4;  // 0-3 byte padding
-                while (i0 < i2) {
-                    // IBM JVM 1.4.2 cannot run the following line:
-                    // newcode[j++] = code[i0++];
-                    // see JIRA JASSIST-74.
-                    newcode[j++] = 0; i0++;
-                }
+                // IBM JVM 1.4.2 cannot run the following code:
+                // while (i0 < i2)
+                //    newcode[j++] = code[i0++];
+                // see JIRA JASSIST-74.
+                newcode[j++] = (byte)TABLESWITCH;
+                while (++i0 < i2)
+                    newcode[j++] = 0;
 
                 int defaultbyte = newOffset(i, ByteArray.read32bit(code, i2),
                                             where, gapLength, exclusive);
@@ -749,12 +750,14 @@ public class CodeIterator implements Opcode {
 
                 int i0 = i;
                 int i2 = (i & ~3) + 4;  // 0-3 byte padding
-                while (i0 < i2) {
-                    // IBM JVM 1.4.2 cannot run the following line:
-                    // newcode[j++] = code[i0++];
-                    // see JIRA JASSIST-74.
-                    newcode[j++] = 0; i0++;
-                }
+
+                // IBM JVM 1.4.2 cannot run the following code:
+                // while (i0 < i2)
+                //    newcode[j++] = code[i0++];
+                // see JIRA JASSIST-74.
+                newcode[j++] = (byte)LOOKUPSWITCH;
+                while (++i0 < i2)
+                    newcode[j++] = 0;
 
                 int defaultbyte = newOffset(i, ByteArray.read32bit(code, i2),
                                             where, gapLength, exclusive);
