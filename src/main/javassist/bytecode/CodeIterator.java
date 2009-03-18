@@ -376,7 +376,7 @@ public class CodeIterator implements Opcode {
      * Inserts a gap
      * before the next instruction that would be returned by
      * <code>next()</code> (not before the instruction returned
-     * by tha last call to <code>next()</code>).
+     * by the last call to <code>next()</code>).
      * Branch offsets and the exception table are also updated.
      * The inserted gap is filled with NOP.  The gap length may be
      * extended to a multiple of 4.
@@ -718,8 +718,12 @@ public class CodeIterator implements Opcode {
 
                 int i0 = i;
                 int i2 = (i & ~3) + 4;  // 0-3 byte padding
-                while (i0 < i2)
-                    newcode[j++] = code[i0++];
+                while (i0 < i2) {
+                    // IBM JVM 1.4.2 cannot run the following line:
+                    // newcode[j++] = code[i0++];
+                    // see JIRA JASSIST-74.
+                    newcode[j++] = 0; i0++;
+                }
 
                 int defaultbyte = newOffset(i, ByteArray.read32bit(code, i2),
                                             where, gapLength, exclusive);
@@ -745,8 +749,12 @@ public class CodeIterator implements Opcode {
 
                 int i0 = i;
                 int i2 = (i & ~3) + 4;  // 0-3 byte padding
-                while (i0 < i2)
-                    newcode[j++] = code[i0++];
+                while (i0 < i2) {
+                    // IBM JVM 1.4.2 cannot run the following line:
+                    // newcode[j++] = code[i0++];
+                    // see JIRA JASSIST-74.
+                    newcode[j++] = 0; i0++;
+                }
 
                 int defaultbyte = newOffset(i, ByteArray.read32bit(code, i2),
                                             where, gapLength, exclusive);
