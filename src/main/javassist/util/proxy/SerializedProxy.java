@@ -45,15 +45,27 @@ class SerializedProxy implements Serializable {
         }
     }
 
+    /**
+     * Load class.
+     *
+     * @param className the class name
+     * @return loaded class
+     * @throws ClassNotFoundException for any error
+     */
+    protected Class loadClass(String className) throws ClassNotFoundException {
+        ClassLoader cl = Thread.currentThread().getContextClassLoader();
+        return cl.loadClass(className);
+    }
+
     Object readResolve() throws ObjectStreamException {
         try {
             int n = interfaces.length;
             Class[] infs = new Class[n];
             for (int i = 0; i < n; i++)
-                infs[i] = Class.forName(interfaces[i]);
+                infs[i] = loadClass(interfaces[i]);
 
             ProxyFactory f = new ProxyFactory();
-            f.setSuperclass(Class.forName(superClass));
+            f.setSuperclass(loadClass(superClass));
             f.setInterfaces(infs);
             f.setFilter(filter);
             f.setHandler(handler);
