@@ -716,15 +716,14 @@ public class CodeIterator implements Opcode {
                 if (i != j && (gapLength & 3) != 0)
                     throw new AlignmentException();
 
-                int i0 = i;
                 int i2 = (i & ~3) + 4;  // 0-3 byte padding
                 // IBM JVM 1.4.2 cannot run the following code:
+                // int i0 = i;
                 // while (i0 < i2)
                 //    newcode[j++] = code[i0++];
+                // So extracting this code into an external method.
                 // see JIRA JASSIST-74.
-                newcode[j++] = (byte)TABLESWITCH;
-                while (++i0 < i2)
-                    newcode[j++] = 0;
+                j = copyGapBytes(newcode, j, code, i, i2);
 
                 int defaultbyte = newOffset(i, ByteArray.read32bit(code, i2),
                                             where, gapLength, exclusive);
@@ -734,7 +733,7 @@ public class CodeIterator implements Opcode {
                 int highbyte = ByteArray.read32bit(code, i2 + 8);
                 ByteArray.write32bit(highbyte, newcode, j + 8);
                 j += 12;
-                i0 = i2 + 12;
+                int i0 = i2 + 12;
                 i2 = i0 + (highbyte - lowbyte + 1) * 4;
                 while (i0 < i2) {
                     int offset = newOffset(i, ByteArray.read32bit(code, i0),
@@ -748,16 +747,15 @@ public class CodeIterator implements Opcode {
                 if (i != j && (gapLength & 3) != 0)
                     throw new AlignmentException();
 
-                int i0 = i;
                 int i2 = (i & ~3) + 4;  // 0-3 byte padding
 
                 // IBM JVM 1.4.2 cannot run the following code:
+                // int i0 = i;
                 // while (i0 < i2)
                 //    newcode[j++] = code[i0++];
+                // So extracting this code into an external method.
                 // see JIRA JASSIST-74.
-                newcode[j++] = (byte)LOOKUPSWITCH;
-                while (++i0 < i2)
-                    newcode[j++] = 0;
+                j = copyGapBytes(newcode, j, code, i, i2);
 
                 int defaultbyte = newOffset(i, ByteArray.read32bit(code, i2),
                                             where, gapLength, exclusive);
@@ -765,7 +763,7 @@ public class CodeIterator implements Opcode {
                 int npairs = ByteArray.read32bit(code, i2 + 4);
                 ByteArray.write32bit(npairs, newcode, j + 4);
                 j += 8;
-                i0 = i2 + 8;
+                int i0 = i2 + 8;
                 i2 = i0 + npairs * 8;
                 while (i0 < i2) {
                     ByteArray.copy32bit(code, i0, newcode, j);
@@ -781,6 +779,22 @@ public class CodeIterator implements Opcode {
                 while (i < nextPos)
                     newcode[j++] = code[i++];
             }
+    }
+
+    private static int copyGapBytes(byte[] newcode, int j, byte[] code, int i, int iEnd) {
+        switch (iEnd - i) {
+        case 4:
+            newcode[j++] = code[i++];
+        case 3:
+            newcode[j++] = code[i++];
+        case 2:
+            newcode[j++] = code[i++];
+        case 1:
+            newcode[j++] = code[i++];
+        default:
+        }
+
+        return j;
     }
 
     private static int newOffset(int i, int offset, int where,
