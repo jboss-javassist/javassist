@@ -632,13 +632,19 @@ public class MemberCodeGen extends CodeGen {
         }
         else if (isSpecial)    // if (isSpecial && notStatic(acc))
             bytecode.addInvokespecial(declClass, mname, desc);
-        else if (declClass.isInterface())
-            bytecode.addInvokeinterface(declClass, mname, desc, count);
-        else
-            if (isStatic)
-                throw new CompileError(mname + " is not static");
+        else {
+            if (!Modifier.isPublic(declClass.getModifiers())
+                || declClass.isInterface() != targetClass.isInterface())
+                declClass = targetClass;
+
+            if (declClass.isInterface())
+                bytecode.addInvokeinterface(declClass, mname, desc, count);
             else
-                bytecode.addInvokevirtual(declClass, mname, desc);
+                if (isStatic)
+                    throw new CompileError(mname + " is not static");
+                else
+                    bytecode.addInvokevirtual(declClass, mname, desc);
+        }
 
         setReturnType(desc, isStatic, popTarget);
     }
