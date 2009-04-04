@@ -17,6 +17,10 @@ package javassist.util.proxy;
 
 import java.io.Serializable;
 import java.io.ObjectStreamException;
+import java.security.AccessController;
+import java.security.PrivilegedActionException;
+import java.security.PrivilegedExceptionAction;
+import java.security.ProtectionDomain;
 
 /**
  * A proxy object is converted into an instance of this class
@@ -52,9 +56,18 @@ class SerializedProxy implements Serializable {
      * @return loaded class
      * @throws ClassNotFoundException for any error
      */
-    protected Class loadClass(String className) throws ClassNotFoundException {
-        ClassLoader cl = Thread.currentThread().getContextClassLoader();
-        return cl.loadClass(className);
+    protected Class loadClass(final String className) throws ClassNotFoundException {
+        try {
+            return (Class)AccessController.doPrivileged(new PrivilegedExceptionAction(){
+                public Object run() throws Exception{
+                    ClassLoader cl = Thread.currentThread().getContextClassLoader();
+                    return Class.forName(className, true, cl);
+                }
+            });
+        }
+        catch (PrivilegedActionException pae) {
+            throw new RuntimeException("cannot load the class: " + className, pae.getException());
+        }
     }
 
     Object readResolve() throws ObjectStreamException {
