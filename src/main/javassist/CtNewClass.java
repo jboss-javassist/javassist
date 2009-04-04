@@ -90,10 +90,12 @@ class CtNewClass extends CtClassType {
         int n = 0;
         for (int i = 0; i < cs.length; ++i) {
             CtConstructor c = cs[i];
-            if (Modifier.isPublic(c.getModifiers())) {
+            int mod = c.getModifiers();
+            if (isInheritable(mod, superclazz)) {
                 CtConstructor cons
                     = CtNewConstructor.make(c.getParameterTypes(),
                                             c.getExceptionTypes(), this);
+                cons.setModifiers(mod & (Modifier.PUBLIC | Modifier.PROTECTED | Modifier.PRIVATE));
                 addConstructor(cons);
                 ++n;
             }
@@ -103,5 +105,21 @@ class CtNewClass extends CtClassType {
             throw new CannotCompileException(
                         "no public constructor in " + superclazz.getName());
 
+    }
+
+    private boolean isInheritable(int mod, CtClass superclazz) {
+        if (Modifier.isPrivate(mod))
+            return false;
+
+        if (Modifier.isPackage(mod)) {
+            String pname = getPackageName();
+            String pname2 = superclazz.getPackageName();
+            if (pname == null)
+                return pname2 == null;
+            else
+                pname.equals(pname2);
+        }
+
+        return true;
     }
 }

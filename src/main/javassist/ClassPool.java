@@ -724,6 +724,14 @@ public class ClassPool {
      * If there already exists a class with the same name, the new class
      * overwrites that previous class.
      *
+     * <p>If no constructor is explicitly added to the created new
+     * class, Javassist generates constructors and adds it when
+     * the class file is generated.  It generates a new constructor
+     * for each constructor of the super class.  The new constructor
+     * takes the same set of parameters and invokes the
+     * corresponding constructor of the super class.  All the received
+     * parameters are passed to it.
+     *
      * @param classname                 a fully-qualified class name.
      * @throws RuntimeException         if the existing class is frozen.
      */
@@ -735,6 +743,14 @@ public class ClassPool {
      * Creates a new public class.
      * If there already exists a class/interface with the same name,
      * the new class overwrites that previous class.
+     *
+     * <p>If no constructor is explicitly added to the created new
+     * class, Javassist generates constructors and adds it when
+     * the class file is generated.  It generates a new constructor
+     * for each constructor of the super class.  The new constructor
+     * takes the same set of parameters and invokes the
+     * corresponding constructor of the super class.  All the received
+     * parameters are passed to it.
      *
      * @param classname  a fully-qualified class name.
      * @param superclass the super class.
