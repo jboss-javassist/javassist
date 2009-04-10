@@ -1229,11 +1229,19 @@ class CtClassType extends CtClass {
     public void addMethod(CtMethod m) throws CannotCompileException {
         checkModify();
         if (m.getDeclaringClass() != this)
-            throw new CannotCompileException("cannot add");
+            throw new CannotCompileException("bad declaring class");
+
+        int mod = m.getModifiers();
+        if ((getModifiers() & Modifier.INTERFACE) != 0) {
+            m.setModifiers(mod | Modifier.PUBLIC);
+            if ((mod & Modifier.ABSTRACT) == 0)
+                throw new CannotCompileException(
+                        "an interface method must be abstract: " + m.toString());
+        }
 
         getMembers().addMethod(m);
         getClassFile2().addMethod(m.getMethodInfo2());
-        if ((m.getModifiers() & Modifier.ABSTRACT) != 0)
+        if ((mod & Modifier.ABSTRACT) != 0)
             setModifiers(getModifiers() | Modifier.ABSTRACT);
     }
 
