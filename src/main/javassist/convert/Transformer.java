@@ -51,4 +51,6 @@ public abstract class Transformer implements Opcode {
                 ConstPool cp) throws CannotCompileException, BadBytecode;
 
     public int extraLocals() { return 0; }
+
+    public int extraStack() { return 0; }
 }

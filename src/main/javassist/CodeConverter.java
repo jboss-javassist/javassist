@@ -512,16 +512,25 @@ public class CodeConverter {
         }
 
         int locals = 0;
+        int stack = 0;
         for (t = transformers; t != null; t = t.getNext()) {
             int s = t.extraLocals();
             if (s > locals)
                 locals = s;
+
+            s = t.extraStack();
+            if (s > stack)
+                stack = s;
         }
 
         for (t = transformers; t != null; t = t.getNext())
             t.clean();
 
-        codeAttr.setMaxLocals(codeAttr.getMaxLocals() + locals);
+        if (locals > 0)
+            codeAttr.setMaxLocals(codeAttr.getMaxLocals() + locals);
+
+        if (stack > 0)
+            codeAttr.setMaxStack(codeAttr.getMaxStack() + stack);
     }
 
     /**
@@ -529,7 +538,7 @@ public class CodeConverter {
      * as array access replacements.
      *
      * @author <a href="kabir.khan@jboss.com">Kabir Khan</a>
-     * @version $Revision: 1.15 $
+     * @version $Revision: 1.16 $
      */
     public interface ArrayAccessReplacementMethodNames
     {
@@ -638,7 +647,7 @@ public class CodeConverter {
      * accesses to array elements.
      *
      * @author <a href="kabir.khan@jboss.com">Kabir Khan</a>
-     * @version $Revision: 1.15 $
+     * @version $Revision: 1.16 $
      */
     public static class DefaultArrayAccessReplacementMethodNames
         implements ArrayAccessReplacementMethodNames
