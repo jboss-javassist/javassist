@@ -153,6 +153,8 @@ public class ExceptionTable implements Cloneable {
      * Returns <code>catchType</code> of the <i>n</i>-th entry.
      *
      * @param nth               the <i>n</i>-th (&gt;= 0).
+     * @return an index into the <code>constant_pool</code> table,
+     *          or zero if this exception handler is for all exceptions.
      */
     public int catchType(int nth) {
         ExceptionTableEntry e = (ExceptionTableEntry)entries.get(nth);

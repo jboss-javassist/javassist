@@ -20,7 +20,7 @@ import javassist.bytecode.*;
 import javassist.compiler.*;
 
 /**
- * Catch clause.
+ * A <code>catch</code> clause or a <code>finally</code> block.
  */
 public class Handler extends Expr {
     private static String EXCEPTION_NAME = "$1";
@@ -69,11 +69,24 @@ public class Handler extends Expr {
 
     /**
      * Returns the type handled by the catch clause.
+     * If this is a <code>finally</code> block, <code>null</code> is returned.
      */
     public CtClass getType() throws NotFoundException {
-        ConstPool cp = getConstPool();
-        String name = cp.getClassInfo(etable.catchType(index));
-        return thisClass.getClassPool().getCtClass(name);
+        int type = etable.catchType(index);
+        if (type == 0)
+            return null;
+        else {
+            ConstPool cp = getConstPool();
+            String name = cp.getClassInfo(type);
+            return thisClass.getClassPool().getCtClass(name);
+        }
+    }
+
+    /**
+     * Returns true if this is a <code>finally</code> block.
+     */
+    public boolean isFinally() {
+        return etable.catchType(index) == 0;
     }
 
     /**
