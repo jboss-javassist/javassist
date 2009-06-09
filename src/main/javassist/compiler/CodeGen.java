@@ -1737,9 +1737,18 @@ public abstract class CodeGen extends Visitor implements Opcode, TokenId {
                 if (doDup && isPost)
                     bytecode.addIload(var);
 
-                bytecode.addOpcode(IINC);
-                bytecode.add(var);
-                bytecode.add(token == PLUSPLUS ? 1 : -1);
+                int delta = token == PLUSPLUS ? 1 : -1;
+                if (var > 0xff) {
+                    bytecode.addOpcode(WIDE);
+                    bytecode.addOpcode(IINC);
+                    bytecode.addIndex(var);
+                    bytecode.addIndex(delta);
+                }
+                else {
+                    bytecode.addOpcode(IINC);
+                    bytecode.add(var);
+                    bytecode.add(delta);
+                }
 
                 if (doDup && !isPost)
                     bytecode.addIload(var);
