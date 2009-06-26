@@ -475,6 +475,32 @@ public abstract class CtClass {
     }
 
     /**
+     * Returns true if the class has the specified annotation class.
+     *
+     * @param clz the annotation class.
+     * @return <code>true</code> if the annotation is found, otherwise <code>false</code>.
+     * @since 3.11
+     */
+    public boolean hasAnnotation(Class clz) {
+        return false;
+    }
+
+    /**
+     * Returns the annotation if the class has the specified annotation class.
+     * For example, if an annotation <code>@Author</code> is associated
+     * with this class, an <code>Author</code> object is returned.
+     * The member values can be obtained by calling methods on
+     * the <code>Author</code> object.
+     *
+     * @param clz the annotation class.
+     * @return the annotation if found, otherwise <code>null</code>.
+     * @since 3.11
+     */
+    public Object getAnnotation(Class clz) throws ClassNotFoundException {
+        return null;
+    }
+
+    /**
      * Returns the annotations associated with this class.
      * For example, if an annotation <code>@Author</code> is associated
      * with this class, the returned array contains an <code>Author</code>

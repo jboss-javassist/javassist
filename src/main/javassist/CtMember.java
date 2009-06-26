@@ -29,6 +29,9 @@ public abstract class CtMember {
      */
     static class Cache extends CtMember {
         protected void extendToString(StringBuffer buffer) {}
+        public boolean hasAnnotation(Class clz) { return false; }
+        public Object getAnnotation(Class clz)
+            throws ClassNotFoundException { return null; }
         public Object[] getAnnotations()
             throws ClassNotFoundException { return null; }
         public byte[] getAttribute(String name) { return null; }
@@ -200,6 +203,28 @@ public abstract class CtMember {
      * @see Modifier
      */
     public abstract void setModifiers(int mod);
+
+    /**
+     * Returns true if the class has the specified annotation class.
+     *
+     * @param clz the annotation class.
+     * @return <code>true</code> if the annotation is found, otherwise <code>false</code>.
+     * @since 3.11
+     */
+    public abstract boolean hasAnnotation(Class clz);
+
+    /**
+     * Returns the annotation if the class has the specified annotation class.
+     * For example, if an annotation <code>@Author</code> is associated
+     * with this member, an <code>Author</code> object is returned.
+     * The member values can be obtained by calling methods on
+     * the <code>Author</code> object.
+     *
+     * @param clz the annotation class.
+     * @return the annotation if found, otherwise <code>null</code>.
+     * @since 3.11
+     */
+    public abstract Object getAnnotation(Class clz) throws ClassNotFoundException;
 
     /**
      * Returns the annotations associated with this member.

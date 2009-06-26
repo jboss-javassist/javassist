@@ -434,6 +434,83 @@ class CtClassType extends CtClass {
         cf.setAccessFlags(AccessFlag.of(mod));
     }
 
+    public boolean hasAnnotation(Class clz) {
+        ClassFile cf = getClassFile2();
+        AnnotationsAttribute ainfo = (AnnotationsAttribute)
+                cf.getAttribute(AnnotationsAttribute.invisibleTag);  
+        AnnotationsAttribute ainfo2 = (AnnotationsAttribute)
+                cf.getAttribute(AnnotationsAttribute.visibleTag);  
+        return hasAnnotationType(clz, getClassPool(), ainfo, ainfo2);
+    }
+
+    static boolean hasAnnotationType(Class clz, ClassPool cp,
+                                     AnnotationsAttribute a1, AnnotationsAttribute a2)
+    {
+        Annotation[] anno1, anno2;
+
+        if (a1 == null)
+            anno1 = null;
+        else
+            anno1 = a1.getAnnotations();
+
+        if (a2 == null)
+            anno2 = null;
+        else
+            anno2 = a2.getAnnotations();
+
+        String typeName = clz.getName();
+        if (anno1 != null)
+           for (int i = 0; i < anno1.length; i++)
+              if (anno1[i].getTypeName().equals(typeName))
+                  return true;
+
+        if (anno2 != null)
+           for (int i = 0; i < anno2.length; i++)
+              if (anno2[i].getTypeName().equals(typeName))
+                  return true;
+
+        return false;
+    }
+
+    public Object getAnnotation(Class clz) throws ClassNotFoundException {
+        ClassFile cf = getClassFile2();
+        AnnotationsAttribute ainfo = (AnnotationsAttribute)
+                cf.getAttribute(AnnotationsAttribute.invisibleTag);  
+        AnnotationsAttribute ainfo2 = (AnnotationsAttribute)
+                cf.getAttribute(AnnotationsAttribute.visibleTag);  
+        return getAnnotationType(clz, getClassPool(), ainfo, ainfo2);
+    }
+
+    static Object getAnnotationType(Class clz, ClassPool cp,
+                                    AnnotationsAttribute a1, AnnotationsAttribute a2)
+        throws ClassNotFoundException
+    {
+        Annotation[] anno1, anno2;
+
+        if (a1 == null)
+            anno1 = null;
+        else
+            anno1 = a1.getAnnotations();
+
+        if (a2 == null)
+            anno2 = null;
+        else
+            anno2 = a2.getAnnotations();
+
+        String typeName = clz.getName();
+        if (anno1 != null)
+           for (int i = 0; i < anno1.length; i++)
+              if (anno1[i].getTypeName().equals(typeName))
+                  return toAnnoType(anno1[i], cp);
+
+        if (anno2 != null)
+           for (int i = 0; i < anno2.length; i++)
+              if (anno2[i].getTypeName().equals(typeName))
+                  return toAnnoType(anno2[i], cp);
+
+        return null;
+    }
+
     public Object[] getAnnotations() throws ClassNotFoundException {
        return getAnnotations(false);
     }

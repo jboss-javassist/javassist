@@ -241,6 +241,44 @@ public class CtField extends CtMember {
     }
 
     /**
+     * Returns true if the class has the specified annotation class.
+     *
+     * @param clz the annotation class.
+     * @return <code>true</code> if the annotation is found, otherwise <code>false</code>.
+     * @since 3.11
+     */
+    public boolean hasAnnotation(Class clz) {
+        FieldInfo fi = getFieldInfo2();
+        AnnotationsAttribute ainfo = (AnnotationsAttribute)
+                    fi.getAttribute(AnnotationsAttribute.invisibleTag);  
+        AnnotationsAttribute ainfo2 = (AnnotationsAttribute)
+                    fi.getAttribute(AnnotationsAttribute.visibleTag);  
+        return CtClassType.hasAnnotationType(clz, getDeclaringClass().getClassPool(),
+                                             ainfo, ainfo2);
+    }
+
+    /**
+     * Returns the annotation if the class has the specified annotation class.
+     * For example, if an annotation <code>@Author</code> is associated
+     * with this field, an <code>Author</code> object is returned.
+     * The member values can be obtained by calling methods on
+     * the <code>Author</code> object.
+     *
+     * @param clz the annotation class.
+     * @return the annotation if found, otherwise <code>null</code>.
+     * @since 3.11
+     */
+    public Object getAnnotation(Class clz) throws ClassNotFoundException {
+        FieldInfo fi = getFieldInfo2();
+        AnnotationsAttribute ainfo = (AnnotationsAttribute)
+                    fi.getAttribute(AnnotationsAttribute.invisibleTag);  
+        AnnotationsAttribute ainfo2 = (AnnotationsAttribute)
+                    fi.getAttribute(AnnotationsAttribute.visibleTag);  
+        return CtClassType.getAnnotationType(clz, getDeclaringClass().getClassPool(),
+                                             ainfo, ainfo2);
+    }
+
+    /**
      * Returns the annotations associated with this field.
      *
      * @return an array of annotation-type objects.
