@@ -32,8 +32,10 @@ public class TransformAfter extends TransformBefore {
         iterator.insert(saveCode);
         iterator.insert(loadCode);
         int p = iterator.insertGap(3);
+        iterator.setMark(p);
         iterator.insert(loadCode);
         pos = iterator.next();
+        p = iterator.getMark();
         iterator.writeByte(iterator.byteAt(pos), p);
         iterator.write16bit(iterator.u16bitAt(pos + 1), p + 1);
         iterator.writeByte(INVOKESTATIC, pos);

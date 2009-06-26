@@ -801,20 +801,30 @@ public abstract class CtBehavior extends CtMember {
         }
     }
 
+    /*
+     * assert subr > pos
+     */
     private void insertGoto(CodeIterator iterator, int subr, int pos)
         throws BadBytecode
     {
+        iterator.setMark(subr);
         // the gap length might be a multiple of 4.
-        boolean wide = subr + 4 - pos > Short.MAX_VALUE;
-        int gapSize = iterator.insertGap(pos, wide ? 4 : 2);
-
+        iterator.writeByte(Opcode.NOP, pos);
+        boolean wide = subr + 2 - pos > Short.MAX_VALUE;
+        pos = iterator.insertGapAt(pos, wide ? 4 : 2, false).position;
+        int offset = iterator.getMark() - pos;
         if (wide) {
             iterator.writeByte(Opcode.GOTO_W, pos);
-            iterator.write32bit(subr - pos + gapSize, pos + 1);
+            iterator.write32bit(offset, pos + 1);
+        }
+        else if (offset <= Short.MAX_VALUE) {
+            iterator.writeByte(Opcode.GOTO, pos);
+            iterator.write16bit(offset, pos + 1);
         }
         else {
-            iterator.writeByte(Opcode.GOTO, pos);
-            iterator.write16bit(subr - pos + gapSize, pos + 1);
+            pos = iterator.insertGapAt(pos, 2, false).position;
+            iterator.writeByte(Opcode.GOTO_W, pos);
+            iterator.write32bit(iterator.getMark() - pos, pos + 1);
         }
     }
 
@@ -1079,7 +1089,7 @@ public abstract class CtBehavior extends CtMember {
             if (stack > ca.getMaxStack())
                 ca.setMaxStack(stack);
 
-            iterator.insert(index, b.get());
+            index = iterator.insertAt(index, b.get());
             iterator.insert(b.getExceptionTable(), index);
             methodInfo.rebuildStackMapIf6(cc.getClassPool(), cc.getClassFile2());
             return lineNum;

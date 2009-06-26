@@ -41,7 +41,7 @@ final public class TransformWriteField extends TransformReadField {
                     char c0 = typedesc.charAt(0);
                     if (c0 == 'J' || c0 == 'D') {       // long or double
                         // insertGap() may insert 4 bytes.
-                        iterator.insertGap(3);
+                        pos = iterator.insertGap(3);
                         iterator.writeByte(ACONST_NULL, pos);
                         iterator.writeByte(DUP_X2, pos + 1);
                         iterator.writeByte(POP, pos + 2);
@@ -49,7 +49,7 @@ final public class TransformWriteField extends TransformReadField {
                     }
                     else {
                         // insertGap() may insert 4 bytes.
-                        iterator.insertGap(2);
+                        pos = iterator.insertGap(2);
                         iterator.writeByte(ACONST_NULL, pos);
                         iterator.writeByte(SWAP, pos + 1);
                         ca.setMaxStack(ca.getMaxStack() + 1);

@@ -31,6 +31,10 @@ public class TransformBefore extends TransformCall {
         throws NotFoundException
     {
         super(next, origMethod, beforeMethod);
+
+        // override
+        methodDescriptor = origMethod.getMethodInfo2().getDescriptor();
+
         parameterTypes = origMethod.getParameterTypes();
         locals = 0;
         maxLocals = 0;

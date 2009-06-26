@@ -81,8 +81,6 @@ public class CodeAttribute extends AttributeInfo implements Opcode {
         maxStack = src.getMaxStack();
         maxLocals = src.getMaxLocals();
         exceptions = src.getExceptionTable().copy(cp, classnames);
-        info = src.copyCode(cp, classnames, exceptions, this);
-
         attributes = new LinkedList();
         List src_attr = src.getAttributes();
         int num = src_attr.size();
@@ -90,6 +88,8 @@ public class CodeAttribute extends AttributeInfo implements Opcode {
             AttributeInfo ai = (AttributeInfo)src_attr.get(i);
             attributes.add(ai.copy(cp, classnames));
         }
+
+        info = src.copyCode(cp, classnames, exceptions, this);
     }
 
     CodeAttribute(ConstPool cp, int name_id, DataInputStream in)
@@ -315,7 +315,7 @@ public class CodeAttribute extends AttributeInfo implements Opcode {
     {
         int len = getCodeLength();
         byte[] newCode = new byte[len];
-
+        destCa.info = newCode;
         LdcEntry ldc = copyCode(this.info, 0, len, this.getConstPool(),
                                 newCode, destCp, classnames);
         return LdcEntry.doit(newCode, ldc, etable, destCa);
@@ -405,13 +405,21 @@ public class CodeAttribute extends AttributeInfo implements Opcode {
                            CodeAttribute ca)
             throws BadBytecode
         {
-            while (ldc != null) {
-                int where = ldc.where;
-                code = CodeIterator.insertGap(code, where, 1, false, etable, ca);
-                code[where] = (byte)Opcode.LDC_W;
-                ByteArray.write16bit(ldc.index, code, where + 1);
-                ldc = ldc.next;
-            }
+            if (ldc != null)
+                code = CodeIterator.changeLdcToLdcW(code, etable, ca, ldc);
+
+            /* The original code was the following:
+
+               while (ldc != null) {
+                 int where = ldc.where;
+                 code = CodeIterator.insertGapCore0(code, where, 1, false, etable, ca);
+                 code[where] = (byte)Opcode.LDC_W;
+                 ByteArray.write16bit(ldc.index, code, where + 1);
+                 ldc = ldc.next;
+               }
+
+               But this code does not support a large method > 32KB.
+            */
 
             return code;
         }
@@ -479,12 +487,12 @@ public class CodeAttribute extends AttributeInfo implements Opcode {
             if (var < 0x100)
                 ci.writeByte(var, index + 1);
             else {
-                int plus = ci.byteAt(index + 2);
-                ci.insertExGap(3);
-                ci.writeByte(WIDE, index);
-                ci.writeByte(IINC, index + 1);
-                ci.write16bit(var, index + 2);
-                ci.write16bit(plus, index + 4);
+                int plus = (byte)ci.byteAt(index + 2);
+                int pos = ci.insertExGap(3);
+                ci.writeByte(WIDE, pos - 3);
+                ci.writeByte(IINC, pos - 2);
+                ci.write16bit(var, pos - 1);
+                ci.write16bit(plus, pos + 1);
             }
         }
         else if (opcode == RET)
@@ -511,10 +519,10 @@ public class CodeAttribute extends AttributeInfo implements Opcode {
         if (var < 0x100)
             ci.writeByte(var, index + 1);
         else {
-            ci.insertExGap(2);
-            ci.writeByte(WIDE, index);
-            ci.writeByte(opcode, index + 1);
-            ci.write16bit(var, index + 2);
+            int pos = ci.insertExGap(2);
+            ci.writeByte(WIDE, pos - 2);
+            ci.writeByte(opcode, pos - 1);
+            ci.write16bit(var, pos);
         }
     }
 
@@ -533,15 +541,15 @@ public class CodeAttribute extends AttributeInfo implements Opcode {
         else {
             opcode = (opcode - opcode_i_0) / 4 + opcode_i;
             if (var < 0x100) {
-                ci.insertExGap(1);
-                ci.writeByte(opcode, index);
-                ci.writeByte(var, index + 1);
+                int pos = ci.insertExGap(1);
+                ci.writeByte(opcode, pos - 1);
+                ci.writeByte(var, pos);
             }
             else {
-                ci.insertExGap(3);
-                ci.writeByte(WIDE, index);
-                ci.writeByte(opcode, index + 1);
-                ci.write16bit(var, index + 2);
+                int pos = ci.insertExGap(3);
+                ci.writeByte(WIDE, pos - 1);
+                ci.writeByte(opcode, pos);
+                ci.write16bit(var, pos + 1);
             }
         }
     }

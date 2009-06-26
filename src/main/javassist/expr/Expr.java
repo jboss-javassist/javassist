@@ -295,7 +295,7 @@ public abstract class Expr implements Opcode {
             iterator.writeByte(NOP, pos + i);
 
         if (gap > 0)
-            iterator.insertGap(pos, gap);
+            pos = iterator.insertGapAt(pos, gap, false).position;
 
         iterator.write(code, pos);
         iterator.insert(bytecode.getExceptionTable(), pos);

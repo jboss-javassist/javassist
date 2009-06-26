@@ -76,7 +76,7 @@ public class TransformReadField extends Transformer {
             if (typedesc != null) {
                 if (c == GETSTATIC) {
                     iterator.move(pos);
-                    iterator.insertGap(1); // insertGap() may insert 4 bytes.
+                    pos = iterator.insertGap(1); // insertGap() may insert 4 bytes.
                     iterator.writeByte(ACONST_NULL, pos);
                     pos = iterator.next();
                 }

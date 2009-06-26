@@ -379,7 +379,7 @@ public final class CtConstructor extends CtBehavior {
                 String desc = ca.getConstPool().getMethodrefType(mref);
                 int num = Descriptor.numOfParameters(desc) + 1;
                 if (num > 3)
-                    iterator.insertGap(pos, num - 3);
+                    pos = iterator.insertGapAt(pos, num - 3, false).position;
 
                 iterator.writeByte(Opcode.POP, pos++);  // this
                 iterator.writeByte(Opcode.NOP, pos);

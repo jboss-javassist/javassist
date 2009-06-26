@@ -32,7 +32,7 @@ import javassist.bytecode.analysis.Frame;
  *
  * @author <a href="kabir.khan@jboss.com">Kabir Khan</a>
  * @author Jason T. Greene
- * @version $Revision: 1.7 $
+ * @version $Revision: 1.8 $
  */
 public final class TransformAccessArrayField extends Transformer {
     private final String methodClassname;
@@ -142,8 +142,9 @@ public final class TransformAccessArrayField extends Transformer {
             // The gap may include extra padding
             // Write a nop in case the padding pushes the instruction forward
             iterator.writeByte(NOP, pos);
-            int gapLength = iterator.insertGap(pos, castType != null ? 5 : 2);
-
+            CodeIterator.Gap gap
+                = iterator.insertGapAt(pos, castType != null ? 5 : 2, false);
+            pos = gap.position;
             int mi = cp.addClassInfo(methodClassname);
             int methodref = cp.addMethodrefInfo(mi, methodName, signature);
             iterator.writeByte(INVOKESTATIC, pos);
@@ -155,7 +156,7 @@ public final class TransformAccessArrayField extends Transformer {
                 iterator.write16bit(index, pos + 4);
             }
 
-            pos = updatePos(pos, gapLength);
+            pos = updatePos(pos, gap.length);
         }
 
         return pos;
