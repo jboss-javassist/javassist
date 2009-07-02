@@ -20,6 +20,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.List;
 import java.util.LinkedList;
+import java.util.Iterator;
 import java.util.Map;
 
 /**
@@ -189,6 +190,14 @@ public class CodeAttribute extends AttributeInfo implements Opcode {
      */
     public void set(byte[] newinfo) {
         throw new UnsupportedOperationException("CodeAttribute.set()");
+    }
+
+    void renameClass(String oldname, String newname) {
+        AttributeInfo.renameClass(attributes, oldname, newname);
+    }
+
+    void renameClass(Map classnames) {
+        AttributeInfo.renameClass(attributes, classnames);
     }
 
     /**

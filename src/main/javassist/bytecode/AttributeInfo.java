@@ -21,6 +21,8 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.LinkedList;
 import java.util.ListIterator;
+import java.util.List;
+import java.util.Iterator;
 
 // Note: if you define a new subclass of AttributeInfo, then
 //       update AttributeInfo.read(), .copy(), and (maybe) write().
@@ -92,9 +94,10 @@ public class AttributeInfo {
              */
             if (nameStr.equals(LineNumberAttribute.tag))
                 return new LineNumberAttribute(cp, name, in);
-            else if (nameStr.equals(LocalVariableAttribute.tag)
-                     || nameStr.equals(LocalVariableAttribute.typeTag))
+            else if (nameStr.equals(LocalVariableAttribute.tag))
                 return new LocalVariableAttribute(cp, name, in);
+            else if (nameStr.equals(LocalVariableTypeAttribute.tag))
+                return new LocalVariableTypeAttribute(cp, name, in);
             else if (nameStr.equals(AnnotationsAttribute.visibleTag)
                      || nameStr.equals(AnnotationsAttribute.invisibleTag)) {
                 // RuntimeVisibleAnnotations or RuntimeInvisibleAnnotations
@@ -242,5 +245,29 @@ public class AttributeInfo {
         }
 
         return newList;
+    }
+
+    /* The following two methods are used to implement
+     * ClassFile.renameClass().
+     * Only CodeAttribute and LocalVariableAttribute override
+     * this method.
+     */
+    void renameClass(String oldname, String newname) {}
+    void renameClass(Map classnames) {}
+
+    static void renameClass(List attributes, String oldname, String newname) {
+        Iterator iterator = attributes.iterator();
+        while (iterator.hasNext()) {
+            AttributeInfo ai = (AttributeInfo)iterator.next();
+            ai.renameClass(oldname, newname);
+        }
+    }
+
+    static void renameClass(List attributes, Map classnames) {
+        Iterator iterator = attributes.iterator();
+        while (iterator.hasNext()) {
+            AttributeInfo ai = (AttributeInfo)iterator.next();
+            ai.renameClass(classnames);
+        }
     }
 }

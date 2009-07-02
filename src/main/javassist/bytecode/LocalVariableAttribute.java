@@ -20,8 +20,7 @@ import java.io.IOException;
 import java.util.Map;
 
 /**
- * <code>LocalVariableTable_attribute</code> or
- * <code>LocalVariableTypeTable_attribute</code>.
+ * <code>LocalVariableTable_attribute</code>.
  */
 public class LocalVariableAttribute extends AttributeInfo {
     /**
@@ -38,7 +37,8 @@ public class LocalVariableAttribute extends AttributeInfo {
      * Constructs an empty LocalVariableTable.
      */
     public LocalVariableAttribute(ConstPool cp) {
-        this(cp, tag);
+        super(cp, tag, new byte[2]);
+        ByteArray.write16bit(0, info, 0);
     }
 
     /**
@@ -50,6 +50,7 @@ public class LocalVariableAttribute extends AttributeInfo {
      * @see #tag
      * @see #typeTag
      * @since 3.1
+     * @deprecated
      */
     public LocalVariableAttribute(ConstPool cp, String name) {
         super(cp, name, new byte[2]);
@@ -62,7 +63,7 @@ public class LocalVariableAttribute extends AttributeInfo {
         super(cp, n, in);
     }
 
-    private LocalVariableAttribute(ConstPool cp, String name, byte[] i) {
+    LocalVariableAttribute(ConstPool cp, String name, byte[] i) {
         super(cp, name, i);
     }
 
@@ -89,6 +90,42 @@ public class LocalVariableAttribute extends AttributeInfo {
         ByteArray.write16bit(descriptorIndex, newInfo, size + 6);
         ByteArray.write16bit(index, newInfo, size + 8);
         info = newInfo;
+    }
+
+    void renameClass(String oldname, String newname) {
+        ConstPool cp = getConstPool();
+        int n = tableLength();
+        for (int i = 0; i < n; ++i) {
+            int pos = i * 10 + 2;
+            int index = ByteArray.readU16bit(info, pos + 6);
+            if (index != 0) {
+                String desc = cp.getUtf8Info(index);
+                desc = renameEntry(desc, oldname, newname);
+                ByteArray.write16bit(cp.addUtf8Info(desc), info, pos + 6);
+            }
+        }
+    }
+
+    String renameEntry(String desc, String oldname, String newname) {
+        return Descriptor.rename(desc, oldname, newname);
+    }
+
+    void renameClass(Map classnames) {
+        ConstPool cp = getConstPool();
+        int n = tableLength();
+        for (int i = 0; i < n; ++i) {
+            int pos = i * 10 + 2;
+            int index = ByteArray.readU16bit(info, pos + 6);
+            if (index != 0) {
+                String desc = cp.getUtf8Info(index);
+                desc = renameEntry(desc, classnames);
+                ByteArray.write16bit(cp.addUtf8Info(desc), info, pos + 6);
+            }
+        }
+    }
+
+    String renameEntry(String desc, Map classnames) {
+        return Descriptor.rename(desc, classnames);
     }
 
     /**
@@ -257,8 +294,7 @@ public class LocalVariableAttribute extends AttributeInfo {
         byte[] src = get();
         byte[] dest = new byte[src.length];
         ConstPool cp = getConstPool();
-        LocalVariableAttribute attr
-            = new LocalVariableAttribute(newCp, getName(), dest);
+        LocalVariableAttribute attr = makeThisAttr(newCp, dest);
         int n = ByteArray.readU16bit(src, 0);
         ByteArray.write16bit(n, dest, 0);
         int j = 2;
@@ -288,5 +324,10 @@ public class LocalVariableAttribute extends AttributeInfo {
         }
 
         return attr;
+    }
+
+    // LocalVariableTypeAttribute overrides this method.
+    LocalVariableAttribute makeThisAttr(ConstPool cp, byte[] dest) {
+        return new LocalVariableAttribute(cp, tag, dest);
     }
 }

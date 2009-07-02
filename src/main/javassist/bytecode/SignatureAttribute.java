@@ -62,6 +62,18 @@ public class SignatureAttribute extends AttributeInfo {
     }
 
     /**
+     * Sets <code>signature_index</code> to the index of the given signature,
+     * which is added to a constant pool.
+     *
+     * @param sig       new signature.
+     * @since 3.11
+     */
+    public void setSignature(String sig) {
+        int index = getConstPool().addUtf8Info(sig);
+        ByteArray.write16bit(index, info, 0);
+    }
+
+    /**
      * Makes a copy.  Class names are replaced according to the
      * given <code>Map</code> object.
      *
@@ -71,6 +83,107 @@ public class SignatureAttribute extends AttributeInfo {
      */
     public AttributeInfo copy(ConstPool newCp, Map classnames) {
         return new SignatureAttribute(newCp, getSignature());
+    }
+
+    void renameClass(String oldname, String newname) {
+        String sig = renameClass(getSignature(), oldname, newname);
+        setSignature(sig);
+    }
+
+    void renameClass(Map classnames) {
+        String sig = renameClass(getSignature(), classnames);
+        setSignature(sig);
+    }
+
+    static String renameClass(String desc, String oldname, String newname) {
+        if (desc.indexOf(oldname) < 0)
+            return desc;
+
+        StringBuffer newdesc = new StringBuffer();
+        int head = 0;
+        int i = 0;
+        for (;;) {
+            int j = desc.indexOf('L', i);
+            if (j < 0)
+                break;
+
+            int k = j;
+            int p = 0;
+            char c;
+            boolean match = true;
+            try {
+                int len = oldname.length();
+                while (isNamePart(c = desc.charAt(++k)))
+                    if (p >= len || c != oldname.charAt(p++))
+                        match = false;
+            }
+            catch (IndexOutOfBoundsException e) { break; }
+            i = k + 1;
+            if (match && p == oldname.length()) {
+                newdesc.append(desc.substring(head, j));
+                newdesc.append('L');
+                newdesc.append(newname);
+                newdesc.append(c);
+                head = i;
+            }
+        }
+
+        if (head == 0)
+            return desc;
+        else {
+            int len = desc.length();
+            if (head < len)
+                newdesc.append(desc.substring(head, len));
+
+            return newdesc.toString();
+        }
+    }
+
+    static String renameClass(String desc, Map map) {
+        if (map == null)
+            return desc;
+
+        StringBuffer newdesc = new StringBuffer();
+        int head = 0;
+        int i = 0;
+        for (;;) {
+            int j = desc.indexOf('L', i);
+            if (j < 0)
+                break;
+
+            StringBuffer nameBuf = new StringBuffer();
+            int k = j;
+            char c;
+            try {
+                while (isNamePart(c = desc.charAt(++k)))
+                    nameBuf.append(c);
+            }
+            catch (IndexOutOfBoundsException e) { break; }
+            i = k + 1;
+            String name = nameBuf.toString();
+            String name2 = (String)map.get(name);
+            if (name2 != null) {
+                newdesc.append(desc.substring(head, j));
+                newdesc.append('L');
+                newdesc.append(name2);
+                newdesc.append(c);
+                head = i;
+            }
+        }
+
+        if (head == 0)
+            return desc;
+        else {
+            int len = desc.length();
+            if (head < len)
+                newdesc.append(desc.substring(head, len));
+
+            return newdesc.toString();
+        }
+    }
+
+    private static boolean isNamePart(int c) {
+        return c != ';' && c != '<';
     }
 
     static private class Cursor {

@@ -404,12 +404,14 @@ public final class ClassFile {
         newname = Descriptor.toJvmName(newname);
         constPool.renameClass(oldname, newname);
 
+        AttributeInfo.renameClass(attributes, oldname, newname);
         list = methods;
         n = list.size();
         for (int i = 0; i < n; ++i) {
             MethodInfo minfo = (MethodInfo)list.get(i);
             String desc = minfo.getDescriptor();
             minfo.setDescriptor(Descriptor.rename(desc, oldname, newname));
+            AttributeInfo.renameClass(minfo.getAttributes(), oldname, newname);
         }
 
         list = fields;
@@ -418,6 +420,7 @@ public final class ClassFile {
             FieldInfo finfo = (FieldInfo)list.get(i);
             String desc = finfo.getDescriptor();
             finfo.setDescriptor(Descriptor.rename(desc, oldname, newname));
+            AttributeInfo.renameClass(finfo.getAttributes(), oldname, newname);
         }
     }
 
@@ -438,12 +441,14 @@ public final class ClassFile {
 
         constPool.renameClass(classnames);
 
+        AttributeInfo.renameClass(attributes, classnames);
         ArrayList list = methods;
         int n = list.size();
         for (int i = 0; i < n; ++i) {
             MethodInfo minfo = (MethodInfo)list.get(i);
             String desc = minfo.getDescriptor();
             minfo.setDescriptor(Descriptor.rename(desc, classnames));
+            AttributeInfo.renameClass(minfo.getAttributes(), classnames);
         }
 
         list = fields;
@@ -452,6 +457,7 @@ public final class ClassFile {
             FieldInfo finfo = (FieldInfo)list.get(i);
             String desc = finfo.getDescriptor();
             finfo.setDescriptor(Descriptor.rename(desc, classnames));
+            AttributeInfo.renameClass(finfo.getAttributes(), classnames);
         }
     }
 
