@@ -410,7 +410,7 @@ public abstract class CtClass {
      *
      * <p>This method may return <code>null</code>.
      */
-    public Collection getRefClasses() {
+    public synchronized Collection getRefClasses() {
         ClassFile cf = getClassFile2();
         if (cf != null) {
             ClassMap cm = new ClassMap() {
