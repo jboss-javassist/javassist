@@ -240,7 +240,6 @@ public final class ClassFile {
         }
 
         attributes = newAttributes;
-        cp.prune();
         constPool = cp;
     }
 
