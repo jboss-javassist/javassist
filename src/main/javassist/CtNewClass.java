@@ -103,7 +103,7 @@ class CtNewClass extends CtClassType {
 
         if (n < 1)
             throw new CannotCompileException(
-                        "no public constructor in " + superclazz.getName());
+                        "no inheritable constructor in " + superclazz.getName());
 
     }
 
@@ -117,7 +117,7 @@ class CtNewClass extends CtClassType {
             if (pname == null)
                 return pname2 == null;
             else
-                pname.equals(pname2);
+                return pname.equals(pname2);
         }
 
         return true;
