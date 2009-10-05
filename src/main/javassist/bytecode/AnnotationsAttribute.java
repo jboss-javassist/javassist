@@ -111,7 +111,7 @@ public class AnnotationsAttribute extends AttributeInfo {
     public static final String invisibleTag = "RuntimeInvisibleAnnotations";
 
     /**
-     * Constructs a <code>Runtime(In)VisisbleAnnotations_attribute</code>.
+     * Constructs a <code>Runtime(In)VisibleAnnotations_attribute</code>.
      *
      * @param cp            constant pool
      * @param attrname      attribute name (<code>visibleTag</code> or
@@ -126,7 +126,7 @@ public class AnnotationsAttribute extends AttributeInfo {
 
     /**
      * Constructs an empty
-     * <code>Runtime(In)VisisbleAnnotations_attribute</code>.
+     * <code>Runtime(In)VisibleAnnotations_attribute</code>.
      * A new annotation can be later added to the created attribute
      * by <code>setAnnotations()</code>.
      *

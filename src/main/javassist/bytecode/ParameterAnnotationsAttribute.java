@@ -53,7 +53,7 @@ public class ParameterAnnotationsAttribute extends AttributeInfo {
         = "RuntimeInvisibleParameterAnnotations";
     /**
      * Constructs
-     * a <code>Runtime(In)VisisbleParameterAnnotations_attribute</code>.
+     * a <code>Runtime(In)VisibleParameterAnnotations_attribute</code>.
      *
      * @param cp            constant pool
      * @param attrname      attribute name (<code>visibleTag</code> or
@@ -69,7 +69,7 @@ public class ParameterAnnotationsAttribute extends AttributeInfo {
 
     /**
      * Constructs an empty
-     * <code>Runtime(In)VisisbleParameterAnnotations_attribute</code>.
+     * <code>Runtime(In)VisibleParameterAnnotations_attribute</code>.
      * A new annotation can be later added to the created attribute
      * by <code>setAnnotations()</code>.
      *
