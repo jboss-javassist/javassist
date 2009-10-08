@@ -112,6 +112,8 @@ public class AttributeInfo {
                 return new SourceFileAttribute(cp, name, in);
             else if (nameStr.equals(SyntheticAttribute.tag))
                 return new SyntheticAttribute(cp, name, in);
+            else if (nameStr.equals(StackMap.tag))
+                return new StackMap(cp, name, in);
             else if (nameStr.equals(StackMapTable.tag))
                 return new StackMapTable(cp, name, in);
         }
