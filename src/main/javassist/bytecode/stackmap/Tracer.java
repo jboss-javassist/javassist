@@ -84,7 +84,7 @@ public abstract class Tracer implements TypeTag {
      * a stack element has a more specific type, this method updates the
      * type of it.
      *
-     * @pos         the position of the instruction.
+     * @param pos         the position of the instruction.
      * @return      the size of the instruction at POS.
      */
     protected int doOpcode(int pos, byte[] code) throws BadBytecode {
@@ -699,16 +699,21 @@ public abstract class Tracer implements TypeTag {
             doALOAD(index);
             break; }
         case Opcode.ISTORE :
-            return doWIDE_STORE(pos, code, INTEGER);
+            doWIDE_STORE(pos, code, INTEGER);
+            break;
         case Opcode.LSTORE :
-            return doWIDE_STORE(pos, code, LONG);
+            doWIDE_STORE(pos, code, LONG);
+            break;
         case Opcode.FSTORE :
-            return doWIDE_STORE(pos, code, FLOAT);
+            doWIDE_STORE(pos, code, FLOAT);
+            break;
         case Opcode.DSTORE :
-            return doWIDE_STORE(pos, code, DOUBLE);
+            doWIDE_STORE(pos, code, DOUBLE);
+            break;
         case Opcode.ASTORE : {
             int index = ByteArray.readU16bit(code, pos + 2);
-            return doASTORE(index); }
+            doASTORE(index);
+            break; }
         case Opcode.IINC :
             // this does not call writeLocal().
             return 6;
@@ -722,14 +727,14 @@ public abstract class Tracer implements TypeTag {
         return 4;
     }
 
-    private int doWIDE_XLOAD(int pos, byte[] code, TypeData type) {
+    private void doWIDE_XLOAD(int pos, byte[] code, TypeData type) {
         int index = ByteArray.readU16bit(code, pos + 2);
-        return doXLOAD(index, type);
+        doXLOAD(index, type);
     }
 
-    private int doWIDE_STORE(int pos, byte[] code, TypeData type) {
+    private void doWIDE_STORE(int pos, byte[] code, TypeData type) {
         int index = ByteArray.readU16bit(code, pos + 2);
-        return doXSTORE(index, type);
+        doXSTORE(index, type);
     }
 
     private int doPutField(int pos, byte[] code, boolean notStatic) throws BadBytecode {

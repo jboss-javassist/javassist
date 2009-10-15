@@ -15,11 +15,10 @@
 
 package javassist.bytecode;
 
-import java.io.DataInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
 import java.io.IOException;
 import java.util.Map;
-import javassist.bytecode.stackmap.*;
 
 /**
  * Another <code>stack_map</code> attribute defined in CLDC 1.1 for J2ME.
@@ -157,77 +156,45 @@ public class StackMap extends AttributeInfo {
         return pos;
     }
 
-    int i;
+    /**
+     * Internal use only.
+     */
+    public static class Writer {
+        // see javassist.bytecode.stackmap.MapMaker
 
-    static class NullType extends TypeData.BasicType {
-        NullType() {
-            super("null", StackMapTable.NULL);
-        }
-    }
-
-    static final NullType nullType = new NullType();
-
-    static class Conv extends StackMapTable.Walker {
         private ByteArrayOutputStream output;
-        private ConstPool pool;
-        private int offset;
-        private TypedBlock frame;
 
-        // more than one entries must be included!
-
-        public Conv(byte[] data, MethodInfo minfo, CodeAttribute ca)
-                throws BadBytecode {
-            super(data);
+        /**
+         * Constructs a writer.
+         */
+        public Writer() {
             output = new ByteArrayOutputStream();
-            pool = minfo.getConstPool();
-            offset = -1;
-            frame = TypedBlock.make(minfo, ca);
         }
 
-        private void write16bit(int value) {
-            output.write((byte) (value >>> 8));
-            output.write((byte) value);
+        /**
+         * Converts to a <code>StackMap</code> attribute.
+         */
+        public StackMap toStackMap(ConstPool cp) {
+            return new StackMap(cp, output.toByteArray());
         }
 
-        private void writeFrame() {
-            int numLocals = frame.numLocals;
-            int numStack = frame.stackTop;
+        /**
+         * Writes a <code>union verification_type_info</code> value.
+         *
+         * @param data      <code>cpool_index</code> or <code>offset</code>.
+         */
+        public void writeVerifyTypeInfo(int tag, int data) {
+            output.write(tag);
+            if (tag == StackMap.OBJECT || tag == StackMap.UNINIT)
+                write16bit(data);
         }
 
-        private void writeTypes(TypeData[] types, int num) {
-            for (int i = 0; i < num; i++) {
-                TypeData t = types[i];
-                int tag = t.getTypeTag();
-                if (t.is2WordType())
-                    i++;
-
-                output.write(tag);
-                if (tag == UNINIT) {
-                    write16bit(t.getTypeData(pool));
-                }
-            }
-        }
-
-        public void sameFrame(int pos, int offsetDelta) {
-            offset += offsetDelta + 1;
-        }
-
-        public void sameLocals(int pos, int offsetDelta, int stackTag,
-                int stackData) {
-            offset += offsetDelta + 1;
-        }
-
-        public void chopFrame(int pos, int offsetDelta, int k) {
-            offset += offsetDelta + 1;
-        }
-
-        public void appendFrame(int pos, int offsetDelta, int[] tags, int[] data) {
-            offset += offsetDelta + 1;
-        }
-
-        public void fullFrame(int pos, int offsetDelta, int[] localTags,
-                int[] localData, int[] stackTags, int[] stackData) {
-            offset += offsetDelta + 1;
+        /**
+         * Writes a 16bit value.
+         */
+        public void write16bit(int value) {
+            output.write((value >>> 8) & 0xff);
+            output.write(value & 0xff);
         }
     }
 }

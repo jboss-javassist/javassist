@@ -316,6 +316,21 @@ public class CodeAttribute extends AttributeInfo implements Opcode {
     }
 
     /**
+     * Adds a stack map table for J2ME (CLDC).  If another copy of stack map table
+     * is already contained, the old one is removed.
+     *
+     * @param smt       the stack map table added to this code attribute.
+     *                  If it is null, a new stack map is not added.
+     *                  Only the old stack map is removed.
+     * @since 3.12
+     */
+    public void setAttribute(StackMap sm) {
+        AttributeInfo.remove(attributes, StackMapTable.tag);
+        if (sm != null)
+            attributes.add(sm);
+    }
+
+    /**
      * Copies code.
      */
     private byte[] copyCode(ConstPool destCp, Map classnames,

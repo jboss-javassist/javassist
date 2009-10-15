@@ -291,22 +291,24 @@ public Object get() { return value; }
 
 <p>If you modify a class file for the J2ME execution environment,
 you must perform <it>preverification</it>.  Preverifying is basically
-producing a stack map table, which was introduced into J2SE at JDK 1.6.
-However, Javassist does not automatically produce a stack map table
-for class files compiled by the J2ME compiler.  You have to manually
-produce stack map tables for the modified methods.
+producing stack maps, which is similar to stack map tables introduced
+into J2SE at JDK 1.6.  Javassist maintains the stack maps for J2ME only if
+<code>javassist.bytecode.MethodInfo.doPreverify</code> is true.
 
-<p>For a given method represented by a <code>CtMethod</code> object <code>m</code>,
-you can produce a stack map table by calling the following methods:
+<p>You can also manually
+produce a stack map for a modified method.
+For a given method represented by a <code>CtMethod</code> object <code>m</code>,
+you can produce a stack map by calling the following methods:
 
 <ul><pre>
-m.getMethodInfo().rebuildStackMap(cpool);
+m.getMethodInfo().rebuildStackMapForME(cpool);
 </pre></ul>
 
 <p>Here, <code>cpool</code> is a <code>ClassPool</code> object, which is
 available by calling <code>getClassPool()</code> on a <code>CtClass</code>
 object.  A <code>ClassPool</code> object is responsible for finding
-class files from given class pathes.
+class files from given class pathes.  To obtain all the <code>CtMethod</code>
+objects, call the <code>getDeclaredMethods</code> method on a <code>CtClass</code> object.
 
 <p><br>
 

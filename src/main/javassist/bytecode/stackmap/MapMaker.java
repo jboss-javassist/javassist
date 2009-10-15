@@ -97,6 +97,27 @@ public class MapMaker extends Tracer {
         return mm.toStackMap(blocks);
     }
 
+    /**
+     * Computes the stack map table for J2ME.
+     * It returns null if the given method does not have to have a
+     * stack map table.
+     */
+    public static StackMap make2(ClassPool classes, MethodInfo minfo)
+        throws BadBytecode
+    {
+        CodeAttribute ca = minfo.getCodeAttribute();
+        if (ca == null)
+            return null;
+
+        TypedBlock[] blocks = TypedBlock.makeBlocks(minfo, ca, true);
+        if (blocks == null)
+            return null;
+
+        MapMaker mm = new MapMaker(classes, minfo, ca);
+        mm.make(blocks, ca.getCode());
+        return mm.toStackMap2(minfo.getConstPool(), blocks);
+    }
+
     public MapMaker(ClassPool classes, MethodInfo minfo, CodeAttribute ca) {
         super(classes, minfo.getConstPool(),
               ca.getMaxStack(), ca.getMaxLocals(),
@@ -440,5 +461,43 @@ public class MapMaker extends Tracer {
         }
 
         return num;
+    }
+
+    // Phase 3 for J2ME
+
+    public StackMap toStackMap2(ConstPool cp, TypedBlock[] blocks) {
+        StackMap.Writer writer = new StackMap.Writer();
+        int n = blocks.length;
+        int i; 
+        if (blocks[0].incoming > 0)  // the first instruction is a branch target.
+            i = 1;
+        else
+            i = 0;
+
+        writer.write16bit(n - i);
+        for (; i < n; i++)
+            writeStackFrame(writer, cp, blocks[i].position, blocks[i]);
+
+        return writer.toStackMap(cp);
+    }
+
+    private void writeStackFrame(StackMap.Writer writer, ConstPool cp, int offset, TypedBlock tb) {
+        writer.write16bit(offset);
+        writeVerifyTypeInfo(writer, cp, tb.localsTypes, tb.numLocals);
+        writeVerifyTypeInfo(writer, cp, tb.stackTypes, tb.stackTop);
+    }
+
+    private void writeVerifyTypeInfo(StackMap.Writer writer, ConstPool cp, TypeData[] types, int num) {
+        writer.write16bit(num);
+        for (int i = 0; i < num; i++) {
+            TypeData td = types[i];
+            if (td == TOP)
+                writer.writeVerifyTypeInfo(StackMap.TOP, 0);
+            else {
+                writer.writeVerifyTypeInfo(td.getTypeTag(), td.getTypeData(cp));
+                if (td.is2WordType())
+                    i++;
+            }
+        }
     }
 }
