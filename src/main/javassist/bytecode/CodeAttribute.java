@@ -325,7 +325,7 @@ public class CodeAttribute extends AttributeInfo implements Opcode {
      * @since 3.12
      */
     public void setAttribute(StackMap sm) {
-        AttributeInfo.remove(attributes, StackMapTable.tag);
+        AttributeInfo.remove(attributes, StackMap.tag);
         if (sm != null)
             attributes.add(sm);
     }
