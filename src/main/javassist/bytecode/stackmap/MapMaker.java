@@ -467,7 +467,7 @@ public class MapMaker extends Tracer {
 
     public StackMap toStackMap2(ConstPool cp, TypedBlock[] blocks) {
         StackMap.Writer writer = new StackMap.Writer();
-        int n = blocks.length;
+        int n = blocks.length;      // should be > 0
         boolean[] effective = new boolean[n];
         TypedBlock prev = blocks[0];
 
@@ -483,7 +483,10 @@ public class MapMaker extends Tracer {
                 num++;
             }
         }
-            
+
+        if (num == 0)
+            return null;
+
         writer.write16bit(num);
         for (int i = 0; i < n; i++)
             if (effective[i])
