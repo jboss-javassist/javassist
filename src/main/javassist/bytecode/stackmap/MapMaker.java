@@ -462,7 +462,6 @@ public class MapMaker extends Tracer {
 
         return num;
     }
-<<<<<<< .mine
 
     // Phase 3 for J2ME
 
@@ -512,44 +511,4 @@ public class MapMaker extends Tracer {
             }
         }
     }
-=======
-
-    // Phase 3 for J2ME
-
-    public StackMap toStackMap2(ConstPool cp, TypedBlock[] blocks) {
-        StackMap.Writer writer = new StackMap.Writer();
-        int n = blocks.length;
-        int i; 
-        if (blocks[0].incoming > 0)  // the first instruction is a branch target.
-            i = 1;
-        else
-            i = 0;
-
-        writer.write16bit(n - i);
-        for (; i < n; i++)
-            writeStackFrame(writer, cp, blocks[i].position, blocks[i]);
-
-        return writer.toStackMap(cp);
-    }
-
-    private void writeStackFrame(StackMap.Writer writer, ConstPool cp, int offset, TypedBlock tb) {
-        writer.write16bit(offset);
-        writeVerifyTypeInfo(writer, cp, tb.localsTypes, tb.numLocals);
-        writeVerifyTypeInfo(writer, cp, tb.stackTypes, tb.stackTop);
-    }
-
-    private void writeVerifyTypeInfo(StackMap.Writer writer, ConstPool cp, TypeData[] types, int num) {
-        writer.write16bit(num);
-        for (int i = 0; i < num; i++) {
-            TypeData td = types[i];
-            if (td == TOP)
-                writer.writeVerifyTypeInfo(StackMap.TOP, 0);
-            else {
-                writer.writeVerifyTypeInfo(td.getTypeTag(), td.getTypeData(cp));
-                if (td.is2WordType())
-                    i++;
-            }
-        }
-    }
->>>>>>> .r495
 }
