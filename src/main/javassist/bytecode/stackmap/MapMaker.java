@@ -462,6 +462,57 @@ public class MapMaker extends Tracer {
 
         return num;
     }
+<<<<<<< .mine
+
+    // Phase 3 for J2ME
+
+    public StackMap toStackMap2(ConstPool cp, TypedBlock[] blocks) {
+        StackMap.Writer writer = new StackMap.Writer();
+        int n = blocks.length;
+        boolean[] effective = new boolean[n];
+        TypedBlock prev = blocks[0];
+
+        // Is the first instruction a branch target?
+        effective[0] = prev.incoming > 0;
+
+        int num = effective[0] ? 1 : 0;
+        for (int i = 1; i < n; i++) {
+            TypedBlock bb = blocks[i];
+            if (effective[i] = isTarget(bb, blocks[i - 1])) {
+                bb.resetNumLocals();
+                prev = bb;
+                num++;
+            }
+        }
+            
+        writer.write16bit(num);
+        for (int i = 0; i < n; i++)
+            if (effective[i])
+                writeStackFrame(writer, cp, blocks[i].position, blocks[i]);
+
+        return writer.toStackMap(cp);
+    }
+
+    private void writeStackFrame(StackMap.Writer writer, ConstPool cp, int offset, TypedBlock tb) {
+        writer.write16bit(offset);
+        writeVerifyTypeInfo(writer, cp, tb.localsTypes, tb.numLocals);
+        writeVerifyTypeInfo(writer, cp, tb.stackTypes, tb.stackTop);
+    }
+
+    private void writeVerifyTypeInfo(StackMap.Writer writer, ConstPool cp, TypeData[] types, int num) {
+        writer.write16bit(num);
+        for (int i = 0; i < num; i++) {
+            TypeData td = types[i];
+            if (td == TOP)
+                writer.writeVerifyTypeInfo(StackMap.TOP, 0);
+            else {
+                writer.writeVerifyTypeInfo(td.getTypeTag(), td.getTypeData(cp));
+                if (td.is2WordType())
+                    i++;
+            }
+        }
+    }
+=======
 
     // Phase 3 for J2ME
 
@@ -500,4 +551,5 @@ public class MapMaker extends Tracer {
             }
         }
     }
+>>>>>>> .r495
 }
