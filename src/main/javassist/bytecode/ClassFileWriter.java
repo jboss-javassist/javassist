@@ -113,6 +113,11 @@ public class ClassFileWriter {
                 StackMapTable.Printer.print((StackMapTable)ai, out);
                 out.println("<stack map table end>");
             }
+            else if (ai instanceof StackMap) {
+                out.println("<stack map begin>");
+                StackMap.Printer.print((StackMap)ai, out);
+                out.println("<stack map end>");
+            }
             else if (ai instanceof SignatureAttribute) {
                 SignatureAttribute sa = (SignatureAttribute)ai;
                 String sig = sa.getSignature();

@@ -157,6 +157,53 @@ public class StackMap extends AttributeInfo {
     }
 
     /**
+     * Printer
+     */
+    public static class Printer {
+        /**
+         * Prints a <code>StackMap</code> attribute.
+         *
+         * @param sm        the <code>StackMap</code> attribute.
+         * @param cp        the <code>ConstPool</code> of the class file
+         *                  containing the <code>StackMap</code> attribute.
+         */
+        public static void print(StackMap sm, java.io.PrintWriter out) {
+            int num = sm.numOfEntries();
+            out.println(num + " entries");
+            byte[] srcInfo = sm.get();
+            int pos = 2;
+            for (int i = 0; i < num; i++) {
+                int offset = ByteArray.readU16bit(srcInfo, pos);
+                out.println("  * offset " + offset);
+                pos += 2;
+                int numLoc = ByteArray.readU16bit(srcInfo, pos);
+                pos = printFrames(srcInfo, pos + 2, numLoc);
+                int numStack = ByteArray.readU16bit(srcInfo, pos);
+                pos = printFrames(srcInfo, pos + 2, numStack);
+            }
+        }
+
+        private static int printFrames(byte[] srcInfo, int pos,
+                                       int numFrames) {
+            for (int k = 0; k < numFrames; k++) {
+                byte tag = srcInfo[pos];
+                if (tag == OBJECT) {
+                    ByteArray.readU16bit(srcInfo, pos + 1);
+                    pos += 3;
+                }
+                else if (tag == UNINIT) {
+                    ByteArray.readU16bit(srcInfo, pos + 1);
+                    pos += 3;
+                }
+                else
+                    pos++;
+            }
+
+            return pos;
+        }
+    }
+
+    /**
      * Internal use only.
      */
     public static class Writer {
