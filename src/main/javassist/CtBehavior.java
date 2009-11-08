@@ -627,6 +627,10 @@ public abstract class CtBehavior extends CtMember {
             StackMapTable smt = (StackMapTable)ca.getAttribute(StackMapTable.tag);
             if (smt != null)
                 smt.insertLocal(where, StackMapTable.typeTagOf(typeDesc), classInfo);
+
+            StackMap sm = (StackMap)ca.getAttribute(StackMap.tag);
+            if (sm != null)
+                sm.insertLocal(where, StackMapTable.typeTagOf(typeDesc), classInfo);
         }
     }
 

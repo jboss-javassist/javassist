@@ -843,6 +843,10 @@ public class CodeIterator implements Opcode {
         if (smt != null)
             smt.shiftPc(where, gapLength, exclusive);
 
+        StackMap sm = (StackMap)ca.getAttribute(StackMap.tag);
+        if (sm != null)
+            sm.shiftPc(where, gapLength, exclusive);
+
         return newcode;
     }
 
@@ -993,6 +997,7 @@ public class CodeIterator implements Opcode {
         LineNumberAttribute line;
         LocalVariableAttribute vars, types;
         StackMapTable stack;
+        StackMap stack2;
 
         Pointers(int cur, int m, int m0, ExceptionTable et, CodeAttribute ca) {
             cursor = cur;
@@ -1003,6 +1008,7 @@ public class CodeIterator implements Opcode {
             vars = (LocalVariableAttribute)ca.getAttribute(LocalVariableAttribute.tag);
             types = (LocalVariableAttribute)ca.getAttribute(LocalVariableAttribute.typeTag);
             stack = (StackMapTable)ca.getAttribute(StackMapTable.tag);
+            stack2 = (StackMap)ca.getAttribute(StackMap.tag);
         }
 
         void shiftPc(int where, int gapLength, boolean exclusive) throws BadBytecode {
@@ -1027,6 +1033,9 @@ public class CodeIterator implements Opcode {
 
             if (stack != null)
                 stack.shiftPc(where, gapLength, exclusive);
+
+            if (stack2 != null)
+                stack2.shiftPc(where, gapLength, exclusive);
         }
     }
 

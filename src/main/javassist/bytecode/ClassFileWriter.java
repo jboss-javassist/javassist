@@ -115,7 +115,7 @@ public class ClassFileWriter {
             }
             else if (ai instanceof StackMap) {
                 out.println("<stack map begin>");
-                StackMap.Printer.print((StackMap)ai, out);
+                ((StackMap)ai).print(out);
                 out.println("<stack map end>");
             }
             else if (ai instanceof SignatureAttribute) {

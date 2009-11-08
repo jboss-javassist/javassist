@@ -30,6 +30,7 @@ import javassist.CannotCompileException;
  * It was introduced by J2SE 6 for the process of verification by
  * typechecking.
  *
+ * @see StackMap
  * @since 3.4
  */
 public class StackMapTable extends AttributeInfo {
@@ -425,7 +426,8 @@ public class StackMapTable extends AttributeInfo {
     }
 
     /**
-     * Updates this stack map table when a new local variable is added.
+     * Updates this stack map table when a new local variable is inserted
+     * for a new parameter.
      *
      * @param index          the index of the added local variable.
      * @param tag            the type tag of that local variable. 
@@ -433,6 +435,7 @@ public class StackMapTable extends AttributeInfo {
      *                       in a constant pool table.  This should be zero unless the tag
      *                       is <code>ITEM_Object</code>.
      *
+     * @see javassist.CtBehavior#addParameter(javassist.CtClass)
      * @see #typeTagOf(char)
      * @see ConstPool
      */
@@ -469,6 +472,11 @@ public class StackMapTable extends AttributeInfo {
         }
     }
 
+    /* This implementation assumes that a local variable initially
+     * holding a parameter value is never changed to be a different
+     * type.
+     * 
+     */
     static class InsertLocal extends SimpleCopy {
         private int varIndex;
         private int varTag, varData;

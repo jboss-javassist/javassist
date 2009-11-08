@@ -502,7 +502,16 @@ public class MapMaker extends Tracer {
     }
 
     private void writeVerifyTypeInfo(StackMap.Writer writer, ConstPool cp, TypeData[] types, int num) {
-        writer.write16bit(num);
+        int numDWord = 0;
+        for (int i = 0; i < num; i++) {
+            TypeData td = types[i];
+            if (td != null && td.is2WordType()) {
+                numDWord++;
+                i++;
+            }
+        }
+
+        writer.write16bit(num - numDWord);
         for (int i = 0; i < num; i++) {
             TypeData td = types[i];
             if (td == TOP)
