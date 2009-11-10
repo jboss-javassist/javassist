@@ -285,10 +285,11 @@ public class Annotation {
      * @param cl        class loader for loading an annotation type.
      * @param cp        class pool for obtaining class files.
      * @return the annotation
-     * @throws ClassNotFoundException when the class cannot found
+     * @throws ClassNotFoundException   if the class cannot found.
+     * @throws NoSuchClassError         if the class linkage fails.
      */
     public Object toAnnotationType(ClassLoader cl, ClassPool cp)
-        throws ClassNotFoundException
+        throws ClassNotFoundException, NoSuchClassError
     {
         return AnnotationImpl.make(cl,
                         MemberValue.loadClass(cl, getTypeName()),

@@ -46,9 +46,14 @@ public abstract class MemberValue {
     abstract Class getType(ClassLoader cl) throws ClassNotFoundException;
 
     static Class loadClass(ClassLoader cl, String classname)
-        throws ClassNotFoundException
+        throws ClassNotFoundException, NoSuchClassError
     {
-       return Class.forName(classname, true, cl);
+        try {
+            return Class.forName(classname, true, cl);
+        }
+        catch (LinkageError e) {
+            throw new NoSuchClassError(classname, e);
+        }
     }
 
     /**
