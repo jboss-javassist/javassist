@@ -188,7 +188,7 @@ public class LocalVariableAttribute extends AttributeInfo {
              */
             if (pc > where || (exclusive && pc == where && pc != 0))
                 ByteArray.write16bit(pc + gapLength, info, pos);
-            else if (pc + len > where)
+            else if (pc + len > where || (exclusive && pc + len == where))
                 ByteArray.write16bit(len + gapLength, info, pos + 2);
         }
     }
