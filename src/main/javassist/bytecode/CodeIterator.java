@@ -1459,14 +1459,17 @@ public class CodeIterator implements Opcode {
         }
 
         int write(int src, byte[] code, int dest, byte[] newcode) {
-            newcode[dest++] = code[src];
             int padding = 3 - (pos & 3);
             int nops = gap - padding;
+            int bytecodeSize = 5 + (3 - (orgPos & 3)) + tableSize();
+            adjustOffsets(bytecodeSize, nops);
+            newcode[dest++] = code[src];
             while (padding-- > 0)
                 newcode[dest++] = 0;
 
             ByteArray.write32bit(defaultByte, newcode, dest);
             int size = write2(dest + 4, newcode);
+            dest += size + 4;
             while (nops-- > 0)
                 newcode[dest++] = NOP;
 
@@ -1474,6 +1477,25 @@ public class CodeIterator implements Opcode {
         }
 
         abstract int write2(int dest, byte[] newcode);
+        abstract int tableSize();
+
+        /* If the new bytecode size is shorter than the original, some NOPs
+         * are appended after this branch instruction (tableswitch or
+         * lookupswitch) to fill the gap.
+         * This method changes a branch offset to point to the first NOP
+         * if the offset originally points to the bytecode next to this
+         * branch instruction.  Otherwise, the bytecode would contain
+         * dead code.  It complicates the generation of StackMap and
+         * StackMapTable.
+         */
+        void adjustOffsets(int size, int nops) {
+            if (defaultByte == size)
+                defaultByte -= nops;
+
+            for (int i = 0; i < offsets.length; i++)
+                if (offsets[i] == size)
+                    offsets[i] -= nops;
+        }
     }
 
     static class Table extends Switcher {
@@ -1497,6 +1519,8 @@ public class CodeIterator implements Opcode {
 
             return 8 + 4 * n;
         }
+
+        int tableSize() { return 8 + 4 * offsets.length; }
     }
 
     static class Lookup extends Switcher {
@@ -1519,5 +1543,7 @@ public class CodeIterator implements Opcode {
 
             return 4 + 8 * n;
         }
+
+        int tableSize() { return 4 + 8 * matches.length; }
     }
 }
