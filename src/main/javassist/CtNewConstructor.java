@@ -108,11 +108,14 @@ public class CtNewConstructor {
     }
 
     /**
-     * Creats a copy of a constructor.
+     * Creates a copy of a constructor.
+     * This is a convenience method for calling
+     * {@link CtConstructor#CtConstructor(CtConstructor, CtClass, ClassMap) this constructor}.
+     * See the description of the constructor for particular behavior of the copying.
      *
      * @param c         the copied constructor.
      * @param declaring    the class to which the created method is added.
-     * @param map       the hashtable associating original class names
+     * @param map       the hash table associating original class names
      *                  with substituted names.
      *                  It can be <code>null</code>.
      *
