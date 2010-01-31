@@ -1029,7 +1029,7 @@ public class CodeIterator implements Opcode {
                 vars.shiftPc(where, gapLength, exclusive);
 
             if (types != null)
-                vars.shiftPc(where, gapLength, exclusive);
+                types.shiftPc(where, gapLength, exclusive);
 
             if (stack != null)
                 stack.shiftPc(where, gapLength, exclusive);
