@@ -748,7 +748,6 @@ public class ProxyFactory {
             if (!Modifier.isPrivate(methods[i].getModifiers())) {
                 Method m = methods[i];
                 String key = m.getName() + ':' + RuntimeSupport.makeDescriptor(m);
-                hash.put(key, methods[i]);
                 // JIRA JASSIST-85
                 // put the method to the cache, retrieve previous definition (if any) 
                 Method oldMethod = (Method)hash.put(key, methods[i]); 
