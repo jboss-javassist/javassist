@@ -82,6 +82,12 @@ public final class ClassFile {
     public static final int JAVA_6 = 50;
 
     /**
+     * The major version number of class files
+     * for JDK 1.7.
+     */
+    public static final int JAVA_7 = 51;
+
+    /**
      * The major version number of class files created
      * from scratch.  The default value is 47 (JDK 1.3)
      * or 49 (JDK 1.5) if the JVM supports <code>java.lang.StringBuilder</code>.
