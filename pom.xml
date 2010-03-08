@@ -8,9 +8,16 @@
   <description>Javassist (JAVA programming ASSISTant) makes Java bytecode manipulation
      simple.  It is a class library for editing bytecodes in Java.
   </description>
-  <version>3.11.0.GA</version>
+  <version>3.12.0-SNAPSHOT</version>
   <name>Javassist</name>
   <url>http://www.javassist.org/</url>
+  <distributionManagement>
+    <snapshotRepository>
+      <id>jboss-snapshots</id>
+      <name>JBoss Snapshot Repository</name>
+      <url>${jboss.snapshots.repo.url}</url>
+    </snapshotRepository>
+  </distributionManagement>
   <build>
     <sourceDirectory>src/main/</sourceDirectory>
     <testSourceDirectory>src/test/</testSourceDirectory>
