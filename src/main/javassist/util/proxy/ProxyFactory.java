@@ -160,6 +160,9 @@ public class ProxyFactory {
     private static final String HANDLER_SETTER = "setHandler";
     private static final String HANDLER_SETTER_TYPE = "(" + HANDLER_TYPE + ")V";
 
+    private static final String HANDLER_GETTER = "getHandler";
+    private static final String HANDLER_GETTER_TYPE = "()" + HANDLER_TYPE;
+
     /**
      * If true, a generated proxy class is cached and it will be reused
      * when generating the proxy class with the same properties is requested.
@@ -552,6 +555,7 @@ public class ProxyFactory {
         int s = overrideMethods(cf, pool, classname, allMethods);
         addMethodsHolder(cf, pool, classname, s);
         addSetter(classname, cf, pool);
+        addGetter(classname, cf, pool);
 
         try {
             cf.addMethod(makeWriteReplace(pool));
@@ -609,6 +613,20 @@ public class ProxyFactory {
         code.addAload(1);
         code.addPutfield(classname, HANDLER, HANDLER_TYPE);
         code.addOpcode(Bytecode.RETURN);
+        minfo.setCodeAttribute(code.toCodeAttribute());
+        cf.addMethod(minfo);
+    }
+
+    private static void addGetter(String classname, ClassFile cf, ConstPool cp)
+        throws CannotCompileException
+    {
+        MethodInfo minfo = new MethodInfo(cp, HANDLER_GETTER,
+                                          HANDLER_GETTER_TYPE);
+        minfo.setAccessFlags(AccessFlag.PUBLIC);
+        Bytecode code = new Bytecode(cp, 1, 1);
+        code.addAload(0);
+        code.addGetfield(classname, HANDLER, HANDLER_TYPE);
+        code.addOpcode(Bytecode.ARETURN);
         minfo.setCodeAttribute(code.toCodeAttribute());
         cf.addMethod(minfo);
     }

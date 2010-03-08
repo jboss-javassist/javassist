@@ -26,4 +26,11 @@ public interface ProxyObject {
      * during runtime.
      */
     void setHandler(MethodHandler mi);
+
+    /**
+     * Get the handler.
+     * This can be used to access values of the underlying MethodHandler
+     * or to serialize it properly. 
+     */
+    MethodHandler getHandler();
 }

@@ -201,7 +201,15 @@ public class RuntimeSupport {
         throws java.io.InvalidClassException
     {
         Class clazz = proxy.getClass();
+
+        MethodHandler methodHandler = null;
+        if (proxy instanceof ProxyObject)
+            methodHandler = ((ProxyObject)proxy).getHandler();
+
+        if (methodHandler == null)
+            methodHandler = ProxyFactory.getHandler(clazz);
+
         return new SerializedProxy(clazz, ProxyFactory.getFilter(clazz),
-                                   ProxyFactory.getHandler(clazz));
+                                   methodHandler);
     }
 }
