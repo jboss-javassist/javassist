@@ -22,11 +22,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Member;
 import java.lang.reflect.Modifier;
 import java.security.ProtectionDomain;
-import java.util.HashMap;
-import java.util.WeakHashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.lang.ref.WeakReference;
 
 import javassist.CannotCompileException;
@@ -174,33 +170,70 @@ public class ProxyFactory {
 
     private static WeakHashMap proxyCache = new WeakHashMap();
 
-    static class CacheKey {
-        String classes;
+    /**
+     * store details of a specific proxy created using a given method filter and handler
+     */
+    static class ProxyDetails {
         MethodFilter filter;
-        private int hash;
-        WeakReference proxyClass;
         MethodHandler handler;
+        Class proxyClass;
 
-        public CacheKey(Class superClass, Class[] interfaces,
-                        MethodFilter f, MethodHandler h)
+        ProxyDetails(MethodFilter filter, MethodHandler handler, Class proxyClass)
         {
-            classes = getKey(superClass, interfaces);
-            hash = classes.hashCode();
-            filter = f;
-            handler = h;
-            proxyClass = null;
+            this.filter = filter;
+            this.handler = handler;
+            this.proxyClass = proxyClass;
+        }
+    }
+
+    /**
+     * collect together details of all proxies associated with a given classloader which are constructed
+     * from a given superclass and set of interfaces
+     */
+    static class ProxySet {
+        String classes;         // key constructed from super/interfaces names
+        List proxyDetails;      // hold details of all proxies with given super/interfaces
+
+        public ProxySet(String key)
+        {
+            classes = key;
+            proxyDetails = new ArrayList();
         }
 
-        public int hashCode() { return hash; }
-
-        public boolean equals(Object obj) {
-            if (obj instanceof CacheKey) {
-                CacheKey target = (CacheKey)obj;
-                return target.filter == filter && target.handler == handler
-                       && target.classes.equals(classes);
+        /**
+         * retrieve an entry from the set with the given filter and handler
+         * @param filter
+         * @param handler
+         * @return the proxy details or null if it is not found
+         */
+        public ProxyDetails lookup(MethodFilter filter, MethodHandler handler)
+        {
+            Iterator iterator = proxyDetails.iterator();
+            while (iterator.hasNext()) {
+                ProxyDetails details = (ProxyDetails)iterator.next();
+                if (details.filter == filter && details.handler == handler) {
+                    return details;
+                }
             }
-            else
-                return false;
+            return null;
+        }
+
+        /**
+         * add details of a new proxy to the set
+         * @param details must not contain the same filter and handler as any existing entry in the set
+         */
+        public void add(ProxyDetails details)
+        {
+            proxyDetails.add(details);
+        }
+
+        /**
+         * remove details of an existing proxy from the set
+         * @param details must be in the set
+         */
+        public void remove(ProxyDetails details)
+        {
+            proxyDetails.remove(details);
         }
 
         static String getKey(Class superClass, Class[] interfaces) {
@@ -283,7 +316,9 @@ public class ProxyFactory {
     }
 
     private void createClass2(ClassLoader cl) {
-        CacheKey key = new CacheKey(superClass, interfaces, methodFilter, handler);
+        String key = ProxySet.getKey(superClass, interfaces);
+        WeakReference reference;
+        ProxySet set;
         /*
          * Excessive concurrency causes a large memory footprint and slows the
          * execution speed down (with JDK 1.5).  Thus, we use a jumbo lock for
@@ -294,43 +329,27 @@ public class ProxyFactory {
             if (cacheForTheLoader == null) {
                 cacheForTheLoader = new HashMap();
                 proxyCache.put(cl, cacheForTheLoader);
-                cacheForTheLoader.put(key, key);
             }
-            else {
-                CacheKey found = (CacheKey)cacheForTheLoader.get(key);
-                if (found == null)
-                    cacheForTheLoader.put(key, key);
-                else {
-                    key = found;
-                    Class c = isValidEntry(key);    // no need to synchronize
-                    if (c != null) {
-                        thisClass = c;
-                        return;
-                    }
-                }
+            reference = (WeakReference)cacheForTheLoader.get(key);
+            if (reference != null) {
+                set = (ProxySet)reference.get();
+            } else {
+                set = null;
             }
-        // }
-
-        // synchronized (key) {
-            Class c = isValidEntry(key);
-            if (c == null) {
+            if (set == null) {
+                set = new ProxySet(key);
+                reference = new WeakReference(set);
+                cacheForTheLoader.put(key, reference);
+            }
+            ProxyDetails details = set.lookup(methodFilter, handler);
+            if (details == null) {
                 createClass3(cl);
-                key.proxyClass = new WeakReference(thisClass);
+                details = new  ProxyDetails(methodFilter, handler, thisClass);
+                set.add(details);
+            } else {
+                thisClass = details.proxyClass;
             }
-            else
-                thisClass = c; 
         // }
-    }
-
-    private Class isValidEntry(CacheKey key) {
-        WeakReference ref = key.proxyClass;
-        if (ref != null) {
-            Class c = (Class)ref.get();
-            if(c != null)
-                return c;
-        }
-
-        return null;
     }
 
     private void createClass3(ClassLoader cl) {
