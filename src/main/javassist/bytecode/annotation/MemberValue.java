@@ -17,7 +17,10 @@ package javassist.bytecode.annotation;
 
 import javassist.ClassPool;
 import javassist.bytecode.ConstPool;
+import javassist.bytecode.Descriptor;
+
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.lang.reflect.Method;
 
 /**
@@ -49,11 +52,28 @@ public abstract class MemberValue {
         throws ClassNotFoundException, NoSuchClassError
     {
         try {
-            return Class.forName(classname, true, cl);
+            return Class.forName(convertFromArray(classname), true, cl);
         }
         catch (LinkageError e) {
             throw new NoSuchClassError(classname, e);
         }
+    }
+    
+    private static String convertFromArray(String classname)
+    {
+//       int index = classname.indexOf("[]"); 
+//       if (index != -1)
+//       {
+//          String rawType = classname.substring(0, index);
+//          StringBuffer sb = new StringBuffer(Descriptor.of(rawType));
+//          while (index != -1)
+//          {
+//             sb.insert(0, "[");
+//             index = classname.indexOf("[]", index + 1);
+//          }
+//          return sb.toString().replace('/', '.');
+//       }
+       return classname;
     }
 
     /**
