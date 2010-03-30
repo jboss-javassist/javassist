@@ -61,19 +61,17 @@ public abstract class MemberValue {
     
     private static String convertFromArray(String classname)
     {
-       int index = classname.indexOf("[]"); 
-       if (index != -1)
-       {
-          String rawType = classname.substring(0, index);
-          StringBuffer sb = new StringBuffer(Descriptor.of(rawType));
-          while (index != -1)
-          {
-             sb.insert(0, "[");
-             index = classname.indexOf("[]", index + 1);
-          }
-          return sb.toString().replace('/', '.');
-       }
-       return classname;
+        int index = classname.indexOf("[]"); 
+        if (index != -1) {
+            String rawType = classname.substring(0, index);
+            StringBuffer sb = new StringBuffer(Descriptor.of(rawType));
+            while (index != -1) {
+                sb.insert(0, "[");
+                index = classname.indexOf("[]", index + 1);
+            }
+            return sb.toString().replace('/', '.');
+        }
+        return classname;
     }
 
     /**
