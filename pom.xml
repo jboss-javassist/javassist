@@ -12,8 +12,22 @@
   <name>Javassist</name>
   <url>http://www.javassist.org/</url>
   <distributionManagement>
+  <!--  
+      You need an entry in your .m2/settings.xml like this:
+   <servers>
+    <server>
+       <id>snapshots.jboss.org</id>
+       <username>your_jboss.org_username</username>
+       <password>password</password>
+    </server>
+  </servers>
+  
+  Then to deploy a snapshot, you need to run
+  
+  mvn deploy mvn deploy -Djboss.snapshots.repo.url=dav:https://snapshots.jboss.org/maven2
+    -->
     <snapshotRepository>
-      <id>jboss-snapshots</id>
+      <id>snapshots.jboss.org</id>
       <name>JBoss Snapshot Repository</name>
       <url>${jboss.snapshots.repo.url}</url>
     </snapshotRepository>
@@ -59,6 +73,9 @@
       <id>jdk14</id>
       <activation>
         <jdk>1.4</jdk>
+        <property>
+           <name>!no.tools</name>
+        </property>
       </activation>
       <dependencies>
         <dependency>
@@ -75,6 +92,9 @@
       <id>jdk15</id>
       <activation>
         <jdk>1.5</jdk>
+        <property>
+           <name>!no.tools</name>
+        </property>
       </activation>
       <dependencies>
         <dependency>
@@ -91,6 +111,9 @@
       <id>jdk16</id>
       <activation>
         <jdk>1.6</jdk>
+        <property>
+           <name>!no.tools</name>
+        </property>
       </activation>
       <dependencies>
         <dependency>
