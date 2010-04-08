@@ -4,6 +4,7 @@ import javassist.*;
 import javassist.util.proxy.MethodFilter;
 import javassist.util.proxy.MethodHandler;
 import javassist.util.proxy.ProxyFactory;
+import javassist.util.proxy.ProxyObject;
 import junit.framework.TestCase;
 
 /**
@@ -92,13 +93,13 @@ public class ProxyCacheGCTest extends TestCase
             MethodFilter filter = (MethodFilter)javaFilterClass.newInstance();
 
             // ok, now create a factory and a proxy class and proxy from that factory
-            factory.setHandler(handler);
             factory.setFilter(filter);
             factory.setSuperclass(javaTargetClass);
             // factory.setSuperclass(Object.class);
 
             Class proxyClass = factory.createClass();
             Object target = proxyClass.newInstance();
+            ((ProxyObject)target).setHandler(handler);
         } catch (Exception e) {
             e.printStackTrace();
             fail("cannot create proxy " + e);

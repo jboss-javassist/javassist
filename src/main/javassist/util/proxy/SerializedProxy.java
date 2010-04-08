@@ -31,11 +31,11 @@ import java.security.ProtectionDomain;
 class SerializedProxy implements Serializable {
     private String superClass;
     private String[] interfaces;
-    private MethodFilter filter;
+    private byte[] filterSignature;
     private MethodHandler handler;
 
-    SerializedProxy(Class proxy, MethodFilter f, MethodHandler h) {
-        filter = f;
+    SerializedProxy(Class proxy, byte[] sig, MethodHandler h) {
+        filterSignature = sig;
         handler = h;
         superClass = proxy.getSuperclass().getName();
         Class[] infs = proxy.getInterfaces();
@@ -80,9 +80,9 @@ class SerializedProxy implements Serializable {
             ProxyFactory f = new ProxyFactory();
             f.setSuperclass(loadClass(superClass));
             f.setInterfaces(infs);
-            f.setFilter(filter);
-            f.setHandler(handler);
-            return f.createClass().newInstance();
+            ProxyObject proxy = (ProxyObject)f.createClass(filterSignature).newInstance();
+            proxy.setHandler(handler);
+            return proxy;
         }
         catch (ClassNotFoundException e) {
             throw new java.io.InvalidClassException(e.getMessage());
