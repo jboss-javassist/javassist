@@ -780,7 +780,7 @@ public class ProxyFactory {
             Method m = (Method)e.getValue();
             int mod = m.getModifiers();
             if (!Modifier.isFinal(mod) && !Modifier.isStatic(mod)
-                    && isVisible(mod, packageName, m) && filter.isHandled(m)) {
+                    && isVisible(mod, packageName, m) && (filter == null || filter.isHandled(m))) {
                 setBit(signature, idx);
             }
         }
@@ -888,11 +888,11 @@ public class ProxyFactory {
             Method meth = (Method)e.getValue();
             int mod = meth.getModifiers();
             if (!Modifier.isFinal(mod) && !Modifier.isStatic(mod)
-                    && isVisible(mod, packageName, meth))
+                && isVisible(mod, packageName, meth))
                 if (testBit(signature, index))
-                if (methodFilter == null || methodFilter.isHandled(meth))
-                    override(className, meth, prefix, index,
-                             keyToDesc(key), cf, cp);
+                    if (methodFilter == null || methodFilter.isHandled(meth))
+                        override(className, meth, prefix, index,
+                                 keyToDesc(key), cf, cp);
             index++;
         }
 
