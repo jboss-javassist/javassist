@@ -410,7 +410,7 @@ public class ProxyFactory {
      */
     Class createClass(byte[] signature)
     {
-        this.signature = signature;
+        installSignature(signature);
         return createClass1();
     }
 
@@ -764,13 +764,19 @@ public class ProxyFactory {
         }
     };
 
-    private void computeSignature(MethodFilter filter) // throws CannotCompileException
+    private void makeSortedMethodList()
     {
         checkClassAndSuperName();
 
         HashMap allMethods = getMethods(superClass, interfaces);
         signatureMethods = new ArrayList(allMethods.entrySet());
         Collections.sort(signatureMethods, sorter);
+    }
+
+    private void computeSignature(MethodFilter filter) // throws CannotCompileException
+    {
+        makeSortedMethodList();
+
         int l = signatureMethods.size();
         int maxBytes = ((l + 7) >> 3);
         signature = new byte[maxBytes];
@@ -784,6 +790,19 @@ public class ProxyFactory {
                 setBit(signature, idx);
             }
         }
+    }
+
+    private void installSignature(byte[] signature) // throws CannotCompileException
+    {
+        makeSortedMethodList();
+
+        int l = signatureMethods.size();
+        int maxBytes = ((l + 7) >> 3);
+        if (signature.length != maxBytes) {
+            throw new RuntimeException("invalid filter signature length for deserialized proxy class");
+        }
+
+        this.signature =  signature;
     }
 
     private boolean testBit(byte[] signature, int idx)
@@ -887,12 +906,10 @@ public class ProxyFactory {
             String key = (String)e.getKey();
             Method meth = (Method)e.getValue();
             int mod = meth.getModifiers();
-            if (!Modifier.isFinal(mod) && !Modifier.isStatic(mod)
-                && isVisible(mod, packageName, meth))
-                if (testBit(signature, index))
-                    if (methodFilter == null || methodFilter.isHandled(meth))
-                        override(className, meth, prefix, index,
-                                 keyToDesc(key), cf, cp);
+            if (testBit(signature, index)) {
+                override(className, meth, prefix, index,
+                        keyToDesc(key), cf, cp);
+            }
             index++;
         }
 

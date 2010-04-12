@@ -104,17 +104,6 @@
     </junit>
   </target>
 
-  <target name="foo" depends="test-compile">
-    <junit fork="true" showoutput="true">
-      <classpath refid="test.classpath"/>
-      <test name="test.javassist.proxy.ProxyFactoryCompatibilityTest"/>
-      <jvmarg value="-Xdebug"/>
-      <jvmarg  value="-Xnoagent"/>
-      <jvmarg  value="-Djava.compiler=NONE"/>
-      <jvmarg  value="-Xrunjdwp:transport=dt_socket,server=n,suspend=y,address=5005"/>
-    </junit>
-  </target>
-
   <target name="sample" depends="compile">
     <javac srcdir="${basedir}"
            destdir="${build.classes.dir}"
