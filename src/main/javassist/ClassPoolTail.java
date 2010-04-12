@@ -57,7 +57,7 @@ final class DirClassPath implements ClassPath {
         File f = new File(filename);
         if (f.exists())
             try {
-                return f.getCanonicalFile().toURL();
+                return f.getCanonicalFile().toURI().toURL();
             }
             catch (MalformedURLException e) {}
             catch (IOException e) {}
@@ -127,7 +127,7 @@ final class JarClassPath implements ClassPath {
         try {
             jarfile = new JarFile(pathname);
             jarfileURL = new File(pathname).getCanonicalFile()
-                                           .toURL().toString();
+                                           .toURI().toURL().toString();
             return;
         }
         catch (IOException e) {}
