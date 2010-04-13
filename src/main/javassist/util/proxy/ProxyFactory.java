@@ -157,8 +157,8 @@ public class ProxyFactory {
     private List signatureMethods;
     private byte[] signature;
     private String classname;
+    private String basename;
     private String superName;
-    private String packageName;
     private Class thisClass;
     /**
      * per factory setting initialised from current setting for useCache but able to be reset before each create call
@@ -736,21 +736,24 @@ public class ProxyFactory {
 
         if (superClass == null) {
             superClass = OBJECT_TYPE;
+            superName = superClass.getName();
+            basename = interfaces.length == 0 ? superName
+                                               : interfaces[0].getName();
+        } else {
+            superName = superClass.getName();
+            basename = superName;
         }
-        superName = superClass.getName();
 
         if (Modifier.isFinal(superClass.getModifiers()))
             throw new RuntimeException(superName + " is final");
-        packageName = getPackageName(superName);
-        if (packageName.startsWith("java."))
-            packageName = "org.javassist.tmp." + packageName;
+        
+        if (basename.startsWith("java."))
+            basename = "org.javassist.tmp." + basename;
     }
 
     private void allocateClassName()
     {
-        classname = makeProxyName(superName);
-        if (classname.startsWith("java."))
-            classname = "org.javassist.tmp." + classname;
+        classname = makeProxyName(basename);
     }
 
     private static Comparator sorter = new Comparator() {
@@ -786,7 +789,7 @@ public class ProxyFactory {
             Method m = (Method)e.getValue();
             int mod = m.getModifiers();
             if (!Modifier.isFinal(mod) && !Modifier.isStatic(mod)
-                    && isVisible(mod, packageName, m) && (filter == null || filter.isHandled(m))) {
+                    && isVisible(mod, basename, m) && (filter == null || filter.isHandled(m))) {
                 setBit(signature, idx);
             }
         }
@@ -948,7 +951,7 @@ public class ProxyFactory {
             Constructor c = cons[i];
             int mod = c.getModifiers();
             if (!Modifier.isFinal(mod) && !Modifier.isPrivate(mod)
-                    && isVisible(mod, packageName, c)) {
+                    && isVisible(mod, basename, c)) {
                 MethodInfo m = makeConstructor(thisClassName, c, cp, superClass, doHandlerInit);
                 cf.addMethod(m);
             }
@@ -984,17 +987,18 @@ public class ProxyFactory {
      *
      * @param mod       the modifiers of the method. 
      */
-    private static boolean isVisible(int mod, String fromPackage, Member meth) {
+    private static boolean isVisible(int mod, String from, Member meth) {
         if ((mod & Modifier.PRIVATE) != 0)
             return false;
         else if ((mod & (Modifier.PUBLIC | Modifier.PROTECTED)) != 0)
             return true;
         else {
+            String p = getPackageName(from);
             String q = getPackageName(meth.getDeclaringClass().getName());
-            if (fromPackage == null)
+            if (p == null)
                 return q == null;
             else
-                return fromPackage.equals(q);
+                return p.equals(q);
         }
     }
 
