@@ -24,7 +24,7 @@
   
   Then to deploy a snapshot, you need to run
   
-  mvn deploy mvn deploy -Djboss.snapshots.repo.url=dav:https://snapshots.jboss.org/maven2
+  deploy -Djboss.snapshots.repo.url=dav:https://snapshots.jboss.org/maven2
     -->
     <snapshotRepository>
       <id>snapshots.jboss.org</id>
