@@ -172,7 +172,6 @@ public class StackMap extends AttributeInfo {
          * @param num       the number of elements.
          * @param isLocals  true if this array is for <code>locals</code>.
          *                  false if it is for <code>stack</code>.
-         * @return
          */
         public int typeInfoArray(int pos, int offset, int num, boolean isLocals) {
             for (int k = 0; k < num; k++)
