@@ -23,7 +23,7 @@ import javassist.CtMethod;
 import javassist.NotFoundException;
 
 import java.io.IOException;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Set;
 import java.util.Iterator;
 
@@ -52,7 +52,7 @@ public class Annotation {
 
     ConstPool pool;
     int typeIndex;
-    HashMap members;    // this sould be LinkedHashMap
+    LinkedHashMap members;    // this sould be LinkedHashMap
                         // but it is not supported by JDK 1.3.
 
     /**
@@ -107,7 +107,7 @@ public class Annotation {
 
         CtMethod methods[] = clazz.getDeclaredMethods();
         if (methods.length > 0) {
-            members = new HashMap();
+            members = new LinkedHashMap();
         }
 
         for (int i = 0; i < methods.length; i++) {
@@ -195,7 +195,7 @@ public class Annotation {
         p.name = pool.addUtf8Info(name);
         p.value = value;
         if (members == null)
-            members = new HashMap();
+            members = new LinkedHashMap();
 
         members.put(name, p);
     }
@@ -203,7 +203,7 @@ public class Annotation {
     private void addMemberValue(Pair pair) {
         String name = pool.getUtf8Info(pair.name);
         if (members == null)
-            members = new HashMap();
+            members = new LinkedHashMap();
 
         members.put(name, pair);
     }
@@ -333,7 +333,7 @@ public class Annotation {
         if (getTypeName().equals(other.getTypeName()) == false)
             return false;
 
-        HashMap otherMembers = other.members;
+        LinkedHashMap otherMembers = other.members;
         if (members == otherMembers)
             return true;
         else if (members == null)
