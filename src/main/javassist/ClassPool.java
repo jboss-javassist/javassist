@@ -1060,8 +1060,11 @@ public class ClassPool {
         throws Exception
     {
         method.setAccessible(true);
-        Class clazz = (Class)method.invoke(loader, args);
-        method.setAccessible(false);
-        return clazz;
+        try {
+            return (Class)method.invoke(loader, args);
+        }
+        finally {
+            method.setAccessible(false);
+        }
     }
 }
