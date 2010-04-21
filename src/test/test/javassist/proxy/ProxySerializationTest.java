@@ -30,8 +30,8 @@ public class ProxySerializationTest extends TestCase
 
         try {
             String name = "proxytest_1";
-            Constructor constructor = proxyClass.getConstructor(String.class);
-            TestClass proxy = (TestClass)constructor.newInstance(name);
+            Constructor constructor = proxyClass.getConstructor(new Class[] {String.class});
+            TestClass proxy = (TestClass)constructor.newInstance(new Object[] {name});
             ((ProxyObject)proxy).setHandler(handler);
             ByteArrayOutputStream bos = new ByteArrayOutputStream();
             ObjectOutputStream out = new ObjectOutputStream(bos);
@@ -41,10 +41,10 @@ public class ProxySerializationTest extends TestCase
             ByteArrayInputStream bis = new ByteArrayInputStream(bytes);
             ObjectInputStream in = new ObjectInputStream(bis);
             TestClass newProxy = (TestClass)in.readObject();
-            // inherited fields should have been deserialized
-            assert(newProxy.getName() == null);
+            // inherited fields should not have been deserialized
+            assertTrue("new name should be null", newProxy.getName() == null);
             // since we are reading into the same JVM the new proxy should have the same class as the old proxy
-            assert(newProxy.getClass() == proxy.getClass());
+            assertTrue("classes should be equal", newProxy.getClass() == proxy.getClass());
         } catch (Exception e) {
             e.printStackTrace();
             fail();
@@ -57,8 +57,8 @@ public class ProxySerializationTest extends TestCase
 
         try {
             String name = "proxytest_2";
-            Constructor constructor = proxyClass.getConstructor(String.class);
-            TestClass proxy = (TestClass)constructor.newInstance(name);
+            Constructor constructor = proxyClass.getConstructor(new Class[] {String.class});
+            TestClass proxy = (TestClass)constructor.newInstance(new Object[] {name});
             ((ProxyObject)proxy).setHandler(handler);
             ByteArrayOutputStream bos = new ByteArrayOutputStream();
             ProxyObjectOutputStream out = new ProxyObjectOutputStream(bos);
@@ -69,9 +69,9 @@ public class ProxySerializationTest extends TestCase
             ProxyObjectInputStream in = new ProxyObjectInputStream(bis);
             TestClass newProxy = (TestClass)in.readObject();
             // inherited fields should have been deserialized
-            assert(proxy.getName() == newProxy.getName());
+            assertTrue("names should be equal", proxy.getName().equals(newProxy.getName()));
             // since we are reading into the same JVM the new proxy should have the same class as the old proxy
-            assert(newProxy.getClass() == proxy.getClass());
+            assertTrue("classes should still be equal", newProxy.getClass() == proxy.getClass());
         } catch (Exception e) {
             e.printStackTrace();
             fail();

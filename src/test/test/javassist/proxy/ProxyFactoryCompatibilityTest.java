@@ -41,6 +41,7 @@ public class ProxyFactoryCompatibilityTest extends TestCase
 
     public void testFactoryCompatibility() throws Exception
     {
+        System.out.println("ProxyFactory.useCache = " + ProxyFactory.useCache);
         // create a factory which, by default, uses caching
         ProxyFactory factory = new ProxyFactory();
         factory.setSuperclass(TestClass.class);

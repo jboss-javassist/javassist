@@ -38,6 +38,7 @@ public class ProxyCacheGCTest extends TestCase
     public void testCacheGC()
     {
         ClassLoader oldCL = Thread.currentThread().getContextClassLoader();
+        try {
         ProxyFactory.useCache = false;
         for (int i = 0; i < REPETITION_COUNT; i++) {
             ClassLoader newCL = new TestLoader();
@@ -47,6 +48,9 @@ public class ProxyCacheGCTest extends TestCase
             } finally {
                 Thread.currentThread().setContextClassLoader(oldCL);
             }
+        }
+        } finally {
+            ProxyFactory.useCache = true;
         }
     }
 
