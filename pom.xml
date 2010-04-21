@@ -8,28 +8,89 @@
   <description>Javassist (JAVA programming ASSISTant) makes Java bytecode manipulation
      simple.  It is a class library for editing bytecodes in Java.
   </description>
-  <version>3.12.0.GA</version>
+  <version>3.12.1-SNAPSHOT</version>
   <name>Javassist</name>
   <url>http://www.javassist.org/</url>
+
+  <issueManagement>
+    <system>JIRA</system>
+    <url>https://jira.jboss.org/jira/browse/JASSIST/</url>
+  </issueManagement>
+  <licenses>
+    <!-- this is the license under which javassist is distributed when
+	 it is bundled with JBoss
+      -->
+    <license>
+      <name>LGPL 2.1</name>
+      <url>http://www.gnu.org/licenses/lgpl-2.1.html</url>
+    </license>
+  </licenses>
+
+  <scm>
+    <connection>scm:svn:http://anonsvn.jboss.org/repos/javassist/</connection>
+    <developerConnection>scm:svn:https://svn.jboss.org/repos/javassist/</developerConnection>
+    <url>http://fisheye.jboss.org/browse/javassist/</url>
+  </scm>
+
+  <developers>
+    <developer>
+      <id>chiba</id>
+      <name>Shigeru Chiba</name>
+      <email>chiba@acm.org</email>
+      <organization>Tokyo Institute Of Technology</organization>
+      <organizationUrl>http://www.csg.is.titech.ac.jp/</organizationUrl>
+      <roles>
+        <role>project lead</role>
+      </roles>
+      <timezone>8</timezone>
+    </developer>
+
+    <developer>
+      <id>adinn</id>
+      <name>Andrew Dinn</name>
+      <email>adinn@redhat.com</email>
+      <organization>JBoss</organization>
+      <organizationUrl>http://www.jboss.org/</organizationUrl>
+      <roles>
+        <role>contributing developer</role>
+      </roles>
+      <timezone>0</timezone>
+    </developer>
+  </developers>
+
   <distributionManagement>
   <!--  
-      You need an entry in your .m2/settings.xml like this:
+      You need entries in your .m2/settings.xml like this:
    <servers>
     <server>
-       <id>snapshots.jboss.org</id>
+       <id>jboss-releases-repository</id>
+       <username>your_jboss.org_username</username>
+       <password>password</password>
+    </server>
+    <server>
+       <id>jboss-snapshots-repository</id>
        <username>your_jboss.org_username</username>
        <password>password</password>
     </server>
   </servers>
   
-  Then to deploy a snapshot, you need to run
+  To deploy a snapshot, you need to run
   
-  deploy -Djboss.snapshots.repo.url=dav:https://snapshots.jboss.org/maven2
+  mvn deploy -Dversion=3.x.y-SNAPSHOT
+
+  To deploy a release you need to change the version to 3.x.y.GA and run
+
+  mvn deploy
     -->
+    <repository>
+      <id>jboss-releases-repository</id>
+      <name>JBoss Releases Repository</name>
+      <url>https://repository.jboss.org/nexus/service/local/staging/deploy/maven2/</url>
+    </repository>
     <snapshotRepository>
-      <id>snapshots.jboss.org</id>
-      <name>JBoss Snapshot Repository</name>
-      <url>${jboss.snapshots.repo.url}</url>
+      <id>jboss-snapshots-repository</id>
+      <name>JBoss Snapshots Repository</name>
+      <url>https://repository.jboss.org/nexus/content/repositories/snapshots/</url>
     </snapshotRepository>
   </distributionManagement>
   <build>
