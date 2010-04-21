@@ -17,6 +17,12 @@
     <url>https://jira.jboss.org/jira/browse/JASSIST/</url>
   </issueManagement>
   <licenses>
+    <!-- this is the license under which javassist is usually distributed
+      -->
+    <license>
+      <name>MPL 1.1</name>
+      <url>http://www.mozilla.org/MPL/MPL-1.1.html</url>
+    </license>
     <!-- this is the license under which javassist is distributed when
 	 it is bundled with JBoss
       -->
