@@ -18,7 +18,7 @@ package javassist.bytecode;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import javassist.ClassPool;
@@ -30,13 +30,13 @@ import javassist.bytecode.stackmap.MapMaker;
  * @see javassist.CtMethod#getMethodInfo()
  * @see javassist.CtConstructor#getMethodInfo()
  */
-public final class MethodInfo {
+public class MethodInfo {
     ConstPool constPool;
     int accessFlags;
     int name;
     String cachedName;
     int descriptor;
-    LinkedList attribute; // may be null
+    ArrayList attribute; // may be null
 
     /**
      * If this value is true, Javassist maintains a <code>StackMap</code> attribute
@@ -134,7 +134,7 @@ public final class MethodInfo {
     }
 
     void prune(ConstPool cp) {
-        LinkedList newAttributes = new LinkedList();
+        ArrayList newAttributes = new ArrayList();
 
         AttributeInfo invisibleAnnotations
             = getAttribute(AnnotationsAttribute.invisibleTag);
@@ -283,7 +283,7 @@ public final class MethodInfo {
      */
     public List getAttributes() {
         if (attribute == null)
-            attribute = new LinkedList();
+            attribute = new ArrayList();
 
         return attribute;
     }
@@ -308,7 +308,7 @@ public final class MethodInfo {
      */
     public void addAttribute(AttributeInfo info) {
         if (attribute == null)
-            attribute = new LinkedList();
+            attribute = new ArrayList();
 
         AttributeInfo.remove(attribute, info.getName());
         attribute.add(info);
@@ -352,7 +352,7 @@ public final class MethodInfo {
     public void setExceptionsAttribute(ExceptionsAttribute cattr) {
         removeExceptionsAttribute();
         if (attribute == null)
-            attribute = new LinkedList();
+            attribute = new ArrayList();
 
         attribute.add(cattr);
     }
@@ -374,7 +374,7 @@ public final class MethodInfo {
     public void setCodeAttribute(CodeAttribute cattr) {
         removeCodeAttribute();
         if (attribute == null)
-            attribute = new LinkedList();
+            attribute = new ArrayList();
 
         attribute.add(cattr);
     }
@@ -507,7 +507,7 @@ public final class MethodInfo {
         String desc2 = Descriptor.rename(desc, classnames);
         descriptor = destCp.addUtf8Info(desc2);
 
-        attribute = new LinkedList();
+        attribute = new ArrayList();
         ExceptionsAttribute eattr = src.getExceptionsAttribute();
         if (eattr != null)
             attribute.add(eattr.copy(destCp, classnames));
@@ -522,7 +522,7 @@ public final class MethodInfo {
         name = in.readUnsignedShort();
         descriptor = in.readUnsignedShort();
         int n = in.readUnsignedShort();
-        attribute = new LinkedList();
+        attribute = new ArrayList();
         for (int i = 0; i < n; ++i)
             attribute.add(AttributeInfo.read(constPool, in));
     }

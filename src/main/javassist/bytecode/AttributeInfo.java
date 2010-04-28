@@ -19,7 +19,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.Map;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.ListIterator;
 import java.util.List;
 import java.util.Iterator;
@@ -185,7 +185,7 @@ public class AttributeInfo {
             out.write(info);
     }
 
-    static int getLength(LinkedList list) {
+    static int getLength(ArrayList list) {
         int size = 0;
         int n = list.size();
         for (int i = 0; i < n; ++i) {
@@ -196,7 +196,7 @@ public class AttributeInfo {
         return size;
     }
 
-    static AttributeInfo lookup(LinkedList list, String name) {
+    static AttributeInfo lookup(ArrayList list, String name) {
         if (list == null)
             return null;
 
@@ -210,7 +210,7 @@ public class AttributeInfo {
         return null;            // no such attribute
     }
 
-    static synchronized void remove(LinkedList list, String name) {
+    static synchronized void remove(ArrayList list, String name) {
         if (list == null)
             return;
 
@@ -222,7 +222,7 @@ public class AttributeInfo {
         }
     }
 
-    static void writeAll(LinkedList list, DataOutputStream out)
+    static void writeAll(ArrayList list, DataOutputStream out)
         throws IOException
     {
         if (list == null)
@@ -235,11 +235,11 @@ public class AttributeInfo {
         }
     }
 
-    static LinkedList copyAll(LinkedList list, ConstPool cp) {
+    static ArrayList copyAll(ArrayList list, ConstPool cp) {
         if (list == null)
             return null;
 
-        LinkedList newList = new LinkedList();
+        ArrayList newList = new ArrayList();
         int n = list.size();
         for (int i = 0; i < n; ++i) {
             AttributeInfo attr = (AttributeInfo)list.get(i);

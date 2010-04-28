@@ -19,7 +19,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.List;
-import java.util.LinkedList;
+import java.util.ArrayList;
 
 /**
  * <code>field_info</code> structure.
@@ -33,7 +33,7 @@ public final class FieldInfo {
     String cachedName;
     String cachedType;
     int descriptor;
-    LinkedList attribute;       // may be null.
+    ArrayList attribute;       // may be null.
 
     private FieldInfo(ConstPool cp) {
         constPool = cp;
@@ -85,7 +85,7 @@ public final class FieldInfo {
     }
 
     void prune(ConstPool cp) {
-        LinkedList newAttributes = new LinkedList();
+        ArrayList newAttributes = new ArrayList();
         AttributeInfo invisibleAnnotations
             = getAttribute(AnnotationsAttribute.invisibleTag);
         if (invisibleAnnotations != null) {
@@ -212,7 +212,7 @@ public final class FieldInfo {
      */
     public List getAttributes() {
         if (attribute == null)
-            attribute = new LinkedList();
+            attribute = new ArrayList();
 
         return attribute;
     }
@@ -236,7 +236,7 @@ public final class FieldInfo {
      */
     public void addAttribute(AttributeInfo info) {
         if (attribute == null)
-            attribute = new LinkedList();
+            attribute = new ArrayList();
 
         AttributeInfo.remove(attribute, info.getName());
         attribute.add(info);
@@ -247,7 +247,7 @@ public final class FieldInfo {
         name = in.readUnsignedShort();
         descriptor = in.readUnsignedShort();
         int n = in.readUnsignedShort();
-        attribute = new LinkedList();
+        attribute = new ArrayList();
         for (int i = 0; i < n; ++i)
             attribute.add(AttributeInfo.read(constPool, in));
     }
