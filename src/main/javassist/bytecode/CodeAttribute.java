@@ -19,7 +19,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.List;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Map;
 
@@ -43,7 +43,7 @@ public class CodeAttribute extends AttributeInfo implements Opcode {
     private int maxStack;
     private int maxLocals;
     private ExceptionTable exceptions;
-    private LinkedList attributes;
+    private ArrayList attributes;
 
     /**
      * Constructs a <code>Code_attribute</code>.
@@ -62,7 +62,7 @@ public class CodeAttribute extends AttributeInfo implements Opcode {
         maxLocals = locals;
         info = code;
         exceptions = etable;
-        attributes = new LinkedList();
+        attributes = new ArrayList();
     }
 
     /**
@@ -82,7 +82,7 @@ public class CodeAttribute extends AttributeInfo implements Opcode {
         maxStack = src.getMaxStack();
         maxLocals = src.getMaxLocals();
         exceptions = src.getExceptionTable().copy(cp, classnames);
-        attributes = new LinkedList();
+        attributes = new ArrayList();
         List src_attr = src.getAttributes();
         int num = src_attr.size();
         for (int i = 0; i < num; ++i) {
@@ -108,7 +108,7 @@ public class CodeAttribute extends AttributeInfo implements Opcode {
 
         exceptions = new ExceptionTable(cp, in);
 
-        attributes = new LinkedList();
+        attributes = new ArrayList();
         int num = in.readUnsignedShort();
         for (int i = 0; i < num; ++i)
             attributes.add(AttributeInfo.read(cp, in));
