@@ -32,10 +32,28 @@ import javassist.CtClass;
  */
 public final class ConstPool {
     LongVector items;
-    int       numOfItems;
+    int numOfItems;
     HashMap classes;
     HashMap strings;
-    int       thisClassInfo;
+    ConstInfo[] constInfoCache;
+    int[] constInfoIndexCache;
+    int thisClassInfo;
+
+    private static final int CACHE_SIZE = 32;
+
+    /**
+     * A hash function for CACHE_SIZE
+     */
+    private static int hashFunc(int a, int b) {
+        int h = -2128831035;
+        final int prime = 16777619;
+        h = (h ^ (a & 0xff)) * prime;
+        h = (h ^ (b & 0xff)) * prime;
+
+        // changing the hash key size from 32bit to 5bit
+        h = (h >> 5) ^ (h & 0x1f);
+        return h & 0x1f;    // 0..31
+    }
 
     /**
      * <code>CONSTANT_Class</code>
@@ -110,6 +128,8 @@ public final class ConstPool {
         addItem(null);          // index 0 is reserved by the JVM.
         classes = new HashMap();
         strings = new HashMap();
+        constInfoCache = new ConstInfo[CACHE_SIZE];
+        constInfoIndexCache = new int[CACHE_SIZE];
         thisClassInfo = addClassInfo(thisclass);
     }
 
@@ -121,6 +141,8 @@ public final class ConstPool {
     public ConstPool(DataInputStream in) throws IOException {
         classes = new HashMap();
         strings = new HashMap();
+        constInfoCache = new ConstInfo[CACHE_SIZE];
+        constInfoIndexCache = new int[CACHE_SIZE];
         thisClassInfo = 0;
         /* read() initializes items and numOfItems, and do addItem(null).
          */
@@ -130,6 +152,8 @@ public final class ConstPool {
     void prune() {
         classes = new HashMap();
         strings = new HashMap();
+        constInfoCache = new ConstInfo[CACHE_SIZE];
+        constInfoIndexCache = new int[CACHE_SIZE];
     }
 
     /**
@@ -159,7 +183,7 @@ public final class ConstPool {
     }
 
     ConstInfo getItem(int n) {
-        return (ConstInfo)items.elementAt(n);
+        return items.elementAt(n);
     }
 
     /**
@@ -733,7 +757,17 @@ public final class ConstPool {
      * @return          the index of the added entry.
      */
     public int addNameAndTypeInfo(int name, int type) {
-        return addItem(new NameAndTypeInfo(name, type));
+        int h = hashFunc(name, type);
+        ConstInfo ci = constInfoCache[h];
+        if (ci != null && ci instanceof NameAndTypeInfo && ci.hashCheck(name, type))
+            return constInfoIndexCache[h];
+        else {
+            NameAndTypeInfo item = new NameAndTypeInfo(name, type);
+            constInfoCache[h] = item;
+            int i = addItem(item);
+            constInfoIndexCache[h] = i;
+            return i;
+        }
     }
 
     /**
@@ -762,7 +796,17 @@ public final class ConstPool {
      * @return          the index of the added entry.
      */
     public int addFieldrefInfo(int classInfo, int nameAndTypeInfo) {
-        return addItem(new FieldrefInfo(classInfo, nameAndTypeInfo));
+        int h = hashFunc(classInfo, nameAndTypeInfo);
+        ConstInfo ci = constInfoCache[h];
+        if (ci != null && ci instanceof FieldrefInfo && ci.hashCheck(classInfo, nameAndTypeInfo))
+            return constInfoIndexCache[h];
+        else {
+            FieldrefInfo item = new FieldrefInfo(classInfo, nameAndTypeInfo);
+            constInfoCache[h] = item;
+            int i = addItem(item);
+            constInfoIndexCache[h] = i;
+            return i;
+        }
     }
 
     /**
@@ -791,7 +835,17 @@ public final class ConstPool {
      * @return          the index of the added entry.
      */
     public int addMethodrefInfo(int classInfo, int nameAndTypeInfo) {
-        return addItem(new MethodrefInfo(classInfo, nameAndTypeInfo));
+        int h = hashFunc(classInfo, nameAndTypeInfo);
+        ConstInfo ci = constInfoCache[h];
+        if (ci != null && ci instanceof MethodrefInfo && ci.hashCheck(classInfo, nameAndTypeInfo))
+            return constInfoIndexCache[h];
+        else {
+            MethodrefInfo item = new MethodrefInfo(classInfo, nameAndTypeInfo);
+            constInfoCache[h] = item;
+            int i = addItem(item);
+            constInfoIndexCache[h] = i;
+            return i;
+        }
     }
 
     /**
@@ -824,8 +878,17 @@ public final class ConstPool {
      */
     public int addInterfaceMethodrefInfo(int classInfo,
                                          int nameAndTypeInfo) {
-        return addItem(new InterfaceMethodrefInfo(classInfo,
-                                                  nameAndTypeInfo));
+        int h = hashFunc(classInfo, nameAndTypeInfo);
+        ConstInfo ci = constInfoCache[h];
+        if (ci != null && ci instanceof InterfaceMethodrefInfo && ci.hashCheck(classInfo, nameAndTypeInfo))
+            return constInfoIndexCache[h];
+        else {
+            InterfaceMethodrefInfo item =new InterfaceMethodrefInfo(classInfo, nameAndTypeInfo); 
+            constInfoCache[h] = item;
+            int i = addItem(item);
+            constInfoIndexCache[h] = i;
+            return i;
+        }
     }
 
     /**
@@ -918,7 +981,7 @@ public final class ConstPool {
         LongVector v = items;
         int size = numOfItems;
         for (int i = 1; i < size; ++i) {
-            String className = ((ConstInfo) v.elementAt(i)).getClassName(this);
+            String className = v.elementAt(i).getClassName(this);
             if (className != null)
                result.add(className);
         }
@@ -936,7 +999,7 @@ public final class ConstPool {
         int size = numOfItems;
         classes = new HashMap(classes.size() * 2);
         for (int i = 1; i < size; ++i) {
-            ConstInfo ci = (ConstInfo)v.elementAt(i);
+            ConstInfo ci = v.elementAt(i);
             ci.renameClass(this, oldName, newName);
             ci.makeHashtable(this);
         }
@@ -953,7 +1016,7 @@ public final class ConstPool {
         int size = numOfItems;
         classes = new HashMap(classes.size() * 2);
         for (int i = 1; i < size; ++i) {
-            ConstInfo ci = (ConstInfo)v.elementAt(i);
+            ConstInfo ci = v.elementAt(i);
             ci.renameClass(this, classnames);
             ci.makeHashtable(this);
         }
@@ -976,7 +1039,7 @@ public final class ConstPool {
 
         int i = 1;
         while (true) {
-            ConstInfo info = (ConstInfo)items.elementAt(i++);
+            ConstInfo info = items.elementAt(i++);
             if (info == null)
                 break;
             else
@@ -1039,7 +1102,7 @@ public final class ConstPool {
         LongVector v = items;
         int size = numOfItems;
         for (int i = 1; i < size; ++i)
-            ((ConstInfo)v.elementAt(i)).write(out);
+            v.elementAt(i).write(out);
     }
 
     /**
@@ -1057,7 +1120,7 @@ public final class ConstPool {
         for (int i = 1; i < size; ++i) {
             out.print(i);
             out.print(" ");
-            ((ConstInfo)items.elementAt(i)).print(out);
+            items.elementAt(i).print(out);
         }
     }
 }
@@ -1075,6 +1138,8 @@ abstract class ConstInfo {
     public abstract void print(PrintWriter out);
 
     void makeHashtable(ConstPool cp) {}     // called after read() finishes in ConstPool.
+
+    boolean hashCheck(int a, int b) { return false; }
 
     public String toString() {
         ByteArrayOutputStream bout = new ByteArrayOutputStream();
@@ -1188,6 +1253,8 @@ class NameAndTypeInfo extends ConstInfo {
         typeDescriptor = in.readUnsignedShort();
     }
 
+    boolean hashCheck(int a, int b) { return a == memberName && b == typeDescriptor; }
+
     public int getTag() { return tag; }
 
     public void renameClass(ConstPool cp, String oldName, String newName) {
@@ -1245,6 +1312,8 @@ abstract class MemberrefInfo extends ConstInfo {
         int ntIndex2 = src.getItem(nameAndTypeIndex).copy(src, dest, map);
         return copy2(dest, classIndex2, ntIndex2);
     }
+
+    boolean hashCheck(int a, int b) { return a == classIndex && b == nameAndTypeIndex; }
 
     abstract protected int copy2(ConstPool dest, int cindex, int ntindex);
 
