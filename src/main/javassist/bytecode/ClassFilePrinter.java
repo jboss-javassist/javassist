@@ -24,7 +24,7 @@ import java.util.List;
  * It prints a constant pool table, fields, and methods in a
  * human readable representation.
  */
-public class ClassFileWriter {
+public class ClassFilePrinter {
     /**
      * Prints the contents of a class file to the standard output stream.
      */

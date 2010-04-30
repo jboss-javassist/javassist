@@ -19,7 +19,6 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
@@ -40,7 +39,7 @@ public final class ClassFile {
     int[] interfaces;
     ArrayList fields;
     ArrayList methods;
-    LinkedList attributes;
+    ArrayList attributes;
     String thisclassname; // not JVM-internal name
     String[] cachedInterfaces;
     String cachedSuperclass;
@@ -135,7 +134,7 @@ public final class ClassFile {
         methods = new ArrayList();
         thisclassname = classname;
 
-        attributes = new LinkedList();
+        attributes = new ArrayList();
         attributes.add(new SourceFileAttribute(constPool,
                 getSourcefileName(thisclassname)));
     }
@@ -209,7 +208,7 @@ public final class ClassFile {
      */
     public void prune() {
         ConstPool cp = compact0();
-        LinkedList newAttributes = new LinkedList();
+        ArrayList newAttributes = new ArrayList();
         AttributeInfo invisibleAnnotations
             = getAttribute(AnnotationsAttribute.invisibleTag);
         if (invisibleAnnotations != null) {
@@ -545,7 +544,15 @@ public final class ClassFile {
         fields.add(finfo);
     }
 
-    private void addField0(FieldInfo finfo) {
+    /**
+     * Just appends a field to the class.
+     * It does not check field duplication.
+     * Use this method only when minimizing performance overheads
+     * is seriously required.
+     *
+     * @since 3.13
+     */
+    public final void addField2(FieldInfo finfo) {
         fields.add(finfo);
     }
 
@@ -607,7 +614,15 @@ public final class ClassFile {
         methods.add(minfo);
     }
 
-    private void addMethod0(MethodInfo minfo) {
+    /**
+     * Just appends a method to the class.
+     * It does not check method duplication or remove a bridge method.
+     * Use this method only when minimizing performance overheads
+     * is seriously required.
+     *
+     * @since 3.13
+     */
+    public final void addMethod2(MethodInfo minfo) {
         methods.add(minfo);
     }
 
@@ -675,7 +690,7 @@ public final class ClassFile {
      * @see #getAttributes()
      */
     public AttributeInfo getAttribute(String name) {
-        LinkedList list = attributes;
+        ArrayList list = attributes;
         int n = list.size();
         for (int i = 0; i < n; ++i) {
             AttributeInfo ai = (AttributeInfo)list.get(i);
@@ -737,14 +752,14 @@ public final class ClassFile {
         n = in.readUnsignedShort();
         fields = new ArrayList();
         for (i = 0; i < n; ++i)
-            addField0(new FieldInfo(cp, in));
+            addField2(new FieldInfo(cp, in));
 
         n = in.readUnsignedShort();
         methods = new ArrayList();
         for (i = 0; i < n; ++i)
-            addMethod0(new MethodInfo(cp, in));
+            addMethod2(new MethodInfo(cp, in));
 
-        attributes = new LinkedList();
+        attributes = new ArrayList();
         n = in.readUnsignedShort();
         for (i = 0; i < n; ++i)
             addAttribute(AttributeInfo.read(cp, in));

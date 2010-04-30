@@ -37,7 +37,7 @@ class ByteVector implements Cloneable {
 
     public final byte[] copy() {
         byte[] b = new byte[size];
-        arraycopy(buffer, b, size);
+        System.arraycopy(buffer, 0, b, 0, size);
         return b;
     }
 
@@ -60,6 +60,20 @@ class ByteVector implements Cloneable {
         buffer[size - 1] = (byte)code;
     }
 
+    public void add(int b1, int b2) {
+        addGap(2);
+        buffer[size - 2] = (byte)b1;
+        buffer[size - 1] = (byte)b2;
+    }
+
+    public void add(int b1, int b2, int b3, int b4) {
+        addGap(4);
+        buffer[size - 4] = (byte)b1;
+        buffer[size - 3] = (byte)b2;
+        buffer[size - 2] = (byte)b3;
+        buffer[size - 1] = (byte)b4;
+    }
+
     public void addGap(int length) {
         if (size + length > buffer.length) {
             int newSize = size << 1;
@@ -67,16 +81,11 @@ class ByteVector implements Cloneable {
                 newSize = size + length;
 
             byte[] newBuf = new byte[newSize];
-            arraycopy(buffer, newBuf, size);
+            System.arraycopy(buffer, 0, newBuf, 0, size);
             buffer = newBuf;
         }
 
         size += length;
-    }
-
-    private static void arraycopy(byte[] src, byte[] dest, int size) {
-        for (int i = 0; i < size; i++)
-            dest[i] = src[i];
     }
 }
 
@@ -376,10 +385,7 @@ public class Bytecode extends ByteVector implements Cloneable, Opcode {
      * Appends a 32bit value to the end of the bytecode sequence.
      */
     public void add32bit(int value) {
-        add(value >> 24);
-        add(value >> 16);
-        add(value >> 8);
-        add(value);
+        add(value >> 24, value >> 16, value >> 8, value);
     }
 
     /**
@@ -441,8 +447,7 @@ public class Bytecode extends ByteVector implements Cloneable, Opcode {
      * It never changes the current stack depth.
      */
     public void addIndex(int index) {
-        add(index >> 8);
-        add(index);
+        add(index >> 8, index);
     }
 
     /**
