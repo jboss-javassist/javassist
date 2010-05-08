@@ -17,7 +17,7 @@ package javassist.tools;
 
 import java.io.*;
 import javassist.bytecode.ClassFile;
-import javassist.bytecode.ClassFileWriter;
+import javassist.bytecode.ClassFilePrinter;
 
 /**
  * Dump is a tool for viewing the class definition in the given
@@ -52,6 +52,6 @@ public class Dump {
         w.getConstPool().print(out);
         out.println();
         out.println("*** members ***");
-        ClassFileWriter.print(w, out);
+        ClassFilePrinter.print(w, out);
     }
 }
