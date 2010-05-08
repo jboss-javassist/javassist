@@ -38,6 +38,13 @@ knowledge of the Java bytecode and the class file format
 while this level of API allows you any kind of modification
 of class files.
 
+<p>
+If you want to just produce a simple class file,
+<code>javassist.bytecode.ClassFileWriter</code> might provide
+the best API for you.  It is much faster than
+<code>javassist.bytecode.ClassFile</code> although its API
+is minimum.
+
 <a name="classfile">
 <h3>5.1 Obtaining a <code>ClassFile</code> object</h3>
 
