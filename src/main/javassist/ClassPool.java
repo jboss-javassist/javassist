@@ -441,6 +441,40 @@ public class ClassPool {
     }
 
     /**
+     * Reads a class file from the source and returns a reference
+     * to the <code>CtClass</code>
+     * object representing that class file.
+     * This method is equivalent to <code>get</code> except
+     * that it returns <code>null</code> when a class file is
+     * not found and it never throws an exception.
+     *
+     * @param classname     a fully-qualified class name.
+     * @return a <code>CtClass</code> object or <code>null</code>.
+     * @see #get(String)
+     * @see #find(String)
+     * @since 3.13
+     */
+    public CtClass getOrNull(String classname) {
+        CtClass clazz = null;
+        if (classname == null)
+            clazz = null;
+        else
+            try {
+                /* ClassPool.get0() never throws an exception
+                   but its subclass may implement get0 that
+                   may throw an exception.
+                */
+                clazz = get0(classname, true);
+            }
+            catch (NotFoundException e){}
+
+        if (clazz != null)
+            clazz.incGetCounter();
+
+        return clazz;
+    }
+
+    /**
      * Returns a <code>CtClass</code> object with the given name.
      * This is almost equivalent to <code>get(String)</code> except
      * that classname can be an array-type "descriptor" (an encoded
