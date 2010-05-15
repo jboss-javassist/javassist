@@ -35,6 +35,26 @@ final class CtArray extends CtClass {
         return true;
     }
 
+    private CtClass[] interfaces = null;
+
+    public int getModifiers() {
+        int mod = Modifier.FINAL;
+        try {
+            mod |= getComponentType().getModifiers()
+                   & (Modifier.PROTECTED | Modifier.PUBLIC | Modifier.PRIVATE);
+        }
+        catch (NotFoundException e) {}
+        return mod;
+    }
+
+    public CtClass[] getInterfaces() throws NotFoundException {
+        if (interfaces == null)
+            interfaces = new CtClass[] {
+                pool.get("java.lang.Cloneable"), pool.get("java.io.Serializable") };
+
+        return interfaces;
+    }
+
     public boolean subtypeOf(CtClass clazz) throws NotFoundException {
         if (super.subtypeOf(clazz))
             return true;

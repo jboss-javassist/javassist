@@ -49,6 +49,16 @@ public final class CtPrimitiveType extends CtClass {
     public boolean isPrimitive() { return true; }
 
     /**
+     * Returns the modifiers for this type.
+     * For decoding, use <code>javassist.Modifier</code>.
+     *
+     * @see Modifier
+     */
+    public int getModifiers() {
+        return Modifier.PUBLIC | Modifier.FINAL;
+    }
+
+    /**
      * Returns the descriptor representing this type.
      * For example, if the type is int, then the descriptor is I.
      */
