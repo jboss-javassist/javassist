@@ -206,9 +206,9 @@ public class Type {
         if (!isArray()) return 0;
 
         String name = clazz.getName();
-        int pos = name.length() - 2;
+        int pos = name.length() - 1;
         int count = 0;
-        while (name.charAt(pos) == '[' ) {
+        while (name.charAt(pos) == ']' ) {
             pos -= 2;
             count++;
         }
