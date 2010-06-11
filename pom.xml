@@ -1,6 +1,4 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>javassist</groupId>
   <artifactId>javassist</artifactId>
@@ -8,7 +6,7 @@
   <description>Javassist (JAVA programming ASSISTant) makes Java bytecode manipulation
      simple.  It is a class library for editing bytecodes in Java.
   </description>
-  <version>3.12.1-SNAPSHOT</version>
+  <version>3.12.1.GA</version>
   <name>Javassist</name>
   <url>http://www.javassist.org/</url>
 
@@ -33,9 +31,9 @@
   </licenses>
 
   <scm>
-    <connection>scm:svn:http://anonsvn.jboss.org/repos/javassist/</connection>
-    <developerConnection>scm:svn:https://svn.jboss.org/repos/javassist/</developerConnection>
-    <url>http://fisheye.jboss.org/browse/javassist/</url>
+    <connection>scm:svn:http://anonsvn.jboss.org/repos/javassist/tags/rel_3_12_1_ga</connection>
+    <developerConnection>scm:svn:https://svn.jboss.org/repos/javassist/tags/rel_3_12_1_ga</developerConnection>
+    <url>http://fisheye.jboss.org/browse/javassist/tags/rel_3_12_1_ga</url>
   </scm>
 
   <developers>
@@ -135,7 +133,7 @@
       </plugin>
     </plugins>
   </build>
-  <profiles>
+  <!--profiles>
     <profile>
       <id>jdk14</id>
       <activation>
@@ -193,7 +191,7 @@
         </dependency>
       </dependencies>
     </profile>
-  </profiles>
+  </profiles-->
   <dependencies>
     <dependency>
       <groupId>junit</groupId>
