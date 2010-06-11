@@ -6,7 +6,7 @@
   <description>Javassist (JAVA programming ASSISTant) makes Java bytecode manipulation
      simple.  It is a class library for editing bytecodes in Java.
   </description>
-  <version>3.12.1.GA</version>
+  <version>3.12.2-SNAPSHOT</version>
   <name>Javassist</name>
   <url>http://www.javassist.org/</url>
 
@@ -31,9 +31,9 @@
   </licenses>
 
   <scm>
-    <connection>scm:svn:http://anonsvn.jboss.org/repos/javassist/tags/rel_3_12_1_ga</connection>
-    <developerConnection>scm:svn:https://svn.jboss.org/repos/javassist/tags/rel_3_12_1_ga</developerConnection>
-    <url>http://fisheye.jboss.org/browse/javassist/tags/rel_3_12_1_ga</url>
+    <connection>scm:svn:http://anonsvn.jboss.org/repos/javassist/</connection>
+    <developerConnection>scm:svn:https://svn.jboss.org/repos/javassist/</developerConnection>
+    <url>http://fisheye.jboss.org/browse/javassist/</url>
   </scm>
 
   <developers>
