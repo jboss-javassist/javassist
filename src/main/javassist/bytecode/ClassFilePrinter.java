@@ -108,6 +108,9 @@ public class ClassFilePrinter {
                 printAttributes(ca.getAttributes(), out, kind);
                 out.println("<code attribute end>");
             }
+            else if (ai instanceof AnnotationsAttribute) {
+                out.println("annnotation: " + ai.toString());
+            }
             else if (ai instanceof StackMapTable) {
                 out.println("<stack map table begin>");
                 StackMapTable.Printer.print((StackMapTable)ai, out);
