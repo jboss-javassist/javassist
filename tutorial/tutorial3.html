@@ -24,7 +24,9 @@
 
 <p><a href="#generics">6. Generics</a>
 
-<p><a href="#j2me">7. J2ME</a>
+<p><a href="#varargs">7. Varargs</a>
+
+<p><a href="#j2me">8. J2ME</a>
 
 <p><br>
 
@@ -294,7 +296,43 @@ public Object get() { return value; }
 
 <p><br>
 
-<h2><a name="j2me">7. J2ME</a></h2>
+<h2><a name="varargs">7. Varargs</a></h2>
+
+<p>Currently, Javassist does not directly support varargs.  So to make a method with varargs,
+you must explicitly set a method modifier.  But this is easy.
+Suppose that now you want to make the following method:
+
+<ul><pre>
+public int length(int... args) { return args.length; }
+</pre></ul>
+
+<p>The following code using Javassist will make the method shown above:
+
+<ul><pre>
+CtClass cc = /* target class */;
+CtMethod m = CtMethod.make("public int length(int[] args) { return args.length; }", cc);
+m.setModifiers(m.getModifiers() | Modifier.VARARGS);
+cc.addMethod(m);
+<pre></ul>
+
+<p>The parameter type <code>int...</code> is changed into <code>int[]</code>
+and <code>Modifier.VARARGS</code> is added to the method modifiers.
+
+<p>To call this method, you must write:
+
+<ul><pre>
+length(new int[] { 1, 2, 3 });
+</pre></ul>
+
+<p>instead of this method call using the varargs mechanism:
+
+<ul><pre>
+length(1, 2, 3);
+</pre></ul>
+
+<p><br>
+
+<h2><a name="j2me">8. J2ME</a></h2>
 
 <p>If you modify a class file for the J2ME execution environment,
 you must perform <it>preverification</it>.  Preverifying is basically

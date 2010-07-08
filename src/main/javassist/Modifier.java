@@ -35,6 +35,7 @@ public class Modifier {
     public static final int FINAL     = AccessFlag.FINAL;
     public static final int SYNCHRONIZED = AccessFlag.SYNCHRONIZED;
     public static final int VOLATILE  = AccessFlag.VOLATILE;
+    public static final int VARARGS = AccessFlag.VARARGS;
     public static final int TRANSIENT = AccessFlag.TRANSIENT;
     public static final int NATIVE    = AccessFlag.NATIVE;
     public static final int INTERFACE = AccessFlag.INTERFACE;
