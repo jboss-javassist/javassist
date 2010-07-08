@@ -48,9 +48,14 @@ final class CtArray extends CtClass {
     }
 
     public CtClass[] getInterfaces() throws NotFoundException {
-        if (interfaces == null)
-            interfaces = new CtClass[] {
-                pool.get("java.lang.Cloneable"), pool.get("java.io.Serializable") };
+        if (interfaces == null) {
+            Class[] intfs = Object[].class.getInterfaces();
+            // java.lang.Cloneable and java.io.Serializable.
+            // If the JVM is CLDC, intfs is empty.
+            interfaces = new CtClass[intfs.length];
+            for (int i = 0; i < intfs.length; i++)
+                interfaces[i] = pool.get(intfs[i].getName());
+        }
 
         return interfaces;
     }
@@ -60,10 +65,13 @@ final class CtArray extends CtClass {
             return true;
 
         String cname = clazz.getName();
-        if (cname.equals(javaLangObject)
-            || cname.equals("java.lang.Cloneable")
-            || cname.equals("java.io.Serializable"))
+        if (cname.equals(javaLangObject))
             return true;
+
+        CtClass[] intfs = getInterfaces();
+        for (int i = 0; i < intfs.length; i++)
+            if (intfs[i].subtypeOf(clazz))
+                return true;
 
         return clazz.isArray()
             && getComponentType().subtypeOf(clazz.getComponentType());
