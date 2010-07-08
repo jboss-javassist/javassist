@@ -52,7 +52,7 @@ public abstract class CtClass {
     /**
      * The version number of this release.
      */
-    public static final String version = "3.12.0.GA";
+    public static final String version = "3.13.0.GA";
 
     /**
      * Prints the version number and the copyright notice.
@@ -681,13 +681,28 @@ public abstract class CtClass {
      * may be a private field declared in a super class or interface.
      */
     public CtField getField(String name) throws NotFoundException {
+        return getField(name, null);
+    }
+
+    /**
+     * Returns the field with the specified name and type.  The returned field
+     * may be a private field declared in a super class or interface.
+     * Unlike Java, the JVM allows a class to have
+     * multiple fields with the same name but different types.
+     *
+     * @param name      the field name.
+     * @param desc      the type descriptor of the field.  It is available by
+     *                  {@link CtField#getSignature()}.
+     * @see CtField#getSignature()
+     */
+    public CtField getField(String name, String desc) throws NotFoundException {
         throw new NotFoundException(name);
     }
 
     /**
      * @return null     if the specified field is not found.
      */
-    CtField getField2(String name) { return null; }
+    CtField getField2(String name, String desc) { return null; }
 
     /**
      * Gets all the fields declared in the class.  The inherited fields
@@ -701,9 +716,25 @@ public abstract class CtClass {
      * Retrieves the field with the specified name among the fields
      * declared in the class.
      *
-     * <p>Note: this method does not search the superclasses.
+     * <p>Note: this method does not search the super classes.
      */
     public CtField getDeclaredField(String name) throws NotFoundException {
+        throw new NotFoundException(name);
+    }
+
+    /**
+     * Retrieves the field with the specified name and type among the fields
+     * declared in the class.  Unlike Java, the JVM allows a class to have
+     * multiple fields with the same name but different types.
+     *
+     * <p>Note: this method does not search the super classes.
+     *
+     * @param name      the field name.
+     * @param desc      the type descriptor of the field.  It is available by
+     *                  {@link CtField#getSignature()}.
+     * @see CtField#getSignature()
+     */
+    public CtField getDeclaredField(String name, String desc) throws NotFoundException {
         throw new NotFoundException(name);
     }
 

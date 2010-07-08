@@ -893,16 +893,27 @@ class CtClassType extends CtClass {
         }
     }
 
-    public CtField getField(String name) throws NotFoundException {
-        CtField f = getField2(name);
-        if (f == null)
-            throw new NotFoundException("field: " + name + " in " + getName());
+    public CtField getField(String name, String desc) throws NotFoundException {
+        CtField f = getField2(name, desc);
+        return checkGetField(f, name, desc);
+    }
+
+    private CtField checkGetField(CtField f, String name, String desc)
+        throws NotFoundException
+    {
+        if (f == null) {
+            String msg = "field: " + name;
+            if (desc != null)
+                msg += " type " + desc;
+
+            throw new NotFoundException(msg + " in " + getName());
+        }
         else
             return f;
     }
 
-    CtField getField2(String name) {
-        CtField df = getDeclaredField2(name);
+    CtField getField2(String name, String desc) {
+        CtField df = getDeclaredField2(name, desc);
         if (df != null)
             return df;
 
@@ -910,14 +921,14 @@ class CtClassType extends CtClass {
             CtClass[] ifs = getInterfaces();
             int num = ifs.length;
             for (int i = 0; i < num; ++i) {
-                CtField f = ifs[i].getField2(name);
+                CtField f = ifs[i].getField2(name, desc);
                 if (f != null)
                     return f;
             }
 
             CtClass s = getSuperclass();
             if (s != null)
-                return s.getField2(name);
+                return s.getField2(name, desc);
         }
         catch (NotFoundException e) {}
         return null;
@@ -939,20 +950,22 @@ class CtClassType extends CtClass {
     }
 
     public CtField getDeclaredField(String name) throws NotFoundException {
-        CtField f = getDeclaredField2(name);
-        if (f == null)
-            throw new NotFoundException("field: " + name + " in " + getName());
-        else
-            return f;
+        return getDeclaredField(name, null);
     }
 
-    private CtField getDeclaredField2(String name) {
+    public CtField getDeclaredField(String name, String desc) throws NotFoundException {
+        CtField f = getDeclaredField2(name, desc);
+        return checkGetField(f, name, desc);
+    }
+
+    private CtField getDeclaredField2(String name, String desc) {
         CtMember.Cache memCache = getMembers();
         CtMember field = memCache.fieldHead();
         CtMember tail = memCache.lastField();
         while (field != tail) {
             field = field.next();
-            if (field.getName().equals(name))
+            if (field.getName().equals(name)
+                && (desc == null || desc.equals(field.getSignature())))
                 return (CtField)field;
         }
 

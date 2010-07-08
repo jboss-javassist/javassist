@@ -319,6 +319,8 @@ public class CtField extends CtMember {
 
     /**
      * Returns the character string representing the type of the field.
+     * The field signature is represented by a character string
+     * called a field descriptor, which is defined in the JVM specification.
      * If two fields have the same type,
      * <code>getSignature()</code> returns the same string.
      *
