@@ -128,21 +128,22 @@ public abstract class Tracer implements TypeTag {
 
     /**
      * Invoked when the visited instruction is jsr.
+     * Java6 or later does not allow using RET.
      */
     protected void visitJSR(int pos, byte[] code) throws BadBytecode {
-        throwBadBytecode(pos, "jsr");
+        /* Since JSR pushes a return address onto the operand stack,
+         * the stack map at the entry point of a subroutine is
+         * stackTypes resulting after executing the following code:
+         *
+         *     stackTypes[stackTop++] = TOP;
+         */
     }
 
     /**
      * Invoked when the visited instruction is ret or wide ret.
+     * Java6 or later does not allow using RET.
      */
-    protected void visitRET(int pos, byte[] code) throws BadBytecode {
-        throwBadBytecode(pos, "ret");
-    }
-
-    private void throwBadBytecode(int pos, String name) throws BadBytecode {
-        throw new BadBytecode(name + " at " + pos);
-    }
+    protected void visitRET(int pos, byte[] code) throws BadBytecode {}
 
     private int doOpcode0_53(int pos, byte[] code, int op) throws BadBytecode {
         int reg;
@@ -559,12 +560,11 @@ public abstract class Tracer implements TypeTag {
             visitGoto(pos, code, ByteArray.readS16bit(code, pos + 1));
             return 3;       // branch
         case Opcode.JSR :
-            stackTypes[stackTop++] = TOP;       // not allowed?
             visitJSR(pos, code);
             return 3;       // branch
         case Opcode.RET :
             visitRET(pos, code);
-            return 2;                           // not allowed?
+            return 2;
         case Opcode.TABLESWITCH : {
             stackTop--;     // branch
             int pos2 = (pos & ~3) + 8;
@@ -672,7 +672,6 @@ public abstract class Tracer implements TypeTag {
             visitGoto(pos, code, ByteArray.read32bit(code, pos + 1));
             return 5;           // branch
         case Opcode.JSR_W :
-            stackTypes[stackTop++] = TOP;       // not allowed?
             visitJSR(pos, code);
             return 5;
         }

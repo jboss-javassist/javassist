@@ -19,6 +19,12 @@ import javassist.bytecode.*;
 import java.util.HashMap;
 import java.util.ArrayList;
 
+/**
+ * A basic block is a sequence of bytecode that does not contain jump/branch
+ * instructions except at the last bytecode.
+ * Since Java6 or later does not allow JSR, this class deals with JSR as a
+ * non-branch instruction.
+ */
 public class BasicBlock {
     public int position, length;
     public int incoming;        // the number of incoming branches.
@@ -221,12 +227,13 @@ public class BasicBlock {
                 else if (Opcode.GOTO <= op && op <= Opcode.LOOKUPSWITCH)
                     switch (op) {
                     case Opcode.GOTO :
+                        makeGoto(marks, index, index + ci.s16bitAt(index + 1), 3);
+                        break;
                     case Opcode.JSR :
-                        makeGotoJsr(marks, index, index + ci.s16bitAt(index + 1),
-                                    op == Opcode.GOTO, 3);
+                        makeJsr(marks, index, index + ci.s16bitAt(index + 1), 3);
                         break;
                     case Opcode.RET :
-                        makeMark(marks, index, null, 1, true);
+                        makeMark(marks, index, null, 2, true);
                         break;
                     case Opcode.TABLESWITCH : {
                         int pos = (index & ~3) + 4;
@@ -261,9 +268,10 @@ public class BasicBlock {
                     }
                 else if ((Opcode.IRETURN <= op && op <= Opcode.RETURN) || op == Opcode.ATHROW)
                     makeMark(marks, index, null, 1, true);
-                else if (op == Opcode.GOTO_W || op == Opcode.JSR_W)
-                    makeGotoJsr(marks, index, index + ci.s32bitAt(index + 1),
-                                op == Opcode.GOTO_W, 5);
+                else if (op == Opcode.GOTO_W)
+                    makeGoto(marks, index, index + ci.s32bitAt(index + 1), 5);
+                else if (op == Opcode.JSR_W)
+                    makeJsr(marks, index, index + ci.s32bitAt(index + 1), 5);
                 else if (op == Opcode.WIDE && ci.byteAt(index + 1) == Opcode.RET)
                     makeMark(marks, index, null, 1, true);
             }
@@ -279,17 +287,22 @@ public class BasicBlock {
             return marks;
         }
 
-        private void makeGotoJsr(HashMap marks, int pos, int target, boolean isGoto, int size) {
+        private void makeGoto(HashMap marks, int pos, int target, int size) {
             Mark to = makeMark(marks, target);
-            BasicBlock[] jumps;
-            if (isGoto)
-                jumps = makeArray(to.block);
-            else {
-                Mark next = makeMark(marks, pos + size);
-                jumps = makeArray(to.block, next.block);
-            }
+            BasicBlock[] jumps = makeArray(to.block);
+            makeMark(marks, pos, jumps, size, true);
+        }
 
-            makeMark(marks, pos, jumps, size, isGoto);
+        /**
+         * We ignore JSR since Java 6 or later does not allow it.
+         */
+        protected void makeJsr(HashMap marks, int pos, int target, int size) {
+        /*
+            Mark to = makeMark(marks, target);
+            Mark next = makeMark(marks, pos + size);
+            BasicBlock[] jumps = makeArray(to.block, next.block);
+            makeMark(marks, pos, jumps, size, false);
+        */
         }
 
         private BasicBlock[] makeBlocks(HashMap markTable) {
