@@ -6,7 +6,7 @@
   <description>Javassist (JAVA programming ASSISTant) makes Java bytecode manipulation
      simple.  It is a class library for editing bytecodes in Java.
   </description>
-  <version>3.12.2-SNAPSHOT</version>
+  <version>3.13.0-GA</version>
   <name>Javassist</name>
   <url>http://www.javassist.org/</url>
 
@@ -41,8 +41,8 @@
       <id>chiba</id>
       <name>Shigeru Chiba</name>
       <email>chiba@acm.org</email>
-      <organization>Tokyo Institute Of Technology</organization>
-      <organizationUrl>http://www.csg.is.titech.ac.jp/</organizationUrl>
+      <organization>Tokyo Institute of Technology</organization>
+      <organizationUrl>http://www.javassist.org/</organizationUrl>
       <roles>
         <role>project lead</role>
       </roles>
