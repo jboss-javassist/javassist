@@ -60,6 +60,18 @@
       </roles>
       <timezone>0</timezone>
     </developer>
+
+    <developer>
+      <id>kabir.khan@jboss.com</id>
+      <name>Kabir Khan</name>
+      <email>kabir.khan@jboss.com</email>
+      <organization>JBoss</organization>
+      <organizationUrl>http://www.jboss.org/</organizationUrl>
+      <roles>
+        <role>contributing developer</role>
+      </roles>
+      <timezone>0</timezone>
+    </developer>
   </developers>
 
   <distributionManagement>
