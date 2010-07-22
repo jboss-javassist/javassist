@@ -185,7 +185,7 @@ public class HotSwapper {
     private ReferenceType toRefType(String className) {
         List list = jvm.classesByName(className);
         if (list == null || list.isEmpty())
-            throw new RuntimeException("no such a class: " + className);
+            throw new RuntimeException("no such class: " + className);
         else
             return (ReferenceType)list.get(0);
     }

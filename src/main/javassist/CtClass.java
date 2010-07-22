@@ -766,7 +766,7 @@ public abstract class CtClass {
     public CtConstructor getConstructor(String desc)
         throws NotFoundException
     {
-        throw new NotFoundException("no such a constructor");
+        throw new NotFoundException("no such constructor");
     }
 
     /**

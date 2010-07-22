@@ -580,7 +580,7 @@ public final class ClassFile {
      * Returns the method with the specified name. If there are multiple methods
      * with that name, this method returns one of them.
      * 
-     * @return null if no such a method is found.
+     * @return null if no such method is found.
      */
     public MethodInfo getMethod(String name) {
         ArrayList list = methods;

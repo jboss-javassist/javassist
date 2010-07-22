@@ -254,7 +254,7 @@ public class JvstCodeGen extends MemberCodeGen {
         String name = sbuf.toString();
         Object[] names = resolver.getClassPool().lookupCflow(name);
         if (names == null)
-            throw new CompileError("no such a " + cflowName + ": " + name);
+            throw new CompileError("no such " + cflowName + ": " + name);
 
         bytecode.addGetstatic((String)names[0], (String)names[1],
                               "Ljavassist/runtime/Cflow;");
