@@ -160,13 +160,13 @@
     <profile>
       <id>centralRelease</id>
       <!-- obviously we need to use the Sonatype staging repo for upload -->
-      <repositories>
+      <distributionManagement>
 	<repository>
 	  <id>sonatype-releases-repository</id>
 	  <name>Sonatype Releases Repository</name>
 	  <url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>
 	</repository>
-      </repositories>
+      </distributionManagement>
       <!-- we need to be able to sign the jars we install -->
       <build>
         <plugins>
