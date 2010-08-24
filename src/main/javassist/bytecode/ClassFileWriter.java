@@ -651,8 +651,9 @@ public class ClassFileWriter {
          * @return          the index of the added entry.
          */
         public int addStringInfo(String str) {
+            int utf8 = addUtf8Info(str);
             output.write(StringInfo.tag);
-            output.writeShort(addUtf8Info(str));
+            output.writeShort(utf8);
             return num++;
         }
 
