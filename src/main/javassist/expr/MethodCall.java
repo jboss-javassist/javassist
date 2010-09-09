@@ -173,7 +173,7 @@ public class MethodCall extends Expr {
      *
      * <p>$0 is available even if the called method is static.
      *
-     * @param statement         a Java statement.
+     * @param statement         a Java statement except try-catch.
      */
     public void replace(String statement) throws CannotCompileException {
         thisClass.getClassFile();   // to call checkModify().

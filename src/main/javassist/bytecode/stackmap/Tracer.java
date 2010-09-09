@@ -88,17 +88,22 @@ public abstract class Tracer implements TypeTag {
      * @return      the size of the instruction at POS.
      */
     protected int doOpcode(int pos, byte[] code) throws BadBytecode {
-        int op = code[pos] & 0xff;
-        if (op < 96)
-            if (op < 54)
-                return doOpcode0_53(pos, code, op);
+        try {
+            int op = code[pos] & 0xff;
+            if (op < 96)
+                if (op < 54)
+                    return doOpcode0_53(pos, code, op);
+                else
+                    return doOpcode54_95(pos, code, op);
             else
-                return doOpcode54_95(pos, code, op);
-        else
-            if (op < 148)
-                return doOpcode96_147(pos, code, op);
-            else
-                return doOpcode148_201(pos, code, op);
+                if (op < 148)
+                    return doOpcode96_147(pos, code, op);
+                else
+                    return doOpcode148_201(pos, code, op);
+        }
+        catch (ArrayIndexOutOfBoundsException e) {
+            throw new BadBytecode("inconsistent stack height " + e.getMessage());
+        }
     }
 
     protected void visitBranch(int pos, byte[] code, int offset) throws BadBytecode {}

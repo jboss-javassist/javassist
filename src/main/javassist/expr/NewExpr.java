@@ -156,7 +156,7 @@ public class NewExpr extends Expr {
      *
      * <p>$0 is available but the value is null.
      *
-     * @param statement         a Java statement.
+     * @param statement         a Java statement except try-catch.
      */
     public void replace(String statement) throws CannotCompileException {
         thisClass.getClassFile();   // to call checkModify().

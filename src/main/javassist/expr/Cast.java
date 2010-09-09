@@ -84,7 +84,7 @@ public class Cast extends Expr {
      *
      * <p>$0 is available but the value is <code>null</code>.
      *
-     * @param statement         a Java statement.
+     * @param statement         a Java statement except try-catch.
      */
     public void replace(String statement) throws CannotCompileException {
         thisClass.getClassFile();   // to call checkModify().

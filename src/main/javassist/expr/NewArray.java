@@ -153,7 +153,7 @@ public class NewArray extends Expr {
      * If the field access is writing, $_ is available but the value
      * of $_ is ignored.
      *
-     * @param statement         a Java statement.
+     * @param statement         a Java statement except try-catch.
      */
     public void replace(String statement) throws CannotCompileException {
         try {

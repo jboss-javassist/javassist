@@ -264,7 +264,7 @@ public abstract class Expr implements Opcode {
      * Replaces this expression with the bytecode derived from
      * the given source text.
      *
-     * @param statement         a Java statement.
+     * @param statement         a Java statement except try-catch.
      */
     public abstract void replace(String statement) throws CannotCompileException;
 
@@ -272,7 +272,7 @@ public abstract class Expr implements Opcode {
      * Replaces this expression with the bytecode derived from
      * the given source text and <code>ExprEditor</code>.
      *
-     * @param statement         a Java statement.
+     * @param statement         a Java statement except try-catch.
      * @param recursive         if not null, the substituted bytecode
      *                          is recursively processed by the given
      *                          <code>ExprEditor</code>.
