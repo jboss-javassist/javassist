@@ -111,6 +111,9 @@ public class ClassFilePrinter {
             else if (ai instanceof AnnotationsAttribute) {
                 out.println("annnotation: " + ai.toString());
             }
+            else if (ai instanceof ParameterAnnotationsAttribute) {
+                out.println("parameter annnotations: " + ai.toString());
+            }
             else if (ai instanceof StackMapTable) {
                 out.println("<stack map table begin>");
                 StackMapTable.Printer.print((StackMapTable)ai, out);

@@ -15,6 +15,7 @@
 
 package javassist.bytecode;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.io.IOException;
 import java.io.DataInputStream;
@@ -22,6 +23,7 @@ import java.io.ByteArrayOutputStream;
 
 import javassist.bytecode.AnnotationsAttribute.Copier;
 import javassist.bytecode.AnnotationsAttribute.Parser;
+import javassist.bytecode.AnnotationsAttribute.Renamer;
 import javassist.bytecode.annotation.*;
 
 /**
@@ -163,5 +165,48 @@ public class ParameterAnnotationsAttribute extends AttributeInfo {
         }
 
         set(output.toByteArray());
+    }
+
+    /**
+     * @param oldname       a JVM class name.
+     * @param newname       a JVM class name.
+     */
+    void renameClass(String oldname, String newname) {
+        HashMap map = new HashMap();
+        map.put(oldname, newname);
+        renameClass(map);
+    }
+
+    void renameClass(Map classnames) {
+        Renamer renamer = new Renamer(info, getConstPool(), classnames);
+        try {
+            renamer.parameters();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * Returns a string representation of this object.
+     */
+    public String toString() {
+        Annotation[][] aa = getAnnotations();
+        StringBuilder sbuf = new StringBuilder();
+        int k = 0;
+        while (k < aa.length) {
+            Annotation[] a = aa[k++]; 
+            int i = 0;
+            while (i < a.length) {
+                sbuf.append(a[i++].toString());
+                if (i != a.length)
+                    sbuf.append(" ");
+            }
+
+            if (k != aa.length)
+                sbuf.append(", ");
+        }
+
+        return sbuf.toString();
+
     }
 }

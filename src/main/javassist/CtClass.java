@@ -409,6 +409,8 @@ public abstract class CtClass {
      * That collection includes the name of this class.
      *
      * <p>This method may return <code>null</code>.
+     *
+     * @return a <code>Collection&lt;String&gt;</code> object.
      */
     public synchronized Collection getRefClasses() {
         ClassFile cf = getClassFile2();
