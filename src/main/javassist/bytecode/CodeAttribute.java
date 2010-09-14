@@ -200,6 +200,10 @@ public class CodeAttribute extends AttributeInfo implements Opcode {
         AttributeInfo.renameClass(attributes, classnames);
     }
 
+    void getRefClasses(Map classnames) {
+        AttributeInfo.getRefClasses(attributes, classnames);
+    }
+
     /**
      * Returns the name of the class declaring the method including
      * this code attribute.

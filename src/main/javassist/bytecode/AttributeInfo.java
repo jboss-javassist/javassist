@@ -251,8 +251,9 @@ public class AttributeInfo {
 
     /* The following two methods are used to implement
      * ClassFile.renameClass().
-     * Only CodeAttribute, LocalVariableAttribute, and
-     * AnnotationsAttribute override these methods.
+     * Only CodeAttribute, LocalVariableAttribute,
+     * AnnotationsAttribute, and SignatureAttribute
+     * override these methods.
      */
     void renameClass(String oldname, String newname) {}
     void renameClass(Map classnames) {}
@@ -270,6 +271,16 @@ public class AttributeInfo {
         while (iterator.hasNext()) {
             AttributeInfo ai = (AttributeInfo)iterator.next();
             ai.renameClass(classnames);
+        }
+    }
+
+    void getRefClasses(Map classnames) {}
+
+    static void getRefClasses(List attributes, Map classnames) {
+        Iterator iterator = attributes.iterator();
+        while (iterator.hasNext()) {
+            AttributeInfo ai = (AttributeInfo)iterator.next();
+            ai.getRefClasses(classnames);
         }
     }
 }

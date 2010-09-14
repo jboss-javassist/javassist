@@ -466,6 +466,33 @@ public final class ClassFile {
     }
 
     /**
+     * Internal-use only.
+     * <code>CtClass.getRefClasses()</code> calls this method. 
+     */
+    public final void getRefClasses(Map classnames) {
+        constPool.renameClass(classnames);
+
+        AttributeInfo.getRefClasses(attributes, classnames);
+        ArrayList list = methods;
+        int n = list.size();
+        for (int i = 0; i < n; ++i) {
+            MethodInfo minfo = (MethodInfo)list.get(i);
+            String desc = minfo.getDescriptor();
+            Descriptor.rename(desc, classnames);
+            AttributeInfo.getRefClasses(minfo.getAttributes(), classnames);
+        }
+
+        list = fields;
+        n = list.size();
+        for (int i = 0; i < n; ++i) {
+            FieldInfo finfo = (FieldInfo)list.get(i);
+            String desc = finfo.getDescriptor();
+            Descriptor.rename(desc, classnames);
+            AttributeInfo.getRefClasses(finfo.getAttributes(), classnames);
+        }
+    }
+
+    /**
      * Returns the names of the interfaces implemented by the class.
      * The returned array is read only.
      */

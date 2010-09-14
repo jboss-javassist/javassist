@@ -428,7 +428,7 @@ public abstract class CtClass {
 
                 public void fix(String name) {}
             };
-            cf.renameClass(cm);
+            cf.getRefClasses(cm);
             return cm.values();
         }
         else

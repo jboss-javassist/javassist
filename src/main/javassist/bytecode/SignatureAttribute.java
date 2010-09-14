@@ -96,54 +96,16 @@ public class SignatureAttribute extends AttributeInfo {
     }
 
     static String renameClass(String desc, String oldname, String newname) {
-        if (desc.indexOf(oldname) < 0)
-            return desc;
-
-        StringBuffer newdesc = new StringBuffer();
-        int head = 0;
-        int i = 0;
-        for (;;) {
-            int j = desc.indexOf('L', i);
-            if (j < 0)
-                break;
-
-            int k = j;
-            int p = 0;
-            char c;
-            boolean match = true;
-            try {
-                int len = oldname.length();
-                while (isNamePart(c = desc.charAt(++k)))
-                    if (p >= len || c != oldname.charAt(p++))
-                        match = false;
-            }
-            catch (IndexOutOfBoundsException e) { break; }
-            i = k + 1;
-            if (match && p == oldname.length()) {
-                newdesc.append(desc.substring(head, j));
-                newdesc.append('L');
-                newdesc.append(newname);
-                newdesc.append(c);
-                head = i;
-            }
-        }
-
-        if (head == 0)
-            return desc;
-        else {
-            int len = desc.length();
-            if (head < len)
-                newdesc.append(desc.substring(head, len));
-
-            return newdesc.toString();
-        }
+        Map map = new java.util.HashMap();
+        map.put(oldname, newname);
+        return renameClass(desc, map);
     }
 
     static String renameClass(String desc, Map map) {
         if (map == null)
             return desc;
 
-        StringBuffer newdesc = new StringBuffer();
+        StringBuilder newdesc = new StringBuilder();
         int head = 0;
         int i = 0;
         for (;;) {
@@ -151,12 +113,19 @@ public class SignatureAttribute extends AttributeInfo {
             if (j < 0)
                 break;
 
-            StringBuffer nameBuf = new StringBuffer();
+            StringBuilder nameBuf = new StringBuilder();
             int k = j;
             char c;
             try {
-                while (isNamePart(c = desc.charAt(++k)))
+                while ((c = desc.charAt(++k)) != ';') {
                     nameBuf.append(c);
+                    if (c == '<') {
+                        while ((c = desc.charAt(++k)) != '>')
+                            nameBuf.append(c);
+
+                        nameBuf.append(c);
+                    }
+                }
             }
             catch (IndexOutOfBoundsException e) { break; }
             i = k + 1;

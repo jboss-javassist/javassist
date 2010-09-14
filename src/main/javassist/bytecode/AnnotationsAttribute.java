@@ -285,6 +285,8 @@ public class AnnotationsAttribute extends AttributeInfo {
         }
     }
 
+    void getRefClasses(Map classnames) { renameClass(classnames); }
+
     /**
      * Returns a string representation of this object.
      */
