@@ -286,6 +286,9 @@ public class ClassPool {
      * Don't record the <code>java.lang</code> package, which has
      * been implicitly recorded by default.
      *
+     * <p>Since version 3.14, <code>packageName</code> can be a
+     * fully-qualified class name.
+     *
      * <p>Note that <code>get()</code> in <code>ClassPool</code> does
      * not search the recorded package.  Only the compiler searches it.
      *
