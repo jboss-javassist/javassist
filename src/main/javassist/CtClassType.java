@@ -401,20 +401,17 @@ class CtClassType extends CtClass {
         if (ica == null)
             return new CtClass[0];
 
-        String thisName = cf.getName();
+        String thisName = cf.getName() + "$";
         int n = ica.tableLength();
         ArrayList list = new ArrayList(n);
         for (int i = 0; i < n; i++) {
-            String outer = ica.outerClass(i);
-            /*
-             * If a nested class is local or anonymous,
-             * the outer_class_info_index is 0.
-             */
-            if (outer == null || outer.equals(thisName)) {
-                String inner = ica.innerClass(i);
-                if (inner != null)
-                    list.add(classPool.get(inner));
-            }
+            String name = ica.innerClass(i);
+            if (name != null)
+                if (name.startsWith(thisName)) {
+                    // if it is an immediate nested class
+                    if (name.lastIndexOf('$') < thisName.length())
+                        list.add(classPool.get(name));
+                }
         }
 
         return (CtClass[])list.toArray(new CtClass[list.size()]);
