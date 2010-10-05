@@ -429,6 +429,17 @@ public class MemberResolver implements TokenId {
                 }
                 catch (NotFoundException e) {
                     classPool.recordInvalidClassName(fqName);
+                    try {
+                        if (pac.endsWith("." + orgName)) {
+                            CtClass cc = classPool.get(pac);
+                            // if the class is found,
+                            classPool.recordInvalidClassName(orgName);
+                            return cc;
+                        }
+                    }
+                    catch (NotFoundException e2) {
+                        classPool.recordInvalidClassName(pac);
+                    }
                 }
             }
         }
