@@ -891,7 +891,7 @@ public final class Parser implements TokenId {
     /* cast.expr : "(" builtin.type ("[" "]")* ")" unary.expr
                  | "(" class.type ("[" "]")* ")" unary.expr2
 
-       unary.expr2 is a unary.expr begining with "(", NULL, StringL,
+       unary.expr2 is a unary.expr beginning with "(", NULL, StringL,
        Identifier, THIS, SUPER, or NEW.
 
        Either "(int.class)" or "(String[].class)" is a not cast expression.
