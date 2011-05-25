@@ -420,8 +420,12 @@ final class ClassPoolTail {
         throws IOException
     {
         int bufsize = 4096;
-        for (int i = 0; i < 8; ++i) {
-            byte[] buf = new byte[bufsize];
+        byte[] buf = null;
+        for (int i = 0; i < 64; ++i) {
+            if (i < 8) {
+                bufsize *= 2;
+                buf = new byte[bufsize];
+            }
             int size = 0;
             int len = 0;
             do {
@@ -434,7 +438,6 @@ final class ClassPoolTail {
                 }
             } while (size < bufsize);
             fout.write(buf);
-            bufsize *= 2;
         }
 
         throw new IOException("too much data");
