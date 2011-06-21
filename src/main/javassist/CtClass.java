@@ -535,6 +535,18 @@ public abstract class CtClass {
     /**
      * Returns an array of nested classes declared in the class.
      * Nested classes are inner classes, anonymous classes, local classes,
+     * and static nested classes.  This simply calls <code>getNestedClasses()</code>.
+     *
+     * @see #getNestedClasses()
+     * @since 3.15
+     */
+    public CtClass[] getDeclaredClasses() throws NotFoundException {
+        return getNestedClasses();
+    }
+
+    /**
+     * Returns an array of nested classes declared in the class.
+     * Nested classes are inner classes, anonymous classes, local classes,
      * and static nested classes.
      *
      * @since 3.2

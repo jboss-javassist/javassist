@@ -1044,7 +1044,9 @@ adds a new field <code>hiddenValue</code> to <code>java.lang.String</code>:
 
 <ul><pre>ClassPool pool = ClassPool.getDefault();
 CtClass cc = pool.get("java.lang.String");
-cc.addField(new CtField(CtClass.intType, "hiddenValue", cc));
+CtField f = new CtField(CtClass.intType, "hiddenValue", cc);
+f.setModifiers(Modifier.PUBLIC);
+cc.addField(f);
 cc.writeFile(".");</pre></ul>
 
 <p>This program produces a file <code>"./java/lang/String.class"</code>.
