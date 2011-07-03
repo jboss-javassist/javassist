@@ -564,7 +564,13 @@ public class TypeChecker extends Visitor implements Opcode, TokenId {
         if (token == '.') {
             String member = ((Symbol)expr.oprand2()).get();
             if (member.equals("length"))
-                atArrayLength(expr);
+                try {
+                    atArrayLength(expr);
+                }
+                catch (NoFieldException nfe) {
+                    // length might be a class or package name.
+                    atFieldRead(expr);
+                }
             else if (member.equals("class"))                
                 atClassObject(expr);  // .class
             else
