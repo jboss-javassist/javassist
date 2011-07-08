@@ -215,6 +215,28 @@ public final class ConstPool {
     }
 
     /**
+     * Reads <code>CONSTANT_Class_info</code> structure
+     * at the given index.
+     *
+     * @return  the descriptor of the type specified
+     *          by <code>name_index</code>.
+     * @see javassist.ClassPool#getCtClass(String)
+     * @since 3.15
+     */
+    public String getClassInfoByDescriptor(int index) {
+        ClassInfo c = (ClassInfo)getItem(index);
+        if (c == null)
+            return null;
+        else {
+            String className = getUtf8Info(c.name);
+            if (className.charAt(0) == '[')
+                return className;
+            else
+                return Descriptor.of(className);
+        }
+    }
+
+    /**
      * Reads the <code>name_index</code> field of the
      * <code>CONSTANT_NameAndType_info</code> structure
      * at the given index.

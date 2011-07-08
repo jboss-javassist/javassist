@@ -596,7 +596,7 @@ public class Executor implements Opcode {
                 break;
             case CHECKCAST:
                 verifyAssignable(Type.OBJECT, simplePop(frame));
-                frame.push(typeFromDesc(constPool.getClassInfo(iter.u16bitAt(pos + 1))));
+                frame.push(typeFromDesc(constPool.getClassInfoByDescriptor(iter.u16bitAt(pos + 1))));
                 break;
             case INSTANCEOF:
                 verifyAssignable(Type.OBJECT, simplePop(frame));
