@@ -28,6 +28,12 @@
       <name>LGPL 2.1</name>
       <url>http://www.gnu.org/licenses/lgpl-2.1.html</url>
     </license>
+    <!-- this is the license under which javassist can be distributed.
+      -->
+    <license>
+      <name>Apache License 2.0</name>
+      <url>http://www.apache.org/licenses/</url>
+    </license>
   </licenses>
 
   <scm>
