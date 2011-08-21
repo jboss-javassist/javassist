@@ -912,7 +912,7 @@ public class ProxyFactory {
             int mod = meth.getModifiers();
             if (testBit(signature, index)) {
                 override(className, meth, prefix, index,
-                        keyToDesc(key), cf, cp);
+                         keyToDesc(key, meth), cf, cp);
             }
             index++;
         }
@@ -1013,27 +1013,34 @@ public class ProxyFactory {
 
     private static HashMap getMethods(Class superClass, Class[] interfaceTypes) {
         HashMap hash = new HashMap();
+        HashSet set = new HashSet();
         for (int i = 0; i < interfaceTypes.length; i++)
-            getMethods(hash, interfaceTypes[i]);
+            getMethods(hash, interfaceTypes[i], set);
 
-        getMethods(hash, superClass);
+        getMethods(hash, superClass, set);
         return hash;
     }
 
-    private static void getMethods(HashMap hash, Class clazz) {
+    private static void getMethods(HashMap hash, Class clazz, Set visitedClasses) {
+        // This both speeds up scanning by avoiding duplicate interfaces and is needed to
+        // ensure that superinterfaces are always scanned before subinterfaces.
+        if (!visitedClasses.add(clazz))
+            return;
+
         Class[] ifs = clazz.getInterfaces();
         for (int i = 0; i < ifs.length; i++)
-            getMethods(hash, ifs[i]);
+            getMethods(hash, ifs[i], visitedClasses);
 
         Class parent = clazz.getSuperclass();
         if (parent != null)
-            getMethods(hash, parent);
+            getMethods(hash, parent, visitedClasses);
 
         Method[] methods = SecurityActions.getDeclaredMethods(clazz);
         for (int i = 0; i < methods.length; i++)
             if (!Modifier.isPrivate(methods[i].getModifiers())) {
                 Method m = methods[i];
-                String key = m.getName() + ':' + RuntimeSupport.makeDescriptor(m);
+                // JIRA JASSIST-127 (covariant return types).
+                String key = m.getName() + ':' + RuntimeSupport.makeDescriptor(m.getParameterTypes(), null);
                 // JIRA JASSIST-85
                 // put the method to the cache, retrieve previous definition (if any) 
                 Method oldMethod = (Method)hash.put(key, methods[i]); 
@@ -1048,8 +1055,9 @@ public class ProxyFactory {
             }
     }
 
-    private static String keyToDesc(String key) {
-        return key.substring(key.indexOf(':') + 1);
+    private static String keyToDesc(String key, Method m) {
+        String params = key.substring(key.indexOf(':') + 1);
+        return RuntimeSupport.makeDescriptor(params, m.getReturnType());
     }
 
     private static MethodInfo makeConstructor(String thisClassName, Constructor cons,

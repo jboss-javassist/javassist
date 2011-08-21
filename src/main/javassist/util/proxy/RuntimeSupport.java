@@ -155,6 +155,20 @@ public class RuntimeSupport {
             makeDesc(sbuf, params[i]);
 
         sbuf.append(')');
+        if (retType != null)
+            makeDesc(sbuf, retType);
+
+        return sbuf.toString();
+    }
+
+    /**
+     * Makes a descriptor for a given method.
+     *
+     * @param params    the descriptor of parameter types.
+     * @param retType   return type.
+     */
+    public static String makeDescriptor(String params, Class retType) {
+        StringBuffer sbuf = new StringBuffer(params);
         makeDesc(sbuf, retType);
         return sbuf.toString();
     }
