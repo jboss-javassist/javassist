@@ -63,8 +63,10 @@ import javassist.bytecode.*;
  *     }
  * };
  * Foo foo = (Foo)c.newInstance();
- * ((ProxyObject)foo).setHandler(mi);
+ * ((Proxy)foo).setHandler(mi);
  * </pre></ul>
+ *
+ * <p>Here, <code>Method</code> is <code>java.lang.reflect.Method</code>.</p>
  *
  * <p>Then, the following method call will be forwarded to MethodHandler
  * <code>mi</code> and prints a message before executing the originally called method
@@ -88,7 +90,7 @@ import javassist.bytecode.*;
  *
  * <ul><pre>
  * MethodHandler mi = ... ;    // alternative handler
- * ((ProxyObject)foo).setHandler(mi);
+ * ((Proxy)foo).setHandler(mi);
  * </pre></ul>
  *
  * <p> If setHandler is never called for a proxy instance then it will
@@ -119,7 +121,7 @@ import javassist.bytecode.*;
  * with previous releases of javassist. Unfortunately,this legacy behaviour makes caching
  * and reuse of proxy classes impossible. The current programming model expects javassist
  * clients to set the handler of a proxy instance explicitly by calling method
- * {@link ProxyObject#setHandler(MethodHandler)} as shown in the sample code above. New
+ * {@link Proxy#setHandler(MethodHandler)} as shown in the sample code above. New
  * clients are strongly recommended to use this model rather than calling
  * {@link ProxyFactory#setHandler(MethodHandler)}.
  *
@@ -156,6 +158,7 @@ public class ProxyFactory {
     private MethodFilter methodFilter;
     private MethodHandler handler;  // retained for legacy usage
     private List signatureMethods;
+    private boolean hasGetHandler;
     private byte[] signature;
     private String classname;
     private String basename;
@@ -293,8 +296,8 @@ public class ProxyFactory {
      */
     public static boolean isProxyClass(Class cl)
     {
-        // all proxies implement ProxyObject. nothing else should. 
-        return (ProxyObject.class.isAssignableFrom(cl));
+        // all proxies implement Proxy or ProxyObject. nothing else should. 
+        return (Proxy.class.isAssignableFrom(cl));
     }
 
     /**
@@ -338,6 +341,7 @@ public class ProxyFactory {
         handler = null;
         signature = null;
         signatureMethods = null;
+        hasGetHandler = false;
         thisClass = null;
         writeDirectory = null;
         factoryUseCache = useCache;
@@ -543,6 +547,26 @@ public class ProxyFactory {
     }
 
     /**
+     * Obtains the method handler of the given proxy object.
+     * 
+     * @param p     a proxy object.
+     * @return the method handler.
+     * @since 3.16
+     */
+    public static MethodHandler getHandler(Proxy p) {
+        try {
+            Field f = p.getClass().getDeclaredField(HANDLER);
+            f.setAccessible(true);
+            Object value = f.get(p);
+            f.setAccessible(false);
+            return (MethodHandler)value;
+        }
+        catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
      * A provider of class loaders.
      *
      * @see #classLoaderProvider
@@ -633,7 +657,7 @@ public class ProxyFactory {
                InstantiationException, IllegalAccessException, InvocationTargetException
     {
         Object obj = create(paramTypes, args);
-        ((ProxyObject)obj).setHandler(mh);
+        ((Proxy)obj).setHandler(mh);
         return obj;
     }
 
@@ -658,7 +682,7 @@ public class ProxyFactory {
      * specified.
      * @deprecated since 3.12
      * use of this method is incompatible  with proxy class caching.
-     * instead clients should call method {@link ProxyObject#setHandler(MethodHandler)} to set the handler
+     * instead clients should call method {@link Proxy#setHandler(MethodHandler)} to set the handler
      * for each newly created  proxy instance.
      * calling this method will automatically disable caching of classes created by the proxy factory.
      */
@@ -684,7 +708,7 @@ public class ProxyFactory {
     private ClassFile make() throws CannotCompileException {
         ClassFile cf = new ClassFile(false, classname, superName);
         cf.setAccessFlags(AccessFlag.PUBLIC);
-        setInterfaces(cf, interfaces);
+        setInterfaces(cf, interfaces, hasGetHandler ? Proxy.class : ProxyObject.class);
         ConstPool pool = cf.getConstPool();
 
         // legacy: we only add the static field for the default interceptor if caching is disabled
@@ -715,7 +739,8 @@ public class ProxyFactory {
         int s = overrideMethods(cf, pool, classname);
         addMethodsHolder(cf, pool, classname, s);
         addSetter(classname, cf, pool);
-        addGetter(classname, cf, pool);
+        if (!hasGetHandler)
+            addGetter(classname, cf, pool);
 
         if (factoryWriteReplace) {
             try {
@@ -774,6 +799,7 @@ public class ProxyFactory {
 
         HashMap allMethods = getMethods(superClass, interfaces);
         signatureMethods = new ArrayList(allMethods.entrySet());
+        hasGetHandler = allMethods.get(HANDLER_GETTER_KEY) != null;
         Collections.sort(signatureMethods, sorter);
     }
 
@@ -833,8 +859,8 @@ public class ProxyFactory {
         }
     }
 
-    private static void setInterfaces(ClassFile cf, Class[] interfaces) {
-        String setterIntf = ProxyObject.class.getName();
+    private static void setInterfaces(ClassFile cf, Class[] interfaces, Class proxyClass) {
+        String setterIntf = proxyClass.getName();
         String[] list;
         if (interfaces == null || interfaces.length == 0)
             list = new String[] { setterIntf };
@@ -1054,6 +1080,8 @@ public class ProxyFactory {
                 }
             }
     }
+
+    private static final String HANDLER_GETTER_KEY = HANDLER_GETTER + ":()";
 
     private static String keyToDesc(String key, Method m) {
         String params = key.substring(key.indexOf(':') + 1);

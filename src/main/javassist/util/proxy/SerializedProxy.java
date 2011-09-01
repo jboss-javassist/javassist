@@ -43,9 +43,10 @@ class SerializedProxy implements Serializable {
         int n = infs.length;
         interfaces = new String[n - 1];
         String setterInf = ProxyObject.class.getName();
+        String setterInf2 = Proxy.class.getName();
         for (int i = 0; i < n; i++) {
             String name = infs[i].getName();
-            if (!name.equals(setterInf))
+            if (!name.equals(setterInf) && !name.equals(setterInf2))
                 interfaces[i] = name;
         }
     }
@@ -81,7 +82,7 @@ class SerializedProxy implements Serializable {
             ProxyFactory f = new ProxyFactory();
             f.setSuperclass(loadClass(superClass));
             f.setInterfaces(infs);
-            ProxyObject proxy = (ProxyObject)f.createClass(filterSignature).newInstance();
+            Proxy proxy = (Proxy)f.createClass(filterSignature).newInstance();
             proxy.setHandler(handler);
             return proxy;
         }

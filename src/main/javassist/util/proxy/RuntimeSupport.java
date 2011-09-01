@@ -220,6 +220,8 @@ public class RuntimeSupport {
         MethodHandler methodHandler = null;
         if (proxy instanceof ProxyObject)
             methodHandler = ((ProxyObject)proxy).getHandler();
+        else if (proxy instanceof Proxy)
+            methodHandler = ProxyFactory.getHandler((Proxy)proxy);
 
         return new SerializedProxy(clazz, ProxyFactory.getFilterSignature(clazz), methodHandler);
     }
