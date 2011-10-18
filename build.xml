@@ -17,6 +17,7 @@
   <property name="build.classes.dir" value="${build.dir}/classes"/>
   <property name="test.src.dir" value="${basedir}/src/test"/>
   <property name="test.build.dir" value="${basedir}/build/test-classes"/>
+  <property name="test.run.dir" value="${basedir}/runtest"/>
   <property name="test.reports.dir" value = "${basedir}/build/test-output"/>
 
   <property name="run.dir" value="${build.classes.dir}"/>
@@ -38,7 +39,7 @@
   <path id="test.classpath">
     <pathelement location="${test.build.dir}"/>
     <pathelement location="${lib.dir}/junit.jar"/>
-    <pathelement location="${build.classes.dir}"/>
+  	<pathelement location="${build.classes.dir}"/>
   </path>
 
   <property name="test.classpath" refid="test.classpath"/>
@@ -50,7 +51,8 @@
     <mkdir dir="${build.dir}"/>
     <mkdir dir="${build.classes.dir}"/>
     <mkdir dir="${test.build.dir}"/>
-    <mkdir dir="${test.reports.dir}"/>
+  	<mkdir dir="${test.reports.dir}"/>
+  	<mkdir dir="${test.run.dir}"/>
   </target>
 
   <!-- =================================================================== -->
@@ -91,16 +93,11 @@
     </javac>
   </target>
 
-  <target name="test" depends="test-compile">
-    <junit fork="true" printsummary="true">
+  <target name="runtest" depends="test-compile">
+    <junit fork="true" printsummary="true" dir="${test.run.dir}">
       <classpath refid="test.classpath"/>
-      <formatter type="plain"/>
-      <formatter type="xml"/>
-      <batchtest todir="${test.reports.dir}">
-         <fileset dir="${test.build.dir}">
-           <include name="**/*Test.*"/>
-         </fileset>
-      </batchtest>
+      <formatter type="xml" extension=".xml"/>
+      <test name="javassist.JvstTest" outfile="TestLog" />
     </junit>
   </target>
 

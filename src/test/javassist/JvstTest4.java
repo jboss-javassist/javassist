@@ -492,6 +492,9 @@ public class JvstTest4 extends JvstTestRoot {
 
         cc = sloader.get("test4.NestedClass");
         tab = cc.getNestedClasses();
+        for (CtClass c: tab) {
+            System.err.println(c.getName());
+        }
         assertEquals(4, tab.length);
         for (CtClass c: tab) {
             String name = c.getName();
@@ -560,10 +563,23 @@ public class JvstTest4 extends JvstTestRoot {
             fail("test4no was found!");
         }
         catch (CannotCompileException e) {
-            System.err.println(e);
+            System.out.println(e);
         }
         cc.writeFile();
         Object obj = make(cc.getName());
         assertEquals(110, invoke(obj, "run"));
+    }
+
+    public void testAaload() throws Exception {
+        CtClass clazz = sloader.get("test4.Aaload");
+        CtMethod method = clazz.getMethod("narf", "()V");
+        method.instrument(new ExprEditor() {
+            @Override
+            public void edit(MethodCall call) throws CannotCompileException {
+                String name = call.getMethodName();
+                if (name.equals("addActionListener"))
+                    call.replace("$0." + name + "($$);");
+            }
+        });
     }
 }
