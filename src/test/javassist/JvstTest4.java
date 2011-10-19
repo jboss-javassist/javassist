@@ -495,7 +495,9 @@ public class JvstTest4 extends JvstTestRoot {
         for (CtClass c: tab) {
             System.err.println(c.getName());
         }
-        assertEquals(4, tab.length);
+
+        // Eclipse compiler sets tab.length to 4 but javac sets to 3. 
+        assertTrue(tab.length == 4 || tab.length == 3);
         for (CtClass c: tab) {
             String name = c.getName();
             assertTrue(name.equals("test4.NestedClass$N")
@@ -512,7 +514,9 @@ public class JvstTest4 extends JvstTestRoot {
     public void testGetClasses() throws Exception {
         CtClass cc = sloader.get("test4.NestedClass");
         CtClass[] tab = cc.getDeclaredClasses();
-        assertEquals(4, tab.length);
+
+        // Eclipse compiler sets tab.length to 4 but javac sets to 3. 
+        assertTrue(tab.length == 4 || tab.length == 3);
         for (CtClass c: tab) {
             String name = c.getName();
             assertTrue(name.equals("test4.NestedClass$N")

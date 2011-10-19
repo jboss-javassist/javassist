@@ -400,6 +400,10 @@ public abstract class TypeData {
             return new ArrayElement(array);
         }
 
+        public boolean isNullType() {
+            return array.isNullType();
+        }
+
         protected void setType(String typeName, ClassPool cp) throws BadBytecode {
             super.setType(typeName, cp);
             array.setType(getArrayType(typeName), cp);
