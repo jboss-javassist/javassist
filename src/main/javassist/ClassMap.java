@@ -41,6 +41,8 @@ import javassist.bytecode.Descriptor;
  * For example, the internal representation of <code>java.lang.String</code>
  * is <code>java/lang/String</code>.
  *
+ * <p>Note that this is a map from <code>String</code> to <code>String</code>.
+ *
  * @see #get(Object)
  * @see CtClass#replaceClassName(ClassMap)
  * @see CtNewMethod#copy(CtMethod,String,CtClass,ClassMap)

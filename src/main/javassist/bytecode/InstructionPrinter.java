@@ -20,7 +20,7 @@ import java.io.PrintStream;
 import javassist.CtMethod;
 
 /**
- * Simple utility class for printing the instructions of a method.
+ * Simple utility class for printing the bytecode instructions of a method.
  *
  * @author Jason T. Greene
  */
@@ -29,14 +29,23 @@ public class InstructionPrinter implements Opcode {
     private final static String opcodes[] = Mnemonic.OPCODE;
     private final PrintStream stream;
 
+    /**
+     * Constructs a <code>InstructionPrinter</code> object.
+     */
     public InstructionPrinter(PrintStream stream) {
         this.stream = stream;
     }
 
+    /**
+     * Prints the bytecode instructions of a given method.
+     */
     public static void print(CtMethod method, PrintStream stream) {
         (new InstructionPrinter(stream)).print(method);
     }
 
+    /**
+     * Prints the bytecode instructions of a given method.
+     */
     public void print(CtMethod method) {
         MethodInfo info = method.getMethodInfo2();
         ConstPool pool = info.getConstPool();
@@ -57,6 +66,10 @@ public class InstructionPrinter implements Opcode {
         }
     }
 
+    /**
+     * Gets a string representation of the bytecode instruction at the specified
+     * position. 
+     */
     public static String instructionString(CodeIterator iter, int pos, ConstPool pool) {
         int opcode = iter.byteAt(pos);
 
