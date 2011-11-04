@@ -66,7 +66,7 @@ public class BytecodeTest extends TestCase {
         assertEquals(LongVector.ASIZE * LongVector.VSIZE, vec.capacity());
         int size = LongVector.ASIZE * LongVector.VSIZE * 3;
         for (int i = 0; i < size; i++) {
-            vec.addElement(new IntegerInfo(i));
+            vec.addElement(new IntegerInfo(i, i));
             assertEquals(i, ((IntegerInfo)vec.elementAt(i)).value);
             assertEquals(i + 1, vec.size());
         }
@@ -75,7 +75,7 @@ public class BytecodeTest extends TestCase {
         vec = new LongVector(size - 5);
         assertEquals(size, vec.capacity());
         for (int i = 0; i < size; i++) {
-            vec.addElement(new IntegerInfo(i));
+            vec.addElement(new IntegerInfo(i, i));
             assertEquals(i, ((IntegerInfo)vec.elementAt(i)).value);
             assertEquals(i + 1, vec.size());
         }
@@ -556,6 +556,199 @@ public class BytecodeTest extends TestCase {
         assertEquals(bs2.length, bos2.length);
         for (int i = 0; i < bs2.length; i++)
             assertEquals(bs2[i], bos2[i]);
+    }
+
+    public void testConstInfos() throws Exception {
+        int n = 1;
+        Utf8Info ui1 = new Utf8Info("test", n++);
+        Utf8Info ui2 = new Utf8Info("te" + "st", n++);
+        Utf8Info ui3 = new Utf8Info("test2", n++);
+        assertTrue(ui1.hashCode() == ui2.hashCode());
+        assertTrue(ui1.equals(ui1));
+        assertTrue(ui1.equals(ui2));
+        assertFalse(ui1.equals(ui3));
+        assertFalse(ui1.equals(null));
+
+        ClassInfo ci1 = new ClassInfo(ui1.index, n++);
+        ClassInfo ci2 = new ClassInfo(ui1.index, n++);
+        ClassInfo ci3 = new ClassInfo(ui2.index, n++);
+        ClassInfo ci4 = new ClassInfo(ui3.index, n++);
+        assertTrue(ci1.hashCode() == ci2.hashCode());
+        assertTrue(ci1.equals(ci1));
+        assertTrue(ci1.equals(ci2));
+        assertFalse(ci1.equals(ci3));
+        assertFalse(ci1.equals(ci4));
+        assertFalse(ci1.equals(ui1));
+        assertFalse(ci1.equals(null));
+
+        NameAndTypeInfo ni1 = new NameAndTypeInfo(ui1.index, ui3.index, n++);
+        NameAndTypeInfo ni2 = new NameAndTypeInfo(ui1.index, ui3.index, n++);
+        NameAndTypeInfo ni3 = new NameAndTypeInfo(ui1.index, ui1.index, n++);
+        NameAndTypeInfo ni4 = new NameAndTypeInfo(ui3.index, ui3.index, n++);
+        assertTrue(ni1.hashCode() == ni2.hashCode());
+        assertTrue(ni1.equals(ni1));
+        assertTrue(ni1.equals(ni2));
+        assertFalse(ni1.equals(ni3));
+        assertFalse(ni1.equals(ni4));
+        assertFalse(ni1.equals(ci1));
+        assertFalse(ni1.equals(null));
+
+        MethodrefInfo mi1 = new MethodrefInfo(ui1.index, ui3.index, n++);
+        MethodrefInfo mi2 = new MethodrefInfo(ui1.index, ui3.index, n++);
+        MethodrefInfo mi3 = new MethodrefInfo(ui1.index, ui1.index, n++);
+        MethodrefInfo mi4 = new MethodrefInfo(ui2.index, ui3.index, n++);
+        assertTrue(mi1.hashCode() == mi2.hashCode());
+        assertTrue(mi1.equals(mi1));
+        assertTrue(mi1.equals(mi2));
+        assertFalse(mi1.equals(mi3));
+        assertFalse(mi1.equals(mi4));
+        assertFalse(mi1.equals(ci1));
+        assertFalse(mi1.equals(null));
+
+        FieldrefInfo field1 = new FieldrefInfo(ui1.index, ui3.index, n++);
+        FieldrefInfo field2 = new FieldrefInfo(ui1.index, ui1.index, n++);
+        FieldrefInfo field3 = new FieldrefInfo(ui1.index, ui1.index, n++);
+        InterfaceMethodrefInfo intf1 = new InterfaceMethodrefInfo(ui1.index, ui3.index, n++);
+        InterfaceMethodrefInfo intf2 = new InterfaceMethodrefInfo(ui1.index, ui3.index, n++);
+        assertFalse(mi1.equals(field1));
+        assertFalse(field1.equals(mi1));
+        assertTrue(field2.equals(field3));
+        assertFalse(mi1.equals(field2));
+        assertFalse(mi1.equals(intf1));
+        assertFalse(intf1.equals(mi1));
+        assertTrue(intf1.equals(intf2));
+
+        StringInfo si1 = new StringInfo(ui1.index, n++);
+        StringInfo si2 = new StringInfo(ui1.index, n++);
+        StringInfo si3 = new StringInfo(ui2.index, n++);
+        assertTrue(si1.hashCode() == si2.hashCode());
+        assertTrue(si1.equals(si1));
+        assertTrue(si1.equals(si2));
+        assertFalse(si1.equals(si3));
+        assertFalse(si1.equals(ci1));
+        assertFalse(si1.equals(null));
+
+        IntegerInfo ii1 = new IntegerInfo(12345, n++);
+        IntegerInfo ii2 = new IntegerInfo(12345, n++);
+        IntegerInfo ii3 = new IntegerInfo(-12345, n++);
+        assertTrue(ii1.hashCode() == ii2.hashCode());
+        assertTrue(ii1.equals(ii1));
+        assertTrue(ii1.equals(ii2));
+        assertFalse(ii1.equals(ii3));
+        assertFalse(ii1.equals(ci1));
+        assertFalse(ii1.equals(null));
+
+        FloatInfo fi1 = new FloatInfo(12345.0F, n++);
+        FloatInfo fi2 = new FloatInfo(12345.0F, n++);
+        FloatInfo fi3 = new FloatInfo(-12345.0F, n++);
+        assertTrue(fi1.hashCode() == fi2.hashCode());
+        assertTrue(fi1.equals(fi1));
+        assertTrue(fi1.equals(fi2));
+        assertFalse(fi1.equals(fi3));
+        assertFalse(fi1.equals(ci1));
+        assertFalse(fi1.equals(null));
+       
+        LongInfo li1 = new LongInfo(12345L, n++);
+        LongInfo li2 = new LongInfo(12345L, n++);
+        LongInfo li3 = new LongInfo(-12345L, n++);
+        assertTrue(li1.hashCode() == li2.hashCode());
+        assertTrue(li1.equals(li1));
+        assertTrue(li1.equals(li2));
+        assertFalse(li1.equals(li3));
+        assertFalse(li1.equals(ci1));
+        assertFalse(li1.equals(null));
+
+        DoubleInfo di1 = new DoubleInfo(12345.0, n++);
+        DoubleInfo di2 = new DoubleInfo(12345.0, n++);
+        DoubleInfo di3 = new DoubleInfo(-12345.0, n++);
+        assertTrue(di1.hashCode() == di2.hashCode());
+        assertTrue(di1.equals(di1));
+        assertTrue(di1.equals(di2));
+        assertFalse(di1.equals(di3));
+        assertFalse(di1.equals(ci1));
+        assertFalse(di1.equals(null));
+    }
+
+    public void testConstInfoAdd() {
+        ConstPool cp = new ConstPool("test.Tester");
+        assertEquals("test.Tester", cp.getClassName());
+        int n0 = cp.addClassInfo("test.Foo");
+        assertEquals(n0, cp.addClassInfo("test.Foo"));
+        int n1 = cp.addUtf8Info("test.Bar");
+        assertEquals(n1, cp.addUtf8Info("test.Bar"));
+        int n2 = cp.addUtf8Info("()V");
+        assertEquals(n2, cp.addUtf8Info("()V"));
+        assertTrue(n1 != n2);
+        int n3 = cp.addNameAndTypeInfo(n1, n2);
+        assertEquals(n3, cp.addNameAndTypeInfo(n1, n2));
+        assertEquals(n3, cp.addNameAndTypeInfo("test.Bar", "()V"));
+        int n4 = cp.addNameAndTypeInfo("test.Baz", "()V");
+        assertTrue(n3 != n4);
+        assertTrue(n3 != cp.addNameAndTypeInfo(cp.addUtf8Info("test.Baz"), n2));
+        int n5 = cp.addFieldrefInfo(n0, n3);
+        assertEquals(n5, cp.addFieldrefInfo(n0, n3));
+        assertTrue(n5 != cp.addFieldrefInfo(n0, n4));
+        assertTrue(cp.addMethodrefInfo(n0, n3) == cp.addMethodrefInfo(n0, n3));
+        assertTrue(cp.addMethodrefInfo(n0, "test", "()B") == cp.addMethodrefInfo(n0, "test", "()B"));
+        assertTrue(cp.addMethodrefInfo(n0, "test", "()B") != cp.addMethodrefInfo(n0, "test", "()I"));
+        assertTrue(n5 != cp.addInterfaceMethodrefInfo(n0, n3));
+        assertTrue(cp.addInterfaceMethodrefInfo(n0, "test", "()B")
+                   == cp.addInterfaceMethodrefInfo(n0, "test", "()B"));
+        assertTrue(cp.addInterfaceMethodrefInfo(n0, "test", "()B")
+                   != cp.addInterfaceMethodrefInfo(n0, "test", "()I"));
+        int n6 = cp.addStringInfo("foobar");
+        assertEquals(n6, cp.addStringInfo("foobar"));
+        assertTrue(n6 != cp.addStringInfo("foobar2"));
+        int n7 = cp.addIntegerInfo(123);
+        assertEquals(n7, cp.addIntegerInfo(123));
+        assertTrue(n7 != cp.addIntegerInfo(-123));
+        int n8 = cp.addFloatInfo(123);
+        assertEquals(n8, cp.addFloatInfo(123.0F));
+        assertTrue(n8 != cp.addFloatInfo(-123.0F));
+        int n9 = cp.addLongInfo(1234L);
+        assertEquals(n9, cp.addLongInfo(1234L));
+        assertTrue(n9 != cp.addLongInfo(-1234L));
+        int n10 = cp.addDoubleInfo(1234.0);
+        assertEquals(n10, cp.addDoubleInfo(1234.0));
+        assertTrue(n10 != cp.addDoubleInfo(-1234.0));
+
+        cp.prune();
+        assertEquals(n1, cp.addUtf8Info("test.Bar"));
+        assertEquals(n0, cp.addClassInfo("test.Foo"));
+        assertEquals(n10, cp.addDoubleInfo(1234.0));
+    }
+
+    public void testRenameInConstPool() {
+        ConstPool cp = new ConstPool("test.Tester");
+        int n1 = cp.addClassInfo("test.Foo");
+        int n2 = cp.addClassInfo("test.Bar");
+        int n3 = cp.addClassInfo("test.Baz");
+        int n4 = cp.addNameAndTypeInfo("foo", "(Ltest/Foo;)V");
+        int n5 = cp.addNameAndTypeInfo("bar", "(Ltest/Bar;)V");
+        int n6 = cp.addNameAndTypeInfo("baz", "(Ltest/Baz;)V");
+        int n7 = cp.addClassInfo("[Ltest/Foo;");
+        int n8 = cp.addClassInfo("[Ltest/Bar;");
+
+        cp.renameClass("test/Foo", "test/Foo2");
+        assertEquals("test.Foo2", cp.getClassInfo(n1));
+        assertEquals("(Ltest/Foo2;)V", cp.getUtf8Info(cp.getNameAndTypeDescriptor(n4)));
+        assertTrue(cp.addClassInfo("test.Foo2") == n1);
+        assertTrue(cp.addClassInfo("test.Foo") != n1);
+        assertTrue(cp.addNameAndTypeInfo("foo", "(Ltest/Foo2;)V") == n4);
+        assertTrue(cp.addNameAndTypeInfo("foo", "(Ltest/Foo;)V") != n4);
+        assertEquals("[Ltest.Foo2;", cp.getClassInfo(n7));
+
+        ClassMap map = new ClassMap();
+        map.put("test.Bar", "test.Bar2");
+        map.put("test.Baz", "test.Baz2");
+        cp.renameClass(map);
+        assertEquals("test.Bar2", cp.getClassInfo(n2));
+        assertEquals("(Ltest/Bar2;)V", cp.getUtf8Info(cp.getNameAndTypeDescriptor(n5)));
+        assertTrue(cp.addClassInfo("test.Bar2") == n2);
+        assertTrue(cp.addClassInfo("test.Bar") != n2);
+        assertTrue(cp.addNameAndTypeInfo("bar", "(Ltest/Bar2;)V") == n5);
+        assertTrue(cp.addNameAndTypeInfo("bar", "(Ltest/Bar;)V") != n5);
+        assertEquals("[Ltest.Bar2;", cp.getClassInfo(n8));
     }
 
     public static void main(String[] args) {

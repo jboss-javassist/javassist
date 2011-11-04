@@ -3,6 +3,8 @@ package javassist;
 import java.io.*;
 import java.net.URL;
 import java.lang.reflect.Method;
+
+import javassist.bytecode.ClassFile;
 import javassist.expr.*;
 
 public class JvstTest2 extends JvstTestRoot {

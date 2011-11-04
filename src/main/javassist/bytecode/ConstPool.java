@@ -34,27 +34,8 @@ import javassist.CtClass;
 public final class ConstPool {
     LongVector items;
     int numOfItems;
-    HashMap classes;
-    HashMap strings;
-    ConstInfo[] constInfoCache;
-    int[] constInfoIndexCache;
     int thisClassInfo;
-
-    private static final int CACHE_SIZE = 32;
-
-    /**
-     * A hash function for CACHE_SIZE
-     */
-    private static int hashFunc(int a, int b) {
-        int h = -2128831035;
-        final int prime = 16777619;
-        h = (h ^ (a & 0xff)) * prime;
-        h = (h ^ (b & 0xff)) * prime;
-
-        // changing the hash key size from 32bit to 5bit
-        h = (h >> 5) ^ (h & 0x1f);
-        return h & 0x1f;    // 0..31
-    }
+    HashMap itemsCache;
 
     /**
      * <code>CONSTANT_Class</code>
@@ -125,12 +106,9 @@ public final class ConstPool {
      */
     public ConstPool(String thisclass) {
         items = new LongVector();
+        itemsCache = null;
         numOfItems = 0;
-        addItem(null);          // index 0 is reserved by the JVM.
-        classes = new HashMap();
-        strings = new HashMap();
-        constInfoCache = new ConstInfo[CACHE_SIZE];
-        constInfoIndexCache = new int[CACHE_SIZE];
+        addItem0(null);          // index 0 is reserved by the JVM.
         thisClassInfo = addClassInfo(thisclass);
     }
 
@@ -140,10 +118,7 @@ public final class ConstPool {
      * @param in        byte stream.
      */
     public ConstPool(DataInputStream in) throws IOException {
-        classes = new HashMap();
-        strings = new HashMap();
-        constInfoCache = new ConstInfo[CACHE_SIZE];
-        constInfoIndexCache = new int[CACHE_SIZE];
+        itemsCache = null;
         thisClassInfo = 0;
         /* read() initializes items and numOfItems, and do addItem(null).
          */
@@ -151,10 +126,7 @@ public final class ConstPool {
     }
 
     void prune() {
-        classes = new HashMap();
-        strings = new HashMap();
-        constInfoCache = new ConstInfo[CACHE_SIZE];
-        constInfoIndexCache = new int[CACHE_SIZE];
+        itemsCache = null;
     }
 
     /**
@@ -686,9 +658,23 @@ public final class ConstPool {
             return null;       // false
     }
 
-    private int addItem(ConstInfo info) {
+    private int addItem0(ConstInfo info) {
         items.addElement(info);
         return numOfItems++;
+    }
+
+    private int addItem(ConstInfo info) {
+        if (itemsCache == null)
+            itemsCache = makeItemsCache(items);
+
+        ConstInfo found = (ConstInfo)itemsCache.get(info);
+        if (found != null)
+            return found.index;
+        else {
+            items.addElement(info);
+            itemsCache.put(info, info);
+            return numOfItems++;
+        }
     }
 
     /**
@@ -711,7 +697,7 @@ public final class ConstPool {
     }
 
     int addConstInfoPadding() {
-        return addItem(new ConstInfoPadding());
+        return addItem0(new ConstInfoPadding(numOfItems));
     }
 
     /**
@@ -748,15 +734,8 @@ public final class ConstPool {
      * @return          the index of the added entry.
      */
     public int addClassInfo(String qname) {
-        ClassInfo info = (ClassInfo)classes.get(qname);
-        if (info != null)
-            return info.index;
-        else {
-            int utf8 = addUtf8Info(Descriptor.toJvmName(qname));
-            info = new ClassInfo(utf8, numOfItems);
-            classes.put(qname, info);
-            return addItem(info);
-        }
+        int utf8 = addUtf8Info(Descriptor.toJvmName(qname));
+        return addItem(new ClassInfo(utf8, numOfItems));
     }
 
     /**
@@ -780,17 +759,7 @@ public final class ConstPool {
      * @return          the index of the added entry.
      */
     public int addNameAndTypeInfo(int name, int type) {
-        int h = hashFunc(name, type);
-        ConstInfo ci = constInfoCache[h];
-        if (ci != null && ci instanceof NameAndTypeInfo && ci.hashCheck(name, type))
-            return constInfoIndexCache[h];
-        else {
-            NameAndTypeInfo item = new NameAndTypeInfo(name, type);
-            constInfoCache[h] = item;
-            int i = addItem(item);
-            constInfoIndexCache[h] = i;
-            return i;
-        }
+        return addItem(new NameAndTypeInfo(name, type, numOfItems));
     }
 
     /**
@@ -819,17 +788,7 @@ public final class ConstPool {
      * @return          the index of the added entry.
      */
     public int addFieldrefInfo(int classInfo, int nameAndTypeInfo) {
-        int h = hashFunc(classInfo, nameAndTypeInfo);
-        ConstInfo ci = constInfoCache[h];
-        if (ci != null && ci instanceof FieldrefInfo && ci.hashCheck(classInfo, nameAndTypeInfo))
-            return constInfoIndexCache[h];
-        else {
-            FieldrefInfo item = new FieldrefInfo(classInfo, nameAndTypeInfo);
-            constInfoCache[h] = item;
-            int i = addItem(item);
-            constInfoIndexCache[h] = i;
-            return i;
-        }
+        return addItem(new FieldrefInfo(classInfo, nameAndTypeInfo, numOfItems));
     }
 
     /**
@@ -858,17 +817,7 @@ public final class ConstPool {
      * @return          the index of the added entry.
      */
     public int addMethodrefInfo(int classInfo, int nameAndTypeInfo) {
-        int h = hashFunc(classInfo, nameAndTypeInfo);
-        ConstInfo ci = constInfoCache[h];
-        if (ci != null && ci instanceof MethodrefInfo && ci.hashCheck(classInfo, nameAndTypeInfo))
-            return constInfoIndexCache[h];
-        else {
-            MethodrefInfo item = new MethodrefInfo(classInfo, nameAndTypeInfo);
-            constInfoCache[h] = item;
-            int i = addItem(item);
-            constInfoIndexCache[h] = i;
-            return i;
-        }
+         return addItem(new MethodrefInfo(classInfo, nameAndTypeInfo, numOfItems));
     }
 
     /**
@@ -901,17 +850,8 @@ public final class ConstPool {
      */
     public int addInterfaceMethodrefInfo(int classInfo,
                                          int nameAndTypeInfo) {
-        int h = hashFunc(classInfo, nameAndTypeInfo);
-        ConstInfo ci = constInfoCache[h];
-        if (ci != null && ci instanceof InterfaceMethodrefInfo && ci.hashCheck(classInfo, nameAndTypeInfo))
-            return constInfoIndexCache[h];
-        else {
-            InterfaceMethodrefInfo item =new InterfaceMethodrefInfo(classInfo, nameAndTypeInfo); 
-            constInfoCache[h] = item;
-            int i = addItem(item);
-            constInfoIndexCache[h] = i;
-            return i;
-        }
+        return addItem(new InterfaceMethodrefInfo(classInfo, nameAndTypeInfo,
+                                                  numOfItems));
     }
 
     /**
@@ -924,7 +864,8 @@ public final class ConstPool {
      * @return          the index of the added entry.
      */
     public int addStringInfo(String str) {
-        return addItem(new StringInfo(addUtf8Info(str)));
+        int utf = addUtf8Info(str);
+        return addItem(new StringInfo(utf, numOfItems));
     }
 
     /**
@@ -934,7 +875,7 @@ public final class ConstPool {
      * @return          the index of the added entry.
      */
     public int addIntegerInfo(int i) {
-        return addItem(new IntegerInfo(i));
+        return addItem(new IntegerInfo(i, numOfItems));
     }
 
     /**
@@ -944,7 +885,7 @@ public final class ConstPool {
      * @return          the index of the added entry.
      */
     public int addFloatInfo(float f) {
-        return addItem(new FloatInfo(f));
+        return addItem(new FloatInfo(f, numOfItems));
     }
 
     /**
@@ -954,8 +895,10 @@ public final class ConstPool {
      * @return          the index of the added entry.
      */
     public int addLongInfo(long l) {
-        int i = addItem(new LongInfo(l));
-        addItem(new ConstInfoPadding());
+        int i = addItem(new LongInfo(l, numOfItems));
+        if (i == numOfItems - 1)    // if not existing
+            addConstInfoPadding();
+
         return i;
     }
 
@@ -966,8 +909,10 @@ public final class ConstPool {
      * @return          the index of the added entry.
      */
     public int addDoubleInfo(double d) {
-        int i = addItem(new DoubleInfo(d));
-        addItem(new ConstInfoPadding());
+        int i = addItem(new DoubleInfo(d, numOfItems));
+        if (i == numOfItems - 1)    // if not existing
+            addConstInfoPadding();
+
         return i;
     }
 
@@ -975,31 +920,18 @@ public final class ConstPool {
      * Adds a new <code>CONSTANT_Utf8_info</code>
      * structure.
      *
-     * <p>If the given utf8 string has been already recorded in the
-     * table, then this method does not add a new entry to avoid adding
-     * a duplicated entry.
-     * Instead, it returns the index of the entry already recorded.
-     *
      * @return          the index of the added entry.
      */
     public int addUtf8Info(String utf8) {
-        Utf8Info info = (Utf8Info)strings.get(utf8);
-        if (info != null)
-            return info.index;
-        else {
-            info = new Utf8Info(utf8, numOfItems);
-            strings.put(utf8, info);
-            return addItem(info);
-        }
+        return addItem(new Utf8Info(utf8, numOfItems));
     }
 
     /**
      * Get all the class names.
      *
-     * @return a set of class names
+     * @return a set of class names (<code>String</code> objects).
      */
-    public Set getClassNames()
-    {
+    public Set getClassNames() {
         HashSet result = new HashSet();
         LongVector v = items;
         int size = numOfItems;
@@ -1020,11 +952,9 @@ public final class ConstPool {
     public void renameClass(String oldName, String newName) {
         LongVector v = items;
         int size = numOfItems;
-        classes = new HashMap(classes.size() * 2);
         for (int i = 1; i < size; ++i) {
             ConstInfo ci = v.elementAt(i);
-            ci.renameClass(this, oldName, newName);
-            ci.makeHashtable(this);
+            ci.renameClass(this, oldName, newName, itemsCache);
         }
     }
 
@@ -1037,11 +967,9 @@ public final class ConstPool {
     public void renameClass(Map classnames) {
         LongVector v = items;
         int size = numOfItems;
-        classes = new HashMap(classes.size() * 2);
         for (int i = 1; i < size; ++i) {
             ConstInfo ci = v.elementAt(i);
-            ci.renameClass(this, classnames);
-            ci.makeHashtable(this);
+            ci.renameClass(this, classnames, itemsCache);
         }
     }
 
@@ -1050,24 +978,29 @@ public final class ConstPool {
 
         items = new LongVector(n);
         numOfItems = 0;
-        addItem(null);          // index 0 is reserved by the JVM.
+        addItem0(null);          // index 0 is reserved by the JVM.
 
         while (--n > 0) {       // index 0 is reserved by JVM
             int tag = readOne(in);
             if ((tag == LongInfo.tag) || (tag == DoubleInfo.tag)) {
-                addItem(new ConstInfoPadding());
+                addConstInfoPadding();
                 --n;
             }
         }
+    }
 
+    private static HashMap makeItemsCache(LongVector items) {
+        HashMap cache = new HashMap();
         int i = 1;
         while (true) {
             ConstInfo info = items.elementAt(i++);
             if (info == null)
                 break;
             else
-                info.makeHashtable(this);
+                cache.put(info, info);
         }
+
+        return cache;
     }
 
     private int readOne(DataInputStream in) throws IOException {
@@ -1076,44 +1009,43 @@ public final class ConstPool {
         switch (tag) {
         case Utf8Info.tag :                     // 1
             info = new Utf8Info(in, numOfItems);
-            strings.put(((Utf8Info)info).string, info);
             break;
         case IntegerInfo.tag :                  // 3
-            info = new IntegerInfo(in);
+            info = new IntegerInfo(in, numOfItems);
             break;
         case FloatInfo.tag :                    // 4
-            info = new FloatInfo(in);
+            info = new FloatInfo(in, numOfItems);
             break;
         case LongInfo.tag :                     // 5
-            info = new LongInfo(in);
+            info = new LongInfo(in, numOfItems);
             break;
         case DoubleInfo.tag :                   // 6
-            info = new DoubleInfo(in);
+            info = new DoubleInfo(in, numOfItems);
             break;
         case ClassInfo.tag :                    // 7
             info = new ClassInfo(in, numOfItems);
             // classes.put(<classname>, info);
             break;
         case StringInfo.tag :                   // 8
-            info = new StringInfo(in);
+            info = new StringInfo(in, numOfItems);
             break;
         case FieldrefInfo.tag :                 // 9
-            info = new FieldrefInfo(in);
+            info = new FieldrefInfo(in, numOfItems);
             break;
         case MethodrefInfo.tag :                // 10
-            info = new MethodrefInfo(in);
+            info = new MethodrefInfo(in, numOfItems);
             break;
         case InterfaceMethodrefInfo.tag :       // 11
-            info = new InterfaceMethodrefInfo(in);
+            info = new InterfaceMethodrefInfo(in, numOfItems);
             break;
         case NameAndTypeInfo.tag :              // 12
-            info = new NameAndTypeInfo(in);
+            info = new NameAndTypeInfo(in, numOfItems);
             break;
         default :
-            throw new IOException("invalid constant type: " + tag);
+            throw new IOException("invalid constant type: " + tag + " at " + numOfItems);
         }
 
-        addItem(info);
+        addItem0(info);
         return tag;
     }
 
@@ -1149,20 +1081,20 @@ public final class ConstPool {
 }
 
 abstract class ConstInfo {
+    int index;
+
+    public ConstInfo(int i) { index = i; }
+
     public abstract int getTag();
 
     public String getClassName(ConstPool cp) { return null; }
-    public void renameClass(ConstPool cp, String oldName, String newName) {}
-    public void renameClass(ConstPool cp, Map classnames) {}
+    public void renameClass(ConstPool cp, String oldName, String newName, HashMap cache) {}
+    public void renameClass(ConstPool cp, Map classnames, HashMap cache) {}
     public abstract int copy(ConstPool src, ConstPool dest, Map classnames);
                         // ** classnames is a mapping between JVM names.
 
     public abstract void write(DataOutputStream out) throws IOException;
     public abstract void print(PrintWriter out);
-
-    void makeHashtable(ConstPool cp) {}     // called after read() finishes in ConstPool.
-
-    boolean hashCheck(int a, int b) { return false; }
 
     public String toString() {
         ByteArrayOutputStream bout = new ByteArrayOutputStream();
@@ -1175,6 +1107,8 @@ abstract class ConstInfo {
 /* padding following DoubleInfo or LongInfo.
  */
 class ConstInfoPadding extends ConstInfo {
+    public ConstInfoPadding(int i) { super(i); }
+
     public int getTag() { return 0; }
 
     public int copy(ConstPool src, ConstPool dest, Map map) {
@@ -1191,46 +1125,72 @@ class ConstInfoPadding extends ConstInfo {
 class ClassInfo extends ConstInfo {
     static final int tag = 7;
     int name;
-    int index;
 
-    public ClassInfo(int className, int i) {
+    public ClassInfo(int className, int index) {
+        super(index);
         name = className;
-        index = i;
     }
 
-    public ClassInfo(DataInputStream in, int i) throws IOException {
+    public ClassInfo(DataInputStream in, int index) throws IOException {
+        super(index);
         name = in.readUnsignedShort();
-        index = i;
+    }
+
+    public int hashCode() { return name; }
+
+    public boolean equals(Object obj) {
+        return obj instanceof ClassInfo && ((ClassInfo)obj).name == name;
     }
 
     public int getTag() { return tag; }
 
     public String getClassName(ConstPool cp) {
         return cp.getUtf8Info(name);
-    };
-
-    public void renameClass(ConstPool cp, String oldName, String newName) {
-        String nameStr = cp.getUtf8Info(name);
-        if (nameStr.equals(oldName))
-            name = cp.addUtf8Info(newName);
-        else if (nameStr.charAt(0) == '[') {
-            String nameStr2 = Descriptor.rename(nameStr, oldName, newName);
-            if (nameStr != nameStr2)
-                name = cp.addUtf8Info(nameStr2);
-        }
     }
 
-    public void renameClass(ConstPool cp, Map map) {
+    public void renameClass(ConstPool cp, String oldName, String newName, HashMap cache) {
+        String nameStr = cp.getUtf8Info(name);
+        String newNameStr = null;
+        if (nameStr.equals(oldName))
+            newNameStr = newName;
+        else if (nameStr.charAt(0) == '[') {
+            String s = Descriptor.rename(nameStr, oldName, newName);
+            if (nameStr != s)
+                newNameStr = s;
+        }
+
+        if (newNameStr != null)
+            if (cache == null)
+                name = cp.addUtf8Info(newNameStr);
+            else {
+                cache.remove(this);
+                name = cp.addUtf8Info(newNameStr);
+                cache.put(this, this);
+            }
+    }
+
+    public void renameClass(ConstPool cp, Map map, HashMap cache) {
         String oldName = cp.getUtf8Info(name);
+        String newName = null;
         if (oldName.charAt(0) == '[') {
-            String newName = Descriptor.rename(oldName, map);
-            if (oldName != newName)
-                name = cp.addUtf8Info(newName);
+            String s = Descriptor.rename(oldName, map);
+            if (oldName != s)
+                newName = s;
         }
         else {
-            String newName = (String)map.get(oldName);
-            if (newName != null && !newName.equals(oldName))
+            String s = (String)map.get(oldName);
+            if (s != null && !s.equals(oldName))
+                newName = s;
+        }
+
+        if (newName != null) {
+            if (cache == null)
                 name = cp.addUtf8Info(newName);
+            else {
+                cache.remove(this);
+                name = cp.addUtf8Info(newName);
+                cache.put(this, this);
+            }
         }
     }
 
@@ -1254,11 +1214,6 @@ class ClassInfo extends ConstInfo {
         out.print("Class #");
         out.println(name);
     }
-
-    void makeHashtable(ConstPool cp) {
-        String name = Descriptor.toJavaName(getClassName(cp));
-        cp.classes.put(name, this);
-    }
 }
 
 class NameAndTypeInfo extends ConstInfo {
@@ -1266,32 +1221,55 @@ class NameAndTypeInfo extends ConstInfo {
     int memberName;
     int typeDescriptor;
 
-    public NameAndTypeInfo(int name, int type) {
+    public NameAndTypeInfo(int name, int type, int index) {
+        super(index);
         memberName = name;
         typeDescriptor = type;
     }
 
-    public NameAndTypeInfo(DataInputStream in) throws IOException {
+    public NameAndTypeInfo(DataInputStream in, int index) throws IOException {
+        super(index);
         memberName = in.readUnsignedShort();
         typeDescriptor = in.readUnsignedShort();
     }
 
-    boolean hashCheck(int a, int b) { return a == memberName && b == typeDescriptor; }
+    public int hashCode() { return (memberName << 16) ^ typeDescriptor; }
+
+    public boolean equals(Object obj) {
+        if (obj instanceof NameAndTypeInfo) {
+            NameAndTypeInfo nti = (NameAndTypeInfo)obj;
+            return nti.memberName == memberName && nti.typeDescriptor == typeDescriptor;
+        }
+        else
+            return false;
+    }
 
     public int getTag() { return tag; }
 
-    public void renameClass(ConstPool cp, String oldName, String newName) {
+    public void renameClass(ConstPool cp, String oldName, String newName, HashMap cache) {
         String type = cp.getUtf8Info(typeDescriptor);
         String type2 = Descriptor.rename(type, oldName, newName);
         if (type != type2)
-            typeDescriptor = cp.addUtf8Info(type2);
+            if (cache == null)
+                typeDescriptor = cp.addUtf8Info(type2);
+            else {
+                cache.remove(this);
+                typeDescriptor = cp.addUtf8Info(type2);
+                cache.put(this, this);
+            }
     }
 
-    public void renameClass(ConstPool cp, Map map) {
+    public void renameClass(ConstPool cp, Map map, HashMap cache) {
         String type = cp.getUtf8Info(typeDescriptor);
         String type2 = Descriptor.rename(type, map);
         if (type != type2)
-            typeDescriptor = cp.addUtf8Info(type2);
+            if (cache == null)
+                typeDescriptor = cp.addUtf8Info(type2);
+            else {
+                cache.remove(this);
+                typeDescriptor = cp.addUtf8Info(type2);
+                cache.put(this, this);
+            }
     }
 
     public int copy(ConstPool src, ConstPool dest, Map map) {
@@ -1320,14 +1298,28 @@ abstract class MemberrefInfo extends ConstInfo {
     int classIndex;
     int nameAndTypeIndex;
 
-    public MemberrefInfo(int cindex, int ntindex) {
+    public MemberrefInfo(int cindex, int ntindex, int thisIndex) {
+        super(thisIndex);
         classIndex = cindex;
         nameAndTypeIndex = ntindex;
     }
 
-    public MemberrefInfo(DataInputStream in) throws IOException {
+    public MemberrefInfo(DataInputStream in, int thisIndex) throws IOException {
+        super(thisIndex);
         classIndex = in.readUnsignedShort();
         nameAndTypeIndex = in.readUnsignedShort();
+    }
+
+    public int hashCode() { return (classIndex << 16) ^ nameAndTypeIndex; }
+
+    public boolean equals(Object obj) {
+        if (obj instanceof MemberrefInfo) {
+            MemberrefInfo mri = (MemberrefInfo)obj;
+            return mri.classIndex == classIndex && mri.nameAndTypeIndex == nameAndTypeIndex
+                   && mri.getClass() == this.getClass();
+        }
+        else
+            return false;
     }
 
     public int copy(ConstPool src, ConstPool dest, Map map) {
@@ -1335,8 +1327,6 @@ abstract class MemberrefInfo extends ConstInfo {
         int ntIndex2 = src.getItem(nameAndTypeIndex).copy(src, dest, map);
         return copy2(dest, classIndex2, ntIndex2);
     }
-
-    boolean hashCheck(int a, int b) { return a == classIndex && b == nameAndTypeIndex; }
 
     abstract protected int copy2(ConstPool dest, int cindex, int ntindex);
 
@@ -1359,12 +1349,12 @@ abstract class MemberrefInfo extends ConstInfo {
 class FieldrefInfo extends MemberrefInfo {
     static final int tag = 9;
 
-    public FieldrefInfo(int cindex, int ntindex) {
-        super(cindex, ntindex);
+    public FieldrefInfo(int cindex, int ntindex, int thisIndex) {
+        super(cindex, ntindex, thisIndex);
     }
 
-    public FieldrefInfo(DataInputStream in) throws IOException {
-        super(in);
+    public FieldrefInfo(DataInputStream in, int thisIndex) throws IOException {
+        super(in, thisIndex);
     }
 
     public int getTag() { return tag; }
@@ -1379,12 +1369,12 @@ class FieldrefInfo extends MemberrefInfo {
 class MethodrefInfo extends MemberrefInfo {
     static final int tag = 10;
 
-    public MethodrefInfo(int cindex, int ntindex) {
-        super(cindex, ntindex);
+    public MethodrefInfo(int cindex, int ntindex, int thisIndex) {
+        super(cindex, ntindex, thisIndex);
     }
 
-    public MethodrefInfo(DataInputStream in) throws IOException {
-        super(in);
+    public MethodrefInfo(DataInputStream in, int thisIndex) throws IOException {
+        super(in, thisIndex);
     }
 
     public int getTag() { return tag; }
@@ -1399,12 +1389,12 @@ class MethodrefInfo extends MemberrefInfo {
 class InterfaceMethodrefInfo extends MemberrefInfo {
     static final int tag = 11;
 
-    public InterfaceMethodrefInfo(int cindex, int ntindex) {
-        super(cindex, ntindex);
+    public InterfaceMethodrefInfo(int cindex, int ntindex, int thisIndex) {
+        super(cindex, ntindex, thisIndex);
     }
 
-    public InterfaceMethodrefInfo(DataInputStream in) throws IOException {
-        super(in);
+    public InterfaceMethodrefInfo(DataInputStream in, int thisIndex) throws IOException {
+        super(in, thisIndex);
     }
 
     public int getTag() { return tag; }
@@ -1420,12 +1410,20 @@ class StringInfo extends ConstInfo {
     static final int tag = 8;
     int string;
 
-    public StringInfo(int str) {
+    public StringInfo(int str, int index) {
+        super(index);
         string = str;
     }
 
-    public StringInfo(DataInputStream in) throws IOException {
+    public StringInfo(DataInputStream in, int index) throws IOException {
+        super(index);
         string = in.readUnsignedShort();
+    }
+
+    public int hashCode() { return string; }
+
+    public boolean equals(Object obj) {
+        return obj instanceof StringInfo && ((StringInfo)obj).string == string;
     }
 
     public int getTag() { return tag; }
@@ -1449,12 +1447,20 @@ class IntegerInfo extends ConstInfo {
     static final int tag = 3;
     int value;
 
-    public IntegerInfo(int i) {
-        value = i;
+    public IntegerInfo(int v, int index) {
+        super(index);
+        value = v;
     }
 
-    public IntegerInfo(DataInputStream in) throws IOException {
+    public IntegerInfo(DataInputStream in, int index) throws IOException {
+        super(index);
         value = in.readInt();
+    }
+
+    public int hashCode() { return value; }
+
+    public boolean equals(Object obj) {
+        return obj instanceof IntegerInfo && ((IntegerInfo)obj).value == value;
     }
 
     public int getTag() { return tag; }
@@ -1478,12 +1484,20 @@ class FloatInfo extends ConstInfo {
     static final int tag = 4;
     float value;
 
-    public FloatInfo(float f) {
+    public FloatInfo(float f, int index) {
+        super(index);
         value = f;
     }
 
-    public FloatInfo(DataInputStream in) throws IOException {
+    public FloatInfo(DataInputStream in, int index) throws IOException {
+        super(index);
         value = in.readFloat();
+    }
+
+    public int hashCode() { return Float.floatToIntBits(value); }
+
+    public boolean equals(Object obj) {
+        return obj instanceof FloatInfo && ((FloatInfo)obj).value == value;
     }
 
     public int getTag() { return tag; }
@@ -1507,12 +1521,20 @@ class LongInfo extends ConstInfo {
     static final int tag = 5;
     long value;
 
-    public LongInfo(long l) {
+    public LongInfo(long l, int index) {
+        super(index);
         value = l;
     }
 
-    public LongInfo(DataInputStream in) throws IOException {
+    public LongInfo(DataInputStream in, int index) throws IOException {
+        super(index);
         value = in.readLong();
+    }
+
+    public int hashCode() { return (int)(value ^ (value >>> 32)); }
+
+    public boolean equals(Object obj) {
+        return obj instanceof LongInfo && ((LongInfo)obj).value == value;
     }
 
     public int getTag() { return tag; }
@@ -1536,12 +1558,23 @@ class DoubleInfo extends ConstInfo {
     static final int tag = 6;
     double value;
 
-    public DoubleInfo(double d) {
+    public DoubleInfo(double d, int index) {
+        super(index);
         value = d;
     }
 
-    public DoubleInfo(DataInputStream in) throws IOException {
+    public DoubleInfo(DataInputStream in, int index) throws IOException {
+        super(index);
         value = in.readDouble();
+    }
+
+    public int hashCode() {
+        long v = Double.doubleToLongBits(value);
+        return (int)(v ^ (v >>> 32));
+    }
+
+    public boolean equals(Object obj) {
+        return obj instanceof DoubleInfo && ((DoubleInfo)obj).value == value;
     }
 
     public int getTag() { return tag; }
@@ -1564,16 +1597,23 @@ class DoubleInfo extends ConstInfo {
 class Utf8Info extends ConstInfo {
     static final int tag = 1;
     String string;
-    int index;
 
-    public Utf8Info(String utf8, int i) {
+    public Utf8Info(String utf8, int index) {
+        super(index);
         string = utf8;
-        index = i;
     }
 
-    public Utf8Info(DataInputStream in, int i) throws IOException {
+    public Utf8Info(DataInputStream in, int index) throws IOException {
+        super(index);
         string = in.readUTF();
-        index = i;
+    }
+
+    public int hashCode() {
+        return string.hashCode();
+    }
+
+    public boolean equals(Object obj) {
+        return obj instanceof Utf8Info && ((Utf8Info)obj).string.equals(string);
     }
 
     public int getTag() { return tag; }

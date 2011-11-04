@@ -122,7 +122,8 @@ public class JvstTest4 extends JvstTestRoot {
         cc2.rebuildClassFile();
         cc2.writeFile();
         Object obj = make(cc.getName());
-        assertEquals(4, invoke(obj, "run"));
+        assertEquals("test4.Rename2", obj.getClass().getName());
+        assertEquals(14, invoke(obj, "run"));
     }
 
     public void testRename2() throws Exception {

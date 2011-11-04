@@ -4,6 +4,10 @@ interface IRename {
     Rename foo(Rename r);
 }
 
+class RenameB {
+    int foo() { return 10; }
+}
+
 public class Rename implements IRename {
     int value = 3;
     Rename next = null;
@@ -19,6 +23,8 @@ public class Rename implements IRename {
     public int run() {
         next = new Rename();
         next.value = 4;
-        return foo(this).value;
+        RenameB rb = new RenameB();
+        return foo(this).value + rb.foo();
     }
 }
+
