@@ -1024,7 +1024,6 @@ public final class ConstPool {
             break;
         case ClassInfo.tag :                    // 7
             info = new ClassInfo(in, numOfItems);
-            // classes.put(<classname>, info);
             break;
         case StringInfo.tag :                   // 8
             info = new StringInfo(in, numOfItems);
