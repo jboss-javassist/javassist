@@ -3,10 +3,11 @@
   <groupId>org.javassist</groupId>
   <artifactId>javassist</artifactId>
   <packaging>jar</packaging>
-  <description>Javassist (JAVA programming ASSISTant) makes Java bytecode manipulation
-     simple.  It is a class library for editing bytecodes in Java.
+  <description>
+  	Javassist (JAVA programming ASSISTant) makes Java bytecode manipulation
+    simple.  It is a class library for editing bytecodes in Java.
   </description>
-  <version>3.14.0-GA</version>
+  <version>3.15.0-GA</version>
   <name>Javassist</name>
   <url>http://www.javassist.org/</url>
 
@@ -156,6 +157,32 @@
 	<configuration>
 	  <attach>true</attach>
 	</configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.felix</groupId>
+        <artifactId>maven-bundle-plugin</artifactId>
+        <version>2.1.0</version>
+        <executions>
+          <execution>
+            <id>bundle-manifest</id>
+            <phase>process-classes</phase>
+            <goals>
+              <goal>manifest</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <supportedProjectTypes>
+            <supportedProjectType>jar</supportedProjectType>
+            <supportedProjectType>bundle</supportedProjectType>
+            <supportedProjectType>war</supportedProjectType>
+          </supportedProjectTypes>
+          <instructions>
+            <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
+            <Bundle-Version>${project.version}</Bundle-Version>
+            <Export-Package>javassist.*;version="${project.version}"</Export-Package>
+          </instructions>
+        </configuration>
       </plugin>
     </plugins>
   </build>
