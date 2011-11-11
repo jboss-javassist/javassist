@@ -27,11 +27,11 @@ import java.util.ArrayList;
  * non-branch instruction.
  */
 public class BasicBlock {
-    public int position, length;
-    public int incoming;        // the number of incoming branches.
-    public BasicBlock[] exit;   // null if the block is a leaf.
-    public boolean stop;        // true if the block ends with an unconditional jump. 
-    public Catch toCatch;
+    protected int position, length;
+    protected int incoming;        // the number of incoming branches.
+    protected BasicBlock[] exit;   // null if the block is a leaf.
+    protected boolean stop;        // true if the block ends with an unconditional jump. 
+    protected Catch toCatch;
 
     protected BasicBlock(int pos) {
         position = pos;
@@ -52,9 +52,9 @@ public class BasicBlock {
     }
 
     public static class Catch {
-        Catch next;
-        BasicBlock body;
-        int typeIndex;
+        public Catch next;
+        public BasicBlock body;
+        public int typeIndex;
         Catch(BasicBlock b, int i, Catch c) {
             body = b;
             typeIndex = i;
@@ -97,7 +97,7 @@ public class BasicBlock {
         int position;
         BasicBlock block;
         BasicBlock[] jump;
-        boolean alwaysJmp;     // true if a unconditional branch.
+        boolean alwaysJmp;     // true if an unconditional branch.
         int size;       // 0 unless the mark indicates RETURN etc. 
         Catch catcher;
 
