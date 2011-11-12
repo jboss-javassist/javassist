@@ -179,6 +179,7 @@ public class ControlFlow {
          * A field that can be freely used for storing extra data.
          * A client program of this control-flow analyzer can append
          * an additional attribute to a <code>Block</code> object.
+         * The Javassist library never accesses this field.
          */
         public Object clientData = null;
 
