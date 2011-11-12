@@ -175,6 +175,13 @@ public class ControlFlow {
      * we deal with <code>JSR</code> as a non-branch instruction.
      */
     public static class Block extends BasicBlock {
+        /**
+         * A field that can be freely used for storing extra data.
+         * A client program of this control-flow analyzer can append
+         * an additional attribute to a <code>Block</code> object.
+         */
+        public Object clientData = null;
+
         int index;
         MethodInfo method;
         Block[] entrances;

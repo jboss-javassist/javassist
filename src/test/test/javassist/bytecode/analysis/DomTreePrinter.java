@@ -24,4 +24,30 @@ public class DomTreePrinter {
         }
         return array[0];
     }
+
+    public int dummy2(int n, int[] array) {
+        int i = 0;
+        while (i < n) {
+            if (array[i] > 0)
+                break;
+            if (array[i++] > -1)
+                continue;
+            array[0]++;
+            array[1]++;
+        }
+        return array[0];
+    }
+
+    public int dummy3(int n, int[] array) {
+        int i = 0;
+        do {
+            if (array[i] > 0)
+                break;
+            if (array[i++] > -1)
+                continue;
+            array[0]++;
+            array[1]++;
+        } while (i < n);
+        return array[0];
+    }
 }
