@@ -41,6 +41,7 @@ import javassist.bytecode.stackmap.BasicBlock;
  * @see Frame
  * @see Analyzer
  * @author Shigeru Chiba
+ * @since 3.16
  */
 public class ControlFlow {
     private CtClass clazz;
@@ -257,6 +258,12 @@ public class ControlFlow {
          * @param n     an index in the array of exit blocks.
          */
         public Block exit(int n) { return (Block)exit[n]; }
+
+        /**
+         * Returns the parent of this block in the dominator
+         * tree.
+         */
+        public Block parent() { return parent; }
 
         /**
          * Returns the number of the children of this block
