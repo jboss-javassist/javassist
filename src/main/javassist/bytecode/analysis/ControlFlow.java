@@ -236,7 +236,7 @@ public class ControlFlow {
         /**
          * Returns the number of the control paths entering this block.
          */
-        int incomings() { return incoming; }
+        public int incomings() { return incoming; }
 
         /**
          * Returns the blocks that the control may jump into this block from.
