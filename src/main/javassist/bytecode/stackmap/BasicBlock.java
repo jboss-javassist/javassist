@@ -79,7 +79,7 @@ public class BasicBlock {
             .append(", exit{");
         if (exit != null) {
             for (int i = 0; i < exit.length; i++)
-                sbuf.append(exit[i].position).append(", ");
+                sbuf.append(exit[i].position).append(",");
         }
 
         sbuf.append("}, {");

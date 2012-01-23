@@ -3,6 +3,7 @@ package test.javassist.bytecode.analysis;
 import javassist.ClassPool;
 import javassist.bytecode.analysis.ControlFlow;
 import javassist.bytecode.analysis.ControlFlow.Block;
+import javassist.bytecode.analysis.ControlFlow.Node;
 
 public class DomTreePrinter {
     public static void main(String[] args) throws Exception {
@@ -11,6 +12,15 @@ public class DomTreePrinter {
         Block[] blocks = cf.basicBlocks();
         for (int i = 0; i < blocks.length; i++)
             System.out.println(i + ": " + blocks[i]);
+
+        Node[] dom = cf.dominatorTree();
+        for (int i = 0; i < dom.length; i++)
+            System.out.println(i + ": " + dom[i]);
+
+        Node[] pdom = cf.postDominatorTree();
+        for (int i = 0; i < pdom.length; i++)
+            System.out.println(i + ": " + pdom[i]);
+
     }
 
     public int dummy(int n, int[] array) {
@@ -50,4 +60,19 @@ public class DomTreePrinter {
         } while (i < n);
         return array[0];
     }
+
+    public int dummy4(int n, int[] array) {
+        int i = 0;
+        do {
+            if (array[i] > 0)
+                if (array[i++] > -1)
+                    continue;
+                else
+                    return 0;
+            array[0]++;
+            array[1]++;
+        } while (i < n);
+        return array[0];
+    }
+
 }

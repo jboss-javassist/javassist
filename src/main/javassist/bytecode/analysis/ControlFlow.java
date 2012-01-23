@@ -91,10 +91,9 @@ public class ControlFlow {
 
     /**
      * Returns all the basic blocks in the method body.
-     * The first element is the root block of the dominator tree.
      */
     public Block[] basicBlocks() {
-        dominatorTree();
+        dominatorTree2();
         return basicBlocks;
     }
 
@@ -114,11 +113,99 @@ public class ControlFlow {
     }
 
     /**
-     * Returns a dominator tree.
+     * Constructs a dominator tree.  This method returns an array of
+     * the tree nodes.  The first element of the array is the root
+     * of the tree.
+     * 
+     * <p> The order of the elements is the same as that
+     * of the elements in the array returned by the <code>basicBlocks</code>
+     * method.
+     * For every array element <code>node</code>, its index in the
+     * array is obtained by <code>node.block().index()</code>. 
      *
-     * @return the root node or null if the method is abstract.
+     * @return an array of the tree nodes, or null if the method is abstract.
+     * @see Node#block()
+     * @see Block#index()
      */
-    public Block dominatorTree() {
+    public Node[] dominatorTree() {
+        int size = basicBlocks.length;
+        if (size == 0)
+            return null;
+
+        Node[] nodes = new Node[size];
+        boolean[] visited = new boolean[size];
+        int[] distance = new int[size];
+        for (int i = 0; i < size; i++) {
+            nodes[i] = new Node(basicBlocks[i]);
+            visited[i] = false;
+        }
+
+        Access access = new Access(nodes) {
+            BasicBlock[] exits(Node n) { return n.block.getExit(); }
+            BasicBlock[] entrances(Node n) { return n.block.entrances; }
+        };
+        nodes[0].makeDepth1stTree(null, visited, 0, distance, access);
+        for (int i = 0; i < size; i++)
+            visited[i] = false;
+
+        while (nodes[0].makeDominatorTree(visited, distance, access))
+            ;
+
+        Node.setChildren(nodes);
+        return nodes;
+    }
+
+    /**
+     * Constructs a post dominator tree.  This method returns an array of
+     * the tree nodes.  The parent of the root node is null.
+     *
+     * <p>For every array element <code>node</code>, its index in the
+     * array is obtained by <code>node.block().index()</code>. 
+     *
+     * @return an array of the tree nodes, or null if the method is abstract.
+     * @see Node#block()
+     * @see Block#index()
+     */
+    public Node[] postDominatorTree() {
+        int size = basicBlocks.length;
+        if (size == 0)
+            return null;
+
+        Node[] nodes = new Node[size];
+        boolean[] visited = new boolean[size];
+        int[] distance = new int[size];
+        for (int i = 0; i < size; i++) {
+            nodes[i] = new Node(basicBlocks[i]);
+            visited[i] = false;
+        }
+
+        Access access = new Access(nodes) {
+            BasicBlock[] exits(Node n) { return n.block.entrances; }
+            BasicBlock[] entrances(Node n) { return n.block.getExit(); }
+        };
+
+        int counter = 0;
+        for (int i = 0; i < size; i++)
+            if (nodes[i].block.exits() == 0)
+                counter = nodes[i].makeDepth1stTree(null, visited, counter, distance, access);
+
+        for (int i = 0; i < size; i++)
+            visited[i] = false;
+
+        boolean changed;
+        do {
+            changed = false;
+            for (int i = 0; i < size; i++)
+                if (nodes[i].block.exits() == 0)
+                    if (nodes[i].makeDominatorTree(visited, distance, access))
+                        changed = true;
+        } while (changed);
+
+        Node.setChildren(nodes);
+        return nodes;
+    }
+
+    private Block dominatorTree2() {
         int size = basicBlocks.length;
         if (size == 0)
             return null;
@@ -202,15 +289,17 @@ public class ControlFlow {
             for (int i = 0; i < entrances.length; i++)
                 sbuf.append(entrances[i].position).append(", ");
 
-            sbuf.append("}, dominator parent{");
-            if (parent != null)
-                sbuf.append(parent.position);
-
-            sbuf.append("}, children{");
-            for (int i = 0; i < children.length; i++)
-                sbuf.append(children[i].position).append(", ");
             sbuf.append("}");
+
+            sbuf.append("{parent=");
+            sbuf.append(parent == null ? "*" : parent.position());
+            sbuf.append(", children{");
+            for (int i = 0; i < children.length; i++)
+                sbuf.append(children[i].position()).append(", ");
+            sbuf.append("}}");
         }
+
+        BasicBlock[] getExit() { return exit; }
 
         /**
          * Returns the position of this block in the array of
@@ -353,6 +442,159 @@ public class ControlFlow {
                     b2 = b2.parent;
 
             return b1;
+        }
+    }
+
+    static abstract class Access {
+        Node[] all;
+        Access(Node[] nodes) { all = nodes; }
+        Node node(BasicBlock b) { return all[((Block)b).index]; } 
+        abstract BasicBlock[] exits(Node n);
+        abstract BasicBlock[] entrances(Node n);
+    }
+
+    /**
+     * A node of (post) dominator trees. 
+     */
+    public static class Node {
+        private Block block;
+        private Node parent;
+        private Node[] children;
+
+        Node(Block b) {
+            block = b;
+            parent = null;
+        }
+
+        /**
+         * Returns a <code>String</code> representation.
+         */
+        public String toString() {
+            StringBuffer sbuf = new StringBuffer();
+            sbuf.append("Node[pos=").append(block().position());
+            sbuf.append(", parent=");
+            sbuf.append(parent == null ? "*" : parent.block().position());
+            sbuf.append(", children{");
+            for (int i = 0; i < children.length; i++)
+                sbuf.append(children[i].block().position()).append(", ");
+
+            sbuf.append("}]");
+            return sbuf.toString();
+        }
+
+        /**
+         * Returns the basic block indicated by this node.
+         */
+        public Block block() { return block; }
+
+        /**
+         * Returns the parent of this node.
+         */
+        public Node parent() { return parent; }
+
+        /**
+         * Returns the number of the children of this node.
+         */
+        public int children() { return children.length; }
+
+        /**
+         * Returns the n-th child of this node.
+         *  
+         * @param n     an index in the array of children.
+         */
+        public Node child(int n) { return children[n]; }
+
+        /*
+         * After executing this method, distance[] represents the post order of the tree nodes.
+         * It also represents distances from the root; a bigger number represents a shorter
+         * distance.  parent is set to its parent in the depth first spanning tree.
+         */
+        int makeDepth1stTree(Node caller, boolean[] visited, int counter, int[] distance, Access access) {
+            int index = block.index;
+            if (visited[index])
+                return counter;
+
+            visited[index] = true;
+            parent = caller;
+            BasicBlock[] exits = access.exits(this);
+            if (exits != null)
+                for (int i = 0; i < exits.length; i++) {
+                    Node n = access.node(exits[i]);
+                    counter = n.makeDepth1stTree(this, visited, counter, distance, access);
+                }
+
+            distance[index] = counter++;
+            return counter;
+        }
+
+        boolean makeDominatorTree(boolean[] visited, int[] distance, Access access) {
+            int index = block.index;
+            if (visited[index])
+                return false;
+
+            visited[index] = true;
+            boolean changed = false;
+            BasicBlock[] exits = access.exits(this);
+            if (exits != null)
+                for (int i = 0; i < exits.length; i++) {
+                    Node n = access.node(exits[i]);
+                    if (n.makeDominatorTree(visited, distance, access))
+                        changed = true;
+                }
+
+            BasicBlock[] entrances = access.entrances(this);
+            if (entrances != null)
+                for (int i = 0; i < entrances.length; i++) {
+                    if (parent != null) {
+                        Node n = getAncestor(parent, access.node(entrances[i]), distance);
+                        if (n != parent) {
+                            parent = n;
+                            changed = true;
+                        }
+                    }
+                }
+
+            return changed;
+        }
+
+        private static Node getAncestor(Node n1, Node n2, int[] distance) {
+            while (n1 != n2) {
+                if (distance[n1.block.index] < distance[n2.block.index])
+                    n1 = n1.parent;
+                else
+                    n2 = n2.parent;
+
+                if (n1 == null || n2 == null)
+                    return null;
+            }
+
+            return n1;
+        }
+
+        private static void setChildren(Node[] all) {
+            int size = all.length;
+            int[] nchildren = new int[size];
+            for (int i = 0; i < size; i++)
+                nchildren[i] = 0;
+
+            for (int i = 0; i < size; i++) {
+                Node p = all[i].parent;
+                if (p != null)
+                    nchildren[p.block.index]++;
+            }
+
+            for (int i = 0; i < size; i++)
+                all[i].children = new Node[nchildren[i]];
+
+            for (int i = 0; i < size; i++)
+                nchildren[i] = 0;
+
+            for (int i = 0; i < size; i++) {
+                Node n = all[i];
+                Node p = n.parent;
+                if (p != null)
+                    p.children[nchildren[p.block.index]++] = n;            
+            }
         }
     }
 
