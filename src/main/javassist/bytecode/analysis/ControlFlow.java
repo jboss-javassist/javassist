@@ -93,7 +93,6 @@ public class ControlFlow {
      * Returns all the basic blocks in the method body.
      */
     public Block[] basicBlocks() {
-        dominatorTree2();
         return basicBlocks;
     }
 
@@ -118,10 +117,15 @@ public class ControlFlow {
      * of the tree.
      * 
      * <p> The order of the elements is the same as that
-     * of the elements in the array returned by the <code>basicBlocks</code>
-     * method.
+     * of the elements in the <code>Block</code> array returned
+     * by the <code>basicBlocks</code>
+     * method.  If a <code>Block</code> object is at the i-th position
+     * in the <code>Block</code> array, then  
+     * the <code>Node</code> object referring to that
+     * <code>Block</code> object is at the i-th position in the
+     * array returned by this method.
      * For every array element <code>node</code>, its index in the
-     * array is obtained by <code>node.block().index()</code>. 
+     * array is equivalent to <code>node.block().index()</code>. 
      *
      * @return an array of the tree nodes, or null if the method is abstract.
      * @see Node#block()
@@ -157,10 +161,19 @@ public class ControlFlow {
 
     /**
      * Constructs a post dominator tree.  This method returns an array of
-     * the tree nodes.  The parent of the root node is null.
-     *
-     * <p>For every array element <code>node</code>, its index in the
-     * array is obtained by <code>node.block().index()</code>. 
+     * the tree nodes.  Note that the tree has multiple roots.
+     * The parent of the root nodes is null.
+     * 
+     * <p> The order of the elements is the same as that
+     * of the elements in the <code>Block</code> array returned
+     * by the <code>basicBlocks</code>
+     * method.  If a <code>Block</code> object is at the i-th position
+     * in the <code>Block</code> array, then  
+     * the <code>Node</code> object referring to that
+     * <code>Block</code> object is at the i-th position in the
+     * array returned by this method.
+     * For every array element <code>node</code>, its index in the
+     * array is equivalent to <code>node.block().index()</code>.
      *
      * @return an array of the tree nodes, or null if the method is abstract.
      * @see Node#block()
@@ -205,56 +218,6 @@ public class ControlFlow {
         return nodes;
     }
 
-    private Block dominatorTree2() {
-        int size = basicBlocks.length;
-        if (size == 0)
-            return null;
-
-        if (basicBlocks[0].parent == null) {
-            // a dominator tree has not been constructed.
-            boolean[] visited = new boolean[size];
-            int[] distance = new int[size];
-            for (int i = 0; i < size; i++)
-                visited[i] = false;
-
-            basicBlocks[0].makeDepth1stTree(null, visited, 0, distance);
-            for (int i = 0; i < size; i++)
-                visited[i] = false;
-
-            while (basicBlocks[0].makeDominatorTree(visited, distance))
-                ;
-
-            setChildren(size);
-        }
-
-        return basicBlocks[0];
-    }
-
-    private void setChildren(int size) {
-        int[] nchildren = new int[size];
-        for (int i = 0; i < size; i++)
-            nchildren[i] = 0;
-
-        for (int i = 0; i < size; i++) {
-            Block p = basicBlocks[i].parent;
-            if (p != null)
-                nchildren[p.index]++;
-        }
-
-        for (int i = 0; i < size; i++)
-            basicBlocks[i].children = new Block[nchildren[i]];
-
-        for (int i = 0; i < size; i++)
-            nchildren[i] = 0;
-
-        for (int i = 0; i < size; i++) {
-            Block b = basicBlocks[i];
-            Block p = b.parent;
-            if (p != null)
-                p.children[nchildren[p.index]++] = b;            
-        }
-    }
-
     /**
      * Basic block.
      * It is a sequence of contiguous instructions that do not contain
@@ -274,12 +237,9 @@ public class ControlFlow {
         int index;
         MethodInfo method;
         Block[] entrances;
-        Block parent;           // for a dominator tree
-        Block[] children;       // for a dominator tree
 
         Block(int pos, MethodInfo minfo) {
             super(pos);
-            parent = null;
             method = minfo;
         }
 
@@ -290,13 +250,6 @@ public class ControlFlow {
                 sbuf.append(entrances[i].position).append(", ");
 
             sbuf.append("}");
-
-            sbuf.append("{parent=");
-            sbuf.append(parent == null ? "*" : parent.position());
-            sbuf.append(", children{");
-            for (int i = 0; i < children.length; i++)
-                sbuf.append(children[i].position()).append(", ");
-            sbuf.append("}}");
         }
 
         BasicBlock[] getExit() { return exit; }
@@ -349,26 +302,6 @@ public class ControlFlow {
         public Block exit(int n) { return (Block)exit[n]; }
 
         /**
-         * Returns the parent of this block in the dominator
-         * tree.
-         */
-        public Block parent() { return parent; }
-
-        /**
-         * Returns the number of the children of this block
-         * in the dominator tree.
-         */
-        public int children() { return children.length; }
-
-        /**
-         * Returns the n-th child of this block in the
-         * dominator tree.
-         *  
-         * @param n     an index in the array of children.
-         */
-        public Block child(int n) { return children[n]; }
-
-        /**
          * Returns catch clauses that will catch an exception thrown
          * in this block. 
          */
@@ -381,67 +314,6 @@ public class ControlFlow {
             }
 
             return (Catcher[])catchers.toArray(new Catcher[catchers.size()]);
-        }
-
-        /*
-         * After executing this method, distance[] represents the post order of the tree nodes.
-         * It also represents distances from the root; a bigger number represents a shorter
-         * distance.  parent is set to its parent in the depth first spanning tree.
-         */
-        int makeDepth1stTree(Block caller, boolean[] visited, int counter, int[] distance) {
-            if (visited[index])
-                return counter;
-
-            visited[index] = true;
-            parent = caller;
-            if (exit == null) {
-                distance[index] = counter++;
-                return counter;
-            }
-            else
-                for (int i = 0; i < exit.length; i++) {
-                    Block b = (Block)exit[i];
-                    counter = b.makeDepth1stTree(this, visited, counter, distance);
-                }
-
-            distance[index] = counter++;
-            return counter;
-        }
-
-        boolean makeDominatorTree(boolean[] visited, int[] distance) {
-            if (visited[index])
-                return false;
-
-            visited[index] = true;
-            boolean changed = false;
-            if (exit != null)
-                for (int i = 0; i < exit.length; i++) {
-                    Block b = (Block)exit[i];
-                    if (b.makeDominatorTree(visited, distance))
-                        changed = true;
-                }
-
-            for (int i = 0; i < entrances.length; i++) {
-                if (parent != null) {
-                    Block a = getAncestor(parent, entrances[i], distance);
-                    if (a != parent) {
-                        parent = a;
-                        changed = true;
-                    }
-                }
-            }
-
-            return changed;
-        }
-
-        private Block getAncestor(Block b1, Block b2, int[] distance) {
-            while (b1 != b2)
-                if (distance[b1.index] < distance[b2.index])
-                    b1 = b1.parent;
-                else
-                    b2 = b2.parent;
-
-            return b1;
         }
     }
 
