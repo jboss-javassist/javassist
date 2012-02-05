@@ -70,6 +70,7 @@ import javassist.bytecode.Descriptor;
 public class ClassPool {
     // used by toClass().
     private static java.lang.reflect.Method defineClass1, defineClass2;
+    private static java.lang.reflect.Method definePackage;
 
     static {
         try {
@@ -83,6 +84,11 @@ public class ClassPool {
                     defineClass2 = cl.getDeclaredMethod("defineClass",
                            new Class[] { String.class, byte[].class,
                                  int.class, int.class, ProtectionDomain.class });
+
+                    definePackage = cl.getDeclaredMethod("definePackage",
+                            new Class[] { String.class, String.class, String.class,
+                                          String.class, String.class, String.class,
+                                          String.class, java.net.URL.class });
                     return null;
                 }
             });
@@ -1080,7 +1086,7 @@ public class ClassPool {
                     new Integer(b.length), domain};
             }
 
-            return toClass2(method, loader, args);
+            return (Class)toClass2(method, loader, args);
         }
         catch (RuntimeException e) {
             throw e;
@@ -1093,16 +1099,60 @@ public class ClassPool {
         }
     }
 
-    private static synchronized Class toClass2(Method method,
+    private static synchronized Object toClass2(Method method,
             ClassLoader loader, Object[] args)
         throws Exception
     {
         method.setAccessible(true);
         try {
-            return (Class)method.invoke(loader, args);
+            return method.invoke(loader, args);
         }
         finally {
             method.setAccessible(false);
         }
+    }
+
+    /**
+     * Defines a new package.  If the package is already defined, this method
+     * performs nothing.
+     *
+     * <p>You do not necessarily need to
+     * call this method.  If this method is called, then  
+     * <code>getPackage()</code> on the <code>Class</code> object returned 
+     * by <code>toClass()</code> will return a non-null object.
+     *
+     * @param loader        the class loader passed to <code>toClass()</code> or
+     *                      the default one obtained by <code>getClassLoader()</code>.
+     * @param name          the package name.
+     * @see #getClassLoader()
+     * @see #toClass(CtClass)
+     * @see CtClass#toClass()
+     * @since 3.16
+     */
+    public void makePackage(ClassLoader loader, String name)
+        throws CannotCompileException
+    {
+        Object[] args = new Object[] {
+                name, null, null, null, null, null, null, null };
+        Throwable t;
+        try {
+            toClass2(definePackage, loader, args);
+            return;
+        }
+        catch (java.lang.reflect.InvocationTargetException e) {
+            t = e.getTargetException();
+            if (t == null)
+                t = e;
+            else if (t instanceof IllegalArgumentException) {
+                // if the package is already defined, an IllegalArgumentException
+                // is thrown.
+                return;
+            }
+        }
+        catch (Exception e) {
+            t = e;
+        }
+
+        throw new CannotCompileException(t);
     }
 }

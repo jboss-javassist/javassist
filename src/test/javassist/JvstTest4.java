@@ -587,4 +587,15 @@ public class JvstTest4 extends JvstTestRoot {
             }
         });
     }
+
+    public void testPackage() throws Throwable {    // JASSIST-147
+        String packageName = "test4.pack";
+        ClassPool pool = ClassPool.getDefault();
+        pool.makePackage(pool.getClassLoader(), packageName);
+        pool.makePackage(pool.getClassLoader(), packageName);
+        CtClass ctcl = pool.makeClass("test4.pack.Clazz");
+        Class cl = ctcl.toClass();
+        Object obj = cl.newInstance();
+        assertEquals(packageName, obj.getClass().getPackage().getName());
+    }
 }
