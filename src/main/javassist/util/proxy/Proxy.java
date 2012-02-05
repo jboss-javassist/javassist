@@ -22,7 +22,7 @@ package javassist.util.proxy;
  * To obtain a handler, call {@link ProxyFactory#getHandler(Proxy)}.
  *
  * @see ProxyFactory
- * @see 3.16
+ * @since 3.16
  */
 public interface Proxy {
     /**
