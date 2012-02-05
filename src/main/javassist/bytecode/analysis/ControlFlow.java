@@ -271,7 +271,6 @@ public class ControlFlow {
 
         /**
          * Returns the length of this block.
-         * @return
          */
         public int length() { return length; }
 
