@@ -16,6 +16,8 @@
 
 package javassist.compiler;
 
+import java.util.Hashtable;
+import java.util.WeakHashMap;
 import java.util.List;
 import java.util.Iterator;
 import javassist.*;
@@ -35,22 +37,6 @@ public class MemberResolver implements TokenId {
 
     private static void fatal() throws CompileError {
         throw new CompileError("fatal");
-    }
-
-    /**
-     * @param jvmClassName      a class name.  Not a package name.
-     */
-    public void recordPackage(String jvmClassName) {
-        String classname = jvmToJavaName(jvmClassName);
-        for (;;) {
-            int i = classname.lastIndexOf('.');
-            if (i > 0) {
-                classname = classname.substring(0, i);
-                classPool.recordInvalidClassName(classname);
-            }
-            else
-                break;
-        }
     }
 
     public static class Method {
@@ -276,6 +262,7 @@ public class MemberResolver implements TokenId {
      * Only used by fieldAccess() in MemberCodeGen and TypeChecker.
      *
      * @param jvmClassName  a JVM class name.  e.g. java/lang/String
+     * @see #lookupClass(String, boolean)
      */
     public CtField lookupFieldByJvmName2(String jvmClassName, Symbol fieldSym,
                                          ASTree expr) throws NoFieldException
@@ -406,12 +393,44 @@ public class MemberResolver implements TokenId {
     public CtClass lookupClass(String name, boolean notCheckInner)
         throws CompileError
     {
+        Hashtable cache = getInvalidNames();
+        Object found = cache.get(name);
+        if (found == INVALID)
+            throw new CompileError("no such class: " + name);
+        else if (found != null)
+            return (CtClass)found;
+
+        CtClass cc = null;
         try {
-            return lookupClass0(name, notCheckInner);
+            cc = lookupClass0(name, notCheckInner);
         }
         catch (NotFoundException e) {
-            return searchImports(name);
+            cc = searchImports(name);
         }
+
+        cache.put(name, cc);
+        return cc;
+    }
+
+    private static final String INVALID = "<invalid>";
+    private static WeakHashMap invalidNamesMap = new WeakHashMap();
+    private Hashtable invalidNames = null;
+
+    private Hashtable getInvalidNames() {
+        Hashtable ht = invalidNames;
+        if (ht == null) {
+            synchronized (MemberResolver.class) {
+                ht = (Hashtable)invalidNamesMap.get(classPool);
+                if (ht == null) {
+                    ht = new Hashtable();
+                    invalidNamesMap.put(classPool, ht);
+                }
+            }
+
+            invalidNames = ht;
+        }
+
+        return ht;
     }
 
     private CtClass searchImports(String orgName)
@@ -423,28 +442,19 @@ public class MemberResolver implements TokenId {
                 String pac = (String)it.next();
                 String fqName = pac + '.' + orgName;
                 try {
-                    CtClass cc = classPool.get(fqName);
-                    // if the class is found,
-                    classPool.recordInvalidClassName(orgName);
-                    return cc;
+                    return classPool.get(fqName);
                 }
                 catch (NotFoundException e) {
-                    classPool.recordInvalidClassName(fqName);
                     try {
-                        if (pac.endsWith("." + orgName)) {
-                            CtClass cc = classPool.get(pac);
-                            // if the class is found,
-                            classPool.recordInvalidClassName(orgName);
-                            return cc;
-                        }
+                        if (pac.endsWith("." + orgName))
+                            return classPool.get(pac);
                     }
-                    catch (NotFoundException e2) {
-                        classPool.recordInvalidClassName(pac);
-                    }
+                    catch (NotFoundException e2) {}
                 }
             }
         }
 
+        getInvalidNames().put(orgName, INVALID);
         throw new CompileError("no such class: " + orgName);
     }
 

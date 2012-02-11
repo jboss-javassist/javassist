@@ -504,7 +504,6 @@ public class MemberCodeGen extends CodeGen {
                     exprType = CLASS;
                     arrayDim = 0;
                     className = nfe.getField(); // JVM-internal
-                    resolver.recordPackage(className);
                     isStatic = true;
                 }
 
@@ -1078,7 +1077,6 @@ public class MemberCodeGen extends CodeGen {
                     Symbol fname = (Symbol)e.oprand2();
                     String cname = nfe.getField();
                     f = resolver.lookupFieldByJvmName2(cname, fname, expr);
-                    resolver.recordPackage(cname);
                     resultStatic = true;
                     return f;
                 }

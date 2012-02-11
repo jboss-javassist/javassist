@@ -331,17 +331,21 @@ public class ClassPool {
     }
 
     /**
-     * Records a name that never exists.
+     * Records a class name that never exists.
      * For example, a package name can be recorded by this method.
      * This would improve execution performance
-     * since <code>get()</code> does not search the class path at all
+     * since <code>get()</code> quickly throw an exception
+     * without searching the class path at all
      * if the given name is an invalid name recorded by this method.
      * Note that searching the class path takes relatively long time.
      *
-     * @param name          a class name (separeted by dot).
+     * <p>The current implementation of this method performs nothing.
+     *
+     * @param name          an invalid class name (separeted by dots).
+     * @deprecated
      */
     public void recordInvalidClassName(String name) {
-        source.recordInvalidClassName(name);
+        // source.recordInvalidClassName(name);
     }
 
     /**

@@ -598,4 +598,63 @@ public class JvstTest4 extends JvstTestRoot {
         Object obj = cl.newInstance();
         assertEquals(packageName, obj.getClass().getPackage().getName());
     }
+
+    public static final String BASE_PATH="../";
+    public static final String JAVASSIST_JAR=BASE_PATH+"javassist.jar";
+    public static final String CLASSES_FOLDER=BASE_PATH+"build/classes";
+    public static final String TEST_CLASSES_FOLDER=BASE_PATH+"build/test-classes";
+
+    public static class Inner1 {
+        public static int get() {
+            return 0;
+        }
+    }
+
+    public void testJIRA150() throws Exception {
+        ClassPool pool = new ClassPool(true);
+        for(int paths=0; paths<50; paths++) {
+            pool.appendClassPath(JAVASSIST_JAR);
+            pool.appendClassPath(CLASSES_FOLDER);
+            pool.appendClassPath(TEST_CLASSES_FOLDER);
+        }
+        CtClass cc = pool.get("Jassist150$Inner1");
+        CtMethod ccGet = cc.getDeclaredMethod("get");
+        long startTime = System.currentTimeMillis();
+        for(int replace=0; replace<1000; replace++) {
+            ccGet.setBody(
+                    "{ int n1 = java.lang.Integer#valueOf(1); " +
+                    "  int n2 = java.lang.Integer#valueOf(2); " +
+                    "  int n3 = java.lang.Integer#valueOf(3); " +
+                    "  int n4 = java.lang.Integer#valueOf(4); " +
+                    "  int n5 = java.lang.Integer#valueOf(5); " +
+                    "  return n1+n2+n3+n4+n5; }");
+        }
+        long endTime = System.currentTimeMillis();
+        for(int replace=0; replace<1000; replace++) {
+            ccGet.setBody(
+                    "{ int n1 = java.lang.Integer.valueOf(1); " +
+                    "  int n2 = java.lang.Integer.valueOf(2); " +
+                    "  int n3 = java.lang.Integer.valueOf(3); " +
+                    "  int n4 = java.lang.Integer.valueOf(4); " +
+                    "  int n5 = java.lang.Integer.valueOf(5); " +
+                    "  return n1+n2+n3+n4+n5; }");
+        }
+        long endTime2 = System.currentTimeMillis();
+        for(int replace=0; replace<1000; replace++) {
+            ccGet.setBody(
+                "{ int n1 = Integer.valueOf(1); " +
+                "  int n2 = Integer.valueOf(2); " +
+                "  int n3 = Integer.valueOf(3); " +
+                "  int n4 = Integer.valueOf(4); " +
+                "  int n5 = Integer.valueOf(5); " +
+                "  return n1+n2+n3+n4+n5; }");
+        }
+        long endTime3 = System.currentTimeMillis();
+        long t1 = endTime - startTime;
+        long t2 = endTime2 - endTime;
+        long t3 = endTime3 - endTime2;
+        System.out.println("JIRA150: " + t1 + ", " + t2 + ", " + t3);
+        assertTrue(t2 < t1 * 2);
+        assertTrue(t3 < t1 * 2);
+    }
 }
