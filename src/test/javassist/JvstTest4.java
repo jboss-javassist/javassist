@@ -657,4 +657,31 @@ public class JvstTest4 extends JvstTestRoot {
         assertTrue(t2 < t1 * 2);
         assertTrue(t3 < t1 * 2);
     }
+
+    public void testJIRA150b() throws Exception {
+        int N = 100;
+        for (int k = 0; k < N; k++) {
+            ClassPool pool = new ClassPool(true);
+            for(int paths=0; paths<50; paths++) {
+                pool.appendClassPath(JAVASSIST_JAR);
+                pool.appendClassPath(CLASSES_FOLDER);
+                pool.appendClassPath(TEST_CLASSES_FOLDER);
+            }
+            CtClass cc = pool.get("Jassist150$Inner1");
+            CtMethod ccGet = cc.getDeclaredMethod("get");
+            for(int replace=0; replace < 5; replace++) {
+                ccGet.setBody(
+                    "{ int n1 = java.lang.Integer#valueOf(1); " +
+                    "  int n2 = java.lang.Integer#valueOf(2); " +
+                    "  int n3 = java.lang.Integer#valueOf(3); " +
+                    "  int n4 = java.lang.Integer#valueOf(4); " +
+                    "  int n5 = java.lang.Integer#valueOf(5); " +
+                    "  return n1+n2+n3+n4+n5; }");
+            }
+        }
+        System.gc();
+        int size = javassist.compiler.MemberResolver.getInvalidMapSize();
+        System.out.println("JIRA150b " + size);
+        assertTrue(size < N - 10);
+    }
 }

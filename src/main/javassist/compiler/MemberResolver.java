@@ -17,6 +17,7 @@
 package javassist.compiler;
 
 import java.util.Hashtable;
+import java.lang.ref.WeakReference;
 import java.util.WeakHashMap;
 import java.util.List;
 import java.util.Iterator;
@@ -416,14 +417,20 @@ public class MemberResolver implements TokenId {
     private static WeakHashMap invalidNamesMap = new WeakHashMap();
     private Hashtable invalidNames = null;
 
+    // for unit tests
+    public static int getInvalidMapSize() { return invalidNamesMap.size(); }
+
     private Hashtable getInvalidNames() {
         Hashtable ht = invalidNames;
         if (ht == null) {
             synchronized (MemberResolver.class) {
-                ht = (Hashtable)invalidNamesMap.get(classPool);
+                WeakReference ref = (WeakReference)invalidNamesMap.get(classPool);
+                if (ref != null)
+                    ht = (Hashtable)ref.get();
+
                 if (ht == null) {
                     ht = new Hashtable();
-                    invalidNamesMap.put(classPool, ht);
+                    invalidNamesMap.put(classPool, new WeakReference(ht));
                 }
             }
 
