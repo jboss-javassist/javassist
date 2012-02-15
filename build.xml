@@ -95,6 +95,7 @@
 
   <target name="runtest" depends="test-compile">
     <junit fork="true" printsummary="true" dir="${test.run.dir}">
+      <jvmarg value="-XX:-FailOverToOldVerifier" />
       <classpath refid="test.classpath"/>
       <formatter type="xml" extension=".xml"/>
       <test name="javassist.JvstTest" outfile="TestLog" />

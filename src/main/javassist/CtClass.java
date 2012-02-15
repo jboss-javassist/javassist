@@ -51,6 +51,21 @@ public abstract class CtClass {
     protected String qualifiedName;
 
     /**
+     * If the value of this field is not null, then all class
+     * files modified by Javassist are saved under the directory
+     * specified by this variable.  For example, if the value is
+     * <code>"./debug"</code>, then all class files are saved
+     * there.  The directory name must not end with a directory
+     * separator such as <code>/</code>.
+     *
+     * <p>The default value is null.
+     *
+     * @see #debugWriteFile(String)
+     * @since 3.16
+     */
+    public static String debugDump = null;
+
+    /**
      * The version number of this release.
      */
     public static final String version = "3.16.0-GA";
@@ -64,7 +79,7 @@ public abstract class CtClass {
      */
     public static void main(String[] args) {
         System.out.println("Javassist version " + CtClass.version);
-        System.out.println("Copyright (C) 1999-2011 Shigeru Chiba."
+        System.out.println("Copyright (C) 1999-2012 Shigeru Chiba."
                            + " All Rights Reserved.");
     }
 
@@ -1324,6 +1339,16 @@ public abstract class CtClass {
     public void writeFile(String directoryName)
         throws CannotCompileException, IOException
     {
+        DataOutputStream out = makeFileOutput(directoryName);
+        try {
+            toBytecode(out);
+        }
+        finally {
+            out.close();
+        }
+    }
+
+    protected DataOutputStream makeFileOutput(String directoryName) {
         String classname = getName();
         String filename = directoryName + File.separatorChar
             + classname.replace('.', File.separatorChar) + ".class";
@@ -1334,15 +1359,8 @@ public abstract class CtClass {
                 new File(dir).mkdirs();
         }
 
-        DataOutputStream out
-            = new DataOutputStream(new BufferedOutputStream(
-                                new DelayedFileOutputStream(filename)));
-        try {
-            toBytecode(out);
-        }
-        finally {
-            out.close();
-        }
+        return new DataOutputStream(new BufferedOutputStream(
+                                      new DelayedFileOutputStream(filename)));
     }
 
     /**

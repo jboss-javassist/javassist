@@ -1414,6 +1414,9 @@ class CtClassType extends CtClass {
 
                 modifyClassConstructor(cf);
                 modifyConstructors(cf);
+                if (debugDump != null)
+                    dumpClassFile(cf);
+
                 cf.write(out);
                 out.flush();
                 fieldInitializers = null;
@@ -1437,6 +1440,16 @@ class CtClassType extends CtClass {
         }
         catch (IOException e) {
             throw new CannotCompileException(e);
+        }
+    }
+
+    private void dumpClassFile(ClassFile cf) throws IOException {
+        DataOutputStream dump = makeFileOutput(debugDump);
+        try {
+            cf.write(dump);
+        }
+        finally {
+            dump.close();
         }
     }
 

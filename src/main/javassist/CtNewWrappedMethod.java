@@ -151,7 +151,7 @@ class CtNewWrappedMethod {
             int acc = body.getAccessFlags();
             body.setAccessFlags(AccessFlag.setPrivate(acc));
             body.addAttribute(new SyntheticAttribute(classfile.getConstPool()));
-            // a stack map is copied.  rebuilding it is not needed. 
+            // a stack map is copied.  rebuilding it is not needed.
             classfile.addMethod(body);
             bodies.put(src, bodyname);
             CtMember.Cache cache = clazz.hasMemberCache();

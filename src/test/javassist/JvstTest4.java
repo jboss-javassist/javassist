@@ -20,8 +20,10 @@ public class JvstTest4 extends JvstTestRoot {
         
         CtMethod m1 = cc.getDeclaredMethod("run");
         m1.getMethodInfo().getCodeAttribute().insertLocalVar(2, 20);
+        m1.getMethodInfo().rebuildStackMapIf6(cc.getClassPool(), cc.getClassFile());
         CtMethod m2 = cc.getDeclaredMethod("run2");
         m2.getMethodInfo().getCodeAttribute().insertLocalVar(2, 0x101);
+        m2.getMethodInfo().rebuildStackMapIf6(cc.getClassPool(), cc.getClassFile());
 
         cc.writeFile();
         Object obj = make(cc.getName());
@@ -83,6 +85,7 @@ public class JvstTest4 extends JvstTestRoot {
                 }
             }
         });
+        // m3.getMethodInfo2().rebuildStackMapIf6(cc.getClassPool(), cc.getClassFile2());
 
         cc.writeFile();
         Object obj = make(cc.getName());

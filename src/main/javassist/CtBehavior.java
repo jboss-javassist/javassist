@@ -92,8 +92,15 @@ public abstract class CtBehavior extends CtMember {
     public abstract String getLongName();
 
     /**
-     * Returns the MethodInfo representing this method/constructor in the
+     * Returns the <code>MethodInfo</code> representing this method/constructor in the
      * class file.
+     *
+     * <p>If you modify the bytecode through the returned
+     * <code>MethodInfo</code> object, you might have to explicitly
+     * rebuild a stack map table.  Javassist does not automatically
+     * rebuild it for avoiding unnecessary rebuilding.
+     *
+     * @see javassist.bytecode.MethodInfo#rebuildStackMap(ClassPool)
      */
     public MethodInfo getMethodInfo() {
         declaringClass.checkModify();
@@ -101,7 +108,7 @@ public abstract class CtBehavior extends CtMember {
     }
 
     /**
-     * Returns the MethodInfo representing the method/constructor in the
+     * Returns the <code>MethodInfo</code> representing the method/constructor in the
      * class file (read only).
      * Normal applications do not need calling this method.  Use
      * <code>getMethodInfo()</code>.

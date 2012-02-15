@@ -89,8 +89,11 @@ public final class ClassFile {
 
     /**
      * The major version number of class files created
-     * from scratch.  The default value is 47 (JDK 1.3)
-     * or 49 (JDK 1.5) if the JVM supports <code>java.lang.StringBuilder</code>.
+     * from scratch.  The default value is 47 (JDK 1.3).
+     * It is 49 (JDK 1.5)
+     * if the JVM supports <code>java.lang.StringBuilder</code>.
+     * It is 50 (JDK 1.6)
+     * if the JVM supports <code>java.util.zip.DeflaterInputStream</code>.
      */
     public static int MAJOR_VERSION = JAVA_3;
 
@@ -98,6 +101,8 @@ public final class ClassFile {
         try {
             Class.forName("java.lang.StringBuilder");
             MAJOR_VERSION = JAVA_5;
+            Class.forName("java.util.zip.DeflaterInputStream");
+            MAJOR_VERSION = JAVA_6;
         }
         catch (Throwable t) {}
     }
@@ -796,7 +801,7 @@ public final class ClassFile {
     }
 
     /**
-     * Writes a class file represened by this object into an output stream.
+     * Writes a class file represented by this object into an output stream.
      */
     public void write(DataOutputStream out) throws IOException {
         int i, n;

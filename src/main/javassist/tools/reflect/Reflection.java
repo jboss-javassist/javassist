@@ -16,8 +16,12 @@
 
 package javassist.tools.reflect;
 
+import java.util.Iterator;
 import javassist.*;
 import javassist.CtMethod.ConstParameter;
+import javassist.bytecode.ClassFile;
+import javassist.bytecode.BadBytecode;
+import javassist.bytecode.MethodInfo;
 
 /**
  * The class implementing the behavioral reflection mechanism.
@@ -107,6 +111,7 @@ public class Reflection implements Translator {
             = "javassist.tools.reflect.Sample is not found or broken.";
         try {
             CtClass c = classPool.get("javassist.tools.reflect.Sample");
+            rebuildClassFile(c.getClassFile());
             trapMethod = c.getDeclaredMethod("trap");
             trapStaticMethod = c.getDeclaredMethod("trapStatic");
             trapRead = c.getDeclaredMethod("trapRead");
@@ -115,6 +120,8 @@ public class Reflection implements Translator {
                 = new CtClass[] { classPool.get("java.lang.Object") };
         }
         catch (NotFoundException e) {
+            throw new RuntimeException(msg);
+        } catch (BadBytecode e) {
             throw new RuntimeException(msg);
         }
     }
@@ -380,6 +387,17 @@ public class Reflection implements Translator {
                 wmethod.setModifiers(mod);
                 clazz.addMethod(wmethod);
             }
+        }
+    }
+
+    public void rebuildClassFile(ClassFile cf) throws BadBytecode {
+        if (ClassFile.MAJOR_VERSION < ClassFile.JAVA_6)
+            return;
+
+        Iterator methods = cf.getMethods().iterator();
+        while (methods.hasNext()) {
+            MethodInfo mi = (MethodInfo)methods.next();
+            mi.rebuildStackMap(classPool);
         }
     }
 }
