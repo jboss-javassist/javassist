@@ -47,8 +47,8 @@
     <developer>
       <id>chiba</id>
       <name>Shigeru Chiba</name>
-      <email>chiba@acm.org</email>
-      <organization>Tokyo Institute of Technology</organization>
+      <email>chiba@javassist.org</email>
+      <organization>The Javassist Project</organization>
       <organizationUrl>http://www.javassist.org/</organizationUrl>
       <roles>
         <role>project lead</role>
