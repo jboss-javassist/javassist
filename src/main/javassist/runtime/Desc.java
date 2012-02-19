@@ -38,8 +38,7 @@ public class Desc {
         throws ClassNotFoundException
     {
         if (useContextClassLoader)
-            return Thread.currentThread().getContextClassLoader()
-                   .loadClass(name);
+            return Class.forName(name, true, Thread.currentThread().getContextClassLoader());
         else
             return Class.forName(name);
     }

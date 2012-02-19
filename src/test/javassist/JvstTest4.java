@@ -701,4 +701,14 @@ public class JvstTest4 extends JvstTestRoot {
         Object obj = make(cc.getName());
         assertEquals(1, invoke(obj, "test"));
     }
+
+    public void testJIRA151() {
+        // try it using classloader of TestDescForName Desc.useContextClassLoader = false;
+        assertTrue(javassist.runtime.Desc.getClazz("[Ljava.lang.String;") != null);
+        //Thread.currentThread().setContextClassLoader(TestDescForName.class.getClassLoader());
+        boolean old = javassist.runtime.Desc.useContextClassLoader;
+        javassist.runtime.Desc.useContextClassLoader = true;
+        assertTrue(javassist.runtime.Desc.getClazz("[Ljava.lang.String;") != null);
+        javassist.runtime.Desc.useContextClassLoader = old;
+    }
 }
