@@ -188,7 +188,8 @@ Copyright (C) 1999- Shigeru Chiba. All Rights Reserved.</i>]]></bottom>
   </target>
 
   <target name="dist" depends="jar,javadocs">
-    <delete file="${dist-version}.zip"/>
+  	<delete file="${dist-version}.zip"/>
+  	<delete file="TestLog.xml"/>
     <zip zipfile="${dist-version}.zip">
        <zipfileset dir="${basedir}" prefix="${dist-version}">
        	  <include name="html/**"/>
