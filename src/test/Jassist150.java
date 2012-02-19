@@ -3,6 +3,8 @@ import javassist.ClassPool;
 import javassist.CtClass;
 import javassist.CtMethod;
 import javassist.NotFoundException;
+import javassist.expr.ExprEditor;
+import javassist.expr.MethodCall;
 
 public class Jassist150 {
     public static final String BASE_PATH = "./";
@@ -77,7 +79,23 @@ public class Jassist150 {
         ccGet.setBody(code3);
     }
 
-    public static void main(String[] args) {
+    public void testJIRA152() throws Exception {
+        CtClass cc = ClassPool.getDefault().get("test4.JIRA152");
+        CtMethod mth = cc.getDeclaredMethod("buildColumnOverride");
+        mth.instrument(new ExprEditor() {
+            public void edit(MethodCall c) throws CannotCompileException {
+                c.replace("try{ $_ = $proceed($$); } catch (Throwable t) { throw t; }");
+            }
+        });
+        mth.getMethodInfo().rebuildStackMap(ClassPool.getDefault());
+        cc.writeFile();
+    }
+
+    public static void main(String[] args) throws Exception {
+        new Jassist150().testJIRA152();
+    }
+
+    public static void main2(String[] args) {
         for (int loop = 0; loop < 5; loop++) {
             try {
                 implTestClassTailCache();

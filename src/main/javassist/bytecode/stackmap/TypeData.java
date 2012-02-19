@@ -284,7 +284,7 @@ public abstract class TypeData {
             }
         }
 
-        /* See also NullType.getExpected().
+        /* See also {NullType,ArrayElement}.getExpected().
          */
         public String getExpected() throws BadBytecode {
             ArrayList equiv = equivalences;
@@ -410,17 +410,36 @@ public abstract class TypeData {
         }
 
         public String getName() throws BadBytecode {
-            String name = array.getName();
+            return getName2(array.getName());
+        }
+
+        private String getName2(String name) throws BadBytecode {
             if (name.length() > 1 && name.charAt(0) == '[') {
                 char c = name.charAt(1);
                 if (c == 'L')
-                    return name.substring(2, name.length() - 1).replace('/', '.');                    
+                    return name.substring(2, name.length() - 1).replace('/', '.');
                 else if (c == '[')
                     return name.substring(1);
             }
-    
-            throw new BadBytecode("bad array type for AALOAD: "
+
+            if (array.isNullType())
+                return "java.lang.Object";
+            else
+                throw new BadBytecode("bad array type for AALOAD: "
                                   + name);
+        }
+
+        public String getExpected() throws BadBytecode {
+            ArrayList equiv = equivalences;
+            if (equiv.size() == 1)
+                return getName2(array.getExpected());     // not getName();
+            else {
+                String en = expectedName;
+                if (en == null)
+                    return "java.lang.Object";
+                else
+                    return en;
+            }
         }
 
         public static String getArrayType(String elementType) {

@@ -85,7 +85,7 @@ public class JvstTest4 extends JvstTestRoot {
                 }
             }
         });
-        // m3.getMethodInfo2().rebuildStackMapIf6(cc.getClassPool(), cc.getClassFile2());
+        m3.getMethodInfo().rebuildStackMapIf6(cc.getClassPool(), cc.getClassFile());
 
         cc.writeFile();
         Object obj = make(cc.getName());
@@ -686,5 +686,19 @@ public class JvstTest4 extends JvstTestRoot {
         int size = javassist.compiler.MemberResolver.getInvalidMapSize();
         System.out.println("JIRA150b " + size);
         assertTrue(size < N - 10);
+    }
+
+    public void testJIRA152() throws Exception {
+        CtClass cc = sloader.get("test4.JIRA152");
+        CtMethod mth = cc.getDeclaredMethod("buildColumnOverride");
+        //CtMethod mth = cc.getDeclaredMethod("tested");
+        mth.instrument(new ExprEditor() {
+            public void edit(MethodCall c) throws CannotCompileException {
+                c.replace("try{ $_ = $proceed($$); } catch (Throwable t) { throw t; }");
+            }
+        });
+        cc.writeFile();
+        Object obj = make(cc.getName());
+        assertEquals(1, invoke(obj, "test"));
     }
 }
