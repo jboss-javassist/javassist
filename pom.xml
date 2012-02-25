@@ -123,6 +123,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
+        <version>2.3.2</version>
         <configuration>
           <source>1.4</source>
           <target>1.4</target>
@@ -131,6 +132,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jar-plugin</artifactId>
+        <version>2.3.1</version>
         <configuration>
           <archive>
             <manifestFile>${project.build.sourceDirectory}/META-INF/MANIFEST.MF</manifestFile>
@@ -228,61 +230,26 @@
 	 needed by sample code
 	 -->
     <profile>
-      <id>jdk14</id>
+      <id>default_profile</id>
       <activation>
-        <jdk>1.4</jdk>
-        <property>
-           <name>!no.tools</name>
-        </property>
+        <os>
+          <family>!mac</family>
+        </os>
       </activation>
-      <dependencies>
-        <dependency>
-          <groupId>com.sun</groupId>
-          <artifactId>tools</artifactId>
-          <version>1.4</version>
-          <scope>system</scope>
-          <optional>true</optional>
-          <systemPath>${java.home}/../lib/tools.jar</systemPath>
-        </dependency>
-      </dependencies>
+      <properties>
+        <toolsjar>${java.home}/../lib/tools.jar</toolsjar>
+      </properties>
     </profile>
     <profile>
-      <id>jdk15</id>
+      <id>osx_profile</id>
       <activation>
-        <jdk>1.5</jdk>
-        <property>
-           <name>!no.tools</name>
-        </property>
+        <os>
+          <family>mac</family>
+        </os>
       </activation>
-      <dependencies>
-        <dependency>
-          <groupId>com.sun</groupId>
-          <artifactId>tools</artifactId>
-          <version>1.5</version>
-          <scope>system</scope>
-          <optional>true</optional>
-          <systemPath>${java.home}/../lib/tools.jar</systemPath>
-        </dependency>
-      </dependencies>
-    </profile>
-    <profile>
-      <id>jdk16</id>
-      <activation>
-        <jdk>1.6</jdk>
-        <property>
-           <name>!no.tools</name>
-        </property>
-      </activation>
-      <dependencies>
-        <dependency>
-          <groupId>com.sun</groupId>
-          <artifactId>tools</artifactId>
-          <version>1.6</version>
-          <scope>system</scope>
-          <optional>true</optional>
-          <systemPath>${java.home}/../lib/tools.jar</systemPath>
-        </dependency>
-      </dependencies>
+      <properties>
+        <toolsjar>${java.home}/../Classes/classes.jar</toolsjar>
+      </properties>
     </profile>
   </profiles>
   <dependencies>

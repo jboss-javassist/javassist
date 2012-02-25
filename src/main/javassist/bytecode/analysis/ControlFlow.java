@@ -344,7 +344,7 @@ public class ControlFlow {
             StringBuffer sbuf = new StringBuffer();
             sbuf.append("Node[pos=").append(block().position());
             sbuf.append(", parent=");
-            sbuf.append(parent == null ? "*" : parent.block().position());
+            sbuf.append(parent == null ? "*" : Integer.toString(parent.block().position()));
             sbuf.append(", children{");
             for (int i = 0; i < children.length; i++)
                 sbuf.append(children[i].block().position()).append(", ");
