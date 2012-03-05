@@ -7,7 +7,7 @@
   	Javassist (JAVA programming ASSISTant) makes Java bytecode manipulation
     simple.  It is a class library for editing bytecodes in Java.
   </description>
-  <version>3.16.0-GA</version>
+  <version>3.16.1-GA</version>
   <name>Javassist</name>
   <url>http://www.javassist.org/</url>
 
@@ -123,16 +123,26 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>2.3.2</version>
         <configuration>
-          <source>1.4</source>
-          <target>1.4</target>
+          <source>1.5</source>
+          <target>1.5</target>
+        </configuration>
+      </plugin>
+<plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>2.12</version>
+        <configuration>
+          <includes>
+            <include>javassist/JvstTest.java</include>
+          </includes>
+	  <forkMode>once</forkMode>
+          <workingDirectory>runtest</workingDirectory>
         </configuration>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jar-plugin</artifactId>
-        <version>2.3.1</version>
         <configuration>
           <archive>
             <manifestFile>${project.build.sourceDirectory}/META-INF/MANIFEST.MF</manifestFile>
@@ -230,26 +240,40 @@
 	 needed by sample code
 	 -->
     <profile>
-      <id>default_profile</id>
+      <id>default-tools</id>
       <activation>
         <os>
           <family>!mac</family>
         </os>
       </activation>
-      <properties>
-        <toolsjar>${java.home}/../lib/tools.jar</toolsjar>
-      </properties>
+      <dependencies>
+        <dependency>
+          <groupId>com.sun</groupId>
+          <artifactId>tools</artifactId>
+          <version>${java.version}</version>
+          <scope>system</scope>
+          <optional>true</optional>
+          <systemPath>${java.home}/../lib/tools.jar</systemPath>
+        </dependency>
+      </dependencies>
     </profile>
     <profile>
-      <id>osx_profile</id>
+      <id>mac-tools</id>
       <activation>
         <os>
           <family>mac</family>
         </os>
       </activation>
-      <properties>
-        <toolsjar>${java.home}/../Classes/classes.jar</toolsjar>
-      </properties>
+      <dependencies>
+        <dependency>
+          <groupId>com.sun</groupId>
+          <artifactId>tools</artifactId>
+          <version>${java.version}</version>
+          <scope>system</scope>
+          <optional>true</optional>
+          <systemPath>${java.home}/../Classes/classes.jar</systemPath>
+        </dependency>
+      </dependencies>
     </profile>
   </profiles>
   <dependencies>
@@ -261,3 +285,4 @@
     </dependency>
   </dependencies>
 </project>
+
