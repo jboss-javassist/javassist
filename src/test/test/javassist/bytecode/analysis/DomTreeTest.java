@@ -36,10 +36,12 @@ public class DomTreeTest extends TestCase {
     }
 
     private void testBlock(Block b, int[] incoming, int[] outgoing) {
+        assertEquals(incoming.length, b.incomings());
         int i = 0;
         for (int index: incoming)
             assertEquals(index, b.incoming(i++).position());
         i = 0;
+        assertEquals(outgoing.length, b.exits());
         for (int index: outgoing)
             assertEquals(index, b.exit(i++).position());
     }
@@ -55,5 +57,36 @@ public class DomTreeTest extends TestCase {
         if (k != 0 && k!=2 || k < 7) {
             k = 3 ;
         }
+    }
+
+    public void testDomtree2() throws Exception {
+        ControlFlow cf = new ControlFlow(pool.get(DomTreeTest.class.getName()).getDeclaredMethod("test2"));
+        Block[] blocks = cf.basicBlocks();
+        // for (int i = 0; i < blocks.length; i++)
+        //    System.out.println(i + ": " + blocks[i]);
+        testBlock(blocks[0], new int[] { 7 }, new int[] { 14, 7 } );
+        testBlock(blocks[1], new int[] { 0 }, new int[] { 0, 12 } );
+        testBlock(blocks[2], new int[] { 7 }, new int[] {});
+        testBlock(blocks[3], new int[] { 0 }, new int[] {});
+
+        Node[] dom = cf.dominatorTree();
+        assertNull(dom[0].parent());
+        assertEquals(0, dom[1].parent().block().position());
+        assertEquals(7, dom[2].parent().block().position());
+        assertEquals(0, dom[3].parent().block().position());
+
+        Node[] pdom = cf.postDominatorTree();
+        assertNull(pdom[0].parent());
+        assertNull(pdom[1].parent());
+        assertNull(pdom[2].parent());
+        assertNull(pdom[3].parent());
+    }
+
+    public int test2(int i){
+        while (i-- > 0)
+            if (i == 3)
+                return 1;
+
+        return i + 3;
     }
 }
