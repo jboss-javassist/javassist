@@ -149,12 +149,10 @@ public class ControlFlow {
             BasicBlock[] entrances(Node n) { return n.block.entrances; }
         };
         nodes[0].makeDepth1stTree(null, visited, 0, distance, access);
-        for (int i = 0; i < size; i++)
-            visited[i] = false;
-
-        while (nodes[0].makeDominatorTree(visited, distance, access))
-            ;
-
+        do {
+            for (int i = 0; i < size; i++)
+                visited[i] = false;
+        } while (nodes[0].makeDominatorTree(visited, distance, access));
         Node.setChildren(nodes);
         return nodes;
     }
@@ -202,11 +200,11 @@ public class ControlFlow {
             if (nodes[i].block.exits() == 0)
                 counter = nodes[i].makeDepth1stTree(null, visited, counter, distance, access);
 
-        for (int i = 0; i < size; i++)
-            visited[i] = false;
-
         boolean changed;
         do {
+            for (int i = 0; i < size; i++)
+                visited[i] = false;
+
             changed = false;
             for (int i = 0; i < size; i++)
                 if (nodes[i].block.exits() == 0)
@@ -245,7 +243,7 @@ public class ControlFlow {
 
         protected void toString2(StringBuffer sbuf) {
             super.toString2(sbuf);
-            sbuf.append(", incomping{");
+            sbuf.append(", incoming{");
             for (int i = 0; i < entrances.length; i++)
                 sbuf.append(entrances[i].position).append(", ");
 
@@ -280,7 +278,7 @@ public class ControlFlow {
         public int incomings() { return incoming; }
 
         /**
-         * Returns the blocks that the control may jump into this block from.
+         * Returns the block that the control may jump into this block from.
          */
         public Block incoming(int n) {
             return entrances[n];

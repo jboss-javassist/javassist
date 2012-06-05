@@ -20,7 +20,6 @@ public class DomTreePrinter {
         Node[] pdom = cf.postDominatorTree();
         for (int i = 0; i < pdom.length; i++)
             System.out.println(i + ": " + pdom[i]);
-
     }
 
     public int dummy(int n, int[] array) {
