@@ -899,6 +899,9 @@ public class TypeChecker extends Visitor implements Opcode, TokenId {
 
     public void atArrayLength(Expr expr) throws CompileError {
         expr.oprand1().accept(this);
+        if (arrayDim == 0)
+            throw new NoFieldException("length", expr);
+
         exprType = INT;
         arrayDim = 0;
     }

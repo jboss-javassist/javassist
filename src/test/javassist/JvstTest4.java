@@ -711,4 +711,17 @@ public class JvstTest4 extends JvstTestRoot {
         assertTrue(javassist.runtime.Desc.getClazz("[Ljava.lang.String;") != null);
         javassist.runtime.Desc.useContextClassLoader = old;
     }
+
+    public void testJIRA166() throws Exception {
+        CtClass cc = sloader.get("test4.JIRA166");
+        cc.instrument(new ExprEditor() {
+            public void edit(FieldAccess fa) throws CannotCompileException {
+                if (fa.isReader() && fa.getFieldName().equals("length"))
+                    fa.replace("length = self().length + \"!\"; $_ = ($r) this.length.substring(1);");
+            }
+        });
+        cc.writeFile();
+        Object obj = make(cc.getName());
+        assertEquals(1, invoke(obj, "run"));
+    }
 }
