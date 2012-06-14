@@ -1122,6 +1122,7 @@ public class JvstTest extends JvstTestRoot {
         suite.addTestSuite(test.javassist.proxy.ProxySerializationTest.class);
         suite.addTestSuite(test.javassist.convert.ArrayAccessReplaceTest.class);
         suite.addTestSuite(test.javassist.proxy.JASSIST113RegressionTest.class);
+        suite.addTestSuite(test.javassist.proxy.JBPAPP9257Test.class);
         //suite.addTestSuite(test.javassist.proxy.ProxyCacheGCTest.class);
         suite.addTestSuite(test.javassist.proxy.ProxyFactoryCompatibilityTest.class);
         suite.addTestSuite(test.javassist.proxy.ProxySerializationTest.class);
