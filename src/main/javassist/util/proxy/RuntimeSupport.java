@@ -50,11 +50,15 @@ public class RuntimeSupport {
                                     String thisMethod, int index,
                                     String desc, java.lang.reflect.Method[] methods)
     {
-        synchronized (methods) {
-            if (methods[index] == null) {
-                methods[index + 1] = thisMethod == null ? null
-                                     : findMethod(self, thisMethod, desc);
-                methods[index] = findSuperMethod(self, superMethod, desc);
+        if (methods[index] == null) {
+            Method m1 = thisMethod == null ? null
+                                           : findMethod(self, thisMethod, desc);
+            Method m0 = findSuperMethod(self, superMethod, desc);
+            synchronized (methods) {
+                if (methods[index] == null) {
+                    methods[index + 1] = m1;
+                    methods[index] = m0;
+                }
             }
         }
     }
