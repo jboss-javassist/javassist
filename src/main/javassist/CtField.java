@@ -327,17 +327,41 @@ public class CtField extends CtMember {
      *
      * <p>Note that the returned string is not the type signature
      * contained in the <code>SignatureAttirbute</code>.  It is
-     * a descriptor.  To obtain a type signature, call the following
-     * methods:
-     * 
-     * <ul><pre>getFieldInfo().getAttribute(SignatureAttribute.tag)
-     * </pre></ul>
+     * a descriptor.
      *
      * @see javassist.bytecode.Descriptor
-     * @see javassist.bytecode.SignatureAttribute
+     * @see #getGenericSignature()
      */
     public String getSignature() {
         return fieldInfo.getDescriptor();
+    }
+
+    /**
+     * Returns the generic signature of the field.
+     * It represents a type including type variables.
+     *
+     * @see SignatureAttribute#toFieldSignature(String)
+     * @since 3.17
+     */
+    public String getGenericSignature() {
+        SignatureAttribute sa
+            = (SignatureAttribute)fieldInfo.getAttribute(SignatureAttribute.tag);
+        return sa == null ? null : sa.getSignature();
+    }
+
+    /**
+     * Set the generic signature of the field.
+     * It represents a type including type variables.
+     * See {@link javassist.CtClass#setGenericSignature(String)}
+     * for a code sample.
+     *
+     * @param sig       a new generic signature.
+     * @see javassist.bytecode.SignatureAttribute.ObjectType#encode()
+     * @since 3.17
+     */
+    public void setGenericSignature(String sig) {
+        declaringClass.checkModify();
+        fieldInfo.addAttribute(new SignatureAttribute(fieldInfo.getConstPool(), sig));
     }
 
     /**

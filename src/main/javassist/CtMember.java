@@ -42,6 +42,8 @@ public abstract class CtMember {
         public String getSignature() { return null; }
         public void setAttribute(String name, byte[] data) {}
         public void setModifiers(int mod) {}
+        public String getGenericSignature() { return null; }
+        public void setGenericSignature(String sig) {}
 
         private CtMember methodTail;
         private CtMember consTail;     // constructor tail
@@ -268,6 +270,27 @@ public abstract class CtMember {
      * <code>getSignature()</code> returns the same string.
      */
     public abstract String getSignature();
+
+    /**
+     * Returns the generic signature of the member.
+     *
+     * @see javassist.bytecode.SignatureAttribute#toFieldSignature(String)
+     * @see javassist.bytecode.SignatureAttribute#toMethodSignature(String)
+     * @see CtClass#getGenericSignature()
+     * @since 3.17
+     */
+    public abstract String getGenericSignature();
+
+    /**
+     * Sets the generic signature of the member.
+     *
+     * @param sig   a new generic signature.
+     * @see javassist.bytecode.SignatureAttribute.ObjectType#encode()
+     * @see javassist.bytecode.SignatureAttribute.MethodSignature#encode()
+     * @see CtClass#setGenericSignature(String)
+     * @since 3.17
+     */
+    public abstract void setGenericSignature(String sig);
 
     /**
      * Obtains a user-defined attribute with the given name.

@@ -314,17 +314,41 @@ public abstract class CtBehavior extends CtMember {
      *
      * <p>Note that the returned string is not the type signature
      * contained in the <code>SignatureAttirbute</code>.  It is
-     * a descriptor.  To obtain a type signature, call the following
-     * methods:
-     * 
-     * <ul><pre>getMethodInfo().getAttribute(SignatureAttribute.tag)
-     * </pre></ul>
+     * a descriptor.
      *
      * @see javassist.bytecode.Descriptor
-     * @see javassist.bytecode.SignatureAttribute
+     * @see #getGenericSignature()
      */
     public String getSignature() {
         return methodInfo.getDescriptor();
+    }
+
+    /**
+     * Returns the generic signature of the method.
+     * It represents parameter types including type variables.
+     *
+     * @see SignatureAttribute#toMethodSignature(String)
+     * @since 3.17
+     */
+    public String getGenericSignature() {
+        SignatureAttribute sa
+            = (SignatureAttribute)methodInfo.getAttribute(SignatureAttribute.tag);
+        return sa == null ? null : sa.getSignature();
+    }
+
+    /**
+     * Set the generic signature of the method.
+     * It represents parameter types including type variables.
+     * See {@link javassist.CtClass#setGenericSignature(String)}
+     * for a code sample.
+     *
+     * @param sig       a new generic signature.
+     * @see javassist.bytecode.SignatureAttribute.MethodSignature#encode()
+     * @since 3.17
+     */
+    public void setGenericSignature(String sig) {
+        declaringClass.checkModify();
+        methodInfo.addAttribute(new SignatureAttribute(methodInfo.getConstPool(), sig));
     }
 
     /**

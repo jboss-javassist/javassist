@@ -724,4 +724,42 @@ public class JvstTest4 extends JvstTestRoot {
         Object obj = make(cc.getName());
         assertEquals(1, invoke(obj, "run"));
     }
+
+    public void testGenericSignature() throws Exception {
+        CtClass cc = sloader.makeClass("test4.GenSig");
+        CtClass objClass = sloader.get(CtClass.javaLangObject);
+        SignatureAttribute.ClassSignature cs
+            = new SignatureAttribute.ClassSignature(
+                    new SignatureAttribute.TypeParameter[] {
+                            new SignatureAttribute.TypeParameter("T") });
+        cc.setGenericSignature(cs.encode());    // <T:Ljava/lang/Object;>Ljava/lang/Object;
+
+        CtField f = new CtField(objClass, "value", cc);
+        SignatureAttribute.TypeVariable tvar = new SignatureAttribute.TypeVariable("T");
+        f.setGenericSignature(tvar.encode());   // TT;
+        cc.addField(f);
+
+        CtMethod m = CtNewMethod.make("public Object get(){return value;}", cc);
+        SignatureAttribute.MethodSignature ms
+            = new SignatureAttribute.MethodSignature(null, null, tvar, null);
+        m.setGenericSignature(ms.encode());     // ()TT;
+        cc.addMethod(m);
+
+        CtMethod m2 = CtNewMethod.make("public void set(Object v){value = v;}", cc);
+        SignatureAttribute.MethodSignature ms2
+            = new SignatureAttribute.MethodSignature(null, new SignatureAttribute.Type[] { tvar },
+                                                     new SignatureAttribute.BaseType("void"), null);
+        m2.setGenericSignature(ms2.encode());   // (TT;)V;
+        cc.addMethod(m2);
+
+        cc.writeFile();
+        Object obj = make(cc.getName());
+        Class clazz = obj.getClass();
+        assertEquals("T", clazz.getTypeParameters()[0].getName());
+        assertEquals("T", ((java.lang.reflect.TypeVariable)clazz.getDeclaredField("value").getGenericType()).getName());
+        java.lang.reflect.Method rm = clazz.getDeclaredMethod("get", new Class[0]);
+        assertEquals("T", ((java.lang.reflect.TypeVariable)rm.getGenericReturnType()).getName());
+        java.lang.reflect.Method rm2 = clazz.getDeclaredMethod("set", new Class[] { Object.class });
+        assertEquals("T", ((java.lang.reflect.TypeVariable)rm2.getGenericParameterTypes()[0]).getName());
+    }
 }

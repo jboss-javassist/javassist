@@ -47,6 +47,7 @@ import javassist.bytecode.FieldInfo;
 import javassist.bytecode.InnerClassesAttribute;
 import javassist.bytecode.MethodInfo;
 import javassist.bytecode.ParameterAnnotationsAttribute;
+import javassist.bytecode.SignatureAttribute;
 import javassist.bytecode.annotation.Annotation;
 import javassist.compiler.AccessorMaker;
 import javassist.compiler.CompileError;
@@ -334,6 +335,18 @@ class CtClassType extends CtClass {
         cf.setName(name);
         nameReplaced();
         classPool.classNameChanged(oldname, this);
+    }
+
+    public String getGenericSignature() {
+        SignatureAttribute sa
+            = (SignatureAttribute)getClassFile2().getAttribute(SignatureAttribute.tag);
+        return sa == null ? null : sa.getSignature();
+    }
+
+    public void setGenericSignature(String sig) {
+        ClassFile cf = getClassFile();
+        SignatureAttribute sa = new SignatureAttribute(cf.getConstPool(), sig);
+        cf.addAttribute(sa);
     }
 
     public void replaceClassName(ClassMap classnames)
