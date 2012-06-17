@@ -5,6 +5,7 @@ import java.lang.reflect.Method;
 import junit.framework.*;
 import javassist.*;
 import javassist.bytecode.annotation.*;
+import javassist.bytecode.SignatureAttribute.*;
 
 public class BytecodeTest extends TestCase {
     public static final String PATH = JvstTest.PATH;
@@ -486,6 +487,33 @@ public class BytecodeTest extends TestCase {
         map.put(oldname, newname);
         String r = SignatureAttribute.renameClass(old, map);
         assertEquals(result, r);
+    }
+
+    public void testSignatureEncode() throws Exception {
+        BaseType bt = new BaseType("int");
+        TypeVariable tv = new TypeVariable("S");
+        ArrayType at = new ArrayType(1, tv);
+        ClassType ct1 = new ClassType("test.Foo");
+        TypeArgument ta = new TypeArgument();
+        TypeArgument ta2 = new TypeArgument(ct1);
+        TypeArgument ta3 = TypeArgument.subclassOf(ct1);
+        ClassType ct2 = new ClassType("test.Foo", new TypeArgument[] { ta, ta2, ta3 });
+        ClassType ct3 = new ClassType("test.Bar");
+        ClassType ct4 = new ClassType("test.Bar", new TypeArgument[] { ta });
+        NestedClassType ct5 = new NestedClassType(ct4, "Baz", new TypeArgument[] { ta });
+        TypeParameter tp1 = new TypeParameter("U");
+        TypeParameter tp2 = new TypeParameter("V", ct1, new ObjectType[] { ct3 });
+        ClassSignature cs = new ClassSignature(new TypeParameter[] { tp1 },
+                                               ct1,
+                                               new ClassType[] { ct2 });
+        MethodSignature ms = new MethodSignature(new TypeParameter[] { tp1, tp2 },
+                                                 new Type[] { bt, at, ct5 }, ct3,
+                                                 new ObjectType[] { ct1, tv });
+
+        assertEquals("<U:Ljava/lang/Object;>Ltest/Foo;Ltest/Foo<*Ltest/Foo;+Ltest/Foo;>;",
+                     cs.encode());
+        assertEquals("<U:Ljava/lang/Object;V:Ltest/Foo;:Ltest/Bar;>(I[TS;Ltest/Bar<*>$Baz<*>;)Ltest/Bar;^Ltest/Foo;^TS;",
+                     ms.encode());
     }
 
     public void testModifiers() throws Exception {

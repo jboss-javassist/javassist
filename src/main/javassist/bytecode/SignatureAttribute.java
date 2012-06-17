@@ -182,14 +182,14 @@ public class SignatureAttribute extends AttributeInfo {
         /**
          * Constructs a class signature.
          *
-         * @param p         type parameters.
-         * @param s         the super class.
-         * @param i         the interface types.
+         * @param params             type parameters.
+         * @param superClass         the super class.
+         * @param interfaces         the interface types.
          */
-        public ClassSignature(TypeParameter[] p, ClassType s, ClassType[] i) {
-            params = p == null ? new TypeParameter[0] : p;
-            superClass = s == null ? ClassType.OBJECT : s;
-            interfaces = i == null ? new ClassType[0] : i;
+        public ClassSignature(TypeParameter[] params, ClassType superClass, ClassType[] interfaces) {
+            this.params = params == null ? new TypeParameter[0] : params;
+            this.superClass = superClass == null ? ClassType.OBJECT : superClass;
+            this.interfaces = interfaces == null ? new ClassType[0] : interfaces;
         }
 
         /**
@@ -273,13 +273,13 @@ public class SignatureAttribute extends AttributeInfo {
          * to represent <code>void</code> or nothing.
          *
          * @param tp        type parameters.
-         * @param p         parameter types.
-         * @param ret       a return type.
+         * @param params    parameter types.
+         * @param ret       a return type, or null if the return type is <code>void</code>.
          * @param ex        exception types.
          */
-        public MethodSignature(TypeParameter[] tp, Type[] p, Type ret, ObjectType[] ex) {
+        public MethodSignature(TypeParameter[] tp, Type[] params, Type ret, ObjectType[] ex) {
             typeParams = tp == null ? new TypeParameter[0] : tp;
-            params = p == null ? new Type[0] : p;
+            this.params = params == null ? new Type[0] : params;
             retType = ret == null ? new BaseType("void") : ret;
             exceptions = ex == null ? new ObjectType[0] : ex;
         }
@@ -686,6 +686,16 @@ public class SignatureAttribute extends AttributeInfo {
         public ClassType(String className, TypeArgument[] args) {
             name = className;
             arguments = args;
+        }
+
+        /**
+         * Constructs a <code>ClassType</code>.  It represents
+         * the name of a non-nested class.
+         *
+         * @param className     a fully qualified class name.
+         */
+        public ClassType(String className) {
+            this(className, null);
         }
 
         /**
