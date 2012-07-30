@@ -1066,7 +1066,7 @@ public class SignatureAttribute extends AttributeInfo {
             targs = null;
 
         ClassType thisClass = ClassType.make(sig, start, end, targs, parent);
-        if (t == '$') {
+        if (t == '$' || t == '.') {
             c.position--;
             return parseClassType2(sig, c, thisClass);
         }

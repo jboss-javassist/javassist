@@ -762,4 +762,16 @@ public class JvstTest4 extends JvstTestRoot {
         java.lang.reflect.Method rm2 = clazz.getDeclaredMethod("set", new Class[] { Object.class });
         assertEquals("T", ((java.lang.reflect.TypeVariable)rm2.getGenericParameterTypes()[0]).getName());
     }
+
+    public void testJIRA171() throws Exception {
+        SignatureAttribute.MethodSignature ms
+            = SignatureAttribute.toMethodSignature("(Ljava/lang/Object;Lorg/apache/hadoop/io/Text;"
+              + "Lorg/apache/hadoop/mapreduce/Mapper<Ljava/lang/Object;Lorg/apache/hadoop/io/Text;"
+              + "Lorg/apache/hadoop/io/Text;Lorg/apache/hadoop/io/IntWritable;>.Context;)V");
+        String s = ms.toString();
+        System.out.println(s);
+        assertEquals("<> (java.lang.Object, org.apache.hadoop.io.Text, "
+                     + "org.apache.hadoop.mapreduce.Mapper<java.lang.Object, org.apache.hadoop.io.Text, "
+                     + "org.apache.hadoop.io.Text, org.apache.hadoop.io.IntWritable>.Context) void", s);
+    }
 }
