@@ -29,7 +29,7 @@ public class JBPAPP9257Test extends TestCase {
         };
         Foo foo = (Foo) c.newInstance();
         try {
-            ((ProxyObject)foo).setHandler(mi);
+            ((Proxy)foo).setHandler(mi);
             fail("foo is a ProxyObject!");
         } catch (ClassCastException e) {}
         ((Proxy)foo).setHandler(mi);
