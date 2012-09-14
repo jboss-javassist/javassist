@@ -19,7 +19,8 @@ package javassist.bytecode.stackmap;
 import javassist.bytecode.StackMapTable;
 
 public interface TypeTag {
-    TypeData TOP = null;
+    String TOP_TYPE = "*top*";
+    TypeData TOP = new TypeData.BasicType(TOP_TYPE, StackMapTable.TOP);
     TypeData INTEGER = new TypeData.BasicType("int", StackMapTable.INTEGER);
     TypeData FLOAT = new TypeData.BasicType("float", StackMapTable.FLOAT);
     TypeData DOUBLE = new TypeData.BasicType("double", StackMapTable.DOUBLE);

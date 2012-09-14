@@ -246,7 +246,9 @@ public class CtNewMethod {
         }
 
         minfo.setCodeAttribute(code.toCodeAttribute());
-        return new CtMethod(minfo, field.getDeclaringClass());
+        CtClass cc = field.getDeclaringClass();
+        // a stack map is not needed.
+        return new CtMethod(minfo, cc);
     }
 
     /**
@@ -290,7 +292,9 @@ public class CtNewMethod {
         }
 
         minfo.setCodeAttribute(code.toCodeAttribute());
-        return new CtMethod(minfo, field.getDeclaringClass());
+        CtClass cc = field.getDeclaringClass();
+        // a stack map is not needed.
+        return new CtMethod(minfo, cc);
     }
 
     /**
@@ -359,6 +363,7 @@ public class CtNewMethod {
         code.setMaxLocals(++s);
         code.setMaxStack(s < 2 ? 2 : s); // for a 2-word return value
         minfo.setCodeAttribute(code.toCodeAttribute());
+        // a stack map is not needed. 
         return new CtMethod(minfo, declaring);
     }
 

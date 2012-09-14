@@ -16,7 +16,9 @@
 
 package javassist.bytecode.stackmap;
 
+import java.util.ArrayList;
 import javassist.ClassPool;
+import javassist.NotFoundException;
 import javassist.bytecode.*;
 
 /**
@@ -125,9 +127,7 @@ public class MapMaker extends Tracer {
               TypedBlock.getRetType(minfo.getDescriptor()));
     }
 
-    protected MapMaker(MapMaker old, boolean copyStack) {
-        super(old, copyStack);
-    }
+    protected MapMaker(MapMaker old) { super(old); }
 
     /**
      * Runs an analyzer (Phase 1 and 2).
@@ -135,34 +135,11 @@ public class MapMaker extends Tracer {
     void make(TypedBlock[] blocks, byte[] code)
         throws BadBytecode
     {
-        TypedBlock first = blocks[0];
-        fixParamTypes(first);
-        TypeData[] srcTypes = first.localsTypes;
-        copyFrom(srcTypes.length, srcTypes, this.localsTypes);
-        make(code, first);
-
-        int n = blocks.length;
-        for (int i = 0; i < n; i++)
-            evalExpected(blocks[i]);
-    }
-
-    /*
-     * If a parameter type is String but it is used only as Object
-     * within the method body, this MapMaker class will report its type
-     * is Object.  To avoid this, fixParamTypes calls TypeData.setType()
-     * on each parameter type.
-     */
-    private void fixParamTypes(TypedBlock first) throws BadBytecode {
-        TypeData[] types = first.localsTypes;
-        int n = types.length;
-        for (int i = 0; i < n; i++) {
-            TypeData t = types[i];
-            if (t instanceof TypeData.ClassName) {
-                /* Skip the following statement if t.isNullType() is true
-                 * although a parameter type is never null type.
-                 */
-                TypeData.setType(t, t.getName(), classPool);
-            }
+        make(code, blocks[0]);
+        try {
+            fixTypes(blocks);
+        } catch (NotFoundException e) {
+            throw new BadBytecode("failed to resolve types", e);
         }
     }
 
@@ -171,16 +148,18 @@ public class MapMaker extends Tracer {
     private void make(byte[] code, TypedBlock tb)
         throws BadBytecode
     {
-        BasicBlock.Catch handlers = tb.toCatch;
-        while (handlers != null) {
-            traceException(code, handlers);
-            handlers = handlers.next;
-        }
+        copyTypeData(tb.stackTop, tb.stackTypes, stackTypes);
+        stackTop = tb.stackTop;
+        copyTypeData(tb.localsTypes.length, tb.localsTypes, localsTypes);
+
+        traceException(code, tb.toCatch);
 
         int pos = tb.position;
         int end = pos + tb.length;
         while (pos < end)
             pos += doOpcode(pos, code);
+
+        traceException(code, tb.toCatch);
 
         if (tb.exit != null) {
             for (int i = 0; i < tb.exit.length; i++) {
@@ -189,7 +168,7 @@ public class MapMaker extends Tracer {
                     mergeMap(e, true);
                 else {
                     recordStackMap(e);
-                    MapMaker maker = new MapMaker(this, true);
+                    MapMaker maker = new MapMaker(this);
                     maker.make(code, e);
                 }
             }
@@ -199,71 +178,66 @@ public class MapMaker extends Tracer {
     private void traceException(byte[] code, TypedBlock.Catch handler)
         throws BadBytecode
     {
-        TypedBlock tb = (TypedBlock)handler.body;
-        if (tb.alreadySet())
-            mergeMap(tb, false);
-        else {
-            recordStackMap(tb, handler.typeIndex);
-            MapMaker maker = new MapMaker(this, false);
+        while (handler != null) {
+            TypedBlock tb = (TypedBlock)handler.body;
+            if (tb.alreadySet())
+                mergeMap(tb, false);
+            else {
+                recordStackMap(tb, handler.typeIndex);
+                MapMaker maker = new MapMaker(this);
+                maker.make(code, tb);
+            }
 
-            /* the following code is equivalent to maker.copyFrom(this)
-             * except stackTypes are not copied.
-             */ 
-            maker.stackTypes[0] = tb.stackTypes[0].getSelf();
-            maker.stackTop = 1;
-            maker.make(code, tb);
+            handler = handler.next;
         }
     }
 
-    private void mergeMap(TypedBlock dest, boolean mergeStack) {
-        boolean[] inputs = dest.inputs;
-        int n = inputs.length;
+    private void mergeMap(TypedBlock dest, boolean mergeStack) throws BadBytecode {
+        int n = localsTypes.length;
         for (int i = 0; i < n; i++)
-            if (inputs[i])
-                merge(localsTypes[i], dest.localsTypes[i]); 
+            dest.localsTypes[i] = merge(localsTypes[i], dest.localsTypes[i]); 
 
         if (mergeStack) {
             n = stackTop;
             for (int i = 0; i < n; i++)
-                merge(stackTypes[i], dest.stackTypes[i]);
+                dest.stackTypes[i] = merge(stackTypes[i], dest.stackTypes[i]);
         }
     }
 
-    private void merge(TypeData td, TypeData target) {
-        boolean tdIsObj = false;
-        boolean targetIsObj = false;
-        // td or target is null if it is TOP. 
-        if (td != TOP && td.isObjectType())
-            tdIsObj = true;
-
-        if (target != TOP && target.isObjectType())
-            targetIsObj = true;
-
-        if (tdIsObj && targetIsObj)
-            target.merge(td);
+    private TypeData merge(TypeData src, TypeData target) throws BadBytecode {
+        if (src == target)
+            return target;
+        else if (target instanceof TypeData.ClassName
+                 || target instanceof TypeData.BasicType)  // a parameter
+            return target;
+        else if (target instanceof TypeData.AbsTypeVar) {
+            ((TypeData.AbsTypeVar)target).merge(src);
+            return target;
+        }
+        else
+            throw new RuntimeException("fatal: this should never happen");
     }
 
     private void recordStackMap(TypedBlock target)
         throws BadBytecode
     {
-        TypeData[] tStackTypes = new TypeData[stackTypes.length];
+        TypeData[] tStackTypes = TypeData.make(stackTypes.length);
         int st = stackTop;
-        copyFrom(st, stackTypes, tStackTypes);
+        recordTypeData(st, stackTypes, tStackTypes);
         recordStackMap0(target, st, tStackTypes);
     }
 
     private void recordStackMap(TypedBlock target, int exceptionType)
         throws BadBytecode
     {
+        TypeData[] tStackTypes = TypeData.make(stackTypes.length);
         String type;
-        if (exceptionType == 0)
+        if (exceptionType == 0)     // for finally clauses
             type = "java.lang.Throwable";
         else
             type = cpool.getClassInfo(exceptionType);
 
-        TypeData[] tStackTypes = new TypeData[stackTypes.length];
         tStackTypes[0] = new TypeData.ClassName(type);
-
         recordStackMap0(target, 1, tStackTypes);
     }
 
@@ -271,34 +245,50 @@ public class MapMaker extends Tracer {
         throws BadBytecode
     {
         int n = localsTypes.length;
-        TypeData[] tLocalsTypes = new TypeData[n];
-        int k = copyFrom(n, localsTypes, tLocalsTypes);
-
-        boolean[] inputs = target.inputs;
-        for (int i = 0; i < n; i++)
-            if (!inputs[i])
-                tLocalsTypes[i] = TOP;
-
+        TypeData[] tLocalsTypes = TypeData.make(n);
+        int k = recordTypeData(n, localsTypes, tLocalsTypes);
         target.setStackMap(st, tStackTypes, k, tLocalsTypes);
+    }
+
+    protected static int recordTypeData(int n, TypeData[] srcTypes, TypeData[] destTypes) {
+        int k = -1;
+        for (int i = 0; i < n; i++) {
+            TypeData t = srcTypes[i];
+            destTypes[i] = t.join();
+            if (t != TOP)
+            	k = i + 1;		// t might be long or double.
+        }
+
+        return k + 1;
+    }
+
+    protected static void copyTypeData(int n, TypeData[] srcTypes, TypeData[] destTypes) {
+        for (int i = 0; i < n; i++)
+            destTypes[i] = srcTypes[i];
     }
 
     // Phase 2
 
-    void evalExpected(TypedBlock target) throws BadBytecode {
-        ClassPool cp = classPool;
-        evalExpected(cp, target.stackTop, target.stackTypes);
-        TypeData[] types = target.localsTypes;
-        if (types != null)  // unless this block is dead code
-            evalExpected(cp, types.length, types);
-    }
+    /*
+     * This method first finds strongly connected components (SCCs)
+     * on a graph made by TypeData by Tarjan's algorithm.
+     * SCCs are TypeData nodes sharing the same type.
+     * Since SCCs are found in the topologically sorted order,
+     * their types are also fixed when they are found. 
+     */
+    private void fixTypes(TypedBlock[] blocks) throws NotFoundException {
+        ArrayList preOrder = new ArrayList();
+        int len = blocks.length;
+        int index = 0;
+        for (int i = 0; i < len; i++) {
+            TypedBlock block = blocks[i];
+            int n = block.localsTypes.length;
+            for (int j = 0; j < n; j++)
+                index = block.localsTypes[j].dfs(preOrder, index, classPool);
 
-    private static void evalExpected(ClassPool cp, int n, TypeData[] types)
-        throws BadBytecode
-    {
-        for (int i = 0; i < n; i++) {
-            TypeData td = types[i];
-            if (td != null)
-                td.evalExpectedType(cp);
+            n = block.stackTop;
+            for (int j = 0; j < n; j++)
+                index = block.stackTypes[j].dfs(preOrder, index, classPool); 
         }
     }
 
@@ -370,19 +360,14 @@ public class MapMaker extends Tracer {
         }
         else if (stackTop == 1 && diffL == 0) {
             TypeData td = bb.stackTypes[0];
-            if (td == TOP)
-                writer.sameLocals(offsetDelta, StackMapTable.TOP, 0);
-            else
-                writer.sameLocals(offsetDelta, td.getTypeTag(),
-                                  td.getTypeData(cpool));
+            writer.sameLocals(offsetDelta, td.getTypeTag(), td.getTypeData(cpool));
             return;
         }
         else if (stackTop == 2 && diffL == 0) {
             TypeData td = bb.stackTypes[0];
-            if (td != TOP && td.is2WordType()) {
+            if (td.is2WordType()) {
                 // bb.stackTypes[1] must be TOP.
-                writer.sameLocals(offsetDelta, td.getTypeTag(),
-                                  td.getTypeData(cpool));
+                writer.sameLocals(offsetDelta, td.getTypeTag(), td.getTypeData(cpool));
                 return;
             }
         }
@@ -401,16 +386,10 @@ public class MapMaker extends Tracer {
         int j = 0;
         for (int i = 0; i < num; i++) {
             TypeData td = types[offset + i];
-            if (td == TOP) {
-                tags[j] = StackMapTable.TOP;
-                data[j] = 0;
-            }
-            else {
-                tags[j] = td.getTypeTag();
-                data[j] = td.getTypeData(cp);
-                if (td.is2WordType())
-                    i++;
-            }
+            tags[j] = td.getTypeTag();
+            data[j] = td.getTypeData(cp);
+            if (td.is2WordType())
+                i++;
 
             j++;
         }
@@ -439,14 +418,8 @@ public class MapMaker extends Tracer {
 
     private static boolean stackMapEq(TypeData[] oldTd, TypeData[] newTd, int len) {
         for (int i = 0; i < len; i++) {
-            TypeData td = oldTd[i];
-            if (td == TOP) {        // the next element to LONG/DOUBLE is TOP.
-                if (newTd[i] != TOP)
-                    return false;
-            }
-            else
-                if (!oldTd[i].equals(newTd[i]))
-                    return false;
+            if (!oldTd[i].eq(newTd[i]))
+                return false;
         }
 
         return true;
@@ -457,7 +430,7 @@ public class MapMaker extends Tracer {
         while (offset < len) {
             TypeData td = types[offset++];
             num++;
-            if (td != TOP && td.is2WordType())
+            if (td.is2WordType())
                 offset++;
         }
 
@@ -515,13 +488,9 @@ public class MapMaker extends Tracer {
         writer.write16bit(num - numDWord);
         for (int i = 0; i < num; i++) {
             TypeData td = types[i];
-            if (td == TOP)
-                writer.writeVerifyTypeInfo(StackMap.TOP, 0);
-            else {
-                writer.writeVerifyTypeInfo(td.getTypeTag(), td.getTypeData(cp));
-                if (td.is2WordType())
-                    i++;
-            }
+            writer.writeVerifyTypeInfo(td.getTypeTag(), td.getTypeData(cp));
+            if (td.is2WordType())
+                i++;
         }
     }
 }

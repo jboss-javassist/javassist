@@ -44,7 +44,9 @@ class CtNewWrappedMethod {
 
         Bytecode code = makeBody(declaring, declaring.getClassFile2(), body,
                                  parameterTypes, returnType, constParam);
-        mt.getMethodInfo2().setCodeAttribute(code.toCodeAttribute());
+        MethodInfo minfo = mt.getMethodInfo2();
+        minfo.setCodeAttribute(code.toCodeAttribute());
+        // a stack map has been already created. 
         return mt;
     }
 

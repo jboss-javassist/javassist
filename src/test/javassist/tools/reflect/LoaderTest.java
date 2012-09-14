@@ -53,6 +53,10 @@ public class LoaderTest extends TestCase {
                               "javassist.tools.reflect.ClassMetaobject");
 
         ClassPool cp = ClassPool.getDefault();
+
+        CtClass cc2 = cp.get("javassist.tools.reflect.SuperClass");
+        cc2.debugWriteFile("reflected/");
+
         CtClass cc = cp.get("javassist.tools.reflect.SubClass");
 
         CtMethod[] ms = cc.getMethods();

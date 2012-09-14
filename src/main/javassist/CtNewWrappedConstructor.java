@@ -39,6 +39,7 @@ class CtNewWrappedConstructor extends CtNewWrappedMethod {
                                      howToCallSuper, body,
                                      parameterTypes, constParam);
             cons.getMethodInfo2().setCodeAttribute(code.toCodeAttribute());
+            // a stack map table is not needed.
             return cons;
         }
         catch (NotFoundException e) {

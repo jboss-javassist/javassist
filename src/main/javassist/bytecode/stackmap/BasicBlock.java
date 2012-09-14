@@ -274,7 +274,7 @@ public class BasicBlock {
                 else if (op == Opcode.JSR_W)
                     makeJsr(marks, index, index + ci.s32bitAt(index + 1), 5);
                 else if (op == Opcode.WIDE && ci.byteAt(index + 1) == Opcode.RET)
-                    makeMark(marks, index, null, 1, true);
+                    makeMark(marks, index, null, 4, true);
             }
 
             if (et != null) {

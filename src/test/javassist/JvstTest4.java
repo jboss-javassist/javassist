@@ -683,9 +683,10 @@ public class JvstTest4 extends JvstTestRoot {
             }
         }
         System.gc();
+        System.gc();
         int size = javassist.compiler.MemberResolver.getInvalidMapSize();
         System.out.println("JIRA150b " + size);
-        assertTrue(size < N - 10);
+        assertTrue("JIRA150b size: " + size, size < N - 10);
     }
 
     public void testJIRA152() throws Exception {

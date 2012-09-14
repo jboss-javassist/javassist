@@ -67,7 +67,7 @@ public class StackMapTable extends AttributeInfo {
     {
         try {
             return new StackMapTable(newCp,
-                            new Copier(this.constPool, info, newCp).doit());
+                            new Copier(this.constPool, info, newCp, classnames).doit());
         }
         catch (BadBytecode e) {
             throw new RuntimeCopyException("bad bytecode. fatal?"); 
@@ -400,16 +400,18 @@ public class StackMapTable extends AttributeInfo {
 
     static class Copier extends SimpleCopy {
         private ConstPool srcPool, destPool;
+        private Map classnames;
 
-        public Copier(ConstPool src, byte[] data, ConstPool dest) {
+        public Copier(ConstPool src, byte[] data, ConstPool dest, Map names) {
             super(data);
             srcPool = src;
             destPool = dest;
+            classnames = names;
         }
 
         protected int copyData(int tag, int data) {
             if (tag == OBJECT)
-                return srcPool.copy(data, destPool, null); 
+                return srcPool.copy(data, destPool, classnames); 
             else
                 return data;
         }
@@ -418,7 +420,7 @@ public class StackMapTable extends AttributeInfo {
             int[] newData = new int[data.length];
             for (int i = 0; i < data.length; i++)
                 if (tags[i] == OBJECT)
-                    newData[i] = srcPool.copy(data[i], destPool, null);
+                    newData[i] = srcPool.copy(data[i], destPool, classnames);
                 else
                     newData[i] = data[i];
 

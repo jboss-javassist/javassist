@@ -532,6 +532,14 @@ public class CodeConverter {
 
         if (stack > 0)
             codeAttr.setMaxStack(codeAttr.getMaxStack() + stack);
+
+        try {
+        	minfo.rebuildStackMapIf6(clazz.getClassPool(),
+                                     clazz.getClassFile2());
+        }
+        catch (BadBytecode b) {
+            throw new CannotCompileException(b.getMessage(), b);
+        }
     }
 
     /**

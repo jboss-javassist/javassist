@@ -31,7 +31,7 @@ import javassist.ClassPool;
 public abstract class Tracer implements TypeTag {
     protected ClassPool classPool;
     protected ConstPool cpool;
-    protected String returnType;
+    protected String returnType;    // used as the type of ARETURN
 
     protected int stackTop;
     protected TypeData[] stackTypes;
@@ -43,39 +43,17 @@ public abstract class Tracer implements TypeTag {
         cpool = cp;
         returnType = retType;
         stackTop = 0;
-        stackTypes = new TypeData[maxStack];
-        localsTypes = new TypeData[maxLocals];
+        stackTypes = TypeData.make(maxStack);
+        localsTypes = TypeData.make(maxLocals);
     }
 
-    public Tracer(Tracer t, boolean copyStack) {
+    public Tracer(Tracer t) {
         classPool = t.classPool;
         cpool = t.cpool;
         returnType = t.returnType;
-
         stackTop = t.stackTop;
-        int size = t.stackTypes.length;
-        stackTypes = new TypeData[size];
-        if (copyStack)
-            copyFrom(t.stackTop, t.stackTypes, stackTypes);
-
-        int size2 = t.localsTypes.length;
-        localsTypes = new TypeData[size2];
-        copyFrom(size2, t.localsTypes, localsTypes);
-    }
-
-    protected static int copyFrom(int n, TypeData[] srcTypes, TypeData[] destTypes) {
-        int k = -1;
-        for (int i = 0; i < n; i++) {
-            TypeData t = srcTypes[i];
-            destTypes[i] = t == TOP ? TOP : t.getSelf();
-            if (t != TOP)
-                if (t.is2WordType())
-                    k = i + 1;
-                else
-                    k = i;
-        }
-
-        return k + 1;
+        stackTypes = TypeData.make(t.stackTypes.length);
+        localsTypes = TypeData.make(t.localsTypes.length);
     }
 
     /**
@@ -255,11 +233,7 @@ public abstract class Tracer implements TypeTag {
         case Opcode.AALOAD : {
             int s = --stackTop - 1;
             TypeData data = stackTypes[s];
-            if (data == null || !data.isObjectType())
-                throw new BadBytecode("bad AALOAD");
-            else
-                stackTypes[s] = new TypeData.ArrayElement(data);
-
+            stackTypes[s] = TypeData.ArrayElement.make(data);
             break; }
         case Opcode.BALOAD :
         case Opcode.CALOAD :
@@ -309,14 +283,12 @@ public abstract class Tracer implements TypeTag {
         return 2;
     }
 
-    private int doALOAD(int localVar) { // int localVar, TypeData type) {
+    private int doALOAD(int localVar) {
         stackTypes[stackTop++] = localsTypes[localVar];
         return 2;
     }
 
     private int doOpcode54_95(int pos, byte[] code, int op) throws BadBytecode {
-        TypeData[] localsTypes = this.localsTypes;
-        TypeData[] stackTypes = this.stackTypes;
         switch (op) {
         case Opcode.ISTORE :
             return doXSTORE(pos, code, INTEGER);
@@ -376,9 +348,9 @@ public abstract class Tracer implements TypeTag {
             stackTop -= (op == Opcode.LASTORE || op == Opcode.DASTORE) ? 4 : 3;
             break;
         case Opcode.AASTORE :
-            TypeData.setType(stackTypes[stackTop - 1],
-                             TypeData.ArrayElement.getElementType(stackTypes[stackTop - 3].getName()),
-                             classPool);
+            TypeData.ArrayElement.aastore(stackTypes[stackTop - 3],
+                                          stackTypes[stackTop - 1],
+                                          classPool);
             stackTop -= 3;
             break;
         case Opcode.BASTORE :
@@ -450,7 +422,7 @@ public abstract class Tracer implements TypeTag {
     private int doASTORE(int index) {
         stackTop--;
         // implicit upcast might be done.
-        localsTypes[index] = stackTypes[stackTop].copy();
+        localsTypes[index] = stackTypes[stackTop];
         return 2;
     }
 
@@ -475,16 +447,16 @@ public abstract class Tracer implements TypeTag {
             // this does not call writeLocal().
             return 3;
         case Opcode.I2L :
-            stackTypes[stackTop] = LONG;
-            stackTypes[stackTop - 1] = TOP;
+            stackTypes[stackTop - 1] = LONG;
+            stackTypes[stackTop] = TOP;
             stackTop++;
             break;
         case Opcode.I2F :
             stackTypes[stackTop - 1] = FLOAT;
             break;
         case Opcode.I2D :
-            stackTypes[stackTop] = DOUBLE;
-            stackTypes[stackTop - 1] = TOP;
+            stackTypes[stackTop - 1] = DOUBLE;
+            stackTypes[stackTop] = TOP;
             stackTop++;
             break;
         case Opcode.L2I :
@@ -494,24 +466,26 @@ public abstract class Tracer implements TypeTag {
             stackTypes[--stackTop - 1] = FLOAT;
             break;
         case Opcode.L2D :
-            stackTypes[stackTop - 1] = DOUBLE;
+            stackTypes[stackTop - 2] = DOUBLE;
             break;
         case Opcode.F2I :
             stackTypes[stackTop - 1] = INTEGER;
             break;
         case Opcode.F2L :
-            stackTypes[stackTop - 1] = TOP;
-            stackTypes[stackTop++] = LONG;
+            stackTypes[stackTop - 1] = LONG;
+            stackTypes[stackTop] = TOP;
+            stackTop++;
             break;
         case Opcode.F2D :
-            stackTypes[stackTop - 1] = TOP;
-            stackTypes[stackTop++] = DOUBLE;
+            stackTypes[stackTop - 1] = DOUBLE;
+            stackTypes[stackTop] = TOP;
+            stackTop++;
             break;
         case Opcode.D2I :
             stackTypes[--stackTop - 1] = INTEGER;
             break;
         case Opcode.D2L :
-            stackTypes[stackTop - 1] = LONG;
+            stackTypes[stackTop - 2] = LONG;
             break;
         case Opcode.D2F :
             stackTypes[--stackTop - 1] = FLOAT;
@@ -602,7 +576,7 @@ public abstract class Tracer implements TypeTag {
             visitReturn(pos, code);
             break;
         case Opcode.ARETURN :
-            TypeData.setType(stackTypes[--stackTop], returnType, classPool);
+            stackTypes[--stackTop].setType(returnType, classPool);
             visitReturn(pos, code);
             break;
         case Opcode.RETURN :
@@ -644,17 +618,21 @@ public abstract class Tracer implements TypeTag {
                     = new TypeData.ClassName(type);
             return 3; }
         case Opcode.ARRAYLENGTH :
-            TypeData.setType(stackTypes[stackTop - 1], "[Ljava.lang.Object;", classPool);
+            stackTypes[stackTop - 1].setType("[Ljava.lang.Object;", classPool);
             stackTypes[stackTop - 1] = INTEGER;
             break;
         case Opcode.ATHROW :
-            TypeData.setType(stackTypes[--stackTop], "java.lang.Throwable", classPool);
+            stackTypes[--stackTop].setType("java.lang.Throwable", classPool);
             visitThrow(pos, code);
             break;
         case Opcode.CHECKCAST : {
             // TypeData.setType(stackTypes[stackTop - 1], "java.lang.Object", classPool);
             int i = ByteArray.readU16bit(code, pos + 1);
-            stackTypes[stackTop - 1] = new TypeData.ClassName(cpool.getClassInfo(i));
+            String type = cpool.getClassInfo(i);
+            if (type.charAt(0) == '[')
+                type = type.replace('.', '/');  // getClassInfo() may return "[java.lang.Object;".
+
+            stackTypes[stackTop - 1] = new TypeData.ClassName(type);
             return 3; }
         case Opcode.INSTANCEOF :
             // TypeData.setType(stackTypes[stackTop - 1], "java.lang.Object", classPool);
@@ -748,9 +726,9 @@ public abstract class Tracer implements TypeTag {
         stackTop -= Descriptor.dataSize(desc);
         char c = desc.charAt(0);
         if (c == 'L')
-            TypeData.setType(stackTypes[stackTop], getFieldClassName(desc, 0), classPool);
+            stackTypes[stackTop].setType(getFieldClassName(desc, 0), classPool);
         else if (c == '[')
-            TypeData.setType(stackTypes[stackTop], desc, classPool);
+            stackTypes[stackTop].setType(desc, classPool);
 
         setFieldTarget(notStatic, index);
         return 3;
@@ -767,7 +745,7 @@ public abstract class Tracer implements TypeTag {
     private void setFieldTarget(boolean notStatic, int index) throws BadBytecode {
         if (notStatic) {
             String className = cpool.getFieldrefClassName(index);
-            TypeData.setType(stackTypes[--stackTop], className, classPool);
+            stackTypes[--stackTop].setType(className, classPool);
         }
     }
 
@@ -823,7 +801,7 @@ public abstract class Tracer implements TypeTag {
         checkParamTypes(desc, 1);
         if (notStatic) {
             String className = cpool.getMethodrefClassName(i);
-            TypeData.setType(stackTypes[--stackTop], className, classPool);
+            stackTypes[--stackTop].setType(className, classPool);
         }
 
         pushMemberType(desc);
@@ -835,7 +813,7 @@ public abstract class Tracer implements TypeTag {
         String desc = cpool.getInterfaceMethodrefType(i);
         checkParamTypes(desc, 1);
         String className = cpool.getInterfaceMethodrefClassName(i);
-        TypeData.setType(stackTypes[--stackTop], className, classPool);
+        stackTypes[--stackTop].setType(className, classPool);
         pushMemberType(desc);
         return 5;
     }
@@ -912,10 +890,9 @@ public abstract class Tracer implements TypeTag {
             stackTop--;
 
         if (array)
-            TypeData.setType(stackTypes[stackTop],
-                             desc.substring(i, k), classPool);
+            stackTypes[stackTop].setType(desc.substring(i, k), classPool);
         else if (c == 'L')
-            TypeData.setType(stackTypes[stackTop],
-                             desc.substring(i + 1, k - 1).replace('/', '.'), classPool);
+            stackTypes[stackTop].setType(desc.substring(i + 1, k - 1).replace('/', '.'),
+                                         classPool);
     }
 }

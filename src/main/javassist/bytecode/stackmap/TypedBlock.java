@@ -20,16 +20,10 @@ import javassist.bytecode.*;
 
 public class TypedBlock extends BasicBlock {
     public int stackTop, numLocals;
-    public TypeData[] stackTypes, localsTypes;
-
-    // set by a Liveness object.
-    // inputs[i] is true if the i-th variable is used within this block.  
-    public boolean[] inputs;
-
-    // working area for Liveness class. 
-    public boolean updating;
-    public int status;
-    public byte[] localsUsage;
+    // localsTypes is set to non-null when this block is first visited by a MapMaker.
+    // see alreadySet().
+    public TypeData[] localsTypes;
+    public TypeData[] stackTypes;
 
     /**
      * Divides the method body into basic blocks.
@@ -52,16 +46,12 @@ public class TypedBlock extends BasicBlock {
         blocks[0].initFirstBlock(ca.getMaxStack(), ca.getMaxLocals(),
                                  pool.getClassName(), minfo.getDescriptor(),
                                  isStatic, minfo.isConstructor());
-        new Liveness().compute(ca.iterator(), blocks, ca.getMaxLocals(),
-                               blocks[0].localsTypes);
         return blocks;
     }
 
     protected TypedBlock(int pos) {
         super(pos);
         localsTypes = null;
-        inputs = null;
-        updating = false;
     }
 
     protected void toString2(StringBuffer sbuf) {
@@ -70,11 +60,6 @@ public class TypedBlock extends BasicBlock {
         printTypes(sbuf, stackTop, stackTypes);
         sbuf.append("}, locals={");
         printTypes(sbuf, numLocals, localsTypes);
-        sbuf.append("}, inputs={");
-        if (inputs != null)
-            for (int i = 0; i < inputs.length; i++)
-                sbuf.append(inputs[i] ? "1, " : "0, ");
-
         sbuf.append('}');
     }
 
@@ -111,10 +96,9 @@ public class TypedBlock extends BasicBlock {
     public void resetNumLocals() {
         if (localsTypes != null) {
             int nl = localsTypes.length;
-            while (nl > 0 && localsTypes[nl - 1] == TypeTag.TOP) {
+            while (nl > 0 && localsTypes[nl - 1].isBasicType() == TypeTag.TOP) {
                 if (nl > 1) {
-                    TypeData td = localsTypes[nl - 2];
-                    if (td == TypeTag.LONG || td == TypeTag.DOUBLE)
+                    if (localsTypes[nl - 2].is2WordType())
                         break;
                 }
 
@@ -153,8 +137,8 @@ public class TypedBlock extends BasicBlock {
             throw new BadBytecode("no method descriptor: " + methodDesc);
 
         stackTop = 0;
-        stackTypes = new TypeData[maxStack];
-        TypeData[] locals = new TypeData[maxLocals];
+        stackTypes = TypeData.make(maxStack);
+        TypeData[] locals = TypeData.make(maxLocals);
         if (isConstructor)
             locals[0] = new TypeData.UninitThis(className);
         else if (!isStatic)
