@@ -92,6 +92,9 @@ public abstract class TypeData {
      */
     protected TypeVar toTypeVar() { return null; }
 
+    // see UninitTypeVar and UninitData
+    public void constructorCalled(int offset) {}
+
     /**
      * Primitive types.
      */
@@ -147,7 +150,8 @@ public abstract class TypeData {
         public boolean eq(TypeData d) { return getName().equals(d.getName()); }
     }
 
-    // a type variable representing a class type.
+    /* a type variable representing a class type or a basic type.
+     */
     public static class TypeVar extends AbsTypeVar {
         protected ArrayList lowers;     // lower bounds of this type. ArrayList<TypeData>
         protected ArrayList usedBy;     // reverse relations of lowers
@@ -615,6 +619,42 @@ public abstract class TypeData {
         }
     }
 
+    public static class UninitTypeVar extends AbsTypeVar {
+        protected TypeData type;    // UninitData or TOP
+
+        public UninitTypeVar(UninitData t) { type = t; }
+        public int getTypeTag() { return type.getTypeTag(); }
+        public int getTypeData(ConstPool cp) { return type.getTypeData(cp); }
+        public BasicType isBasicType() { return type.isBasicType(); }
+        public boolean is2WordType() { return type.is2WordType(); }
+        public boolean isUninit() { return type.isUninit(); }
+        public boolean eq(TypeData d) { return type.eq(d); }
+        public String getName() { return type.getName(); }
+
+        protected TypeVar toTypeVar() { return null; }
+        public TypeData join() { return type.join(); }
+
+        public void setType(String s, ClassPool cp) throws BadBytecode {
+            type.setType(s, cp);
+        }
+
+        public void merge(TypeData t) {
+            if (!t.eq(type))
+                type = TypeTag.TOP;
+        }
+
+        public void constructorCalled(int offset) {
+            type.constructorCalled(offset);
+        }
+
+        public int offset() {
+            if (type instanceof UninitData)
+                return ((UninitData)type).offset;
+            else // if type == TypeTag.TOP
+                throw new RuntimeException("not available");
+        }
+    }
+
     /**
      * Type data for OBJECT.
      */
@@ -675,6 +715,8 @@ public abstract class TypeData {
             this.initialized = false;
         }
 
+        public UninitData copy() { return new UninitData(offset, getName()); }
+
         public int getTypeTag() {
             return StackMapTable.UNINIT;
         }
@@ -684,8 +726,10 @@ public abstract class TypeData {
         }
 
         public TypeData join() {
-            TypeData td = initialized ? new ClassName(getName()) : this; 
-            return new TypeVar(td);
+            if (initialized)
+                return new TypeVar(new ClassName(getName()));
+            else
+                return new UninitTypeVar(copy());
         }
 
         public boolean isUninit() { return true; }
@@ -705,12 +749,19 @@ public abstract class TypeData {
         }
 
         public String toString() { return "uninit:" + getName() + "@" + offset; }
+
+        public void constructorCalled(int offset) {
+            if (offset == this.offset)
+                initialized = true;
+        }
     }
 
     public static class UninitThis extends UninitData {
         UninitThis(String className) {
             super(-1, className);
         }
+
+        public UninitData copy() { return new UninitThis(getName()); }
 
         public int getTypeTag() {
             return StackMapTable.THIS;

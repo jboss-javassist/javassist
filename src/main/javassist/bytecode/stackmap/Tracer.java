@@ -801,11 +801,28 @@ public abstract class Tracer implements TypeTag {
         checkParamTypes(desc, 1);
         if (notStatic) {
             String className = cpool.getMethodrefClassName(i);
-            stackTypes[--stackTop].setType(className, classPool);
+            TypeData target = stackTypes[--stackTop];
+            if (target instanceof TypeData.UninitTypeVar && target.isUninit())
+                constructorCalled((TypeData.UninitTypeVar)target);
+
+            target.setType(className, classPool);
         }
 
         pushMemberType(desc);
         return 3;
+    }
+
+    /* This is a constructor call on an uninitialized object.
+     * Sets flags of other references to that object.
+     */
+    private void constructorCalled(TypeData.UninitTypeVar target) {
+        int offset = target.offset();
+        target.constructorCalled(offset);
+        for (int i = 0; i < stackTop; i++)
+            stackTypes[i].constructorCalled(offset);
+
+        for (int i = 0; i < localsTypes.length; i++)
+            localsTypes[i].constructorCalled(offset);
     }
 
     private int doInvokeIntfMethod(int pos, byte[] code) throws BadBytecode {

@@ -294,6 +294,51 @@ public class StackMapTest extends TestCase {
         }
     }
 
+    public void testRebuildConstructor() throws Exception {
+        CtClass cc = loader.get("javassist.bytecode.StackMapTest$T5");
+        rebuildStackMaps2(cc);
+        cc.writeFile();
+        Object t1 = make(cc.getName());
+        assertEquals(122, invoke(t1, "test"));
+    }
+
+    public static class T5 {
+        int count;
+        public T5() { count = 0; }
+        public T5(int k) {
+            if (k > 0) count = 10;
+            else count = 100;
+            count++;
+        }
+        public T5(double d) {
+            this(d > 0.0 ? 1 : -1);
+            if (d > 1.0) count += 10;
+            else count += 100;
+            count++;
+        }
+        public int test() {
+            return new T5(3).count + new T5(1.0).count;
+        }
+    }
+
+    public void testRebuildConstructor2() throws Exception {
+        CtClass cc = loader.get("javassist.bytecode.StackMapTest$T6");
+        rebuildStackMaps2(cc);
+        cc.writeFile();
+        Object t1 = make(cc.getName());
+        assertEquals(101, invoke(t1, "test2"));
+    }
+
+    public static class T6 {
+        public int test2() {
+            T5 t0 = new T5();
+            T5 t = new T5(t0.count > 0 ? (new T5(t0.count > 0 ? 1 : -1).count) : -1);
+            if (t0.count > 0)
+                t.count += 1000;
+            return t.count;
+        }
+    }
+
     public void tstCtClassType() throws Exception {
         ClassPool cp = ClassPool.getDefault();
         CtClass cc = cp.get("javassist.CtClassType");
