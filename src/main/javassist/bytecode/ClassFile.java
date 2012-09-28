@@ -94,6 +94,8 @@ public final class ClassFile {
      * if the JVM supports <code>java.lang.StringBuilder</code>.
      * It is 50 (JDK 1.6)
      * if the JVM supports <code>java.util.zip.DeflaterInputStream</code>.
+     * It is 51 (JDK 1.7)
+     * if the JVM supports <code>java.lang.invoke.CallSite</code>.
      */
     public static int MAJOR_VERSION = JAVA_3;
 
@@ -103,6 +105,8 @@ public final class ClassFile {
             MAJOR_VERSION = JAVA_5;
             Class.forName("java.util.zip.DeflaterInputStream");
             MAJOR_VERSION = JAVA_6;
+            Class.forName("java.lang.invoke.CallSite");
+            MAJOR_VERSION = JAVA_7;
         }
         catch (Throwable t) {}
     }
