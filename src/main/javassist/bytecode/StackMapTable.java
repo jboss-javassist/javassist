@@ -796,10 +796,10 @@ public class StackMapTable extends AttributeInfo {
 
     static class Shifter extends Walker {
         private StackMapTable stackMap;
-        private int where, gap;
-        private int position;
-        private byte[] updatedInfo;
-        private boolean exclusive;
+        int where, gap;
+        int position;
+        byte[] updatedInfo;
+        boolean exclusive;
 
         public Shifter(StackMapTable smt, int where, int gap, boolean exclusive) {
             super(smt);
@@ -825,7 +825,7 @@ public class StackMapTable extends AttributeInfo {
             update(pos, offsetDelta, 64, 247);
         }
 
-        private void update(int pos, int offsetDelta, int base, int entry) {
+        void update(int pos, int offsetDelta, int base, int entry) {
             int oldPos = position;
             position = oldPos + offsetDelta + (oldPos == 0 ? 0 : 1);
             boolean match;
@@ -850,7 +850,7 @@ public class StackMapTable extends AttributeInfo {
             }
         }
 
-        private static byte[] insertGap(byte[] info, int where, int gap) {
+        static byte[] insertGap(byte[] info, int where, int gap) {
             int len = info.length;
             byte[] newinfo = new byte[len + gap];
             for (int i = 0; i < len; i++)
@@ -872,7 +872,7 @@ public class StackMapTable extends AttributeInfo {
             update(pos, offsetDelta);
         }
 
-        private void update(int pos, int offsetDelta) {
+        void update(int pos, int offsetDelta) {
             int oldPos = position;
             position = oldPos + offsetDelta + (oldPos == 0 ? 0 : 1);
             boolean match;
@@ -886,6 +886,73 @@ public class StackMapTable extends AttributeInfo {
                 ByteArray.write16bit(newDelta, info, pos + 1);
                 position += gap;
             }
+        }
+    }
+
+    /**
+     * @see CodeIterator.Switcher#adjustOffsets(int, int)
+     */
+    void shiftForSwitch(int where, int gapSize) throws BadBytecode {
+        new SwitchShifter(this, where, gapSize).doit();
+    }
+
+    static class SwitchShifter extends Shifter {
+        SwitchShifter(StackMapTable smt, int where, int gap) {
+            super(smt, where, gap, false);
+        }
+
+        void update(int pos, int offsetDelta, int base, int entry) {
+            int oldPos = position;
+            position = oldPos + offsetDelta + (oldPos == 0 ? 0 : 1);
+            int newDelta = offsetDelta;
+            if (where == position)
+                newDelta = offsetDelta - gap;
+            else if (where == oldPos)
+                newDelta = offsetDelta + gap;
+            else
+                return;
+
+            if (offsetDelta < 64)
+                if (newDelta < 64)
+                    info[pos] = (byte)(newDelta + base);
+                else {
+                    byte[] newinfo = insertGap(info, pos, 2);
+                    newinfo[pos] = (byte)entry;
+                    ByteArray.write16bit(newDelta, newinfo, pos + 1);
+                    updatedInfo = newinfo;
+                }
+            else
+                if (newDelta < 64) {
+                    byte[] newinfo = deleteGap(info, pos, 2);
+                    newinfo[pos] = (byte)(newDelta + base);
+                    updatedInfo = newinfo;
+                }
+                else
+                    ByteArray.write16bit(newDelta, info, pos + 1);
+        }
+
+        static byte[] deleteGap(byte[] info, int where, int gap) {
+            where += gap;
+            int len = info.length;
+            byte[] newinfo = new byte[len - gap];
+            for (int i = 0; i < len; i++)
+                newinfo[i - (i < where ? 0 : gap)] = info[i];
+
+            return newinfo;
+        }
+
+        void update(int pos, int offsetDelta) {
+            int oldPos = position;
+            position = oldPos + offsetDelta + (oldPos == 0 ? 0 : 1);
+            int newDelta = offsetDelta;
+            if (where == position)
+                newDelta = offsetDelta - gap;
+            else if (where == oldPos)
+                newDelta = offsetDelta + gap;
+            else
+                return;
+
+            ByteArray.write16bit(newDelta, info, pos + 1);
         }
     }
 

@@ -725,10 +725,10 @@ public class CodeIterator implements Opcode {
         1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 1, 1, 1, 1, 1, 1, 1,
         1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 3, 3, 3, 3, 3, 3,
         3, 3, 3, 3, 3, 3, 3, 3, 3, 2, 0, 0, 1, 1, 1, 1, 1, 1, 3, 3,
-        3, 3, 3, 3, 3, 5, 0, 3, 2, 3, 1, 1, 3, 3, 1, 1, 0, 4, 3, 3,
+        3, 3, 3, 3, 3, 5, 5, 3, 2, 3, 1, 1, 3, 3, 1, 1, 0, 4, 3, 3,
         5, 5
     };
-    // 0 .. UNUSED (186), LOOKUPSWITCH, TABLESWITCH, WIDE
+    // 0 .. LOOKUPSWITCH, TABLESWITCH, WIDE
 
     /**
      * Calculates the index of the next opcode.
@@ -1038,6 +1038,14 @@ public class CodeIterator implements Opcode {
             if (stack2 != null)
                 stack2.shiftPc(where, gapLength, exclusive);
         }
+
+        void shiftForSwitch(int where, int gapLength) throws BadBytecode {
+            if (stack != null)
+                stack.shiftForSwitch(where, gapLength);
+
+            if (stack2 != null)
+                stack2.shiftForSwitch(where, gapLength);
+        }
     }
 
     /*
@@ -1047,13 +1055,13 @@ public class CodeIterator implements Opcode {
                                   CodeAttribute ca, CodeAttribute.LdcEntry ldcs)
         throws BadBytecode
     {
-        ArrayList jumps = makeJumpList(code, code.length);
+        Pointers pointers = new Pointers(0, 0, 0, etable, ca);
+        ArrayList jumps = makeJumpList(code, code.length, pointers);
         while (ldcs != null) {
             addLdcW(ldcs, jumps);
             ldcs = ldcs.next;
         }
 
-        Pointers pointers = new Pointers(0, 0, 0, etable, ca);
         byte[] r = insertGap2w(code, 0, 0, false, jumps, pointers);
         return r;
     }
@@ -1091,8 +1099,8 @@ public class CodeIterator implements Opcode {
         if (gapLength <= 0)
             return code;
 
-        ArrayList jumps = makeJumpList(code, code.length);
         Pointers pointers = new Pointers(currentPos, mark, where, etable, ca);
+        ArrayList jumps = makeJumpList(code, code.length, pointers);
         byte[] r = insertGap2w(code, where, gapLength, exclusive, jumps, pointers);
         currentPos = pointers.cursor;
         mark = pointers.mark;
@@ -1152,7 +1160,7 @@ public class CodeIterator implements Opcode {
         return makeExapndedCode(code, jumps, where, gapLength);
     }
 
-    private static ArrayList makeJumpList(byte[] code, int endPos)
+    private static ArrayList makeJumpList(byte[] code, int endPos, Pointers ptrs)
         throws BadBytecode
     {
         ArrayList jumps = new ArrayList();
@@ -1191,7 +1199,7 @@ public class CodeIterator implements Opcode {
                     i0 += 4;
                 }
 
-                jumps.add(new Table(i, defaultbyte, lowbyte, highbyte, offsets));
+                jumps.add(new Table(i, defaultbyte, lowbyte, highbyte, offsets, ptrs));
             }
             else if (inst == LOOKUPSWITCH) {
                 int i2 = (i & ~3) + 4;  // 0-3 byte padding
@@ -1206,7 +1214,7 @@ public class CodeIterator implements Opcode {
                     i0 += 8;
                 }
 
-                jumps.add(new Lookup(i, defaultbyte, matches, offsets));
+                jumps.add(new Lookup(i, defaultbyte, matches, offsets, ptrs));
             }
         }
 
@@ -1300,7 +1308,7 @@ public class CodeIterator implements Opcode {
         int deltaSize() { return 0; }   // newSize - oldSize
 
         // This returns the original instruction size.
-        abstract int write(int srcPos, byte[] code, int destPos, byte[] newcode);
+        abstract int write(int srcPos, byte[] code, int destPos, byte[] newcode) throws BadBytecode;
     }
 
     /* used by changeLdcToLdcW() and CodeAttribute.LdcEntry.
@@ -1448,12 +1456,14 @@ public class CodeIterator implements Opcode {
     static abstract class Switcher extends Branch {
         int gap, defaultByte;
         int[] offsets;
+        Pointers pointers;
 
-        Switcher(int pos, int defaultByte, int[] offsets) {
+        Switcher(int pos, int defaultByte, int[] offsets, Pointers ptrs) {
             super(pos);
             this.gap = 3 - (pos & 3);
             this.defaultByte = defaultByte;
             this.offsets = offsets;
+            this.pointers = ptrs;
         }
 
         void shift(int where, int gapLength, boolean exclusive) {
@@ -1481,7 +1491,7 @@ public class CodeIterator implements Opcode {
             return gap - (3 - (orgPos & 3));
         }
 
-        int write(int src, byte[] code, int dest, byte[] newcode) {
+        int write(int src, byte[] code, int dest, byte[] newcode) throws BadBytecode {
             int padding = 3 - (pos & 3);
             int nops = gap - padding;
             int bytecodeSize = 5 + (3 - (orgPos & 3)) + tableSize();
@@ -1511,7 +1521,8 @@ public class CodeIterator implements Opcode {
          * dead code.  It complicates the generation of StackMap and
          * StackMapTable.
          */
-        void adjustOffsets(int size, int nops) {
+        void adjustOffsets(int size, int nops) throws BadBytecode {
+            pointers.shiftForSwitch(pos + size, nops);
             if (defaultByte == size)
                 defaultByte -= nops;
 
@@ -1524,8 +1535,8 @@ public class CodeIterator implements Opcode {
     static class Table extends Switcher {
         int low, high;
 
-        Table(int pos, int defaultByte, int low, int high, int[] offsets) {
-            super(pos, defaultByte, offsets);
+        Table(int pos, int defaultByte, int low, int high, int[] offsets, Pointers ptrs) {
+            super(pos, defaultByte, offsets, ptrs);
             this.low = low;
             this.high = high;
         }
@@ -1549,8 +1560,8 @@ public class CodeIterator implements Opcode {
     static class Lookup extends Switcher {
         int[] matches;
 
-        Lookup(int pos, int defaultByte, int[] matches, int[] offsets) {
-            super(pos, defaultByte, offsets);
+        Lookup(int pos, int defaultByte, int[] matches, int[] offsets, Pointers ptrs) {
+            super(pos, defaultByte, offsets, ptrs);
             this.matches = matches;
         }
 

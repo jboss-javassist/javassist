@@ -10,6 +10,7 @@ import java.io.PrintStream;
 import java.lang.reflect.Method;
 
 import javassist.ClassPool;
+import javassist.CodeConverter;
 import javassist.CtClass;
 import javassist.CtMethod;
 import javassist.CtNewMethod;
@@ -299,7 +300,7 @@ public class StackMapTest extends TestCase {
         rebuildStackMaps2(cc);
         cc.writeFile();
         Object t1 = make(cc.getName());
-        assertEquals(122, invoke(t1, "test"));
+        assertEquals(123, invoke(t1, "test"));
     }
 
     public static class T5 {
@@ -336,6 +337,89 @@ public class StackMapTest extends TestCase {
             if (t0.count > 0)
                 t.count += 1000;
             return t.count;
+        }
+    }
+
+    public void testSwitchCase() throws Exception {
+        CtClass cc = loader.get("javassist.bytecode.StackMapTest$T7");
+        // CodeConverter conv = new CodeConverter();
+        // conv.replaceNew(cc, cc, "make2");
+        // cc.instrument(conv);
+        StringBuffer sbuf = new StringBuffer("String s;");
+        for (int i = 0; i < 130; i++)
+            sbuf.append("s =\"" + i + "\";");
+
+        cc.getDeclaredMethod("foo").insertBefore(sbuf.toString());
+        cc.getDeclaredMethod("test2").setBody(loader.get("javassist.bytecode.StackMapTest$T8").getDeclaredMethod("test2"), null);
+        //rebuildStackMaps2(cc);
+        cc.writeFile();
+        Object t1 = make(cc.getName());
+        assertEquals(110, invoke(t1, "test"));
+    }
+
+    public static class T7 {
+        int value = 1;
+        T7 t7;
+        public static T7 make2() { return null; }
+        public int foo() { return 1; }
+        public int test() { return test2(10); }
+        public int test2(int k) { return k; }
+    }
+
+    public static class T8 {
+        public int test2(int k) {
+            String s = "abc";
+            T7 t = k > 0 ? new T7() : new T7();
+            switch (k) {
+            case 0:
+                t = new T7();
+                k += t.value;
+                break;
+            case 10:
+                k += 100;
+                break;
+            }
+            return k;
+        }
+    }
+
+    public void testSwitchCase2() throws Exception {
+        CtClass cc = loader.get("javassist.bytecode.StackMapTest$T7b");
+        StringBuffer sbuf = new StringBuffer("String s;");
+        for (int i = 0; i < 130; i++)
+            sbuf.append("s =\"" + i + "\";");
+
+        cc.getDeclaredMethod("foo").insertBefore(sbuf.toString());
+        cc.getDeclaredMethod("test2").setBody(loader.get("javassist.bytecode.StackMapTest$T8b").getDeclaredMethod("test2"), null);
+        rebuildStackMaps2(cc);
+        cc.writeFile();
+        Object t1 = make(cc.getName());
+        assertEquals(110, invoke(t1, "test"));
+    }
+
+    public static class T7b {
+        int value = 1;
+        T7b t7;
+        public static T7b make2() { return null; }
+        public int foo() { return 1; }
+        public int test() { return test2(10); }
+        public int test2(int k) { return k; }
+    }
+
+    public static class T8b {
+        public int test2(int k) {
+            String s = "abc";
+            T7b t = k > 0 ? new T7b() : new T7b();
+            switch (k) {
+            case 0:
+                t = new T7b();
+                k += t.value;
+                break;
+            case 10:
+                k += 100;
+                break;
+            }
+            return k;
         }
     }
 

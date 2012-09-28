@@ -399,6 +399,32 @@ public class StackMap extends AttributeInfo {
     }
 
     /**
+     * @see CodeIterator.Switcher#adjustOffsets(int, int)
+     */
+    void shiftForSwitch(int where, int gapSize) throws BadBytecode {
+        new SwitchShifter(this, where, gapSize).visit();
+    }
+
+    static class SwitchShifter extends Walker {
+        private int where, gap;
+
+        public SwitchShifter(StackMap smt, int where, int gap) {
+            super(smt);
+            this.where = where;
+            this.gap = gap;
+        }
+
+        public int locals(int pos, int offset, int num) {
+            if (where == pos + offset)
+                ByteArray.write16bit(offset - gap, info, pos - 4);
+            else if (where == pos)
+                ByteArray.write16bit(offset + gap, info, pos - 4);
+
+            return super.locals(pos, offset, num);
+        }
+    }
+
+    /**
      * Undocumented method.  Do not use; internal-use only.
      *
      * <p>This method is for javassist.convert.TransformNew.
