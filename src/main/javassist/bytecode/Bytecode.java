@@ -1083,7 +1083,7 @@ public class Bytecode extends ByteVector implements Cloneable, Opcode {
     public void addInvokevirtual(int clazz, String name, String desc) {
         add(INVOKEVIRTUAL);
         addIndex(constPool.addMethodrefInfo(clazz, name, desc));
-        growStack(Descriptor.dataSize(desc) - 1);
+        growStack(Descriptor.dataSize(desc));   // assume CosntPool#REF_invokeStatic
     }
 
     /**
@@ -1151,6 +1151,25 @@ public class Bytecode extends ByteVector implements Cloneable, Opcode {
         addIndex(constPool.addInterfaceMethodrefInfo(clazz, name, desc));
         add(count);
         add(0);
+        growStack(Descriptor.dataSize(desc) - 1);
+    }
+
+    /**
+     * Appends INVOKEDYNAMIC.
+     *
+     * @param bootstrap     an index into the <code>bootstrap_methods</code> array
+     *                      of the bootstrap method table.     
+     * @param name          the method name.
+     * @param desc          the method descriptor.
+     * @see Descriptor#ofMethod(CtClass,CtClass[])
+     * @since 3.17
+     */
+    public void addInvokedynamic(int bootstrap, String name, String desc) {
+        int nt = constPool.addNameAndTypeInfo(name, desc);
+        int dyn = constPool.addInvokeDynamicInfo(bootstrap, nt);
+        add(INVOKEDYNAMIC);
+        addIndex(dyn);
+        add(0, 0);
         growStack(Descriptor.dataSize(desc) - 1);
     }
 

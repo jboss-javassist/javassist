@@ -573,8 +573,9 @@ public class Executor implements Opcode {
             case INVOKEINTERFACE:
                 evalInvokeIntfMethod(opcode, iter.u16bitAt(pos + 1), frame);
                 break;
-            case 186:
-                throw new RuntimeException("Bad opcode 186");
+            case INVOKEDYNAMIC:
+                evalInvokeDynamic(opcode, iter.u16bitAt(pos + 1), frame);
+                break;
             case NEW:
                 frame.push(resolveClassInfo(constPool.getClassInfo(iter.u16bitAt(pos + 1))));
                 break;
@@ -748,6 +749,20 @@ public class Executor implements Opcode {
             simplePush(zeroExtend(returnType), frame);
     }
 
+    private void evalInvokeDynamic(int opcode, int index, Frame frame) throws BadBytecode {
+        String desc = constPool.getInvokeDynamicType(index);
+        Type[] types = paramTypesFromDesc(desc);
+        int i = types.length;
+
+        while (i > 0)
+            verifyAssignable(zeroExtend(types[--i]), simplePop(frame));
+
+        // simplePop(frame);    // assume CosntPool#REF_invokeStatic
+
+        Type returnType = returnTypeFromDesc(desc);
+        if (returnType != Type.VOID)
+            simplePush(zeroExtend(returnType), frame);
+    }
 
     private void evalLDC(int index, Frame frame) throws BadBytecode {
         int tag = constPool.getTag(index);

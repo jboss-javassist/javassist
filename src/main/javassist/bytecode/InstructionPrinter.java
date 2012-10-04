@@ -137,8 +137,8 @@ public class InstructionPrinter implements Opcode {
                 return opstring + " " + methodInfo(pool, iter.u16bitAt(pos + 1));
             case INVOKEINTERFACE:
                 return opstring + " " + interfaceMethodInfo(pool, iter.u16bitAt(pos + 1));
-            case 186:
-                throw new RuntimeException("Bad opcode 186");
+            case INVOKEDYNAMIC:
+                return opstring + " " + iter.u16bitAt(pos + 1);
             case NEW:
                 return opstring + " " + classInfo(pool, iter.u16bitAt(pos + 1));
             case NEWARRAY:

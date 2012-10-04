@@ -779,6 +779,52 @@ public class BytecodeTest extends TestCase {
         assertEquals("[Ltest.Bar2;", cp.getClassInfo(n8));
     }
 
+    public void testInvokeDynamic() throws Exception {
+        CtClass cc = loader.get("test4.InvokeDyn");
+        ClassFile cf = cc.getClassFile();
+        ConstPool cp = cf.getConstPool();
+
+        Bytecode code = new Bytecode(cp, 0, 1);
+        code.addAload(0);
+        code.addIconst(9);
+        code.addLdc("nine");
+        code.addInvokedynamic(0, "call", "(ILjava/lang/String;)I");
+        code.addOpcode(Opcode.SWAP);
+        code.addOpcode(Opcode.POP);
+        code.addOpcode(Opcode.IRETURN);
+
+        MethodInfo minfo = new MethodInfo(cp, "test", "()I");
+        minfo.setCodeAttribute(code.toCodeAttribute());
+        minfo.setAccessFlags(AccessFlag.PUBLIC);
+        minfo.rebuildStackMapIf6(loader, cf);
+        cf.addMethod(minfo);
+
+        cf.addMethod(new MethodInfo(cp, "test2", minfo, null));
+        int mtIndex = cp.addMethodTypeInfo(cp.addUtf8Info("(I)V"));
+
+        String desc
+            = "(Ljava/lang/invoke/MethodHandles$Lookup;Ljava/lang/String;Ljava/lang/invoke/MethodType;)" +
+              "Ljava/lang/invoke/CallSite;";
+        int mri = cp.addMethodrefInfo(cp.addClassInfo(cc.getName()), "boot", desc);
+        int mhi = cp.addMethodHandleInfo(ConstPool.REF_invokeStatic, mri);
+        int[] args = new int[0];
+        BootstrapMethodsAttribute.BootstrapMethod[] bms
+            = new BootstrapMethodsAttribute.BootstrapMethod[1];
+        bms[0] = new BootstrapMethodsAttribute.BootstrapMethod(mhi, args);
+
+        cf.addAttribute(new BootstrapMethodsAttribute(cp, bms));
+        cc.writeFile();
+        Object obj = make(cc.getName());
+        assertEquals(9, invoke(obj, "test"));
+
+        ClassPool cp2 = new ClassPool();
+        cp2.appendClassPath(".");
+        CtClass cc2 = cp2.get(cc.getName());
+        assertEquals("test4.InvokeDyn", cc2.getClassFile().getName());
+        ConstPool cPool2 = cc2.getClassFile().getConstPool();
+        assertEquals("(I)V", cPool2.getUtf8Info(cPool2.getMethodTypeInfo(mtIndex)));
+    }
+
     public static void main(String[] args) {
         // junit.textui.TestRunner.run(suite());
         junit.awtui.TestRunner.main(new String[] {

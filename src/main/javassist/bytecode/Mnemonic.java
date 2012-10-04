@@ -31,9 +31,6 @@ public interface Mnemonic {
     /**
      * The instruction names (mnemonics) sorted by the opcode.
      * The length of this array is 202 (jsr_w=201).
-     *
-     * <p>The value at index 186 is null since no instruction is
-     * assigned to 186.
      */
     String[] OPCODE = {
         "nop",  /* 0*/
@@ -222,7 +219,7 @@ public interface Mnemonic {
         "invokespecial",        /* 183*/
         "invokestatic", /* 184*/
         "invokeinterface",      /* 185*/
-        null,
+        "invokedynamic",        /* 186 */
         "new",  /* 187*/
         "newarray",     /* 188*/
         "anewarray",    /* 189*/

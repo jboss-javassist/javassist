@@ -156,6 +156,7 @@ public interface Opcode {
     int IMUL = 104;
     int INEG = 116;
     int INSTANCEOF = 193;
+    int INVOKEDYNAMIC = 186;
     int INVOKEINTERFACE = 185;
     int INVOKESPECIAL = 183;
     int INVOKESTATIC = 184;
@@ -428,7 +429,7 @@ public interface Opcode {
         0, // invokespecial, 183        depends on the type
         0, // invokestatic, 184         depends on the type
         0, // invokeinterface, 185      depends on the type
-        0, // undefined, 186
+        0, // invokedynaimc, 186        depends on the type
         1, // new, 187
         0, // newarray, 188
         0, // anewarray, 189

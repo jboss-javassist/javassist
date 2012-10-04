@@ -21,6 +21,16 @@ import java.util.ArrayList;
 /**
  * An iterator for editing a code attribute.
  *
+ * <p>To directly read or edit a bytecode sequence, call {@link #byteAt(int)}, {@link #s16bitAt(int)},
+ * {@link #writeByte(int, int)}, {@link #write16bit(int, int)}, and other methods.
+ * For example, if <code>method</code> refers to a <code>CtMethod</code> object,
+ * the following code substitutes the <code>NOP</code> instruction for the first
+ * instruction of the method:  
+ *
+ * <pre>CodeAttribute ca = method.getMethodInfo().getCodeAttribute();
+ * CodeIterator ci = ca.iterator();
+ * ci.writeByte(Opcode.NOP, 0);</pre>
+ *
  * <p>If there are multiple <code>CodeIterator</code>s referring to the
  * same <code>Code_attribute</code>, then inserting a gap by one
  * <code>CodeIterator</code> will break the other
@@ -725,11 +735,10 @@ public class CodeIterator implements Opcode {
         1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 1, 1, 1, 1, 1, 1, 1,
         1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 3, 3, 3, 3, 3, 3,
         3, 3, 3, 3, 3, 3, 3, 3, 3, 2, 0, 0, 1, 1, 1, 1, 1, 1, 3, 3,
-     // 3, 3, 3, 3, 3, 5, 5, 3, 2, 3, 1, 1, 3, 3, 1, 1, 0, 4, 3, 3,
-        3, 3, 3, 3, 3, 5, 0, 3, 2, 3, 1, 1, 3, 3, 1, 1, 0, 4, 3, 3,
+        3, 3, 3, 3, 3, 5, 5, 3, 2, 3, 1, 1, 3, 3, 1, 1, 0, 4, 3, 3,
         5, 5
     };
-    // 0 .. UNUSED (186), LOOKUPSWITCH, TABLESWITCH, WIDE
+    // 0 .. LOOKUPSWITCH, TABLESWITCH, WIDE
 
     /**
      * Calculates the index of the next opcode.
@@ -1496,7 +1505,9 @@ public class CodeIterator implements Opcode {
             int padding = 3 - (pos & 3);
             int nops = gap - padding;
             int bytecodeSize = 5 + (3 - (orgPos & 3)) + tableSize();
-            adjustOffsets(bytecodeSize, nops);
+            if (nops > 0)
+                adjustOffsets(bytecodeSize, nops);
+
             newcode[dest++] = code[src];
             while (padding-- > 0)
                 newcode[dest++] = 0;

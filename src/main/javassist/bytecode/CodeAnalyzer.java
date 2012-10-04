@@ -240,6 +240,10 @@ class CodeAnalyzer implements Opcode {
                                             ci.u16bitAt(index + 1));
             stack += Descriptor.dataSize(desc) - 1;
             break;
+        case INVOKEDYNAMIC :
+            desc = constPool.getInvokeDynamicType(ci.u16bitAt(index + 1));
+            stack += Descriptor.dataSize(desc);     // assume CosntPool#REF_invokeStatic
+            break;
         case ATHROW :
             stack = 1;      // the stack becomes empty (1 means no values).
             break;

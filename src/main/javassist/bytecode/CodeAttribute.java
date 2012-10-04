@@ -32,6 +32,7 @@ import java.util.Map;
  * use <code>CodeIterator</code>.
  *
  * @see CodeIterator
+ * @see #iterator()
  */
 public class CodeAttribute extends AttributeInfo implements Opcode {
     /**
@@ -399,6 +400,12 @@ public class CodeAttribute extends AttributeInfo implements Opcode {
                                   classnameMap);
                 newcode[i + 3] = code[i + 3];
                 newcode[i + 4] = code[i + 4];
+                break;
+            case INVOKEDYNAMIC :
+                copyConstPoolInfo(i + 1, code, srcCp, newcode, destCp,
+                        classnameMap);
+                newcode[i + 3] = 0;
+                newcode[i + 4] = 0;
                 break;
             case MULTIANEWARRAY :
                 copyConstPoolInfo(i + 1, code, srcCp, newcode, destCp,

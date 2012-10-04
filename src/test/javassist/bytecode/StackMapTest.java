@@ -423,6 +423,171 @@ public class StackMapTest extends TestCase {
         }
     }
 
+    public void testSwitchCase3() throws Exception {
+        CtClass cc = loader.get("javassist.bytecode.StackMapTest$T7c");
+        StringBuffer sbuf = new StringBuffer("String s;");
+        for (int i = 0; i < 130; i++)
+            sbuf.append("s =\"" + i + "\";");
+
+        cc.getDeclaredMethod("foo").insertBefore(sbuf.toString());
+        cc.getDeclaredMethod("test2").setBody(loader.get("javassist.bytecode.StackMapTest$T8c").getDeclaredMethod("test2"), null);
+
+        cc.writeFile();
+        Object t1 = make(cc.getName());
+        assertEquals(100, invoke(t1, "test"));
+    }
+
+    public static class T7c {
+        int value = 1;
+        T7b t7;
+        public static T7b make2() { return null; }
+        public static void print(String s) {}
+        public int foo() { return 1; }
+        public int test() { return test2(10); }
+        public int test2(int k) { return 0; }
+    }
+
+    public static class T8c {
+        public int test2(int k) {
+            int jj = 50;
+            if (k > 0)
+                k += "fooo".length();
+
+            int j = 50;
+            loop: for (int i = 0; i < 10; i++) {
+                int jjj = 1;
+                switch (i) {
+                case 0:
+                    k++;
+                    { int poi = 0; }
+                    break;
+                case 9:
+                    break loop;
+                case 7:
+                    k += jjj;
+                    break;
+                }
+            }
+            return j + jj;
+        }
+    }
+
+    public void testSwitchCase4() throws Exception {
+        CtClass cc = loader.get("javassist.bytecode.StackMapTest$T8e");
+        StringBuffer sbuf = new StringBuffer("String s;");
+        for (int i = 0; i < 130; i++)
+            sbuf.append("s =\"" + i + "\";");
+
+        cc.getDeclaredMethod("foo").insertBefore(sbuf.toString());
+        CtClass orig = loader.get("javassist.bytecode.StackMapTest$T8d");
+        CtMethod origM = orig.getDeclaredMethod("test2");
+        writeLdcw(origM);
+        cc.getDeclaredMethod("test2").setBody(origM, null);
+
+        orig.writeFile();
+        cc.writeFile();
+        Object t1 = make(cc.getName());
+        assertEquals(100, invoke(t1, "test"));
+    }
+
+    private void writeLdcw(CtMethod method) {
+        CodeAttribute ca = method.getMethodInfo().getCodeAttribute();
+        int index = ca.getConstPool().addStringInfo("ldcw");
+        CodeIterator ci = ca.iterator();
+        ci.writeByte(Opcode.LDC_W, 14);
+        ci.write16bit(index, 15);
+        ci.writeByte(Opcode.LDC_W, 43);
+        ci.write16bit(index, 44);
+    }
+
+    public static class T8e {
+        static T8dd helper() { return new T8dd(); }
+        int integer() { return 9; }
+        boolean integer2(String s) { return true; }
+        static void print(String s) {}
+        private void print2(String s) {}
+        private Object func(String s) { return null; }
+        I8d func2(String s) { return null; }
+        static String ldcw() { return "k"; }
+        static boolean debug = false;
+        void log(String p1,String p2,String p3,Long p4, Object p5, Object p6) {}
+
+        public int foo() { return 1; }
+        public int test() {
+            try {
+                return test2("", 10) ? 1 : 0;
+            } catch (Exception e) {}
+            return 100;
+        }
+        public boolean test2(String s, int k) throws Exception { return false; }
+    }
+
+    public static interface I8d {
+        String foo(String s, int i);
+    }
+
+    public static class T8dd {
+        java.util.List foo(String s) { return new java.util.ArrayList(); }
+    }
+    public static class T8d {
+        static T8dd helper() { return new T8dd(); }
+        int integer() { return 9; }
+        boolean integer2(String s) { return true; }
+        static void print(String s) {}
+        private void print2(String s) {}
+        private Object func(String s) { return null; }
+        I8d func2(String s) { return null; }
+        static String ldcw() { return "k"; }
+        static boolean debug = false;
+        void log(String p1,String p2,String p3,Long p4, Object p5, Object p6) {}
+
+        public boolean test2(String s, int i) throws Exception {
+            String k = null;
+            Object k2 = null;
+            boolean v5 = true;
+            if (!debug)
+                print(ldcw());
+
+            Object k3 = this.func(s);
+            if (k3 == null)
+                throw new Exception(new StringBuilder().append(ldcw()).append(s).append(",").toString());
+
+            String v7 = k3.toString();
+            k2 = this.func2(v7);
+            if (k2 != null) {   // 82:
+                if (k2 instanceof I8d) {
+                    I8d k5 = (I8d)k2;
+                    k = k5.foo(s, i);
+                }
+            }
+
+            java.util.List list = helper().foo(v7);     // local 8
+            for (int v9 = 0; v9 < list.size(); v9++) {
+                boolean v10 = true;
+                T8d v11 = (T8d)list.get(v9);
+                switch (v11.integer()) {
+                case 1:
+                    break;
+                case 2:
+                    v10 = this.integer2(s);
+                    v5 &= v10;
+                    break;
+                default :
+                    throw new Exception(new StringBuilder().append("ldc 189").append(v11.integer()).append("ldc 169").toString());
+                }
+            }
+
+            if (v5)  // 246:
+                this.print2(s);
+            if (v5)
+                this.log(ldcw(), v7, s, Long.valueOf(new Integer(i).longValue()), k, null);
+            else // 290:
+                this.log(ldcw(), v7, s, Long.valueOf(new Integer(i).longValue()), k, null);
+
+            return v5;
+        }
+    }
+
     public void tstCtClassType() throws Exception {
         ClassPool cp = ClassPool.getDefault();
         CtClass cc = cp.get("javassist.CtClassType");

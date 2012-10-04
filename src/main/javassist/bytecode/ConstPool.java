@@ -94,9 +94,59 @@ public final class ConstPool {
     public static final int CONST_Utf8 = Utf8Info.tag;
 
     /**
+     * <code>Cosnt_MethodHandle</code>
+     */
+    public static final int CONST_MethodHandle = MethodHandleInfo.tag;
+
+    /**
      * Represents the class using this constant pool table.
      */
     public static final CtClass THIS = null;
+
+    /**
+     * <code>reference_kind</code> of <code>CONSTANT_MethodHandle_info</code>.
+     */
+    public static final int REF_getField = 1;
+
+    /**
+     * <code>reference_kind</code> of <code>CONSTANT_MethodHandle_info</code>.
+     */
+    public static final int REF_getStatic = 2;
+
+    /**
+     * <code>reference_kind</code> of <code>CONSTANT_MethodHandle_info</code>.
+     */
+    public static final int REF_putField = 3;
+
+    /**
+     * <code>reference_kind</code> of <code>CONSTANT_MethodHandle_info</code>.
+     */
+    public static final int REF_putStatic = 4;
+
+    /**
+     * <code>reference_kind</code> of <code>CONSTANT_MethodHandle_info</code>.
+     */
+    public static final int REF_invokeVirtual = 5;
+
+    /**
+     * <code>reference_kind</code> of <code>CONSTANT_MethodHandle_info</code>.
+     */
+    public static final int REF_invokeStatic = 6;
+
+    /**
+     * <code>reference_kind</code> of <code>CONSTANT_MethodHandle_info</code>.
+     */
+    public static final int REF_invokeSpecial = 7;
+
+    /**
+     * <code>reference_kind</code> of <code>CONSTANT_MethodHandle_info</code>.
+     */
+    public static final int REF_newInvokeSpecial = 8;
+
+    /**
+     * <code>reference_kind</code> of <code>CONSTANT_MethodHandle_info</code>.
+     */
+    public static final int REF_invokeInterface = 9;
 
     /**
      * Constructs a constant pool table.
@@ -589,6 +639,97 @@ public final class ConstPool {
     }
 
     /**
+     * Reads the <code>reference_kind</code> field of the
+     * <code>CONSTANT_MethodHandle_info</code> structure
+     * at the given index.
+     *
+     * @see #REF_getField
+     * @see #REF_getStatic
+     * @see #REF_invokeInterface
+     * @see #REF_invokeSpecial
+     * @see #REF_invokeStatic
+     * @see #REF_invokeVirtual
+     * @see #REF_newInvokeSpecial
+     * @see #REF_putField
+     * @see #REF_putStatic
+     * @since 3.17
+     */
+    public int getMethodHandleKind(int index) {
+        MethodHandleInfo mhinfo = (MethodHandleInfo)getItem(index);
+        return mhinfo.refKind;
+    }
+
+    /**
+     * Reads the <code>reference_index</code> field of the
+     * <code>CONSTANT_MethodHandle_info</code> structure
+     * at the given index.
+     *
+     * @since 3.17
+     */
+    public int getMethodHandleIndex(int index) {
+        MethodHandleInfo mhinfo = (MethodHandleInfo)getItem(index);
+        return mhinfo.refIndex;
+    }
+
+    /**
+     * Reads the <code>descriptor_index</code> field of the
+     * <code>CONSTANT_MethodType_info</code> structure
+     * at the given index.
+     *
+     * @since 3.17
+     */
+    public int getMethodTypeInfo(int index) {
+        MethodTypeInfo mtinfo = (MethodTypeInfo)getItem(index);
+        return mtinfo.descriptor;
+    }
+
+    /**
+     * Reads the <code>bootstrap_method_attr_index</code> field of the
+     * <code>CONSTANT_InvokeDynamic_info</code> structure
+     * at the given index.
+     *
+     * @since 3.17
+     */
+    public int getInvokeDynamicBootstrap(int index) {
+        InvokeDynamicInfo iv = (InvokeDynamicInfo)getItem(index);
+        return iv.bootstrap;
+    }
+
+    /**
+     * Reads the <code>name_and_type_index</code> field of the
+     * <code>CONSTANT_InvokeDynamic_info</code> structure
+     * at the given index.
+     *
+     * @since 3.17
+     */
+    public int getInvokeDynamicNameAndType(int index) {
+        InvokeDynamicInfo iv = (InvokeDynamicInfo)getItem(index);
+        return iv.nameAndType;
+    }
+
+    /**
+     * Reads the <code>descriptor_index</code> field of the
+     * <code>CONSTANT_NameAndType_info</code> structure
+     * indirectly specified by the given index.
+     *
+     * @param index     an index to a <code>CONSTANT_InvokeDynamic_info</code>.
+     * @return  the descriptor of the method.
+     * @since 3.17
+     */
+    public String getInvokeDynamicType(int index) {
+        InvokeDynamicInfo iv = (InvokeDynamicInfo)getItem(index);
+        if (iv == null)
+            return null;
+        else {
+            NameAndTypeInfo n = (NameAndTypeInfo)getItem(iv.nameAndType);
+            if(n == null)
+                return null;
+            else
+                return getUtf8Info(n.typeDescriptor);
+        }
+    }
+
+    /**
      * Determines whether <code>CONSTANT_Methodref_info</code>
      * structure at the given index represents the constructor
      * of the given class.
@@ -927,6 +1068,48 @@ public final class ConstPool {
     }
 
     /**
+     * Adds a new <code>CONSTANT_MethodHandle_info</code>
+     * structure.
+     *
+     * @param kind      <code>reference_kind</code>
+     *                  such as {@link #REF_invokeStatic <code>REF_invokeStatic</code>}.
+     * @param index     <code>reference_index</code>.
+     * @return          the index of the added entry.
+     *
+     * @since 3.17
+     */
+    public int addMethodHandleInfo(int kind, int index) {
+        return addItem(new MethodHandleInfo(kind, index, numOfItems));
+    }
+
+    /**
+     * Adds a new <code>CONSTANT_MethodType_info</code>
+     * structure.
+     *
+     * @param desc      <code>descriptor_index</code>.
+     * @return          the index of the added entry.
+     *
+     * @since 3.17
+     */
+    public int addMethodTypeInfo(int desc) {
+        return addItem(new MethodTypeInfo(desc, numOfItems));
+    }
+
+    /**
+     * Adds a new <code>CONSTANT_InvokeDynamic_info</code>
+     * structure.
+     *
+     * @param bootstrap     <code>bootstrap_method_attr_index</code>.
+     * @param nameAndType   <code>name_and_type_index</code>.
+     * @return          the index of the added entry.
+     *
+     * @since 3.17
+     */
+    public int addInvokeDynamicInfo(int bootstrap, int nameAndType) {
+        return addItem(new InvokeDynamicInfo(bootstrap, nameAndType, numOfItems));
+    }
+
+    /**
      * Get all the class names.
      *
      * @return a set of class names (<code>String</code> objects).
@@ -1039,6 +1222,15 @@ public final class ConstPool {
             break;
         case NameAndTypeInfo.tag :              // 12
             info = new NameAndTypeInfo(in, numOfItems);
+            break;
+        case MethodHandleInfo.tag :             // 15
+            info = new MethodHandleInfo(in, numOfItems);
+            break;
+        case MethodTypeInfo.tag :               // 16
+            info = new MethodTypeInfo(in, numOfItems);
+            break;
+        case InvokeDynamicInfo.tag :            // 18
+            info = new InvokeDynamicInfo(in, numOfItems);
             break;
         default :
             throw new IOException("invalid constant type: " + tag + " at " + numOfItems);
@@ -1630,5 +1822,169 @@ class Utf8Info extends ConstInfo {
         out.print("UTF8 \"");
         out.print(string);
         out.println("\"");
+    }
+}
+
+class MethodHandleInfo extends ConstInfo {
+    static final int tag = 15;
+    int refKind, refIndex;
+
+    public MethodHandleInfo(int kind, int referenceIndex, int index) {
+        super(index);
+        refKind = kind;
+        refIndex = referenceIndex;
+    }
+
+    public MethodHandleInfo(DataInputStream in, int index) throws IOException {
+        super(index);
+        refKind = in.readUnsignedByte();
+        refIndex = in.readUnsignedShort();
+    }
+
+    public int hashCode() { return (refKind << 16) ^ refIndex; }
+
+    public boolean equals(Object obj) {
+        if (obj instanceof MethodHandleInfo) {
+            MethodHandleInfo mh = (MethodHandleInfo)obj;
+            return mh.refKind == refKind && mh.refIndex == refIndex; 
+        }
+        else
+            return false;
+    }
+
+    public int getTag() { return tag; }
+
+    public int copy(ConstPool src, ConstPool dest, Map map) {
+       return dest.addMethodHandleInfo(refKind,
+                           src.getItem(refIndex).copy(src, dest, map));
+    }
+
+    public void write(DataOutputStream out) throws IOException {
+        out.writeByte(tag);
+        out.writeByte(refKind);
+        out.writeShort(refIndex);
+    }
+
+    public void print(PrintWriter out) {
+        out.print("MethodHandle #");
+        out.print(refKind);
+        out.print(", index #");
+        out.println(refIndex);
+    }
+}
+
+class MethodTypeInfo extends ConstInfo {
+    static final int tag = 16;
+    int descriptor;
+
+    public MethodTypeInfo(int desc, int index) {
+        super(index);
+        descriptor = desc;
+    }
+
+    public MethodTypeInfo(DataInputStream in, int index) throws IOException {
+        super(index);
+        descriptor = in.readUnsignedShort();
+    }
+
+    public int hashCode() { return descriptor; }
+
+    public boolean equals(Object obj) {
+        if (obj instanceof MethodTypeInfo)
+            return ((MethodTypeInfo)obj).descriptor == descriptor;
+        else
+            return false;
+    }
+
+    public int getTag() { return tag; }
+
+    public void renameClass(ConstPool cp, String oldName, String newName, HashMap cache) {
+        String desc = cp.getUtf8Info(descriptor);
+        String desc2 = Descriptor.rename(desc, oldName, newName);
+        if (desc != desc2)
+            if (cache == null)
+                descriptor = cp.addUtf8Info(desc2);
+            else {
+                cache.remove(this);
+                descriptor = cp.addUtf8Info(desc2);
+                cache.put(this, this);
+            }
+    }
+
+    public void renameClass(ConstPool cp, Map map, HashMap cache) {
+        String desc = cp.getUtf8Info(descriptor);
+        String desc2 = Descriptor.rename(desc, map);
+        if (desc != desc2)
+            if (cache == null)
+                descriptor = cp.addUtf8Info(desc2);
+            else {
+                cache.remove(this);
+                descriptor = cp.addUtf8Info(desc2);
+                cache.put(this, this);
+            }
+    }
+
+    public int copy(ConstPool src, ConstPool dest, Map map) {
+        String desc = src.getUtf8Info(descriptor);
+        desc = Descriptor.rename(desc, map);
+        return dest.addMethodTypeInfo(dest.addUtf8Info(desc));
+    }
+
+    public void write(DataOutputStream out) throws IOException {
+        out.writeByte(tag);
+        out.writeShort(descriptor);
+    }
+
+    public void print(PrintWriter out) {
+        out.print("MethodType #");
+        out.println(descriptor);
+    }
+}
+
+class InvokeDynamicInfo extends ConstInfo {
+    static final int tag = 18;
+    int bootstrap, nameAndType;
+
+    public InvokeDynamicInfo(int bootstrapMethod, int ntIndex, int index) {
+        super(index);
+        bootstrap = bootstrapMethod;
+        nameAndType = ntIndex;
+    }
+
+    public InvokeDynamicInfo(DataInputStream in, int index) throws IOException {
+        super(index);
+        bootstrap = in.readUnsignedShort();
+        nameAndType = in.readUnsignedShort();
+    }
+
+    public int hashCode() { return (bootstrap << 16) ^ nameAndType; }
+
+    public boolean equals(Object obj) {
+        if (obj instanceof InvokeDynamicInfo) {
+            InvokeDynamicInfo iv = (InvokeDynamicInfo)obj;
+            return iv.bootstrap == bootstrap && iv.nameAndType == nameAndType;
+        }
+        else
+            return false;
+    }
+
+    public int getTag() { return tag; }
+
+    public int copy(ConstPool src, ConstPool dest, Map map) {
+       return dest.addInvokeDynamicInfo(bootstrap,
+                           src.getItem(nameAndType).copy(src, dest, map));
+    }
+
+    public void write(DataOutputStream out) throws IOException {
+        out.writeByte(tag);
+        out.writeShort(bootstrap);
+        out.writeShort(nameAndType);
+    }
+
+    public void print(PrintWriter out) {
+        out.print("InvokeDynamic #");
+        out.print(bootstrap);
+        out.print(", name&type #");
+        out.println(nameAndType);
     }
 }

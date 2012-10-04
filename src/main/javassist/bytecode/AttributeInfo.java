@@ -77,6 +77,8 @@ public class AttributeInfo {
         if (nameStr.charAt(0) < 'L') {
             if (nameStr.equals(AnnotationDefaultAttribute.tag))
                 return new AnnotationDefaultAttribute(cp, name, in);
+            else if (nameStr.equals(BootstrapMethodsAttribute.tag))
+                return new BootstrapMethodsAttribute(cp, name, in);
             else if (nameStr.equals(CodeAttribute.tag))
                 return new CodeAttribute(cp, name, in);
             else if (nameStr.equals(ConstantAttribute.tag))

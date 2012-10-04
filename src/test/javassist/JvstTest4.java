@@ -662,6 +662,7 @@ public class JvstTest4 extends JvstTestRoot {
     }
 
     public void testJIRA150b() throws Exception {
+        int origSize = javassist.compiler.MemberResolver.getInvalidMapSize();
         int N = 100;
         for (int k = 0; k < N; k++) {
             ClassPool pool = new ClassPool(true);
@@ -681,12 +682,20 @@ public class JvstTest4 extends JvstTestRoot {
                     "  int n5 = java.lang.Integer#valueOf(5); " +
                     "  return n1+n2+n3+n4+n5; }");
             }
+            pool = null;
+        }
+
+        // try to run garbage collection.
+        int[] large;
+        for (int i = 0; i < 100; i++) {
+            large = new int[1000000];
+            large[large.length - 2] = 9;
         }
         System.gc();
         System.gc();
         int size = javassist.compiler.MemberResolver.getInvalidMapSize();
         System.out.println("JIRA150b " + size);
-        assertTrue("JIRA150b size: " + size, size < N - 10);
+        assertTrue("JIRA150b size: " + origSize + " " + size, size < origSize + N);
     }
 
     public void testJIRA152() throws Exception {

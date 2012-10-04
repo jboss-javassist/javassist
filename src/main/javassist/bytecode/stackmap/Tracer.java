@@ -597,8 +597,8 @@ public abstract class Tracer implements TypeTag {
             return doInvokeMethod(pos, code, false);
         case Opcode.INVOKEINTERFACE :
             return doInvokeIntfMethod(pos, code);
-        case 186 :
-            throw new RuntimeException("bad opcode 186");
+        case Opcode.INVOKEDYNAMIC :
+            return doInvokeDynamic(pos, code);
         case Opcode.NEW : {
             int i = ByteArray.readU16bit(code, pos + 1);
             stackTypes[stackTop++]
@@ -831,6 +831,21 @@ public abstract class Tracer implements TypeTag {
         checkParamTypes(desc, 1);
         String className = cpool.getInterfaceMethodrefClassName(i);
         stackTypes[--stackTop].setType(className, classPool);
+        pushMemberType(desc);
+        return 5;
+    }
+
+    private int doInvokeDynamic(int pos, byte[] code) throws BadBytecode {
+        int i = ByteArray.readU16bit(code, pos + 1);
+        String desc = cpool.getInvokeDynamicType(i);
+        checkParamTypes(desc, 1);
+
+     // assume CosntPool#REF_invokeStatic
+     /* TypeData target = stackTypes[--stackTop];
+        if (target instanceof TypeData.UninitTypeVar && target.isUninit())
+            constructorCalled((TypeData.UninitTypeVar)target);
+      */
+
         pushMemberType(desc);
         return 5;
     }

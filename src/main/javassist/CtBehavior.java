@@ -26,6 +26,11 @@ import javassist.expr.ExprEditor;
  * or a static constructor (class initializer). 
  * It is the abstract super class of
  * <code>CtMethod</code> and <code>CtConstructor</code>.
+ *
+ * <p>To directly read or modify bytecode, obtain <code>MethodInfo</code>
+ * objects.
+ *
+ * @see #getMethodInfo()
  */
 public abstract class CtBehavior extends CtMember {
     protected MethodInfo methodInfo;
