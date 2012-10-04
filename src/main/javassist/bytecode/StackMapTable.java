@@ -909,8 +909,6 @@ public class StackMapTable extends AttributeInfo {
                 newDelta = offsetDelta - gap;
             else if (where == oldPos)
                 newDelta = offsetDelta + gap;
-            // else if (gap > 0 && oldPos < where && where < position) // chiba
-            //    throw new RuntimeException("old:" + oldPos + " where:" + where + " pos:" + position);
             else
                 return;
 
@@ -951,8 +949,6 @@ public class StackMapTable extends AttributeInfo {
                 newDelta = offsetDelta - gap;
             else if (where == oldPos)
                 newDelta = offsetDelta + gap;
-            // else if (gap > 0 && oldPos < where && where < position)   // chiba
-            //    throw new RuntimeException("old:" + oldPos + " where:" + where + " pos:" + position);
             else
                 return;
 
