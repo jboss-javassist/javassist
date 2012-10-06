@@ -745,10 +745,12 @@ public abstract class TypeData {
 
         public void setType(String typeName, ClassPool cp) throws BadBytecode {
             super.setType(typeName, cp);
-            initialized = true;
+            // initialized = true;
         }
 
         public String toString() { return "uninit:" + getName() + "@" + offset; }
+
+        public int offset() { return offset; }
 
         public void constructorCalled(int offset) {
             if (offset == this.offset)

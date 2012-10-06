@@ -803,7 +803,9 @@ public abstract class Tracer implements TypeTag {
             String className = cpool.getMethodrefClassName(i);
             TypeData target = stackTypes[--stackTop];
             if (target instanceof TypeData.UninitTypeVar && target.isUninit())
-                constructorCalled((TypeData.UninitTypeVar)target);
+                constructorCalled(target, ((TypeData.UninitTypeVar)target).offset());
+            else if (target instanceof TypeData.UninitData)
+                constructorCalled(target, ((TypeData.UninitData)target).offset());
 
             target.setType(className, classPool);
         }
@@ -814,9 +816,10 @@ public abstract class Tracer implements TypeTag {
 
     /* This is a constructor call on an uninitialized object.
      * Sets flags of other references to that object.
+     *
+     * @param offset        the offset where the object has been created.
      */
-    private void constructorCalled(TypeData.UninitTypeVar target) {
-        int offset = target.offset();
+    private void constructorCalled(TypeData target, int offset) {
         target.constructorCalled(offset);
         for (int i = 0; i < stackTop; i++)
             stackTypes[i].constructorCalled(offset);

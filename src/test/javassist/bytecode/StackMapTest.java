@@ -529,6 +529,7 @@ public class StackMapTest extends TestCase {
     public static class T8dd {
         java.util.List foo(String s) { return new java.util.ArrayList(); }
     }
+
     public static class T8d {
         static T8dd helper() { return new T8dd(); }
         int integer() { return 9; }
@@ -585,6 +586,39 @@ public class StackMapTest extends TestCase {
                 this.log(ldcw(), v7, s, Long.valueOf(new Integer(i).longValue()), k, null);
 
             return v5;
+        }
+    }
+
+    public void testInnerClass() throws Exception {
+        CtClass cc = loader.get("javassist.bytecode.StackMapTest$T9");
+        CtClass par = loader.get("javassist.bytecode.StackMapTest$T9$Parent");
+        CtClass in = loader.get("javassist.bytecode.StackMapTest$T9$In");
+        rebuildStackMaps2(cc);
+        rebuildStackMaps2(par);
+        rebuildStackMaps2(in);
+        cc.writeFile();
+        in.writeFile();
+        par.writeFile();
+        Object t1 = make(cc.getName());
+        assertEquals(19, invoke(t1, "test"));
+    }
+
+    public static class T9 {
+        class Parent {
+            int f; 
+            Parent(int i) { f = i; } 
+        }
+        class In extends Parent {
+            int value;
+            public In(int i) {
+                super(i > 0 ? 10 : 20);
+                value = i;
+            }
+        }
+
+        public int test() {
+            In in = new In(9);
+            return in.value + in.f;
         }
     }
 

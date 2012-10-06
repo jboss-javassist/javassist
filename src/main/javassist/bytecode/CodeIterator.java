@@ -27,9 +27,13 @@ import java.util.ArrayList;
  * the following code substitutes the <code>NOP</code> instruction for the first
  * instruction of the method:  
  *
- * <pre>CodeAttribute ca = method.getMethodInfo().getCodeAttribute();
+ * <pre>
+ * CodeAttribute ca = method.getMethodInfo().getCodeAttribute();
  * CodeIterator ci = ca.iterator();
  * ci.writeByte(Opcode.NOP, 0);</pre>
+ *
+ * <p>To visit every instruction, call {@link #next()} on a <code>CodeIterator</code>.
+ * It returns the index of the first byte of the next instruction.
  *
  * <p>If there are multiple <code>CodeIterator</code>s referring to the
  * same <code>Code_attribute</code>, then inserting a gap by one
