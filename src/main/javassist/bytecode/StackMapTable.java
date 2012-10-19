@@ -28,7 +28,7 @@ import javassist.CannotCompileException;
  * <code>stack_map</code> attribute.
  *
  * <p>This is an entry in the attributes table of a Code attribute.
- * It was introduced by J2SE 6 for the process of verification by
+ * It was introduced by J2SE 6 for the verification by
  * typechecking.
  *
  * @see StackMap
@@ -244,6 +244,7 @@ public class StackMapTable extends AttributeInfo {
             int data = 0;
             if (tag == OBJECT || tag == UNINIT) {
                 data = ByteArray.readU16bit(info, pos + 2);
+                objectOrUninitialized(tag, data, pos + 2);
                 pos += 2;
             }
 
@@ -286,6 +287,7 @@ public class StackMapTable extends AttributeInfo {
                 tags[i] = tag;
                 if (tag == OBJECT || tag == UNINIT) {
                     data[i] = ByteArray.readU16bit(info, p + 1);
+                    objectOrUninitialized(tag, data[i], p + 1);
                     p += 3;
                 }
                 else {
@@ -346,12 +348,23 @@ public class StackMapTable extends AttributeInfo {
                 tags[i] = tag;
                 if (tag == OBJECT || tag == UNINIT) {
                     data[i] = ByteArray.readU16bit(info, pos);
+                    objectOrUninitialized(tag, data[i], pos);
                     pos += 2;
                 }
             }
 
             return pos;
         }
+
+        /**
+         * Invoked if <code>Object_variable_info</code>
+         * or <code>Uninitialized_variable_info</code> is visited.
+         *
+         * @param tag		<code>OBJECT</code> or <code>UNINIT</code>.
+         * @param data		the value of <code>cpool_index</code> or <code>offset</code>.
+         * @param pos		the position of <code>cpool_index</code> or <code>offset</code>.
+         */
+        public void objectOrUninitialized(int tag, int data, int pos) {}
     }
 
     static class SimpleCopy extends Walker {
@@ -791,7 +804,24 @@ public class StackMapTable extends AttributeInfo {
     void shiftPc(int where, int gapSize, boolean exclusive)
         throws BadBytecode
     {
+    	new OffsetShifter(this, where, gapSize).parse();
         new Shifter(this, where, gapSize, exclusive).doit();
+    }
+
+    static class OffsetShifter extends Walker {
+    	int where, gap;
+
+    	public OffsetShifter(StackMapTable smt, int where, int gap) {
+    		super(smt);
+    		this.where = where;
+    		this.gap = gap;
+    	}
+
+    	public void objectOrUninitialized(int tag, int data, int pos) {
+    		if (tag == UNINIT)
+    			if (where <= data)
+    				ByteArray.write16bit(data + gap, info, pos);
+    	}
     }
 
     static class Shifter extends Walker {

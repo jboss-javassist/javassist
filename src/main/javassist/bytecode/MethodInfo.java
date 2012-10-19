@@ -431,7 +431,7 @@ public class MethodInfo {
      * include a code attribute, nothing happens.
      *
      * @param pool          used for making type hierarchy.
-     * @see StackMapTable
+     * @see StackMap
      * @since 3.12
      */
     public void rebuildStackMapForME(ClassPool pool) throws BadBytecode {

@@ -622,6 +622,31 @@ public class StackMapTest extends TestCase {
         }
     }
 
+    public void testConstructor3() throws Exception {
+        CtClass cc = loader.get("javassist.bytecode.StackMapTest$C4");
+        MethodInfo mi = cc.getDeclaredMethod("foo").getMethodInfo();
+        mi.rebuildStackMapForME(loader);
+        CodeIterator ci = mi.getCodeAttribute().iterator();
+        ci.insertGap(0, 7);
+        cc.writeFile();
+        Object t1 = make(cc.getName());
+        assertEquals(6, invoke(t1, "test"));
+    }
+
+    public static class C4 {
+        public int test() { return foo(3); }
+        public int foo(int i) {
+            String s = new String(i > 0 ? "pos" : "negative");
+            System.out.println("2nd stage");
+            int len = 0;
+            if (i > 0) {
+                String t =  new String(i > 0 ? "pos" : "negative");
+                len = t.length();
+            }
+            return s.length() + len;
+        }
+    }
+
     public void tstCtClassType() throws Exception {
         ClassPool cp = ClassPool.getDefault();
         CtClass cc = cp.get("javassist.CtClassType");

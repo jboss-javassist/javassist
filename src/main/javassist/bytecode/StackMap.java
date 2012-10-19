@@ -396,6 +396,11 @@ public class StackMap extends AttributeInfo {
 
             return super.locals(pos, offset, num);
         }
+
+        public void uninitialized(int pos, int offset) {
+            if (where <= offset)
+                ByteArray.write16bit(offset + gap, info, pos + 1);
+        }
     }
 
     /**
