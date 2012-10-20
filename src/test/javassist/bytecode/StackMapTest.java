@@ -647,6 +647,66 @@ public class StackMapTest extends TestCase {
         }
     }
 
+    public void testJIRA175() throws Exception {
+        CtClass cc = loader.get("javassist.bytecode.StackMapTest$C5");
+        cc.getDeclaredMethod("setter").instrument(new javassist.expr.ExprEditor() {
+            @Override
+            public void edit(javassist.expr.FieldAccess f) throws javassist.CannotCompileException {
+                if (!f.where().getMethodInfo().isMethod())
+                    return;
+
+                f.replace("{ $_ = $proceed($$); if (false) return $_;}");
+            }
+        });
+        cc.writeFile();
+        Object t1 = make(cc.getName());
+        assertEquals(3, invoke(t1, "test"));
+    }
+
+    public static class C5 {
+        String value;
+        int ivalue;
+        public int test() {
+            setter("foo");
+            return value.length();
+        }
+
+        public void setter(String s) {
+            value = s;
+            ivalue = s.length();
+        }
+    }
+
+    public void testJIRA175b() throws Exception {
+        CtClass cc = loader.get("javassist.bytecode.StackMapTest$C6");
+        try {
+            cc.getDeclaredMethod("setter").instrument(new javassist.expr.ExprEditor() {
+                public void edit(javassist.expr.FieldAccess f) throws javassist.CannotCompileException {
+                    if (!f.where().getMethodInfo().isMethod())
+                        return;
+
+                    f.replace("{ $_ = $proceed($$); return $_;}");
+                }
+            });
+            fail("deadcode detection");
+        }
+        catch (javassist.CannotCompileException e) {}
+    }
+
+    public static class C6 {
+        String value;
+        int ivalue;
+        public int test() {
+            setter("foo");
+            return value.length();
+        }
+
+        public void setter(String s) {
+            value = s;
+            ivalue = s.length();
+        }
+    }
+
     public void tstCtClassType() throws Exception {
         ClassPool cp = ClassPool.getDefault();
         CtClass cc = cp.get("javassist.CtClassType");

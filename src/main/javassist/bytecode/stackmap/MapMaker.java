@@ -96,7 +96,13 @@ public class MapMaker extends Tracer {
             return null;
 
         MapMaker mm = new MapMaker(classes, minfo, ca);
-        mm.make(blocks, ca.getCode());
+        try {
+            mm.make(blocks, ca.getCode());
+        }
+        catch (BadBytecode bb) {
+            throw new BadBytecode(minfo, bb);
+        }
+
         return mm.toStackMap(blocks);
     }
 
@@ -117,7 +123,12 @@ public class MapMaker extends Tracer {
             return null;
 
         MapMaker mm = new MapMaker(classes, minfo, ca);
-        mm.make(blocks, ca.getCode());
+        try {
+            mm.make(blocks, ca.getCode());
+        }
+        catch (BadBytecode bb) {
+            throw new BadBytecode(minfo, bb);
+        }
         return mm.toStackMap2(minfo.getConstPool(), blocks);
     }
 
@@ -137,7 +148,7 @@ public class MapMaker extends Tracer {
     {
         make(code, blocks[0]);
         try {
-            fixTypes(blocks);
+            fixTypes(code, blocks);
         } catch (NotFoundException e) {
             throw new BadBytecode("failed to resolve types", e);
         }
@@ -276,20 +287,38 @@ public class MapMaker extends Tracer {
      * Since SCCs are found in the topologically sorted order,
      * their types are also fixed when they are found. 
      */
-    private void fixTypes(TypedBlock[] blocks) throws NotFoundException {
+    private void fixTypes(byte[] code, TypedBlock[] blocks) throws NotFoundException, BadBytecode {
         ArrayList preOrder = new ArrayList();
         int len = blocks.length;
         int index = 0;
         for (int i = 0; i < len; i++) {
             TypedBlock block = blocks[i];
-            int n = block.localsTypes.length;
-            for (int j = 0; j < n; j++)
-                index = block.localsTypes[j].dfs(preOrder, index, classPool);
+            if (block.localsTypes == null)  // if block is dead code
+                fixDeadcode(code, block);
+            else {
+                int n = block.localsTypes.length;
+                for (int j = 0; j < n; j++)
+                    index = block.localsTypes[j].dfs(preOrder, index, classPool);
 
-            n = block.stackTop;
-            for (int j = 0; j < n; j++)
-                index = block.stackTypes[j].dfs(preOrder, index, classPool); 
+                n = block.stackTop;
+                for (int j = 0; j < n; j++)
+                    index = block.stackTypes[j].dfs(preOrder, index, classPool);
+            }
         }
+    }
+
+    private void fixDeadcode(byte[] code, TypedBlock block) throws BadBytecode {
+        int pos = block.position;
+        int len = block.length - 3;
+        if (len < 0)
+            throw new BadBytecode("dead code detected at " + pos
+                                  + ".  No stackmap table generated.");
+
+        for (int k = 0; k < len; k++) 
+            code[pos + k] = Bytecode.NOP;
+
+        code[pos + len] = (byte)Bytecode.GOTO;
+        ByteArray.write16bit(-len, code, pos + len + 1);
     }
 
     // Phase 3
@@ -311,6 +340,12 @@ public class MapMaker extends Tracer {
                 int diffL = stackMapDiff(prev.numLocals, prev.localsTypes,
                                          bb.numLocals, bb.localsTypes);
                 toStackMapBody(writer, bb, diffL, offsetDelta, prev);
+                offsetDelta = bb.length - 1;
+                prev = bb;
+            }
+            else if (bb.incoming == 0) {
+                // dead code.
+                writer.sameFrame(offsetDelta);
                 offsetDelta = bb.length - 1;
                 prev = bb;
             }
