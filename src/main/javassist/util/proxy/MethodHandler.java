@@ -22,7 +22,7 @@ import java.lang.reflect.Method;
  * The interface implemented by the invocation handler of a proxy
  * instance.
  *
- * @see ProxyFactory#setHandler(MethodHandler)
+ * @see Proxy#setHandler(MethodHandler)
  */
 public interface MethodHandler {
     /**
@@ -33,7 +33,7 @@ public interface MethodHandler {
      * @param thisMethod    the overridden method declared in the super
      *                      class or interface.
      * @param proceed       the forwarder method for invoking the overridden 
-     *                      method.  It is null if the overridden mehtod is
+     *                      method.  It is null if the overridden method is
      *                      abstract or declared in the interface.
      * @param args          an array of objects containing the values of
      *                      the arguments passed in the method invocation

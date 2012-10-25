@@ -46,24 +46,13 @@ public class RuntimeSupport {
      * @throws RuntimeException     if the methods are not found.
      * @see javassist.util.proxy.ProxyFactory
      */
-    public static void find2Methods(Object self, String superMethod,
+    public static void find2Methods(Class clazz, String superMethod,
                                     String thisMethod, int index,
                                     String desc, java.lang.reflect.Method[] methods)
     {
-        /* Once methods[index] and methods[index + 1] are set to non-null, 
-         * then their values never change.
-         */
-        if (methods[index] == null || methods[index + 1] == null) {
-            Method m1 = thisMethod == null ? null
-                                           : findMethod(self, thisMethod, desc);
-            Method m0 = findSuperMethod(self, superMethod, desc);
-            synchronized (methods) {
-                if (methods[index] == null) {
-                    methods[index + 1] = m1;
-                    methods[index] = m0;
-                }
-            }
-        }
+        methods[index + 1] = thisMethod == null ? null
+                                                : findMethod(clazz, thisMethod, desc);
+        methods[index] = findSuperMethod(clazz, superMethod, desc);
     }
 
     /**
@@ -72,10 +61,10 @@ public class RuntimeSupport {
      *
      * @throws RuntimeException     if the method is not found.
      */
-    public static Method findMethod(Object self, String name, String desc) {
-        Method m = findMethod2(self.getClass(), name, desc);
+    public static Method findMethod(Class clazz, String name, String desc) {
+        Method m = findMethod2(clazz, name, desc);
         if (m == null)
-            error(self, name, desc);
+            error(clazz, name, desc);
 
         return m;
     }
@@ -86,21 +75,20 @@ public class RuntimeSupport {
      *
      * @throws RuntimeException     if the method is not found.
      */
-    public static Method findSuperMethod(Object self, String name, String desc) {
-        Class clazz = self.getClass();
+    public static Method findSuperMethod(Class clazz, String name, String desc) {
         Method m = findSuperMethod2(clazz.getSuperclass(), name, desc);
         if (m == null)
             m = searchInterfaces(clazz, name, desc);
 
         if (m == null)
-            error(self, name, desc);
+            error(clazz, name, desc);
 
         return m;
     }
 
-    private static void error(Object self, String name, String desc) {
+    private static void error(Class clazz, String name, String desc) {
         throw new RuntimeException("not found " + name + ":" + desc
-                + " in " + self.getClass().getName());
+                + " in " + clazz.getName());
     }
 
     private static Method findSuperMethod2(Class clazz, String name, String desc) {

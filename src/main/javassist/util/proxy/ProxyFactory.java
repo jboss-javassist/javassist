@@ -27,6 +27,7 @@ import java.util.*;
 import java.lang.ref.WeakReference;
 
 import javassist.CannotCompileException;
+import javassist.NotFoundException;
 import javassist.bytecode.*;
 
 /*
@@ -204,7 +205,7 @@ public class ProxyFactory {
 
     private static final String SERIAL_VERSION_UID_FIELD = "serialVersionUID";
     private static final String SERIAL_VERSION_UID_TYPE = "J";
-    private static final int SERIAL_VERSION_UID_VALUE = -1;
+    private static final long SERIAL_VERSION_UID_VALUE = -1L;
 
     /**
      * If true, a generated proxy class is cached and it will be reused
@@ -736,8 +737,10 @@ public class ProxyFactory {
         // HashMap allMethods = getMethods(superClass, interfaces);
         // int size = allMethods.size();
         makeConstructors(classname, cf, pool, classname);
-        int s = overrideMethods(cf, pool, classname);
-        addMethodsHolder(cf, pool, classname, s);
+
+        ArrayList forwarders = new ArrayList();
+        int s = overrideMethods(cf, pool, classname, forwarders);
+        addClassInitializer(cf, pool, classname, s, forwarders);
         addSetter(classname, cf, pool);
         if (!hasGetHandler)
             addGetter(classname, cf, pool);
@@ -875,8 +878,8 @@ public class ProxyFactory {
         cf.setInterfaces(list);
     }
 
-    private static void addMethodsHolder(ClassFile cf, ConstPool cp,
-                                         String classname, int size)
+    private static void addClassInitializer(ClassFile cf, ConstPool cp,
+                                    String classname, int size, ArrayList forwarders)
         throws CannotCompileException
     {
         FieldInfo finfo = new FieldInfo(cp, HOLDER, HOLDER_TYPE);
@@ -884,16 +887,59 @@ public class ProxyFactory {
         cf.addField(finfo);
         MethodInfo minfo = new MethodInfo(cp, "<clinit>", "()V");
         minfo.setAccessFlags(AccessFlag.STATIC);
-        Bytecode code = new Bytecode(cp, 0, 0);
+        setThrows(minfo, cp, new Class[] { ClassNotFoundException.class });
+
+        Bytecode code = new Bytecode(cp, 0, 2);
         code.addIconst(size * 2);
         code.addAnewarray("java.lang.reflect.Method");
+        final int varArray = 0;
+        code.addAstore(varArray);
+
+        // forName() must be called here.  Otherwise, the class might be
+        // invisible.
+        code.addLdc(classname);
+        code.addInvokestatic("java.lang.Class",
+                "forName", "(Ljava/lang/String;)Ljava/lang/Class;");
+        final int varClass = 1;
+        code.addAstore(varClass);
+
+        Iterator it = forwarders.iterator();
+        while (it.hasNext()) {
+            Find2MethodsArgs args = (Find2MethodsArgs)it.next();
+            callFind2Methods(code, args.methodName, args.delegatorName,
+                             args.origIndex, args.descriptor, varClass, varArray);
+        }
+
+        code.addAload(varArray);
         code.addPutstatic(classname, HOLDER, HOLDER_TYPE);
-        // also need to set serial version uid
-        code.addLconst(-1L);
+
+        code.addLconst(SERIAL_VERSION_UID_VALUE);
         code.addPutstatic(classname, SERIAL_VERSION_UID_FIELD, SERIAL_VERSION_UID_TYPE);
         code.addOpcode(Bytecode.RETURN);
         minfo.setCodeAttribute(code.toCodeAttribute());
         cf.addMethod(minfo);
+    }
+
+    /**
+     * @param thisMethod        might be null.
+     */
+    private static void callFind2Methods(Bytecode code, String superMethod, String thisMethod,
+                                         int index, String desc, int classVar, int arrayVar) {
+        String findClass = RuntimeSupport.class.getName();
+        String findDesc
+            = "(Ljava/lang/Class;Ljava/lang/String;Ljava/lang/String;ILjava/lang/String;[Ljava/lang/reflect/Method;)V";
+
+        code.addAload(classVar);
+        code.addLdc(superMethod);
+        if (thisMethod == null)
+            code.addOpcode(Opcode.ACONST_NULL);
+        else
+            code.addLdc(thisMethod);
+
+        code.addIconst(index);
+        code.addLdc(desc);
+        code.addAload(arrayVar);
+        code.addInvokestatic(findClass, "find2Methods", findDesc);
     }
 
     private static void addSetter(String classname, ClassFile cf, ConstPool cp)
@@ -925,7 +971,7 @@ public class ProxyFactory {
         cf.addMethod(minfo);
     }
 
-    private int overrideMethods(ClassFile cf, ConstPool cp, String className)
+    private int overrideMethods(ClassFile cf, ConstPool cp, String className, ArrayList forwarders)
         throws CannotCompileException
     {
         String prefix = makeUniqueName("_d", signatureMethods);
@@ -938,7 +984,7 @@ public class ProxyFactory {
             int mod = meth.getModifiers();
             if (testBit(signature, index)) {
                 override(className, meth, prefix, index,
-                         keyToDesc(key, meth), cf, cp);
+                         keyToDesc(key, meth), cf, cp, forwarders);
             }
             index++;
         }
@@ -947,7 +993,7 @@ public class ProxyFactory {
     }
 
     private void override(String thisClassname, Method meth, String prefix,
-                          int index, String desc, ClassFile cf, ConstPool cp)
+                          int index, String desc, ClassFile cf, ConstPool cp, ArrayList forwarders)
         throws CannotCompileException
     {
         Class declClass = meth.getDeclaringClass();
@@ -964,7 +1010,7 @@ public class ProxyFactory {
 
         MethodInfo forwarder
             = makeForwarder(thisClassname, meth, desc, cp, declClass,
-                            delegatorName, index);
+                            delegatorName, index, forwarders);
         cf.addMethod(forwarder);
     }
 
@@ -1154,7 +1200,8 @@ public class ProxyFactory {
      */
     private static MethodInfo makeForwarder(String thisClassName,
                     Method meth, String desc, ConstPool cp,
-                    Class declClass, String delegatorName, int index) {
+                    Class declClass, String delegatorName, int index,
+                    ArrayList forwarders) {
         MethodInfo forwarder = new MethodInfo(cp, meth.getName(), desc);
         forwarder.setAccessFlags(Modifier.FINAL
                     | (meth.getModifiers() & ~(Modifier.ABSTRACT
@@ -1164,13 +1211,14 @@ public class ProxyFactory {
         int args = Descriptor.paramSize(desc);
         Bytecode code = new Bytecode(cp, 0, args + 2);
         /*
-         * if (methods[index * 2] == null) {
+         * static {
          *   methods[index * 2]
          *     = RuntimeSupport.findSuperMethod(this, <overridden name>, <desc>);
          *   methods[index * 2 + 1]
          *     = RuntimeSupport.findMethod(this, <delegator name>, <desc>);
          *     or = null // the original method is abstract.
          * }
+         *     :
          * return ($r)handler.invoke(this, methods[index * 2],
          *                methods[index * 2 + 1], $args);
          */
@@ -1180,7 +1228,7 @@ public class ProxyFactory {
         code.addGetstatic(thisClassName, HOLDER, HOLDER_TYPE);
         code.addAstore(arrayVar);
 
-        callFind2Methods(code, meth.getName(), delegatorName, origIndex, desc, arrayVar);
+        forwarders.add(new Find2MethodsArgs(meth.getName(), delegatorName, desc, origIndex));
 
         code.addAload(0);
         code.addGetfield(thisClassName, HANDLER, HANDLER_TYPE);
@@ -1205,6 +1253,18 @@ public class ProxyFactory {
         CodeAttribute ca = code.toCodeAttribute();
         forwarder.setCodeAttribute(ca);
         return forwarder;
+    }
+
+    static class Find2MethodsArgs {
+        String methodName, delegatorName, descriptor;
+        int origIndex;
+
+        Find2MethodsArgs(String mname, String dname, String desc, int index) {
+            methodName = mname;
+            delegatorName = dname;
+            descriptor = desc;
+            origIndex = index;
+        }
     }
 
     private static void setThrows(MethodInfo minfo, ConstPool cp, Method orig) {
@@ -1311,28 +1371,6 @@ public class ProxyFactory {
         code.addInvokespecial(wrapper, "<init>",
                               FactoryHelper.wrapperDesc[index]);
         return regno + FactoryHelper.dataSize[index];
-    }
-
-    /**
-     * @param thisMethod        might be null.
-     */
-    private static void callFind2Methods(Bytecode code, String superMethod, String thisMethod,
-                                         int index, String desc, int arrayVar) {
-        String findClass = RuntimeSupport.class.getName();
-        String findDesc
-            = "(Ljava/lang/Object;Ljava/lang/String;Ljava/lang/String;ILjava/lang/String;[Ljava/lang/reflect/Method;)V";
-
-        code.addAload(0);
-        code.addLdc(superMethod);
-        if (thisMethod == null)
-            code.addOpcode(Opcode.ACONST_NULL);
-        else
-            code.addLdc(thisMethod);
-
-        code.addIconst(index);
-        code.addLdc(desc);
-        code.addAload(arrayVar);
-        code.addInvokestatic(findClass, "find2Methods", findDesc);
     }
 
     private static void addUnwrapper(Bytecode code, Class type) {
