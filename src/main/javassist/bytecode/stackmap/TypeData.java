@@ -388,17 +388,24 @@ public abstract class TypeData {
      * by considering array types.
      */
     public static CtClass commonSuperClassEx(CtClass one, CtClass two) throws NotFoundException {
-        if (one.isArray() && two.isArray()) {
+        if (one == two)
+            return one;
+        else if (one.isArray() && two.isArray()) {
             CtClass ele1 = one.getComponentType();
             CtClass ele2 = two.getComponentType();
-            CtClass element = commonSuperClassEx(ele1, ele2); 
+            CtClass element = commonSuperClassEx(ele1, ele2);
             if (element == ele1)
                 return one;
             else if (element == ele2)
                 return two;
-
-            return one.getClassPool().get(element.getName() + "[]");
+            else
+                return one.getClassPool().get(element == null ? "java.lang.Object"
+                                                : element.getName() + "[]");
         }
+        else if (one.isPrimitive() || two.isPrimitive())
+            return null;    // TOP
+        else if (one.isArray() || two.isArray())    // but !(one.isArray() && two.isArray()) 
+            return one.getClassPool().get("java.lang.Object");
         else
             return commonSuperClass(one, two);
     }

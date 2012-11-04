@@ -707,6 +707,78 @@ public class StackMapTest extends TestCase {
         }
     }
 
+    public void testForHibernate() throws Exception {
+        ClassFile cf = loader.makeClass("javassist.bytecode.StackMapTestHibTest").getClassFile();
+        ConstPool cp = cf.getConstPool();
+        MethodInfo mi = new MethodInfo(cp, "foo", "()V");
+        Bytecode code = new Bytecode(cp, 0, 0);
+        code.add(Opcode.RETURN);
+        CodeAttribute ca = code.toCodeAttribute(); 
+        mi.addAttribute(ca);
+        cf.addMethod(mi);
+
+        int pc = 111;
+        int throwableType_index = cp.addClassInfo(Throwable.class.getName());
+
+        StackMapTable.Writer writer = new StackMapTable.Writer(32);
+        int[] localTags = { StackMapTable.OBJECT, StackMapTable.OBJECT, StackMapTable.OBJECT, StackMapTable.INTEGER };
+        int[] localData = { cp.getThisClassInfo(), cp.addClassInfo("java/lang/Object"),
+                            cp.addClassInfo("[Ljava/lang/Object;"), 0};
+        int[] stackTags = { StackMapTable.OBJECT };
+        int[] stackData = { throwableType_index };
+        writer.fullFrame(pc, localTags, localData, stackTags, stackData);
+
+        ca.setAttribute(writer.toStackMapTable(cp));
+        cf.write(new java.io.DataOutputStream(new java.io.FileOutputStream("./test-hibernate.class")));
+    }
+
+    public void testCommonSuperclass() throws Exception {
+        CtClass obj = loader.get("java.lang.Object");
+        CtClass objarray = loader.get("java.lang.Object[]");
+
+        CtClass one = loader.get("byte[]");
+        CtClass two = loader.get("byte[][]");
+        assertEquals("java.lang.Object", TypeData.commonSuperClassEx(one, two).getName());
+        assertTrue(one.subtypeOf(obj));
+        assertTrue(two.subtypeOf(obj));
+        assertFalse(one.subtypeOf(objarray));
+        assertTrue(two.subtypeOf(objarray));
+
+        one = loader.get("int[][]");
+        two = loader.get("java.lang.Object[]");
+        assertEquals("java.lang.Object[]", TypeData.commonSuperClassEx(one, two).getName());
+        assertTrue(one.subtypeOf(objarray));
+        assertTrue(two.subtypeOf(objarray));
+
+        one = loader.get("int[]");
+        two = loader.get("java.lang.String");
+        assertEquals("java.lang.Object", TypeData.commonSuperClassEx(one, two).getName());
+        assertTrue(one.subtypeOf(obj));
+        assertTrue(two.subtypeOf(obj));
+        assertFalse(one.subtypeOf(objarray));
+        assertFalse(two.subtypeOf(objarray));
+
+        one = loader.get("int[]");
+        two = loader.get("int[]");
+        assertEquals("int[]", TypeData.commonSuperClassEx(one, two).getName());
+        assertTrue(one.subtypeOf(obj));
+        assertFalse(one.subtypeOf(objarray));
+
+        one = loader.get("int[]");
+        two = loader.get("java.lang.String[]");
+        assertEquals("java.lang.Object", TypeData.commonSuperClassEx(one, two).getName());
+        assertTrue(one.subtypeOf(obj));
+        assertTrue(two.subtypeOf(obj));
+        assertFalse(one.subtypeOf(objarray));
+        assertTrue(two.subtypeOf(objarray));
+
+        one = loader.get("java.lang.String[]");
+        two = loader.get("java.lang.Class[]");
+        assertEquals("java.lang.Object[]", TypeData.commonSuperClassEx(one, two).getName());
+        assertTrue(one.subtypeOf(objarray));
+        assertTrue(two.subtypeOf(objarray));
+    }
+
     public void tstCtClassType() throws Exception {
         ClassPool cp = ClassPool.getDefault();
         CtClass cc = cp.get("javassist.CtClassType");
