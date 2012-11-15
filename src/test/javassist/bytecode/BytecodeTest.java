@@ -814,13 +814,9 @@ public class BytecodeTest extends TestCase {
 
         cf.addAttribute(new BootstrapMethodsAttribute(cp, bms));
         cc.writeFile();
-        try {
-            Object obj = make(cc.getName());
-            assertEquals(9, invoke(obj, "test"));
-        }
-        catch (ClassFormatError e) {
-            System.out.println("Indy: " + e);
-        }
+
+        Object obj = make(cc.getName());
+        assertEquals(9, invoke(obj, "test"));
 
         ClassPool cp2 = new ClassPool();
         cp2.appendClassPath(".");
