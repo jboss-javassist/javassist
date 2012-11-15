@@ -590,7 +590,7 @@ public class MemberCodeGen extends CodeGen {
         if (mname.equals(MethodInfo.nameInit)) {
             isSpecial = true;
             if (declClass != targetClass)
-                throw new CompileError("no such constructor");
+                throw new CompileError("no such constructor: " + targetClass.getName());
 
             if (declClass != thisClass && AccessFlag.isPrivate(acc)) {
                 desc = getAccessibleConstructor(desc, declClass, minfo);

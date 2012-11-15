@@ -13,6 +13,7 @@ import javassist.ClassPool;
 import javassist.CodeConverter;
 import javassist.CtClass;
 import javassist.CtMethod;
+import javassist.CtNewConstructor;
 import javassist.CtNewMethod;
 import javassist.JvstTest;
 import javassist.Loader;
@@ -777,6 +778,36 @@ public class StackMapTest extends TestCase {
         assertEquals("java.lang.Object[]", TypeData.commonSuperClassEx(one, two).getName());
         assertTrue(one.subtypeOf(objarray));
         assertTrue(two.subtypeOf(objarray));
+    }
+
+    public void testJsr() throws Exception {
+        CtClass cc = loader.makeClass("javassist.bytecode.StackMapTestJsrTest");
+        ClassFile cf = cc.getClassFile();
+        cf.setMajorVersion(ClassFile.JAVA_6);
+        ConstPool cp = cf.getConstPool();
+        MethodInfo mi = new MethodInfo(cp, "test", "()I");
+        mi.setAccessFlags(AccessFlag.PUBLIC);
+        Bytecode code = new Bytecode(cp, 1, 3);
+        code.addIconst(3);
+        code.addIstore(1);
+        code.add(Opcode.JSR);
+        code.addIndex(5);
+        code.addIload(1);
+        code.add(Opcode.IRETURN);
+        code.addAstore(2);
+        code.addRet(2);
+        CodeAttribute ca = code.toCodeAttribute(); 
+        mi.addAttribute(ca);
+        mi.rebuildStackMap(loader);
+        cf.addMethod(mi);
+        cc.addConstructor(CtNewConstructor.make("public StackMapTestJsrTest() {}", cc));
+        cc.addMethod(CtMethod.make("public static void main(String[] args) {"
+                                 + "new javassist.bytecode.StackMapTestJsrTest().test();"
+                                 + "}",
+                                   cc));
+        cc.writeFile();
+        // Object t1 = make(cc.getName());
+        // assertEquals(3, invoke(t1, "test"));
     }
 
     public void tstCtClassType() throws Exception {

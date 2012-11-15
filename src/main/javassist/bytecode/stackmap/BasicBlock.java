@@ -23,10 +23,14 @@ import java.util.ArrayList;
 /**
  * A basic block is a sequence of bytecode that does not contain jump/branch
  * instructions except at the last bytecode.
- * Since Java6 or later does not allow JSR, this class deals with JSR as a
- * non-branch instruction.
+ * Since Java7 or later does not allow JSR, this class throws an exception when
+ * it finds JSR.
  */
 public class BasicBlock {
+    static class JsrBytecode extends BadBytecode {
+        JsrBytecode() { super("JSR"); }
+    }
+
     protected int position, length;
     protected int incoming;        // the number of incoming branches.
     protected BasicBlock[] exit;   // null if the block is a leaf.
@@ -294,16 +298,18 @@ public class BasicBlock {
             makeMark(marks, pos, jumps, size, true);
         }
 
-        /**
-         * We ignore JSR since Java 6 or later does not allow it.
-         */
-        protected void makeJsr(HashMap marks, int pos, int target, int size) {
         /*
+         * We could ignore JSR since Java 7 or later does not allow it.
+         * See The JVM Spec. Sec. 4.10.2.5.
+         */
+        protected void makeJsr(HashMap marks, int pos, int target, int size) throws BadBytecode {
+            /*
             Mark to = makeMark(marks, target);
             Mark next = makeMark(marks, pos + size);
             BasicBlock[] jumps = makeArray(to.block, next.block);
             makeMark(marks, pos, jumps, size, false);
-        */
+            */
+            throw new JsrBytecode();
         }
 
         private BasicBlock[] makeBlocks(HashMap markTable) {

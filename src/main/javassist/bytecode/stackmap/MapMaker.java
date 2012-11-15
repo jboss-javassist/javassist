@@ -82,7 +82,7 @@ public class MapMaker extends Tracer {
     /**
      * Computes the stack map table of the given method and returns it.
      * It returns null if the given method does not have to have a
-     * stack map table.
+     * stack map table or it includes JSR.
      */
     public static StackMapTable make(ClassPool classes, MethodInfo minfo)
         throws BadBytecode
@@ -91,7 +91,14 @@ public class MapMaker extends Tracer {
         if (ca == null)
             return null;
 
-        TypedBlock[] blocks = TypedBlock.makeBlocks(minfo, ca, true);
+        TypedBlock[] blocks;
+        try {
+            blocks = TypedBlock.makeBlocks(minfo, ca, true);
+        }
+        catch (BasicBlock.JsrBytecode e) {
+            return null;
+        }
+
         if (blocks == null)
             return null;
 
@@ -109,7 +116,7 @@ public class MapMaker extends Tracer {
     /**
      * Computes the stack map table for J2ME.
      * It returns null if the given method does not have to have a
-     * stack map table.
+     * stack map table or it includes JSR.
      */
     public static StackMap make2(ClassPool classes, MethodInfo minfo)
         throws BadBytecode
@@ -118,7 +125,14 @@ public class MapMaker extends Tracer {
         if (ca == null)
             return null;
 
-        TypedBlock[] blocks = TypedBlock.makeBlocks(minfo, ca, true);
+        TypedBlock[] blocks;
+        try {
+            blocks = TypedBlock.makeBlocks(minfo, ca, true);
+        }
+        catch (BasicBlock.JsrBytecode e) {
+            return null;
+        }
+
         if (blocks == null)
             return null;
 
