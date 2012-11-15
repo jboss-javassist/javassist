@@ -7,7 +7,7 @@
   	Javassist (JAVA programming ASSISTant) makes Java bytecode manipulation
     simple.  It is a class library for editing bytecodes in Java.
   </description>
-  <version>3.17.0-GA</version>
+  <version>3.17.1-GA</version>
   <name>Javassist</name>
   <url>http://www.javassist.org/</url>
 
@@ -124,8 +124,8 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
         <configuration>
-          <source>1.7</source>
-          <target>1.7</target>
+          <source>1.6</source>
+          <target>1.6</target>
         </configuration>
       </plugin>
       <plugin>
