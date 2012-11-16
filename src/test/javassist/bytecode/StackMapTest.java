@@ -783,7 +783,7 @@ public class StackMapTest extends TestCase {
     public void testJsr() throws Exception {
         CtClass cc = loader.makeClass("javassist.bytecode.StackMapTestJsrTest");
         ClassFile cf = cc.getClassFile();
-        cf.setMajorVersion(ClassFile.JAVA_6);
+        cf.setMajorVersion(ClassFile.JAVA_5);
         ConstPool cp = cf.getConstPool();
         MethodInfo mi = new MethodInfo(cp, "test", "()I");
         mi.setAccessFlags(AccessFlag.PUBLIC);
@@ -806,8 +806,8 @@ public class StackMapTest extends TestCase {
                                  + "}",
                                    cc));
         cc.writeFile();
-        // Object t1 = make(cc.getName());
-        // assertEquals(3, invoke(t1, "test"));
+        Object t1 = make(cc.getName());
+        assertEquals(3, invoke(t1, "test"));
     }
 
     public void tstCtClassType() throws Exception {
