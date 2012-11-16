@@ -790,6 +790,9 @@ public class StackMapTest extends TestCase {
         Bytecode code = new Bytecode(cp, 1, 3);
         code.addIconst(3);
         code.addIstore(1);
+        code.addIload(1);
+        code.add(Opcode.IFEQ);
+        code.addIndex(6);
         code.add(Opcode.JSR);
         code.addIndex(5);
         code.addIload(1);
