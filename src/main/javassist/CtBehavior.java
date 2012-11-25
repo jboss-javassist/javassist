@@ -826,35 +826,44 @@ public abstract class CtBehavior extends CtMember {
             // finally clause for exceptions
             int handlerLen = insertAfterHandler(asFinally, b, rtype, varNo,
                                                 jv, src);
-            // finally clause for normal termination
-            insertAfterAdvice(b, jv, src, pool, rtype, varNo);
-
-            ca.setMaxStack(b.getMaxStack());
-            ca.setMaxLocals(b.getMaxLocals());
-
-            int gapPos = iterator.append(b.get());
-            iterator.append(b.getExceptionTable(), gapPos);
-
+            int handlerPos = iterator.getCodeLength();
             if (asFinally)
-                ca.getExceptionTable().add(getStartPosOfBody(ca), gapPos, gapPos, 0); 
+                ca.getExceptionTable().add(getStartPosOfBody(ca), handlerPos, handlerPos, 0); 
 
-            int gapLen = iterator.getCodeLength() - gapPos - handlerLen;
-            int subr = iterator.getCodeLength() - gapLen;
-
+            int adviceLen = 0;
+            int advicePos = 0;
+            boolean noReturn = true;
             while (iterator.hasNext()) {
                 int pos = iterator.next();
-                if (pos >= subr)
+                if (pos >= handlerPos)
                     break;
 
                 int c = iterator.byteAt(pos);
                 if (c == Opcode.ARETURN || c == Opcode.IRETURN
                     || c == Opcode.FRETURN || c == Opcode.LRETURN
                     || c == Opcode.DRETURN || c == Opcode.RETURN) {
-                    insertGoto(iterator, subr, pos);
-                    subr = iterator.getCodeLength() - gapLen;
+                    if (noReturn) {
+                        // finally clause for normal termination
+                        adviceLen = insertAfterAdvice(b, jv, src, pool, rtype, varNo);
+                        handlerPos = iterator.append(b.get());
+                        iterator.append(b.getExceptionTable(), handlerPos);
+                        advicePos = iterator.getCodeLength() - adviceLen;
+                        handlerLen = advicePos - handlerPos;
+                        noReturn = false;
+                    }
+                    insertGoto(iterator, advicePos, pos);
+                    advicePos = iterator.getCodeLength() - adviceLen;
+                    handlerPos = advicePos - handlerLen;
                 }
             }
 
+            if (noReturn) {
+                handlerPos = iterator.append(b.get());
+                iterator.append(b.getExceptionTable(), handlerPos);
+            }
+
+            ca.setMaxStack(b.getMaxStack());
+            ca.setMaxLocals(b.getMaxLocals());
             methodInfo.rebuildStackMapIf6(cc.getClassPool(), cc.getClassFile2());
         }
         catch (NotFoundException e) {
@@ -868,10 +877,11 @@ public abstract class CtBehavior extends CtMember {
         }
     }
 
-    private void insertAfterAdvice(Bytecode code, Javac jv, String src,
-                                   ConstPool cp, CtClass rtype, int varNo)
+    private int insertAfterAdvice(Bytecode code, Javac jv, String src,
+                                  ConstPool cp, CtClass rtype, int varNo)
         throws CompileError
     {
+        int pc = code.currentPc();
         if (rtype == CtClass.voidType) {
             code.addOpcode(Opcode.ACONST_NULL);
             code.addAstore(varNo);
@@ -889,6 +899,8 @@ public abstract class CtBehavior extends CtMember {
             else
                 code.addOpcode(Opcode.ARETURN);
         }
+
+        return code.currentPc() - pc;
     }
 
     /*

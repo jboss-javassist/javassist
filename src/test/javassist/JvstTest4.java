@@ -784,4 +784,37 @@ public class JvstTest4 extends JvstTestRoot {
                      + "org.apache.hadoop.mapreduce.Mapper<java.lang.Object, org.apache.hadoop.io.Text, "
                      + "org.apache.hadoop.io.Text, org.apache.hadoop.io.IntWritable>.Context) void", s);
     }
+
+    public void testAfter() throws Exception {
+        CtClass cc = sloader.get("test4.AfterTest");
+        CtMethod m1 = cc.getDeclaredMethod("m1");
+        m1.insertAfter("print();");
+        CtMethod m2 = cc.getDeclaredMethod("m2");
+        m2.insertAfter("print();");
+        CtMethod m3 = cc.getDeclaredMethod("m3");
+        m3.insertAfter("print();");
+        CtMethod m4 = cc.getDeclaredMethod("m4");
+        m4.insertAfter("print();");
+
+        CtMethod mm1 = cc.getDeclaredMethod("mm1");
+        mm1.insertAfter("print();", true);
+        CtMethod mm2 = cc.getDeclaredMethod("mm2");
+        mm2.insertAfter("print();", true);
+        CtMethod mm3 = cc.getDeclaredMethod("mm3");
+        mm3.insertAfter("print();", true);
+        CtMethod mm4 = cc.getDeclaredMethod("mm4");
+        mm4.insertAfter("print();", true);
+
+        cc.writeFile();
+        Object obj = make(cc.getName());
+        assertEquals(131, invoke(obj, "test1"));
+        assertEquals(112, invoke(obj, "test2"));
+        assertEquals(10, invoke(obj, "test3"));
+        assertEquals(100, invoke(obj, "test4"));
+
+        assertEquals(131, invoke(obj, "test11"));
+        assertEquals(112, invoke(obj, "test22"));
+        assertEquals(10, invoke(obj, "test33"));
+        assertEquals(100, invoke(obj, "test44"));
+    }
 }
