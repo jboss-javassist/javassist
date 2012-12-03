@@ -643,6 +643,57 @@ public class ClassFileWriter {
         }
 
         /**
+         * Adds a new <code>CONSTANT_MethodHandle_info</code>
+         * structure.
+         *
+         * @param kind      <code>reference_kind</code>
+         *                  such as {@link #REF_invokeStatic <code>REF_invokeStatic</code>}.
+         * @param index     <code>reference_index</code>.
+         * @return          the index of the added entry.
+         *
+         * @since 3.17.1
+         */
+        public int addMethodHandleInfo(int kind, int index) {
+            output.write(MethodHandleInfo.tag);
+            output.write(kind);
+            output.writeShort(index);
+            return num++;
+        }
+
+        /**
+         * Adds a new <code>CONSTANT_MethodType_info</code>
+         * structure.
+         *
+         * @param desc      <code>descriptor_index</code>.
+         * @return          the index of the added entry.
+         *
+         * @since 3.17.1
+         */
+        public int addMethodTypeInfo(int desc) {
+            output.write(MethodTypeInfo.tag);
+            output.writeShort(desc);
+            return num++;
+        }
+
+        /**
+         * Adds a new <code>CONSTANT_InvokeDynamic_info</code>
+         * structure.
+         *
+         * @param bootstrap     <code>bootstrap_method_attr_index</code>.
+         * @param nameAndType   <code>name_and_type_index</code>.
+         * @return          the index of the added entry.
+         *
+         * @since 3.17.1
+         */
+        public int addInvokeDynamicInfo(int bootstrap,
+                                        int nameAndTypeInfo) {
+            output.write(InvokeDynamicInfo.tag);
+            output.writeShort(bootstrap);
+            output.writeShort(nameAndTypeInfo);
+            return num++;
+        }
+
+        /**
          * Adds a new <code>CONSTANT_String_info</code>
          * structure.
          *
