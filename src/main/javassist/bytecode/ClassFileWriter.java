@@ -647,7 +647,7 @@ public class ClassFileWriter {
          * structure.
          *
          * @param kind      <code>reference_kind</code>
-         *                  such as {@link #REF_invokeStatic <code>REF_invokeStatic</code>}.
+         *                  such as {@link ConstPool#REF_invokeStatic <code>REF_invokeStatic</code>}.
          * @param index     <code>reference_index</code>.
          * @return          the index of the added entry.
          *
@@ -679,9 +679,9 @@ public class ClassFileWriter {
          * Adds a new <code>CONSTANT_InvokeDynamic_info</code>
          * structure.
          *
-         * @param bootstrap     <code>bootstrap_method_attr_index</code>.
-         * @param nameAndType   <code>name_and_type_index</code>.
-         * @return          the index of the added entry.
+         * @param bootstrap         <code>bootstrap_method_attr_index</code>.
+         * @param nameAndTypeInfo   <code>name_and_type_index</code>.
+         * @return                  the index of the added entry.
          *
          * @since 3.17.1
          */
