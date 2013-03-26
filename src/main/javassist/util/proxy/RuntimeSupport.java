@@ -52,7 +52,7 @@ public class RuntimeSupport {
     {
         methods[index + 1] = thisMethod == null ? null
                                                 : findMethod(clazz, thisMethod, desc);
-        methods[index] = findSuperMethod(clazz, superMethod, desc);
+        methods[index] = findSuperClassMethod(clazz, superMethod, desc);
     }
 
     /**
@@ -75,7 +75,19 @@ public class RuntimeSupport {
      *
      * @throws RuntimeException     if the method is not found.
      */
-    public static Method findSuperMethod(Class clazz, String name, String desc) {
+    public static Method findSuperMethod(Object self, String name, String desc) {
+    	// for JBoss Seam.  See JASSIST-183.
+        Class clazz = self.getClass();
+        return findSuperClassMethod(clazz, name, desc);
+    }
+
+    /**
+     * Finds a method that has the given name and descriptor and is declared
+     * in the super class.
+     *
+     * @throws RuntimeException     if the method is not found.
+     */
+    public static Method findSuperClassMethod(Class clazz, String name, String desc) {
         Method m = findSuperMethod2(clazz.getSuperclass(), name, desc);
         if (m == null)
             m = searchInterfaces(clazz, name, desc);
