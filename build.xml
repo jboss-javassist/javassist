@@ -154,7 +154,7 @@ to ${build.classes.dir}.</echo>
   </target>
 
   <target name="jar" depends="compile14">
-    <jar jarfile="${target.jar}" manifest="${src.dir}/META-INF/MANIFEST.MF">
+    <jar jarfile="${target.jar}" update="true" manifest="${src.dir}/META-INF/MANIFEST.MF">
       <fileset dir="${build.classes.dir}">
       	  <include name="**/*.class"/>
       </fileset>

@@ -27,13 +27,14 @@ public class JBPAPP9257Test extends TestCase {
                 // method.
             }
         };
-        Foo foo = (Foo) c.newInstance();
+        Foo foo = (Foo)c.newInstance();
         try {
             ((ProxyObject)foo).setHandler(mi);
             fail("foo is a ProxyObject!");
         } catch (ClassCastException e) {}
         ((Proxy)foo).setHandler(mi);
         assertEquals("I'm doing something!", foo.doSomething());
+        assertEquals("This is a secret handler!", foo.getHandler());
     }
 
     public void testGetHandler2() throws Exception {
@@ -61,5 +62,6 @@ public class JBPAPP9257Test extends TestCase {
         } catch (ClassCastException e) {}
         ((Proxy)foo).setHandler(mi);
         assertEquals("do something!", foo.doSomething());
+        assertEquals("return a string!", foo.getHandler());
     }
 }

@@ -690,12 +690,15 @@ public final class ClassFile {
             if (notBridgeMethod(minfo))
                 return true;
             else {
+            	// if the bridge method with the same signature
+            	// already exists, replace it.
                 it.remove();
                 return false;
             }
         }
         else
-           return notBridgeMethod(minfo) && notBridgeMethod(newMethod);
+        	return false;
+           // return notBridgeMethod(minfo) && notBridgeMethod(newMethod);
     }
 
     /* For a bridge method, see Sec. 15.12.4.5 of JLS 3rd Ed.

@@ -800,9 +800,9 @@ public class ProxyFactory {
     {
         checkClassAndSuperName();
 
+        hasGetHandler = false;      // getMethods() may set this to true.
         HashMap allMethods = getMethods(superClass, interfaces);
         signatureMethods = new ArrayList(allMethods.entrySet());
-        hasGetHandler = allMethods.get(HANDLER_GETTER_KEY) != null;
         Collections.sort(signatureMethods, sorter);
     }
 
@@ -981,15 +981,20 @@ public class ProxyFactory {
             Map.Entry e = (Map.Entry)it.next();
             String key = (String)e.getKey();
             Method meth = (Method)e.getValue();
-            int mod = meth.getModifiers();
-            if (testBit(signature, index)) {
-                override(className, meth, prefix, index,
-                         keyToDesc(key, meth), cf, cp, forwarders);
-            }
+            if (ClassFile.MAJOR_VERSION < ClassFile.JAVA_5 || !isBridge(meth))
+            	if (testBit(signature, index)) {
+            		override(className, meth, prefix, index,
+            				 keyToDesc(key, meth), cf, cp, forwarders);
+            	}
+
             index++;
         }
 
         return index;
+    }
+
+    private static boolean isBridge(Method m) {
+    	return m.isBridge();
     }
 
     private void override(String thisClassname, Method meth, String prefix,
@@ -1083,7 +1088,9 @@ public class ProxyFactory {
             return name.substring(0, i);
     }
 
-    private static HashMap getMethods(Class superClass, Class[] interfaceTypes) {
+    /* getMethods() may set hasGetHandler to true.
+     */
+    private HashMap getMethods(Class superClass, Class[] interfaceTypes) {
         HashMap hash = new HashMap();
         HashSet set = new HashSet();
         for (int i = 0; i < interfaceTypes.length; i++)
@@ -1093,7 +1100,7 @@ public class ProxyFactory {
         return hash;
     }
 
-    private static void getMethods(HashMap hash, Class clazz, Set visitedClasses) {
+    private void getMethods(HashMap hash, Class clazz, Set visitedClasses) {
         // This both speeds up scanning by avoiding duplicate interfaces and is needed to
         // ensure that superinterfaces are always scanned before subinterfaces.
         if (!visitedClasses.add(clazz))
@@ -1107,12 +1114,19 @@ public class ProxyFactory {
         if (parent != null)
             getMethods(hash, parent, visitedClasses);
 
+        /* Java 5 or later allows covariant return types.
+         * It also allows contra-variant parameter types
+         * if a super class is a generics with concrete type arguments
+         * such as Foo<String>.  So the method-overriding rule is complex.
+         */
         Method[] methods = SecurityActions.getDeclaredMethods(clazz);
         for (int i = 0; i < methods.length; i++)
             if (!Modifier.isPrivate(methods[i].getModifiers())) {
                 Method m = methods[i];
-                // JIRA JASSIST-127 (covariant return types).
-                String key = m.getName() + ':' + RuntimeSupport.makeDescriptor(m.getParameterTypes(), null);
+                String key = m.getName() + ':' + RuntimeSupport.makeDescriptor(m);	// see keyToDesc().
+                if (key.startsWith(HANDLER_GETTER_KEY))
+                    hasGetHandler = true;
+
                 // JIRA JASSIST-85
                 // put the method to the cache, retrieve previous definition (if any) 
                 Method oldMethod = (Method)hash.put(key, methods[i]); 
@@ -1127,11 +1141,11 @@ public class ProxyFactory {
             }
     }
 
-    private static final String HANDLER_GETTER_KEY = HANDLER_GETTER + ":()";
+    private static final String HANDLER_GETTER_KEY
+    	= HANDLER_GETTER + ":()";
 
     private static String keyToDesc(String key, Method m) {
-        String params = key.substring(key.indexOf(':') + 1);
-        return RuntimeSupport.makeDescriptor(params, m.getReturnType());
+        return key.substring(key.indexOf(':') + 1);
     }
 
     private static MethodInfo makeConstructor(String thisClassName, Constructor cons,

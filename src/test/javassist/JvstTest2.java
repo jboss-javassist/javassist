@@ -436,14 +436,14 @@ public class JvstTest2 extends JvstTestRoot {
 
     public void testAddMethod() throws Exception {
         CtClass cc = sloader.get("test2.AddMethod");
-	CtMethod m = CtNewMethod.make(
-                         "public void f() { return 1; }", cc);
+        CtMethod m = CtNewMethod.make(
+                         "public int f() { return 1; }", cc);
         try {
             cc.addMethod(m);
             fail();
         }
         catch (CannotCompileException e) {}
-	CtMethod m2 = CtNewMethod.make(
+        CtMethod m2 = CtNewMethod.make(
                          "public void f(int i, int j) { return 1; }", cc);
         cc.addMethod(m2);
         try {

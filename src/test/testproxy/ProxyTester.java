@@ -26,9 +26,9 @@ public class ProxyTester extends TestCase {
 
         public Object invoke(Object self, Method m, Method proceed,
                 Object[] args) throws Exception {
-            System.out.println("intercept: " + m + ", proceed: " + proceed
-                    + ", modifier: "
-                    + Modifier.toString(proceed.getModifiers()));
+            System.out.println("intercept: " + m + ", proceed: " + proceed);
+            System.out.println("     modifier: "
+            				   + Modifier.toString(proceed.getModifiers()));
             counter++;
             return proceed.invoke(self, args);
         }
@@ -394,6 +394,38 @@ public class ProxyTester extends TestCase {
 
     public static class WriteReplace2 implements Serializable {
         public Object writeReplace(int i) { return new Integer(i); }
+    }
+
+    public static void testJIRA189() throws Exception {
+    	Class persistentClass = Target189.PublishedArticle.class;
+        ProxyFactory factory = new ProxyFactory();
+        factory.writeDirectory = ".";
+        factory.setUseCache(false);
+        factory.setSuperclass(persistentClass);
+        factory.setInterfaces(new Class[] { Target189.TestProxy.class });
+        Class cl = factory.createClass();
+        Target189.TestProxy proxy = (Target189.TestProxy)cl.newInstance();
+        Target189.TestMethodHandler methodHandler = new Target189.TestMethodHandler();
+        ((ProxyObject)proxy).setHandler(methodHandler);
+        ((Target189.Article)proxy).getIssue();
+        assertTrue(methodHandler.wasInvokedOnce());
+        methodHandler.reset();
+        Target189.PublishedArticle article = (Target189.PublishedArticle)proxy;
+        article.getIssue();
+        assertTrue(methodHandler.wasInvokedOnce());
+    }
+
+    public void testJIRA127() throws Exception {
+        ProxyFactory proxyFactory = new ProxyFactory();
+        proxyFactory.writeDirectory = ".";
+        proxyFactory.setInterfaces(new Class[]{ Target127.Sub.class });
+        Target127.Sub proxy = (Target127.Sub)proxyFactory.create(new Class[0], new Object[0], new MethodHandler() {
+            public Object invoke(Object self, Method thisMethod, Method proceed, Object[] args) throws Throwable {
+                return null;
+            }
+        });
+        ((Target127.Super)proxy).item();    // proxyFactory must generate a bridge method.
+        ((Target127.Sub)proxy).item();
     }
 
     public static void main(String[] args) {
