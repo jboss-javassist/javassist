@@ -1083,7 +1083,7 @@ public class Bytecode extends ByteVector implements Cloneable, Opcode {
     public void addInvokevirtual(int clazz, String name, String desc) {
         add(INVOKEVIRTUAL);
         addIndex(constPool.addMethodrefInfo(clazz, name, desc));
-        growStack(Descriptor.dataSize(desc));   // assume CosntPool#REF_invokeStatic
+        growStack(Descriptor.dataSize(desc) - 1);
     }
 
     /**
@@ -1170,7 +1170,7 @@ public class Bytecode extends ByteVector implements Cloneable, Opcode {
         add(INVOKEDYNAMIC);
         addIndex(dyn);
         add(0, 0);
-        growStack(Descriptor.dataSize(desc) - 1);
+        growStack(Descriptor.dataSize(desc));   // assume ConstPool#REF_invokeStatic
     }
 
     /**

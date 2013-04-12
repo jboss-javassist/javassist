@@ -817,4 +817,15 @@ public class JvstTest4 extends JvstTestRoot {
         assertEquals(10, invoke(obj, "test33"));
         assertEquals(100, invoke(obj, "test44"));
     }
+
+    public void testJIRA186() throws Exception {
+    	CtClass cc = sloader.get("test4.JIRA186");
+    	cc.getDeclaredMethod("test").insertBefore("{" +
+    			  "  java.util.List l = new java.util.ArrayList();" +
+    			  "  l.add(this.toString());" +
+    			  "}");
+        cc.writeFile();
+        Object obj = make(cc.getName());
+        assertEquals(1, invoke(obj, "test"));
+    }
 }

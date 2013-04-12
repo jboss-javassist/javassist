@@ -69,7 +69,7 @@ public abstract class CtClass {
     /**
      * The version number of this release.
      */
-    public static final String version = "3.17.1-GA";
+    public static final String version = "3.18.0-GA";
 
     /**
      * Prints the version number and the copyright notice.
@@ -80,7 +80,7 @@ public abstract class CtClass {
      */
     public static void main(String[] args) {
         System.out.println("Javassist version " + CtClass.version);
-        System.out.println("Copyright (C) 1999-2012 Shigeru Chiba."
+        System.out.println("Copyright (C) 1999-2013 Shigeru Chiba."
                            + " All Rights Reserved.");
     }
 
