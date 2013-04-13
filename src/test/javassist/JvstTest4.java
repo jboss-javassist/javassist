@@ -828,4 +828,14 @@ public class JvstTest4 extends JvstTestRoot {
         Object obj = make(cc.getName());
         assertEquals(1, invoke(obj, "test"));
     }
+
+    // JASSIST-190
+    public void testMultipleCatch() throws Exception {
+        CtClass cc = sloader.get("test4.MultiCatch");
+        CtMethod m1 = cc.getDeclaredMethod("m1");
+        m1.insertAfter("print();");
+        cc.writeFile();
+        Object obj = make(cc.getName());
+        assertEquals(12, invoke(obj, "test1"));
+    }
 }

@@ -18,6 +18,7 @@ package javassist.bytecode.stackmap;
 
 import java.util.ArrayList;
 import javassist.ClassPool;
+import javassist.CtClass;
 import javassist.NotFoundException;
 import javassist.bytecode.*;
 
@@ -205,8 +206,14 @@ public class MapMaker extends Tracer {
     {
         while (handler != null) {
             TypedBlock tb = (TypedBlock)handler.body;
-            if (tb.alreadySet())
+            if (tb.alreadySet()) {
                 mergeMap(tb, false);
+                if (tb.stackTop < 1)
+                    throw new BadBytecode("bad catch clause: " + handler.typeIndex);
+
+                tb.stackTypes[0] = merge(toExceptionType(handler.typeIndex),
+                                         tb.stackTypes[0]);
+            }
             else {
                 recordStackMap(tb, handler.typeIndex);
                 MapMaker maker = new MapMaker(this);
@@ -256,14 +263,18 @@ public class MapMaker extends Tracer {
         throws BadBytecode
     {
         TypeData[] tStackTypes = TypeData.make(stackTypes.length);
+        tStackTypes[0] = toExceptionType(exceptionType).join();
+        recordStackMap0(target, 1, tStackTypes);
+    }
+
+    private TypeData.ClassName toExceptionType(int exceptionType) {
         String type;
         if (exceptionType == 0)     // for finally clauses
-            type = "java.lang.Throwable";
+            type= "java.lang.Throwable";
         else
             type = cpool.getClassInfo(exceptionType);
 
-        tStackTypes[0] = new TypeData.ClassName(type);
-        recordStackMap0(target, 1, tStackTypes);
+        return new TypeData.ClassName(type);
     }
 
     private void recordStackMap0(TypedBlock target, int st, TypeData[] tStackTypes)
