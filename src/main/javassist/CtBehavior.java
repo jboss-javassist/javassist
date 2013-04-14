@@ -656,10 +656,14 @@ public abstract class CtBehavior extends CtMember {
 
             ca.insertLocalVar(where, size);
             LocalVariableAttribute va
-                            = (LocalVariableAttribute)
-                              ca.getAttribute(LocalVariableAttribute.tag);
+                = (LocalVariableAttribute)ca.getAttribute(LocalVariableAttribute.tag);
             if (va != null)
                 va.shiftIndex(where, size);
+
+            LocalVariableTypeAttribute lvta
+                = (LocalVariableTypeAttribute)ca.getAttribute(LocalVariableTypeAttribute.tag);
+            if (lvta != null)
+                lvta.shiftIndex(where, size);
 
             StackMapTable smt = (StackMapTable)ca.getAttribute(StackMapTable.tag);
             if (smt != null)

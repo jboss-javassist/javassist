@@ -838,4 +838,12 @@ public class JvstTest4 extends JvstTestRoot {
         Object obj = make(cc.getName());
         assertEquals(12, invoke(obj, "test1"));
     }
+
+    public void testLocalVariableTypeTable() throws Exception {
+        CtClass cc = sloader.get("test4.Lvtt");
+        CtMethod m = cc.getDeclaredMethod("run");
+        m.addParameter(CtClass.intType);
+        cc.writeFile();
+        Object obj = make(cc.getName());
+    }
 }

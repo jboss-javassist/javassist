@@ -465,6 +465,7 @@ public class CodeAttribute extends AttributeInfo implements Opcode {
      * Changes the index numbers of the local variables
      * to append a new parameter.
      * This method does not update <code>LocalVariableAttribute</code>,
+     * <code>LocalVariableTypeAttribute</code>,
      * <code>StackMapTable</code>, or <code>StackMap</code>.
      * These attributes must be explicitly updated.
      *
@@ -472,6 +473,7 @@ public class CodeAttribute extends AttributeInfo implements Opcode {
      * @param size         the type size of the new parameter (1 or 2).
      *
      * @see LocalVariableAttribute#shiftIndex(int, int)
+     * @see LocalVariableTypeAttribute#shiftIndex(int, int)
      * @see StackMapTable#insertLocal(int, int, int)
      * @see StackMap#insertLocal(int, int, int)
      */
