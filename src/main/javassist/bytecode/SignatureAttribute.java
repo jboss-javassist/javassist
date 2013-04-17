@@ -942,6 +942,23 @@ public class SignatureAttribute extends AttributeInfo {
         }
     }
 
+    /**
+     * Parses the given signature string as a type signature.
+     * The type signature is either the field type signature or a base type
+     * descriptor including <code>void</code> type. 
+     *
+     * @throws BadBytecode		thrown when a syntactical error is found.
+     * @since 3.18
+     */
+    public static Type toTypeSignature(String sig) throws BadBytecode {
+    	try {
+    		return parseType(sig, new Cursor());
+    	}
+    	catch (IndexOutOfBoundsException e) {
+            throw error(sig);
+        }
+    }
+
     private static ClassSignature parseSig(String sig)
         throws BadBytecode, IndexOutOfBoundsException
     {

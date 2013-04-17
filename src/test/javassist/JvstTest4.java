@@ -839,6 +839,7 @@ public class JvstTest4 extends JvstTestRoot {
         assertEquals(12, invoke(obj, "test1"));
     }
 
+    // JASSIST-185
     public void testLocalVariableTypeTable() throws Exception {
         CtClass cc = sloader.get("test4.Lvtt");
         CtMethod m = cc.getDeclaredMethod("run");
@@ -846,4 +847,26 @@ public class JvstTest4 extends JvstTestRoot {
         cc.writeFile();
         Object obj = make(cc.getName());
     }
+
+    // JASSISt-181
+    public void testAnnotationWithGenerics() throws Exception {
+    	CtClass cc0 = sloader.get("test4.JIRA181b");
+        CtField field0 = cc0.getField("aField");
+        String s0 = field0.getAnnotation(test4.JIRA181b.Condition.class).toString();
+        assertEquals("@test4.JIRA181b$Condition(condition=java.lang.String.class)", s0);
+        CtField field01 = cc0.getField("aField2");
+        String s01 = field01.getAnnotation(test4.JIRA181b.Condition.class).toString();
+        assertEquals("@test4.JIRA181b$Condition(condition=void.class)", s01);
+
+        CtClass cc = sloader.get("test4.JIRA181");
+        CtField field = cc.getField("aField");
+        String s = field.getAnnotation(test4.JIRA181.Condition.class).toString();
+        assertEquals("@test4.JIRA181$Condition(condition=test4.JIRA181<T>.B.class)", s);
+        CtField field2 = cc.getField("aField2");
+        String s2 = field2.getAnnotation(test4.JIRA181.Condition2.class).toString();
+        assertEquals("@test4.JIRA181$Condition2(condition=test4.JIRA181<T>.B[].class)", s2);
+    }
 }
+
+
+

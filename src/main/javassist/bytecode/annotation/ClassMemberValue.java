@@ -17,8 +17,11 @@
 package javassist.bytecode.annotation;
 
 import javassist.ClassPool;
+import javassist.bytecode.BadBytecode;
 import javassist.bytecode.ConstPool;
 import javassist.bytecode.Descriptor;
+import javassist.bytecode.SignatureAttribute;
+
 import java.io.IOException;
 import java.lang.reflect.Method;
 
@@ -97,7 +100,11 @@ public class ClassMemberValue extends MemberValue {
      */
     public String getValue() {
         String v = cp.getUtf8Info(valueIndex);
-        return Descriptor.toClassName(v);
+        try {
+			return SignatureAttribute.toTypeSignature(v).toString();
+		} catch (BadBytecode e) {
+			throw new RuntimeException(e);
+		}
     }
 
     /**
@@ -114,7 +121,7 @@ public class ClassMemberValue extends MemberValue {
      * Obtains the string representation of this object.
      */
     public String toString() {
-        return "<" + getValue() + " class>";
+    	return getValue() + ".class";
     }
 
     /**
