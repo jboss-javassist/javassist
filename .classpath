@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<classpath>
-	<classpathentry excluding=".svn" kind="src" path="src/main"/>
-	<classpathentry excluding=".svn" kind="src" path="src/test"/>
-	<classpathentry kind="lib" path="lib/junit.jar"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry kind="lib" path="/System/Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Classes/classes.jar"/>
-	<classpathentry kind="output" path="eclipse-output/classes"/>
-</classpath>
