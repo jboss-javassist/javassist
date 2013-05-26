@@ -700,10 +700,38 @@ public class ProxyFactory {
         setField(DEFAULT_INTERCEPTOR, handler);
     }
 
-    private static int counter = 0;
+    /**
+     * A unique class name generator.
+     */
+    public static interface UniqueName {
+        /**
+         * Returns a unique class name.
+         *
+         * @param classname     the super class name of the proxy class.
+         */
+        String get(String classname);
+    }
 
-    private static synchronized String makeProxyName(String classname) {
-        return classname + "_$$_javassist_" + counter++;
+    /**
+     * A unique class name generator.
+     * Replacing this generator changes the algorithm to generate a
+     * unique name. The <code>get</code> method does not have to be
+     * a <code>synchronized</code> method since the access to this field
+     * is mutually exclusive and thus thread safe.
+     */
+    public static UniqueName nameGenerator = new UniqueName() {
+        private final String sep = "_$$_jvst" + Integer.toHexString(this.hashCode() & 0xfff) + "_";
+        private int counter = 0;
+
+        public String get(String classname) {
+            return classname + sep + Integer.toHexString(counter++);
+        }
+    };
+
+    private static String makeProxyName(String classname) {
+        synchronized (nameGenerator) {
+            return nameGenerator.get(classname);
+        }
     }
 
     private ClassFile make() throws CannotCompileException {
@@ -758,8 +786,7 @@ public class ProxyFactory {
         return cf;
     }
 
-    private void checkClassAndSuperName()
-    {
+    private void checkClassAndSuperName() {
         if (interfaces == null)
             interfaces = new Class[0];
 
@@ -780,8 +807,7 @@ public class ProxyFactory {
             basename = "org.javassist.tmp." + basename;
     }
 
-    private void allocateClassName()
-    {
+    private void allocateClassName() {
         classname = makeProxyName(basename);
     }
 
@@ -796,8 +822,7 @@ public class ProxyFactory {
         }
     };
 
-    private void makeSortedMethodList()
-    {
+    private void makeSortedMethodList() {
         checkClassAndSuperName();
 
         hasGetHandler = false;      // getMethods() may set this to true.
@@ -838,8 +863,7 @@ public class ProxyFactory {
         this.signature =  signature;
     }
 
-    private boolean testBit(byte[] signature, int idx)
-    {
+    private boolean testBit(byte[] signature, int idx) {
         int byteIdx = idx >> 3;
         if (byteIdx > signature.length) {
             return false;
@@ -851,8 +875,7 @@ public class ProxyFactory {
         }
     }
 
-    private void setBit(byte[] signature, int idx)
-    {
+    private void setBit(byte[] signature, int idx) {
         int byteIdx = idx >> 3;
         if (byteIdx < signature.length) {
             int bitIdx = idx & 0x7;
