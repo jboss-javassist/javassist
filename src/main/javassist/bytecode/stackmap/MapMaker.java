@@ -162,6 +162,7 @@ public class MapMaker extends Tracer {
         throws BadBytecode
     {
         make(code, blocks[0]);
+        findDeadCatchers(code, blocks);
         try {
             fixTypes(code, blocks);
         } catch (NotFoundException e) {
@@ -301,6 +302,32 @@ public class MapMaker extends Tracer {
     protected static void copyTypeData(int n, TypeData[] srcTypes, TypeData[] destTypes) {
         for (int i = 0; i < n; i++)
             destTypes[i] = srcTypes[i];
+    }
+
+    // Phase 1.5
+
+    /*
+     * Javac may generate an exception handler that catches only an exception
+     * thrown within the handler itself.  It is dead code.
+     */
+
+    private void findDeadCatchers(byte[] code, TypedBlock[] blocks) throws BadBytecode {
+        int len = blocks.length;
+        for (int i = 0; i < len; i++) {
+            TypedBlock block = blocks[i];
+            if (block.localsTypes == null) { // if block is dead code
+                BasicBlock.Catch handler = block.toCatch;
+                while (handler != null)
+                    if (handler.body == block) {
+                        BasicBlock.Catch handler2
+                            = new BasicBlock.Catch(block, handler.typeIndex, null);
+                        traceException(code, handler2);
+                        break;
+                    }
+                    else
+                        handler = handler.next;
+            }
+        }
     }
 
     // Phase 2

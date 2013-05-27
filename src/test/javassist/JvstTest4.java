@@ -866,7 +866,13 @@ public class JvstTest4 extends JvstTestRoot {
         String s2 = field2.getAnnotation(test4.JIRA181.Condition2.class).toString();
         assertEquals("@test4.JIRA181$Condition2(condition=test4.JIRA181<T>.B[].class)", s2);
     }
+
+    public void testJIRA195() throws Exception {
+        CtClass cc = sloader.get("test4.JIRA195");
+        CtMethod mth = cc.getDeclaredMethod("test");
+        mth.getMethodInfo().rebuildStackMap(cc.getClassPool());
+        cc.writeFile();
+        Object obj = make(cc.getName());
+        assertEquals(4, invoke(obj, "run"));        
+    }
 }
-
-
-
