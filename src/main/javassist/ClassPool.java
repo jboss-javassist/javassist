@@ -936,7 +936,7 @@ public class ClassPool {
     /**
      * Detatches the <code>ClassPath</code> object from the search path.
      * The detached <code>ClassPath</code> object cannot be added
-     * to the pathagain.
+     * to the path again.
      */
     public void removeClassPath(ClassPath cp) {
         source.removeClassPath(cp);

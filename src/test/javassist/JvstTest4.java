@@ -875,4 +875,24 @@ public class JvstTest4 extends JvstTestRoot {
         Object obj = make(cc.getName());
         assertEquals(4, invoke(obj, "run"));        
     }
+
+    public void testJIRA188() throws Exception {
+        CtClass cc = sloader.makeClass("test4.JIRA188");
+        CtField f = new CtField(CtClass.intType, "f", cc);
+        f.setModifiers(Modifier.PRIVATE);
+        cc.addField(f);
+        cc.addMethod(CtNewMethod.make(
+                "public int getf(test4.JIRA188 p){ return p.f; }", cc));
+        cc.detach();
+        // System.gc();
+        try {
+            cc = sloader.get("test4.JIRA188");
+            fail("test4.JIRA188 found");
+        }
+        catch (NotFoundException e) {}
+        cc = sloader.makeClass("test4.JIRA188");
+        cc.addField(new CtField(CtClass.intType, "g", cc));
+        cc.addMethod(CtNewMethod.make(
+                "public int getf(test4.JIRA188 p){ return p.g; }", cc));
+    }
 }

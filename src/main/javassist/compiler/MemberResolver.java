@@ -399,7 +399,10 @@ public class MemberResolver implements TokenId {
         if (found == INVALID)
             throw new CompileError("no such class: " + name);
         else if (found != null)
-            return (CtClass)found;
+            try {
+                return classPool.get((String)found);
+            }
+            catch (NotFoundException e) {}
 
         CtClass cc = null;
         try {
@@ -409,7 +412,7 @@ public class MemberResolver implements TokenId {
             cc = searchImports(name);
         }
 
-        cache.put(name, cc);
+        cache.put(name, cc.getName());
         return cc;
     }
 
