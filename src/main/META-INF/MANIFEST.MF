@@ -1,5 +1,4 @@
 Specification-Title: Javassist
 Specification-Vendor: Shigeru Chiba, www.javassist.org
-Specification-Version: 3.17.1-GA
+Specification-Version: 3.18.0-GA
 Main-Class: javassist.CtClass
-Name: javassist/
