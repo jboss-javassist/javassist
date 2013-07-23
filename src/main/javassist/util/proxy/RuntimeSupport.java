@@ -56,6 +56,42 @@ public class RuntimeSupport {
     }
 
     /**
+     * Finds two methods specified by the parameters and stores them
+     * into the given array.
+     *
+     * <p>Added back for JBoss Seam.  See JASSIST-206.</p>
+     *
+     * @throws RuntimeException     if the methods are not found.
+     * @see javassist.util.proxy.ProxyFactory
+     * @deprecated replaced by {@link #find2Methods(Class, String, String, int, String, Method[])}
+     */
+    public static void find2Methods(Object self, String superMethod,
+                                    String thisMethod, int index,
+                                    String desc, java.lang.reflect.Method[] methods)
+    {
+        methods[index + 1] = thisMethod == null ? null
+                                                : findMethod(self, thisMethod, desc);
+        methods[index] = findSuperMethod(self, superMethod, desc);
+    }
+
+    /**
+     * Finds a method with the given name and descriptor.
+     * It searches only the class of self.
+     *
+     * <p>Added back for JBoss Seam.  See JASSIST-206.</p>
+     *
+     * @throws RuntimeException     if the method is not found.
+     * @deprecated replaced by {@link #findMethod(Class, String, String)}
+     */
+    public static Method findMethod(Object self, String name, String desc) {
+        Method m = findMethod2(self.getClass(), name, desc);
+        if (m == null)
+            error(self.getClass(), name, desc);
+
+        return m;
+    }
+
+    /**
      * Finds a method with the given name and descriptor.
      * It searches only the class of self.
      *
