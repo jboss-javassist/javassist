@@ -895,4 +895,12 @@ public class JvstTest4 extends JvstTestRoot {
         cc.addMethod(CtNewMethod.make(
                 "public int getf(test4.JIRA188 p){ return p.g; }", cc));
     }
+
+    public void testJIRA158() throws Exception {
+        CtClass cc = sloader.get("test4.JIRA158");
+        cc.addMethod(CtMethod.make("public int run() { return obj.foo(jj, dd) + obj.bar(j, d); }", cc));
+        cc.writeFile();
+        Object obj = make(cc.getName());
+        assertEquals(15, invoke(obj, "run"));
+    }
 }

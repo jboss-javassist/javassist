@@ -957,7 +957,7 @@ public class MemberCodeGen extends CodeGen {
         else
             className = null;
 
-        boolean is2byte = (c == 'J' || c == 'D');
+        boolean is2byte = dim == 0 && (c == 'J' || c == 'D');
         return is2byte;
     }
 
