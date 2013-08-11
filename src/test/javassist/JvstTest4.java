@@ -903,4 +903,20 @@ public class JvstTest4 extends JvstTestRoot {
         Object obj = make(cc.getName());
         assertEquals(15, invoke(obj, "run"));
     }
+
+    public void testJIRA207() throws Exception {
+        CtClass cc = sloader.get("test4.JIRA207");
+        CtMethod cm = cc.getDeclaredMethod("foo");
+        cm.insertBefore("throw new Exception();");
+
+        CtMethod cm2 = cc.getDeclaredMethod("run2");
+        cm2.insertBefore("throw new Exception();");
+        cc.writeFile();
+        Object obj = make(cc.getName());
+        try {
+            invoke(obj, "run2");
+            fail("run2");
+        }
+        catch (Exception e) {}
+    }
 }

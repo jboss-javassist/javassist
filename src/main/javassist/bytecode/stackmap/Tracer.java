@@ -81,7 +81,7 @@ public abstract class Tracer implements TypeTag {
                     return doOpcode148_201(pos, code, op);
         }
         catch (ArrayIndexOutOfBoundsException e) {
-            throw new BadBytecode("inconsistent stack height " + e.getMessage());
+            throw new BadBytecode("inconsistent stack height " + e.getMessage(), e);
         }
     }
 

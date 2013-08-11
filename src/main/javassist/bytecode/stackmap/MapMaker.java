@@ -307,34 +307,63 @@ public class MapMaker extends Tracer {
     // Phase 1.5
 
     /*
-     * Javac may generate an exception handler that catches only an exception
+     * Javac may generate an exception handler that catches only the exception
      * thrown within the handler itself.  It is dead code.
+     * See javassist.JvstTest4.testJIRA195().
      */
 
     private void findDeadCatchers(byte[] code, TypedBlock[] blocks) throws BadBytecode {
         int len = blocks.length;
         for (int i = 0; i < len; i++) {
             TypedBlock block = blocks[i];
-            if (block.localsTypes == null) { // if block is dead code
+            if (!block.alreadySet()) {
+                fixDeadcode(code, block);
                 BasicBlock.Catch handler = block.toCatch;
-                while (handler != null)
-                    if (handler.body == block) {
-                        BasicBlock.Catch handler2
-                            = new BasicBlock.Catch(block, handler.typeIndex, null);
-                        traceException(code, handler2);
-                        break;
+                if (handler != null) {
+                    TypedBlock tb = (TypedBlock)handler.body;
+                    if (!tb.alreadySet()) {
+                        // tb is a handler that catches only the exceptions
+                        // thrown from dead code.
+                        recordStackMap(tb, handler.typeIndex);
+                        fixDeadcode(code, tb);
+                        tb.incoming = 1;
                     }
-                    else
-                        handler = handler.next;
+                }
+                
             }
         }
+    }
+
+    private void fixDeadcode(byte[] code, TypedBlock block) throws BadBytecode {
+        int pos = block.position;
+        int len = block.length - 3;
+        if (len < 0) {
+            // if the dead-code length is shorter than 3 bytes.
+            if (len == -1)
+                code[pos] = Bytecode.NOP;
+
+            code[pos + block.length - 1] = (byte)Bytecode.ATHROW;
+            block.incoming = 1;
+            recordStackMap(block, 0);
+            return;
+        }
+
+        // if block.incomping > 0, all the incoming edges are from
+        // other dead code blocks.  So set block.incoming to 0.
+        block.incoming = 0;
+
+        for (int k = 0; k < len; k++) 
+            code[pos + k] = Bytecode.NOP;
+
+        code[pos + len] = (byte)Bytecode.GOTO;
+        ByteArray.write16bit(-len, code, pos + len + 1);
     }
 
     // Phase 2
 
     /*
      * This method first finds strongly connected components (SCCs)
-     * on a graph made by TypeData by Tarjan's algorithm.
+     * in a TypeData graph by Tarjan's algorithm.
      * SCCs are TypeData nodes sharing the same type.
      * Since SCCs are found in the topologically sorted order,
      * their types are also fixed when they are found. 
@@ -345,9 +374,7 @@ public class MapMaker extends Tracer {
         int index = 0;
         for (int i = 0; i < len; i++) {
             TypedBlock block = blocks[i];
-            if (block.localsTypes == null)  // if block is dead code
-                fixDeadcode(code, block);
-            else {
+            if (block.alreadySet()) {   // if block is not dead code
                 int n = block.localsTypes.length;
                 for (int j = 0; j < n; j++)
                     index = block.localsTypes[j].dfs(preOrder, index, classPool);
@@ -357,20 +384,6 @@ public class MapMaker extends Tracer {
                     index = block.stackTypes[j].dfs(preOrder, index, classPool);
             }
         }
-    }
-
-    private void fixDeadcode(byte[] code, TypedBlock block) throws BadBytecode {
-        int pos = block.position;
-        int len = block.length - 3;
-        if (len < 0)
-            throw new BadBytecode("dead code detected at " + pos
-                                  + ".  No stackmap table generated.");
-
-        for (int k = 0; k < len; k++) 
-            code[pos + k] = Bytecode.NOP;
-
-        code[pos + len] = (byte)Bytecode.GOTO;
-        ByteArray.write16bit(-len, code, pos + len + 1);
     }
 
     // Phase 3

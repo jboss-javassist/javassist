@@ -97,6 +97,10 @@ public class BasicBlock {
         sbuf.append("}");
     }
 
+    /**
+     * A Mark indicates the position of a branch instruction
+     * or a branch target.
+     */
     static class Mark implements Comparable {
         int position;
         BasicBlock block;
@@ -349,10 +353,11 @@ public class BasicBlock {
                     }
                     else {
                         // the previous mark already has exits.
-                        int prevPos = prev.position;
-                        if (prevPos + prev.length < m.position) {
-                            prev = makeBlock(prevPos + prev.length);
-                            prev.length = m.position - prevPos;
+                        if (prev.position + prev.length < m.position) {
+                            // dead code is found.
+                            prev = makeBlock(prev.position + prev.length);
+                            blocks.add(prev);
+                            prev.length = m.position - prev.position;
                             // the incoming flow from dead code is not counted
                             // bb.incoming++;
                             prev.exit = makeArray(bb);
