@@ -680,18 +680,16 @@ public class StackMapTest extends TestCase {
 
     public void testJIRA175b() throws Exception {
         CtClass cc = loader.get("javassist.bytecode.StackMapTest$C6");
-        try {
-            cc.getDeclaredMethod("setter").instrument(new javassist.expr.ExprEditor() {
-                public void edit(javassist.expr.FieldAccess f) throws javassist.CannotCompileException {
-                    if (!f.where().getMethodInfo().isMethod())
-                        return;
+        cc.getDeclaredMethod("setter").instrument(new javassist.expr.ExprEditor() {
+            public void edit(javassist.expr.FieldAccess f) throws javassist.CannotCompileException {
+                if (!f.where().getMethodInfo().isMethod())
+                    return;
 
-                    f.replace("{ $_ = $proceed($$); return $_;}");
-                }
-            });
-            fail("deadcode detection");
-        }
-        catch (javassist.CannotCompileException e) {}
+                // this will make a 1-byte dead code.
+                f.replace("{ $_ = $proceed($$); return $_;}");
+            }
+        });
+        cc.writeFile();
     }
 
     public static class C6 {
