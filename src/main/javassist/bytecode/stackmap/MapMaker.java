@@ -291,7 +291,6 @@ public class MapMaker extends Tracer {
     protected static int recordTypeData(int n, TypeData[] srcTypes, TypeData[] destTypes) {
         int k = -1;
         for (int i = 0; i < n; i++) {
-            // TypeData t = srcTypes[i];
             TypeData t = validateTypeData(srcTypes, n, i);
             destTypes[i] = t.join();
             if (t != TOP)
