@@ -157,6 +157,7 @@ public abstract class TypeData {
         protected ArrayList usedBy;     // reverse relations of lowers
         protected ArrayList uppers;     // upper bounds of this type.
         protected String fixedType;
+        private boolean is2WordType;    // cache
 
         public TypeVar(TypeData t) {
             uppers = null;
@@ -164,6 +165,7 @@ public abstract class TypeData {
             usedBy = new ArrayList(2);
             merge(t);
             fixedType = null;
+            is2WordType = t.is2WordType();
         }
 
         public String getName() {
@@ -181,8 +183,10 @@ public abstract class TypeData {
         }
 
         public boolean is2WordType() {
-            if (fixedType == null)
-                return ((TypeData)lowers.get(0)).is2WordType();
+            if (fixedType == null) {
+                return is2WordType;
+                // return ((TypeData)lowers.get(0)).is2WordType();
+            }
             else
                 return false;
         }
@@ -319,6 +323,7 @@ public abstract class TypeData {
                     TypeVar cv = (TypeVar)scc.get(i);
                     cv.lowers.clear();
                     cv.lowers.add(kind);
+                    is2WordType = kind.is2WordType();
                 }
             }
             else {

@@ -228,7 +228,8 @@ public class MapMaker extends Tracer {
     private void mergeMap(TypedBlock dest, boolean mergeStack) throws BadBytecode {
         int n = localsTypes.length;
         for (int i = 0; i < n; i++)
-            dest.localsTypes[i] = merge(localsTypes[i], dest.localsTypes[i]); 
+            dest.localsTypes[i] = merge(validateTypeData(localsTypes, n, i),
+                                        dest.localsTypes[i]);
 
         if (mergeStack) {
             n = stackTop;
@@ -290,7 +291,8 @@ public class MapMaker extends Tracer {
     protected static int recordTypeData(int n, TypeData[] srcTypes, TypeData[] destTypes) {
         int k = -1;
         for (int i = 0; i < n; i++) {
-            TypeData t = srcTypes[i];
+            // TypeData t = srcTypes[i];
+            TypeData t = validateTypeData(srcTypes, n, i);
             destTypes[i] = t.join();
             if (t != TOP)
             	k = i + 1;		// t might be long or double.
@@ -302,6 +304,15 @@ public class MapMaker extends Tracer {
     protected static void copyTypeData(int n, TypeData[] srcTypes, TypeData[] destTypes) {
         for (int i = 0; i < n; i++)
             destTypes[i] = srcTypes[i];
+    }
+
+    private static TypeData validateTypeData(TypeData[] data, int length, int index) {
+        TypeData td = data[index];
+        if (td.is2WordType() && index + 1 < length)
+            if (data[index + 1] != TOP)
+                return TOP;
+
+        return td;
     }
 
     // Phase 1.5
