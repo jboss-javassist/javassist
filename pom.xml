@@ -79,6 +79,20 @@
       </roles>
       <timezone>0</timezone>
     </developer>
+    
+    <developer>
+      <id>scottmarlow</id>
+      <name>Scott Marlow</name>
+      <email>smarlow@redhat.com</email>
+      <organization>JBoss</organization>
+      <organizationUrl>http://www.jboss.org/</organizationUrl>
+      <roles>
+        <role>contributing developer</role>
+      </roles>
+      <timezone>-5</timezone>
+    </developer>
+
+
   </developers>
 
   <distributionManagement>
