@@ -183,10 +183,10 @@ public class MapMaker extends Tracer {
 
         int pos = tb.position;
         int end = pos + tb.length;
-        while (pos < end)
+        while (pos < end) {
             pos += doOpcode(pos, code);
-
-        traceException(code, tb.toCatch);
+            traceException(code, tb.toCatch);
+        }
 
         if (tb.exit != null) {
             for (int i = 0; i < tb.exit.length; i++) {

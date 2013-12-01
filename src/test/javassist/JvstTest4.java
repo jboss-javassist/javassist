@@ -919,4 +919,23 @@ public class JvstTest4 extends JvstTestRoot {
         }
         catch (Exception e) {}
     }
+
+    public void testJIRA212() throws Exception {
+        CtClass cc = sloader.get("test4.JIRA212");
+        for (final CtBehavior behavior : cc.getDeclaredBehaviors()) {
+            behavior.instrument(new ExprEditor() {
+                    public void edit(FieldAccess fieldAccess) throws CannotCompileException {
+                        String fieldName = fieldAccess.getFieldName().substring(0,1).toUpperCase() + fieldAccess.getFieldName().substring(1);
+                        if (fieldAccess.isReader()) {
+                            // Rewrite read access
+                            fieldAccess.replace("$_ = $0.get" + fieldName + "();");
+                        } else if (fieldAccess.isWriter()) {
+                            // Rewrite write access
+                            fieldAccess.replace("$0.set" + fieldName + "($1);");
+                        }
+                    }});
+        }
+        cc.writeFile();
+        Object obj = make(cc.getName());
+    }
 }
