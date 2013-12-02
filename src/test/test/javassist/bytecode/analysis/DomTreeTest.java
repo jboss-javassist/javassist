@@ -89,4 +89,25 @@ public class DomTreeTest extends TestCase {
 
         return i + 3;
     }
+
+    public void testDomtree3() throws Exception {
+        ControlFlow cf = new ControlFlow(pool.get(DomTreeTest.class.getName()).getDeclaredMethod("test3"));
+        Block[] blocks = cf.basicBlocks();
+        for (int i = 0; i < blocks.length; i++)
+            System.out.println(blocks[i]);
+    }
+
+    public int test3(int i, int j) {
+        while (i > 0) {
+            try {
+                j++;
+            }
+            catch (Throwable t) {
+                j = 0;
+            }
+            i--;
+        }
+
+        return j;
+    }
 }

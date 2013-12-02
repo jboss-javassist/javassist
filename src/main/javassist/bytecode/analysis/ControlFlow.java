@@ -86,6 +86,12 @@ public class ControlFlow {
                 Block e = b.exit(k);
                 e.entrances[counters[e.index]++] = b;
             }
+
+            ControlFlow.Catcher[] catchers = b.catchers();
+            for (int k = 0; k < catchers.length; k++) {
+                Block catchBlock = catchers[k].node;
+                catchBlock.entrances[counters[catchBlock.index]++] = b;
+            }
         }
     }
 
@@ -245,7 +251,7 @@ public class ControlFlow {
             super.toString2(sbuf);
             sbuf.append(", incoming{");
             for (int i = 0; i < entrances.length; i++)
-                sbuf.append(entrances[i].position).append(", ");
+                    sbuf.append(entrances[i].position).append(", ");
 
             sbuf.append("}");
         }
