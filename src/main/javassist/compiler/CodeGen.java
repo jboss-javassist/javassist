@@ -434,7 +434,7 @@ public abstract class CodeGen extends Visitor implements Opcode, TokenId {
         if (notDo)
             bytecode.write16bit(pc, pc3 - pc + 1);
 
-        boolean alwaysBranch = compileBooleanExpr(true, expr);
+        boolean alwaysBranch = compileBooleanExpr(true, expr) && breakList.size() == 0;
         bytecode.addIndex(pc2 - bytecode.currentPc() + 1);
 
         patchGoto(breakList, bytecode.currentPc());

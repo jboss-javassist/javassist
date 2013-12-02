@@ -938,4 +938,22 @@ public class JvstTest4 extends JvstTestRoot {
         cc.writeFile();
         Object obj = make(cc.getName());
     }
+
+    public void testWhileTrueKO() throws Exception {
+        final ClassPool pool = ClassPool.getDefault();
+        final CtClass cc = pool.makeClass("test4.TestWhileTrueKO");
+        String source = "public void testWhile() { while(true) { break; } }";
+        cc.addMethod(CtMethod.make(source, cc));
+        cc.writeFile();
+        make(cc.getName());
+    }
+
+    public void testWhileTrueOK() throws Exception {
+        final ClassPool pool = ClassPool.getDefault();
+        final CtClass cc = pool.makeClass("test4.TestWhileTrueOK");
+        String source = "public void testWhile() { while(0==0) { break; }}";
+        cc.addMethod(CtMethod.make(source, cc));
+        cc.writeFile();
+        make(cc.getName());
+    }
 }
