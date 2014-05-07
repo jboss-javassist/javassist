@@ -8,5 +8,6 @@ lib/
 .DS_Store
 .classpath
 .project
+.settings
 TestLog.xml
 

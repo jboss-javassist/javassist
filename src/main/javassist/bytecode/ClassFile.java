@@ -88,6 +88,12 @@ public final class ClassFile {
     public static final int JAVA_7 = 51;
 
     /**
+     * The major version number of class files
+     * for JDK 1.8.
+     */
+    public static final int JAVA_8 = 52;
+
+    /**
      * The major version number of class files created
      * from scratch.  The default value is 47 (JDK 1.3).
      * It is 49 (JDK 1.5)
