@@ -114,7 +114,6 @@ public class FieldAccess extends Expr {
         int index = iterator.u16bitAt(currentPos + 1);
         ConstPool cp = getConstPool();
         return cc.getField(cp.getFieldrefName(index), cp.getFieldrefType(index));
-        //return cc.getField(getFieldName());
     }
 
     /**
