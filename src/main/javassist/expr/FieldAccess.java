@@ -111,7 +111,10 @@ public class FieldAccess extends Expr {
      */
     public CtField getField() throws NotFoundException {
         CtClass cc = getCtClass();
-        return cc.getField(getFieldName());
+        int index = iterator.u16bitAt(currentPos + 1);
+        ConstPool cp = getConstPool();
+        return cc.getField(cp.getFieldrefName(index), cp.getFieldrefType(index));
+        //return cc.getField(getFieldName());
     }
 
     /**
