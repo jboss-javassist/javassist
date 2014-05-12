@@ -132,7 +132,7 @@ public class CtField extends CtMember {
 
     /* Called by CtClassType.addField().
      */
-    Initializer getInit() {
+    public Initializer getInit() {
         ASTree tree = getInitAST();
         if (tree == null)
             return null;
