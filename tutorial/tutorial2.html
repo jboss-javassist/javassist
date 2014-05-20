@@ -1572,6 +1572,9 @@ enclosed by braces <code>{</code> and <code>}</code>, are not
 available unless the array dimension is one.
 
 <p><li>Inner classes or anonymous classes are not supported.
+Note that this is a limitation of the compiler only.
+It cannot compile source code including an anonymous-class declaration. 
+Javassist can read and modify a class file of inner/anonymous class.
 
 <p><li>Labeled <code>continue</code> and <code>break</code> statements
 are not supported.
