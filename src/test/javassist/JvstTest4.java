@@ -956,4 +956,28 @@ public class JvstTest4 extends JvstTestRoot {
         cc.writeFile();
         make(cc.getName());
     }
+
+    // JIRA JASSIST-224
+    public void testMethodParameters() throws Exception {
+        Class rc = test4.MethodParamTest.class;
+        java.lang.reflect.Method m = rc.getDeclaredMethods()[0];
+        java.lang.reflect.Parameter[] params = m.getParameters();
+        assertEquals("i", params[0].getName());
+        assertEquals("s", params[1].getName());
+
+        CtClass cc = sloader.get("test4.MethodParamTest");
+        ClassFile cf = cc.getClassFile2();
+        ConstPool cp = cf.getConstPool();
+        MethodInfo minfo = cf.getMethod("test");
+        MethodParametersAttribute attr
+            = (MethodParametersAttribute)minfo.getAttribute(MethodParametersAttribute.tag);
+        assertEquals(2, attr.size());
+        assertEquals("i", cp.getUtf8Info(attr.name(0)));
+        assertEquals("s", cp.getUtf8Info(attr.name(1)));
+
+        attr = (MethodParametersAttribute)attr.copy(cp, null);
+        assertEquals(2, attr.size());
+        assertEquals("i", cp.getUtf8Info(attr.name(0)));
+        assertEquals("s", cp.getUtf8Info(attr.name(1)));
+    }
 }

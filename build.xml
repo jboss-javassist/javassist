@@ -90,6 +90,7 @@
            optimize="off"
            includes="**">
             <classpath refid="test.compile.classpath"/>
+            <compilerarg value="-parameters" />        
     </javac>
   </target>
 

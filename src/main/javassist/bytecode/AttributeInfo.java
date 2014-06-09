@@ -101,6 +101,8 @@ public class AttributeInfo {
                 return new LocalVariableAttribute(cp, name, in);
             else if (nameStr.equals(LocalVariableTypeAttribute.tag))
                 return new LocalVariableTypeAttribute(cp, name, in);
+            else if (nameStr.equals(MethodParametersAttribute.tag))
+                return new MethodParametersAttribute(cp, name, in);
             else if (nameStr.equals(AnnotationsAttribute.visibleTag)
                      || nameStr.equals(AnnotationsAttribute.invisibleTag)) {
                 // RuntimeVisibleAnnotations or RuntimeInvisibleAnnotations

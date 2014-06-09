@@ -18,7 +18,7 @@ package javassist.bytecode;
 
 /**
  * A support class providing static methods and constants
- * for access modifiers such as public, rivate, ...
+ * for access modifiers such as public, private, ...
  */
 public class AccessFlag {
     public static final int PUBLIC    = 0x0001;
@@ -38,6 +38,7 @@ public class AccessFlag {
     public static final int SYNTHETIC = 0x1000;
     public static final int ANNOTATION = 0x2000;
     public static final int ENUM      = 0x4000;
+    public static final int MANDATED  = 0x8000;
 
     public static final int SUPER     = 0x0020;
 
