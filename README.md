@@ -1,7 +1,7 @@
 Java bytecode engineering toolkit
-# Javassist version 3
+### Javassist version 3
 
-### Copyright (C) 1999- by Shigeru Chiba, All rights reserved.
+Copyright (C) 1999- by Shigeru Chiba, All rights reserved.
 
 Javassist (JAVA programming ASSISTant) makes Java bytecode manipulation
 simple. It is a class library for editing bytecodes in Java; it enables Java
@@ -19,10 +19,13 @@ This software is distributed under the Mozilla Public License Version 1.1,
 the GNU Lesser General Public License Version 2.1 or later, or
 the Apache License Version 2.0.
 
-## Files
+#### Files
+
+  * [Readme.html](Readme.html)
+Readme file (a longer version of this file).
 
   * [License.html](License.html)
-License file (Also see the copyright notices below)
+License file
 
   * [tutorial/tutorial.html](tutorial/tutorial.html)
 Tutorial
