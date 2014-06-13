@@ -69,13 +69,13 @@
     </javac>
   </target>
 
-  <target name="compile14" depends="prepare">
+  <target name="compile16" depends="prepare">
     <javac srcdir="${src.dir}"
            destdir="${build.classes.dir}"
            debug="on"
            deprecation="on"
-	       source="1.4"
-	       target="1.4"
+	       source="1.6"
+	       target="1.6"
            optimize="off"
            includes="**">
       <classpath refid="classpath"/>
@@ -153,7 +153,7 @@
 to ${build.classes.dir}.</echo>
   </target>
 
-  <target name="jar" depends="compile14">
+  <target name="jar" depends="compile16">
     <jar jarfile="${target.jar}" update="true" manifest="${src.dir}/META-INF/MANIFEST.MF">
       <fileset dir="${build.classes.dir}">
       	  <include name="**/*.class"/>
