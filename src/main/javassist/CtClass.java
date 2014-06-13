@@ -80,7 +80,7 @@ public abstract class CtClass {
      */
     public static void main(String[] args) {
         System.out.println("Javassist version " + CtClass.version);
-        System.out.println("Copyright (C) 1999-2013 Shigeru Chiba."
+        System.out.println("Copyright (C) 1999-2014 Shigeru Chiba."
                            + " All Rights Reserved.");
     }
 
