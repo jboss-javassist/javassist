@@ -1563,9 +1563,12 @@ has several limitations with respect to the language that the compiler can
 accept.  Those limitations are:
 
 <p><li>The new syntax introduced by J2SE 5.0 (including enums and generics)
-has not been supported.  Annotations are supported only by the low level
+has not been supported.  Annotations are supported by the low level
 API of Javassist.
-See the <code>javassist.bytecode.annotation</code> package.
+See the <code>javassist.bytecode.annotation</code> package
+(and also <code>getAnnotations()</code>
+in <code>CtClass</code> and <code>CtBehavior</code>).
+Generics are also only partly supported.  See <a href="./tutorial3.html#generics">the latter section</a> for more details.
 
 <p><li>Array initializers, a comma-separated list of expressions
 enclosed by braces <code>{</code> and <code>}</code>, are not
@@ -1625,6 +1628,6 @@ write:
 
 <hr>
 Java(TM) is a trademark of Sun Microsystems, Inc.<br>
-Copyright (C) 2000-2010 by Shigeru Chiba, All rights reserved.
+Copyright (C) 2000-2014 by Shigeru Chiba, All rights reserved.
 </body>
 </html>

@@ -269,7 +269,15 @@ String s = (String)v.get(0);
 </pre></ul>
 
 <p>So when you write a bytecode transformer, you can just drop
-off all type parameters.  For example, if you have a class:
+off all type parameters.  Because the compiler embedded in Javassist
+does not support generics,
+you must insert an explicit type cast at the
+caller site if the source code is compiled by Javassist, for example,
+through <code>CtMethod.make()</code>.  No type cast
+is necessary if the source code is compiled by a normal Java compiler
+such as <code>javac</code>.
+
+<p>For example, if you have a class:
 
 <ul><pre>
 public class Wrapper&lt;T&gt; {
@@ -287,7 +295,7 @@ public interface Getter&lt;T&gt; {
 }
 </pre></ul>
 
-<p>Then the interface you really have to add is <code>Getter</code>
+<p>then the interface you really have to add is <code>Getter</code>
 (the type parameters <code>&lt;T&gt;</code> drops off)
 and the method you also have to add to the <code>Wrapper</code>
 class is this simple one:
@@ -297,8 +305,20 @@ public Object get() { return value; }
 </pre></ul>
 
 <p>Note that no type parameters are necessary.
+Since <code>get</code> returns an <code>Object</code>, an explicit type cast
+is needed at the caller site if the source code is compiled by Javassist.
+For example, if the type parameter <code>T</code>
+is <code>String</code>, then <code>(String)</code> must be inserted as follows:
 
-<p>However, if you need to make type parameters accessible through reflection
+<ul><pre>
+Wrapper w = ...
+String s = (String)w.get();
+</pre></ul>
+
+<p>The type cast is not needed if the source code is compiled by a normal Java
+compiler because it will automatically insert a type cast. 
+
+<p>If you need to make type parameters accessible through reflection
 during runtime, you have to add generic signatures to the class file.
 For more details, see the API documentation (javadoc) of the
 <code>setGenericSignature</code> method in the <code>CtClass</code>.
@@ -327,7 +347,8 @@ cc.addMethod(m);
 <p>The parameter type <code>int...</code> is changed into <code>int[]</code>
 and <code>Modifier.VARARGS</code> is added to the method modifiers.
 
-<p>To call this method, you must write:
+<p>To call this method in the source code compiled by the compiler embedded in Javassist,
+you must write:
 
 <ul><pre>
 length(new int[] { 1, 2, 3 });
@@ -406,6 +427,6 @@ CtClass.debugDump = "./dump";
 
 <hr>
 Java(TM) is a trademark of Sun Microsystems, Inc.<br>
-Copyright (C) 2000-2012 by Shigeru Chiba, All rights reserved.
+Copyright (C) 2000-2014 by Shigeru Chiba, All rights reserved.
 </body>
 </html>
