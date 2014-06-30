@@ -96,7 +96,7 @@ import javassist.bytecode.annotation.*;
  * </pre></ul>
  *
  * <p>The last statement is necessary if the class file was produced by
- * Javassist or JDK 1.4.  Otherwise, it is not necessary.
+ * <code>javac</code> of JDK 1.4 or earlier.  Otherwise, it is not necessary.
  *
  * @see AnnotationDefaultAttribute
  * @see javassist.bytecode.annotation.Annotation
