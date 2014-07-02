@@ -389,7 +389,7 @@ public final class ConstPool {
      * at the given index.
      */
     public int getMethodrefClass(int index) {
-        MethodrefInfo minfo = (MethodrefInfo)getItem(index);
+        MemberrefInfo minfo = (MemberrefInfo)getItem(index);
         return minfo.classIndex;
     }
 
@@ -401,7 +401,7 @@ public final class ConstPool {
      * @return the name of the class at that <code>class_index</code>.
      */
     public String getMethodrefClassName(int index) {
-        MethodrefInfo minfo = (MethodrefInfo)getItem(index);
+        MemberrefInfo minfo = (MemberrefInfo)getItem(index);
         if (minfo == null)
             return null;
         else
@@ -414,7 +414,7 @@ public final class ConstPool {
      * at the given index.
      */
     public int getMethodrefNameAndType(int index) {
-        MethodrefInfo minfo = (MethodrefInfo)getItem(index);
+        MemberrefInfo minfo = (MemberrefInfo)getItem(index);
         return minfo.nameAndTypeIndex;
     }
 
@@ -427,7 +427,7 @@ public final class ConstPool {
      * @return  the name of the method.
      */
     public String getMethodrefName(int index) {
-        MethodrefInfo minfo = (MethodrefInfo)getItem(index);
+        MemberrefInfo minfo = (MemberrefInfo)getItem(index);
         if (minfo == null)
             return null;
         else {
@@ -449,7 +449,7 @@ public final class ConstPool {
      * @return  the descriptor of the method.
      */
     public String getMethodrefType(int index) {
-        MethodrefInfo minfo = (MethodrefInfo)getItem(index);
+        MemberrefInfo minfo = (MemberrefInfo)getItem(index);
         if (minfo == null)
             return null;
         else {
@@ -468,8 +468,7 @@ public final class ConstPool {
      * at the given index.
      */
     public int getInterfaceMethodrefClass(int index) {
-        InterfaceMethodrefInfo minfo
-            = (InterfaceMethodrefInfo)getItem(index);
+        MemberrefInfo minfo = (MemberrefInfo)getItem(index);
         return minfo.classIndex;
     }
 
@@ -481,8 +480,7 @@ public final class ConstPool {
      * @return the name of the class at that <code>class_index</code>.
      */
     public String getInterfaceMethodrefClassName(int index) {
-        InterfaceMethodrefInfo minfo
-            = (InterfaceMethodrefInfo)getItem(index);
+        MemberrefInfo minfo = (MemberrefInfo)getItem(index);
         return getClassInfo(minfo.classIndex);
     }
 
@@ -492,8 +490,7 @@ public final class ConstPool {
      * at the given index.
      */
     public int getInterfaceMethodrefNameAndType(int index) {
-        InterfaceMethodrefInfo minfo
-            = (InterfaceMethodrefInfo)getItem(index);
+        MemberrefInfo minfo = (MemberrefInfo)getItem(index);
         return minfo.nameAndTypeIndex;
     }
 
@@ -507,8 +504,7 @@ public final class ConstPool {
      * @return  the name of the method.
      */
     public String getInterfaceMethodrefName(int index) {
-        InterfaceMethodrefInfo minfo
-            = (InterfaceMethodrefInfo)getItem(index);
+        MemberrefInfo minfo = (MemberrefInfo)getItem(index);
         if (minfo == null)
             return null;
         else {
@@ -531,8 +527,7 @@ public final class ConstPool {
      * @return  the descriptor of the method.
      */
     public String getInterfaceMethodrefType(int index) {
-        InterfaceMethodrefInfo minfo
-            = (InterfaceMethodrefInfo)getItem(index);
+        MemberrefInfo minfo = (MemberrefInfo)getItem(index);
         if (minfo == null)
             return null;
         else {
