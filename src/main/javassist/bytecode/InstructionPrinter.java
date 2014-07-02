@@ -134,9 +134,8 @@ public class InstructionPrinter implements Opcode {
             case INVOKEVIRTUAL:
             case INVOKESPECIAL:
             case INVOKESTATIC:
-                return opstring + " " + methodInfo(pool, iter.u16bitAt(pos + 1));
             case INVOKEINTERFACE:
-                return opstring + " " + interfaceMethodInfo(pool, iter.u16bitAt(pos + 1));
+                return opstring + " " + methodInfo(pool, iter.u16bitAt(pos + 1));
             case INVOKEDYNAMIC:
                 return opstring + " " + iter.u16bitAt(pos + 1);
             case NEW:
@@ -210,13 +209,6 @@ public class InstructionPrinter implements Opcode {
         return "#" + index + " = Class " + pool.getClassInfo(index);
     }
 
-
-    private static String interfaceMethodInfo(ConstPool pool, int index) {
-        return "#" + index + " = Method "
-                + pool.getInterfaceMethodrefClassName(index) + "."
-                + pool.getInterfaceMethodrefName(index) + "("
-                + pool.getInterfaceMethodrefType(index) + ")";
-    }
 
     private static String methodInfo(ConstPool pool, int index) {
         return "#" + index + " = Method "

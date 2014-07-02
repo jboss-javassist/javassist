@@ -980,4 +980,20 @@ public class JvstTest4 extends JvstTestRoot {
         assertEquals("i", cp.getUtf8Info(attr.name(0)));
         assertEquals("s", cp.getUtf8Info(attr.name(1)));
     }
+
+    // JIRA JASSIST-220
+    public void testDefaultMethods() throws Exception {
+        CtClass cc = sloader.get("test4.JIRA220");
+
+        cc.getMethod("foo", "()V").instrument(new ExprEditor() {
+            @Override
+            public void edit(MethodCall m) throws CannotCompileException {
+                try {
+                    m.getClassName();
+                } catch (Exception e) {
+                    fail(e.getMessage());
+                }
+            }
+        });
+    }
 }

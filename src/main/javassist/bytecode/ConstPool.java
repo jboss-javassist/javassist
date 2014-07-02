@@ -389,7 +389,7 @@ public final class ConstPool {
      * at the given index.
      */
     public int getMethodrefClass(int index) {
-        MethodrefInfo minfo = (MethodrefInfo)getItem(index);
+        MemberrefInfo minfo = (MemberrefInfo)getItem(index);
         return minfo.classIndex;
     }
 
@@ -401,7 +401,7 @@ public final class ConstPool {
      * @return the name of the class at that <code>class_index</code>.
      */
     public String getMethodrefClassName(int index) {
-        MethodrefInfo minfo = (MethodrefInfo)getItem(index);
+        MemberrefInfo minfo = (MemberrefInfo)getItem(index);
         if (minfo == null)
             return null;
         else
@@ -414,7 +414,7 @@ public final class ConstPool {
      * at the given index.
      */
     public int getMethodrefNameAndType(int index) {
-        MethodrefInfo minfo = (MethodrefInfo)getItem(index);
+        MemberrefInfo minfo = (MemberrefInfo)getItem(index);
         return minfo.nameAndTypeIndex;
     }
 
@@ -427,7 +427,7 @@ public final class ConstPool {
      * @return  the name of the method.
      */
     public String getMethodrefName(int index) {
-        MethodrefInfo minfo = (MethodrefInfo)getItem(index);
+        MemberrefInfo minfo = (MemberrefInfo)getItem(index);
         if (minfo == null)
             return null;
         else {
@@ -449,7 +449,7 @@ public final class ConstPool {
      * @return  the descriptor of the method.
      */
     public String getMethodrefType(int index) {
-        MethodrefInfo minfo = (MethodrefInfo)getItem(index);
+        MemberrefInfo minfo = (MemberrefInfo)getItem(index);
         if (minfo == null)
             return null;
         else {
@@ -462,88 +462,6 @@ public final class ConstPool {
         }
     }
 
-    /**
-     * Reads the <code>class_index</code> field of the
-     * <code>CONSTANT_InterfaceMethodref_info</code> structure
-     * at the given index.
-     */
-    public int getInterfaceMethodrefClass(int index) {
-        InterfaceMethodrefInfo minfo
-            = (InterfaceMethodrefInfo)getItem(index);
-        return minfo.classIndex;
-    }
-
-    /**
-     * Reads the <code>class_index</code> field of the
-     * <code>CONSTANT_InterfaceMethodref_info</code> structure
-     * at the given index.
-     *
-     * @return the name of the class at that <code>class_index</code>.
-     */
-    public String getInterfaceMethodrefClassName(int index) {
-        InterfaceMethodrefInfo minfo
-            = (InterfaceMethodrefInfo)getItem(index);
-        return getClassInfo(minfo.classIndex);
-    }
-
-    /**
-     * Reads the <code>name_and_type_index</code> field of the
-     * <code>CONSTANT_InterfaceMethodref_info</code> structure
-     * at the given index.
-     */
-    public int getInterfaceMethodrefNameAndType(int index) {
-        InterfaceMethodrefInfo minfo
-            = (InterfaceMethodrefInfo)getItem(index);
-        return minfo.nameAndTypeIndex;
-    }
-
-    /**
-     * Reads the <code>name_index</code> field of the
-     * <code>CONSTANT_NameAndType_info</code> structure
-     * indirectly specified by the given index.
-     *
-     * @param index     an index to
-     *                  a <code>CONSTANT_InterfaceMethodref_info</code>.
-     * @return  the name of the method.
-     */
-    public String getInterfaceMethodrefName(int index) {
-        InterfaceMethodrefInfo minfo
-            = (InterfaceMethodrefInfo)getItem(index);
-        if (minfo == null)
-            return null;
-        else {
-            NameAndTypeInfo n
-                = (NameAndTypeInfo)getItem(minfo.nameAndTypeIndex);
-            if(n == null)
-                return null;
-            else
-                return getUtf8Info(n.memberName);
-        }
-    }
-
-    /**
-     * Reads the <code>descriptor_index</code> field of the
-     * <code>CONSTANT_NameAndType_info</code> structure
-     * indirectly specified by the given index.
-     *
-     * @param index     an index to
-     *                  a <code>CONSTANT_InterfaceMethodref_info</code>.
-     * @return  the descriptor of the method.
-     */
-    public String getInterfaceMethodrefType(int index) {
-        InterfaceMethodrefInfo minfo
-            = (InterfaceMethodrefInfo)getItem(index);
-        if (minfo == null)
-            return null;
-        else {
-            NameAndTypeInfo n
-                = (NameAndTypeInfo)getItem(minfo.nameAndTypeIndex);
-            if(n == null)
-                return null;
-            else
-                return getUtf8Info(n.typeDescriptor);
-        }
-    }
     /**
      * Reads <code>CONSTANT_Integer_info</code>, <code>_Float_info</code>,
      * <code>_Long_info</code>, <code>_Double_info</code>, or

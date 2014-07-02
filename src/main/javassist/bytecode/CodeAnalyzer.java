@@ -228,17 +228,13 @@ class CodeAnalyzer implements Opcode {
             break;
         case INVOKEVIRTUAL :
         case INVOKESPECIAL :
+            case INVOKEINTERFACE :
             desc = constPool.getMethodrefType(ci.u16bitAt(index + 1));
             stack += Descriptor.dataSize(desc) - 1;
             break;
         case INVOKESTATIC :
             desc = constPool.getMethodrefType(ci.u16bitAt(index + 1));
             stack += Descriptor.dataSize(desc);
-            break;
-        case INVOKEINTERFACE :
-            desc = constPool.getInterfaceMethodrefType(
-                                            ci.u16bitAt(index + 1));
-            stack += Descriptor.dataSize(desc) - 1;
             break;
         case INVOKEDYNAMIC :
             desc = constPool.getInvokeDynamicType(ci.u16bitAt(index + 1));

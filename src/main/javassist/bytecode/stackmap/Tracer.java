@@ -830,9 +830,9 @@ public abstract class Tracer implements TypeTag {
 
     private int doInvokeIntfMethod(int pos, byte[] code) throws BadBytecode {
         int i = ByteArray.readU16bit(code, pos + 1);
-        String desc = cpool.getInterfaceMethodrefType(i);
+        String desc = cpool.getMethodrefType(i);
         checkParamTypes(desc, 1);
-        String className = cpool.getInterfaceMethodrefClassName(i);
+        String className = cpool.getMethodrefClassName(i);
         stackTypes[--stackTop].setType(className, classPool);
         pushMemberType(desc);
         return 5;
