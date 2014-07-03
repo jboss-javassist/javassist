@@ -228,7 +228,7 @@ class CodeAnalyzer implements Opcode {
             break;
         case INVOKEVIRTUAL :
         case INVOKESPECIAL :
-            case INVOKEINTERFACE :
+        case INVOKEINTERFACE :
             desc = constPool.getMethodrefType(ci.u16bitAt(index + 1));
             stack += Descriptor.dataSize(desc) - 1;
             break;
