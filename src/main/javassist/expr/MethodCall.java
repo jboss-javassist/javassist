@@ -37,10 +37,7 @@ public class MethodCall extends Expr {
         int c = iterator.byteAt(pos);
         int index = iterator.u16bitAt(pos + 1);
 
-        if (c == INVOKEINTERFACE)
-            return cp.getInterfaceMethodrefNameAndType(index);
-        else
-            return cp.getMethodrefNameAndType(index);
+        return cp.getMethodrefNameAndType(index);
     }
 
     /**
@@ -88,10 +85,7 @@ public class MethodCall extends Expr {
         int c = iterator.byteAt(pos);
         int index = iterator.u16bitAt(pos + 1);
 
-        if (c == INVOKEINTERFACE)
-            cname = cp.getInterfaceMethodrefClassName(index);
-        else
-            cname = cp.getMethodrefClassName(index);
+        cname = cp.getMethodrefClassName(index);
 
          if (cname.charAt(0) == '[')
              cname = Descriptor.toClassName(cname);
@@ -182,24 +176,21 @@ public class MethodCall extends Expr {
         int pos = currentPos;
         int index = iterator.u16bitAt(pos + 1);
 
-        String classname, methodname, signature;
         int opcodeSize;
         int c = iterator.byteAt(pos);
         if (c == INVOKEINTERFACE) {
             opcodeSize = 5;
-            classname = constPool.getInterfaceMethodrefClassName(index);
-            methodname = constPool.getInterfaceMethodrefName(index);
-            signature = constPool.getInterfaceMethodrefType(index);
         }
         else if (c == INVOKESTATIC
                  || c == INVOKESPECIAL || c == INVOKEVIRTUAL) {
             opcodeSize = 3;
-            classname = constPool.getMethodrefClassName(index);
-            methodname = constPool.getMethodrefName(index);
-            signature = constPool.getMethodrefType(index);
         }
         else
             throw new CannotCompileException("not method invocation");
+
+        String classname = constPool.getMethodrefClassName(index);
+        String methodname = constPool.getMethodrefName(index);
+        String signature = constPool.getMethodrefType(index);
 
         Javac jc = new Javac(thisClass);
         ClassPool cp = thisClass.getClassPool();

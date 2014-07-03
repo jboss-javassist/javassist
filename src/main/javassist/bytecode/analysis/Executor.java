@@ -568,10 +568,8 @@ public class Executor implements Opcode {
             case INVOKEVIRTUAL:
             case INVOKESPECIAL:
             case INVOKESTATIC:
-                evalInvokeMethod(opcode, iter.u16bitAt(pos + 1), frame);
-                break;
             case INVOKEINTERFACE:
-                evalInvokeIntfMethod(opcode, iter.u16bitAt(pos + 1), frame);
+                evalInvokeMethod(opcode, iter.u16bitAt(pos + 1), frame);
                 break;
             case INVOKEDYNAMIC:
                 evalInvokeDynamic(opcode, iter.u16bitAt(pos + 1), frame);
@@ -712,23 +710,6 @@ public class Executor implements Opcode {
         }
 
         simplePush(type, frame);
-    }
-
-    private void evalInvokeIntfMethod(int opcode, int index, Frame frame) throws BadBytecode {
-        String desc = constPool.getInterfaceMethodrefType(index);
-        Type[] types = paramTypesFromDesc(desc);
-        int i = types.length;
-
-        while (i > 0)
-            verifyAssignable(zeroExtend(types[--i]), simplePop(frame));
-
-        String classInfo = constPool.getInterfaceMethodrefClassName(index);
-        Type objectType = resolveClassInfo(classInfo);
-        verifyAssignable(objectType, simplePop(frame));
-
-        Type returnType = returnTypeFromDesc(desc);
-        if (returnType != Type.VOID)
-            simplePush(zeroExtend(returnType), frame);
     }
 
     private void evalInvokeMethod(int opcode, int index, Frame frame) throws BadBytecode {
