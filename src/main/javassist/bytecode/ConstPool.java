@@ -463,6 +463,71 @@ public final class ConstPool {
     }
 
     /**
+     * Reads the <code>class_index</code> field of the
+     * <code>CONSTANT_InterfaceMethodref_info</code> structure
+     * at the given index.
+     *
+     * @deprecated use {@link #getMethodrefClass} instead
+     */
+    public int getInterfaceMethodrefClass(int index) {
+        return getMethodrefClass(index);
+    }
+
+    /**
+     * Reads the <code>class_index</code> field of the
+     * <code>CONSTANT_InterfaceMethodref_info</code> structure
+     * at the given index.
+     *
+     * @return the name of the class at that <code>class_index</code>.
+     *
+     * @deprecated use {@link #getMethodrefClassName} instead
+     */
+    public String getInterfaceMethodrefClassName(int index) {
+        return getMethodrefClassName(index);
+    }
+
+    /**
+     * Reads the <code>name_and_type_index</code> field of the
+     * <code>CONSTANT_InterfaceMethodref_info</code> structure
+     * at the given index.
+     *
+     * @deprecated use {@link #getMethodrefNameAndType} instead
+     */
+    public int getInterfaceMethodrefNameAndType(int index) {
+        return getMethodrefNameAndType(index);
+    }
+
+    /**
+     * Reads the <code>name_index</code> field of the
+     * <code>CONSTANT_NameAndType_info</code> structure
+     * indirectly specified by the given index.
+     *
+     * @param index     an index to
+     *                  a <code>CONSTANT_InterfaceMethodref_info</code>.
+     * @return  the name of the method.
+     *
+     * @deprecated use {@link #getMethodrefName} instead
+     */
+    public String getInterfaceMethodrefName(int index) {
+        return getMethodrefName(index);
+    }
+
+    /**
+     * Reads the <code>descriptor_index</code> field of the
+     * <code>CONSTANT_NameAndType_info</code> structure
+     * indirectly specified by the given index.
+     *
+     * @param index     an index to
+     *                  a <code>CONSTANT_InterfaceMethodref_info</code>.
+     * @return  the descriptor of the method.
+     *
+     * @deprecated use {@link #getMethodrefType} instead
+     */
+    public String getInterfaceMethodrefType(int index) {
+        return getMethodrefType(index);
+    }
+
+    /**
      * Reads <code>CONSTANT_Integer_info</code>, <code>_Float_info</code>,
      * <code>_Long_info</code>, <code>_Double_info</code>, or
      * <code>_String_info</code> structure.
