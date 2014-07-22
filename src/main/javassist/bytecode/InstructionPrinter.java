@@ -277,7 +277,7 @@ public class InstructionPrinter implements Opcode {
         int tag = pool.getTag(index);
         switch (tag) {
             case ConstPool.CONST_String:
-                return "#" + index + " = \"" + pool.getStringInfo(index) + "\"";
+                return "#" + index + " = String " + pool.getStringInfo(index);
             case ConstPool.CONST_Integer:
                 return "#" + index + " = int " + pool.getIntegerInfo(index);
             case ConstPool.CONST_Float:
