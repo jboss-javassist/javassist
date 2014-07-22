@@ -4,10 +4,8 @@ import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.util.Collection;
 import java.util.HashSet;
 import javassist.bytecode.*;
-import javassist.bytecode.annotation.*;
 import javassist.expr.*;
 
 public class JvstTest4 extends JvstTestRoot {
