@@ -116,7 +116,7 @@ public class InstructionPrinter implements Opcode {
             case IF_ICMPNE:
                 return opstring + " " + (iter.s16bitAt(pos + 1) + pos);
             case IINC:
-                return opstring + " " + iter.byteAt(pos + 1);
+                return opstring + " " + iter.byteAt(pos + 1) + ", " + iter.signedByteAt(pos + 2);
             case GOTO:
             case JSR:
                 return opstring + " " + (iter.s16bitAt(pos + 1) + pos);
