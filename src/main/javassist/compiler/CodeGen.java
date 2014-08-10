@@ -381,7 +381,14 @@ public abstract class CodeGen extends Visitor implements Opcode, TokenId {
         ASTree expr = st.head();
         Stmnt thenp = (Stmnt)st.tail().head();
         Stmnt elsep = (Stmnt)st.tail().tail().head();
-        compileBooleanExpr(false, expr);
+        if (compileBooleanExpr(false, expr)) {
+            hasReturned = false;
+            if (elsep != null)
+                elsep.accept(this);
+
+            return;
+        }
+
         int pc = bytecode.currentPc();
         int pc2 = 0;
         bytecode.addIndex(0);   // correct later
@@ -400,7 +407,6 @@ public abstract class CodeGen extends Visitor implements Opcode, TokenId {
         }
 
         bytecode.write16bit(pc, bytecode.currentPc() - pc + 1);
-
         if (elsep != null) {
             elsep.accept(this);
             if (!thenHasReturned)
@@ -434,9 +440,13 @@ public abstract class CodeGen extends Visitor implements Opcode, TokenId {
         if (notDo)
             bytecode.write16bit(pc, pc3 - pc + 1);
 
-        boolean alwaysBranch = compileBooleanExpr(true, expr) && breakList.size() == 0;
-        bytecode.addIndex(pc2 - bytecode.currentPc() + 1);
+        boolean alwaysBranch = compileBooleanExpr(true, expr);
+        if (alwaysBranch) {
+            bytecode.addOpcode(Opcode.GOTO);
+            alwaysBranch = breakList.size() == 0;
+        }
 
+        bytecode.addIndex(pc2 - bytecode.currentPc() + 1);
         patchGoto(breakList, bytecode.currentPc());
         patchGoto(continueList, pc3);
         continueList = prevContList;
@@ -471,7 +481,14 @@ public abstract class CodeGen extends Visitor implements Opcode, TokenId {
         int pc = bytecode.currentPc();
         int pc2 = 0;
         if (expr != null) {
-            compileBooleanExpr(false, expr);
+            if (compileBooleanExpr(false, expr)) {
+                // in case of "for (...; false; ...)"
+                continueList = prevContList;
+                breakList = prevBreakList;
+                hasReturned = false;
+                return;
+            }
+
             pc2 = bytecode.currentPc();
             bytecode.addIndex(0);
         }
@@ -915,20 +932,23 @@ public abstract class CodeGen extends Visitor implements Opcode, TokenId {
     }
 
     public void atCondExpr(CondExpr expr) throws CompileError {
-        booleanExpr(false, expr.condExpr());
-        int pc = bytecode.currentPc();
-        bytecode.addIndex(0);   // correct later
-        expr.thenExpr().accept(this);
-        int dim1 = arrayDim;
-        bytecode.addOpcode(Opcode.GOTO);
-        int pc2 = bytecode.currentPc();
-        bytecode.addIndex(0);
-        bytecode.write16bit(pc, bytecode.currentPc() - pc + 1);
-        expr.elseExpr().accept(this);
-        if (dim1 != arrayDim)
-            throw new CompileError("type mismatch in ?:");
+        if (booleanExpr(false, expr.condExpr()))
+            expr.elseExpr().accept(this);
+        else {
+            int pc = bytecode.currentPc();
+            bytecode.addIndex(0);   // correct later
+            expr.thenExpr().accept(this);
+            int dim1 = arrayDim;
+            bytecode.addOpcode(Opcode.GOTO);
+            int pc2 = bytecode.currentPc();
+            bytecode.addIndex(0);
+            bytecode.write16bit(pc, bytecode.currentPc() - pc + 1);
+            expr.elseExpr().accept(this);
+            if (dim1 != arrayDim)
+                throw new CompileError("type mismatch in ?:");
 
-        bytecode.write16bit(pc2, bytecode.currentPc() - pc2 + 1);
+            bytecode.write16bit(pc2, bytecode.currentPc() - pc2 + 1);
+        }
     }
 
     static final int[] binOp = {
@@ -982,11 +1002,13 @@ public abstract class CodeGen extends Visitor implements Opcode, TokenId {
         else {
             /* equation: &&, ||, ==, !=, <=, >=, <, >
             */
-            booleanExpr(true, expr);
-            bytecode.addIndex(7);
-            bytecode.addIconst(0);  // false
-            bytecode.addOpcode(Opcode.GOTO);
-            bytecode.addIndex(4);
+            if (!booleanExpr(true, expr)) {
+                bytecode.addIndex(7);
+                bytecode.addIconst(0);  // false
+                bytecode.addOpcode(Opcode.GOTO);
+                bytecode.addIndex(4);
+            }
+
             bytecode.addIconst(1);  // true
         }
     }
@@ -1088,9 +1110,10 @@ public abstract class CodeGen extends Visitor implements Opcode, TokenId {
     }
 
     /* Produces the opcode to branch if the condition is true.
-     * The oprand is not produced.
+     * The oprand (branch offset) is not produced.
      *
      * @return	true if the compiled code is GOTO (always branch).
+     * 			GOTO is not produced.
      */
     private boolean booleanExpr(boolean branchIf, ASTree expr)
         throws CompileError
@@ -1105,22 +1128,31 @@ public abstract class CodeGen extends Visitor implements Opcode, TokenId {
             compareExpr(branchIf, bexpr.getOperator(), type1, bexpr);
         }
         else if (op == '!')
-            booleanExpr(!branchIf, ((Expr)expr).oprand1());
+            return booleanExpr(!branchIf, ((Expr)expr).oprand1());
         else if ((isAndAnd = (op == ANDAND)) || op == OROR) {
             BinExpr bexpr = (BinExpr)expr;
-            booleanExpr(!isAndAnd, bexpr.oprand1());
-            int pc = bytecode.currentPc();
-            bytecode.addIndex(0);       // correct later
+            if (booleanExpr(!isAndAnd, bexpr.oprand1())) {
+                exprType = BOOLEAN;
+                arrayDim = 0;
+                return true;
+            }
+            else {
+            	int pc = bytecode.currentPc();
+            	bytecode.addIndex(0);       // correct later
+            	if (booleanExpr(isAndAnd, bexpr.oprand2()))
+            		bytecode.addOpcode(Opcode.GOTO);
 
-            booleanExpr(isAndAnd, bexpr.oprand2());
-            bytecode.write16bit(pc, bytecode.currentPc() - pc + 3);
-            if (branchIf != isAndAnd) {
-                bytecode.addIndex(6);   // skip GOTO instruction
-                bytecode.addOpcode(Opcode.GOTO);
+            	bytecode.write16bit(pc, bytecode.currentPc() - pc + 3);
+            	if (branchIf != isAndAnd) {
+            		bytecode.addIndex(6);   // skip GOTO instruction
+            		bytecode.addOpcode(Opcode.GOTO);
+            	}
             }
         }
         else if (isAlwaysBranch(expr, branchIf)) {
-            bytecode.addOpcode(Opcode.GOTO);
+        	// Opcode.GOTO is not added here.  The caller must add it.
+            exprType = BOOLEAN;
+            arrayDim = 0;
             return true;	// always branch
         }
         else {                          // others
@@ -1135,7 +1167,6 @@ public abstract class CodeGen extends Visitor implements Opcode, TokenId {
         arrayDim = 0;
         return false;
     }
-
 
     private static boolean isAlwaysBranch(ASTree expr, boolean branchIf) {
         if (expr instanceof Keyword) {
@@ -1468,11 +1499,13 @@ public abstract class CodeGen extends Visitor implements Opcode, TokenId {
         else if (token == PLUSPLUS || token == MINUSMINUS)
             atPlusPlus(token, oprand, expr, true);
         else if (token == '!') {
-            booleanExpr(false, expr);
-            bytecode.addIndex(7);
-            bytecode.addIconst(1);
-            bytecode.addOpcode(Opcode.GOTO);
-            bytecode.addIndex(4);
+            if (!booleanExpr(false, expr)) {
+                bytecode.addIndex(7);
+                bytecode.addIconst(1);
+                bytecode.addOpcode(Opcode.GOTO);
+                bytecode.addIndex(4);
+            }
+
             bytecode.addIconst(0);
         }
         else if (token == CALL)         // method call

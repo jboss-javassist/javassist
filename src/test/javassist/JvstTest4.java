@@ -994,4 +994,40 @@ public class JvstTest4 extends JvstTestRoot {
             }
         });
     }
+
+    // JIRA-230
+    public void testDeadcode() throws Exception {
+        CtClass newClass = sloader.makeClass("test4.TestDeadcode");
+        addDeadCode(newClass, "public void evaluate(){if (false) {int i = 0;}}");
+        addDeadCode(newClass, "public void evaluate2(){if (false == true) {int i = 0;}}");
+        addDeadCode(newClass, "public void evaluate3(){if (true) {} else {} int i = 0; if (false) {} else {} i++; }");
+        addDeadCode(newClass, "public void evaluate4(){ for (;false;); int i = false ? 1 : 0; while (true) { return; }}");
+        addDeadCode(newClass, "public void evaluate5(){ boolean b = !false; b = false && b; b = true && true;"
+                            + "  b = true || b; b = b || false; }");
+        addDeadCode(newClass, "public boolean evaluate6(){ return !false; }");
+        addDeadCode(newClass, "public boolean evaluate7(){ return !true; }");
+
+        newClass.debugWriteFile();
+        Class<?> cClass = newClass.toClass();
+        Object o = cClass.newInstance();
+        java.lang.reflect.Method m = cClass.getMethod("evaluate");
+        m.invoke(o);
+        m = cClass.getMethod("evaluate2");
+        m.invoke(o);
+        m = cClass.getMethod("evaluate3");
+        m.invoke(o);
+        m = cClass.getMethod("evaluate4");
+        m.invoke(o);
+        m = cClass.getMethod("evaluate6");
+        assertTrue((boolean)m.invoke(o));
+        m = cClass.getMethod("evaluate7");
+        assertFalse((boolean)m.invoke(o));
+        m = cClass.getMethod("evaluate5");
+        m.invoke(o);
+    }
+
+    private void addDeadCode(CtClass cc, String meth) throws Exception {
+        CtMethod m = CtNewMethod.make(meth, cc);
+        cc.addMethod(m);
+    }
 }

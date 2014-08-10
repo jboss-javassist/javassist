@@ -3,14 +3,18 @@ import javassist.*;
 public class Test {
     public static void main(String[] args) throws Exception {
         ClassPool cp = ClassPool.getDefault();
-        // ClassPool cp = new ClassPool();
-        cp.insertClassPath("./target/test-classes");
-        CtClass cc = cp.get("test4.JIRA207");
-        // cc.getClassFile().setMajorVersion(javassist.bytecode.ClassFile.JAVA_4);
-        CtMethod cm = cc.getDeclaredMethod("foo");
-        cm.insertBefore("throw new Exception();");
-        CtMethod cm2 = cc.getDeclaredMethod("run2");
-        cm2.insertBefore("throw new Exception();");
-        cc.writeFile();
+        CtClass newClass = cp.makeClass("test4.TestDeadcode");
+        addDeadCode(newClass, "public void evaluate5(){ boolean b = !false; b = false && b; b = true && true;"
+                            + "  b = true || b; b = b || false; }");
+
+        newClass.debugWriteFile();
+        Class<?> cClass = newClass.toClass();
+        Object o = cClass.newInstance();
+        java.lang.reflect.Method m = cClass.getMethod("evaluate5");
+        m.invoke(o);
+    }
+    private static void addDeadCode(CtClass cc, String meth) throws Exception {
+        CtMethod m = CtNewMethod.make(meth, cc);
+        cc.addMethod(m);
     }
 }
