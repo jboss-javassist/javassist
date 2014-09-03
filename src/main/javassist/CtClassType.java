@@ -667,18 +667,26 @@ class CtClassType extends CtClass {
         return result;
     }
 
-    private static Object toAnnoType(Annotation anno, ClassPool cp)
+   private static Object toAnnoType(Annotation anno, ClassPool cp)
         throws ClassNotFoundException
     {
         try {
+          return AnnotationImpl.make(cp.getClassLoader(),
+                        cp.get(anno.getTypeName()).toClass(),
+                        cp, anno);
+        }
+        catch (Exception e) {
+          try {
             ClassLoader cl = cp.getClassLoader();
             return anno.toAnnotationType(cl, cp);
-        }
-        catch (ClassNotFoundException e) {
+          }
+          catch (ClassNotFoundException e1) {
             ClassLoader cl2 = cp.getClass().getClassLoader();
             return anno.toAnnotationType(cl2, cp);
+          }
         }
     }
+
 
     public boolean subclassOf(CtClass superclass) {
         if (superclass == null)
