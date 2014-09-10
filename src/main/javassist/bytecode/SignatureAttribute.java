@@ -591,6 +591,13 @@ public class SignatureAttribute extends AttributeInfo {
                 sbuf.append(ts[i]);
             }
         }
+
+        /**
+         * Returns the type name in the JVM internal style.
+         * For example, if the type is a nested class {@code foo.Bar.Baz},
+         * then {@code foo.Bar$Baz} is returned.
+         */
+        public String jvmTypeName() { return toString(); }
     }
 
     /**
@@ -728,6 +735,34 @@ public class SignatureAttribute extends AttributeInfo {
             ClassType parent = getDeclaringClass();
             if (parent != null)
                 sbuf.append(parent.toString()).append('.');
+
+            sbuf.append(name);
+            if (arguments != null) {
+                sbuf.append('<');
+                int n = arguments.length;
+                for (int i = 0; i < n; i++) {
+                    if (i > 0)
+                        sbuf.append(", ");
+
+                    sbuf.append(arguments[i].toString());
+                }
+
+                sbuf.append('>');
+            }
+
+            return sbuf.toString();
+        }
+
+        /**
+         * Returns the type name in the JVM internal style.
+         * For example, if the type is a nested class {@code foo.Bar.Baz},
+         * then {@code foo.Bar$Baz} is returned.
+         */
+        public String jvmTypeName() {
+            StringBuffer sbuf = new StringBuffer();
+            ClassType parent = getDeclaringClass();
+            if (parent != null)
+                sbuf.append(parent.jvmTypeName()).append('$');
 
             sbuf.append(name);
             if (arguments != null) {

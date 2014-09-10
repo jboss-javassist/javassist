@@ -1030,4 +1030,12 @@ public class JvstTest4 extends JvstTestRoot {
         CtMethod m = CtNewMethod.make(meth, cc);
         cc.addMethod(m);
     }
+
+    public void testAnnArg() throws Exception {
+        CtClass cc = sloader.get("test4.AnnoArg");
+        CtMethod m = cc.getDeclaredMethod("foo");
+        test4.AnnoArg.AnnoArgAt a = (test4.AnnoArg.AnnoArgAt)m.getAnnotations()[0];
+        assertEquals("test4.AnnoArg$B", a.value().getName());
+        System.out.println(a.value().getName());
+    }
 }
