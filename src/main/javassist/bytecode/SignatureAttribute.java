@@ -736,6 +736,10 @@ public class SignatureAttribute extends AttributeInfo {
             if (parent != null)
                 sbuf.append(parent.toString()).append('.');
 
+            return toString2(sbuf);
+        }
+
+        private String toString2(StringBuffer sbuf) {
             sbuf.append(name);
             if (arguments != null) {
                 sbuf.append('<');
@@ -764,21 +768,7 @@ public class SignatureAttribute extends AttributeInfo {
             if (parent != null)
                 sbuf.append(parent.jvmTypeName()).append('$');
 
-            sbuf.append(name);
-            if (arguments != null) {
-                sbuf.append('<');
-                int n = arguments.length;
-                for (int i = 0; i < n; i++) {
-                    if (i > 0)
-                        sbuf.append(", ");
-
-                    sbuf.append(arguments[i].toString());
-                }
-
-                sbuf.append('>');
-            }
-
-            return sbuf.toString();
+            return toString2(sbuf);
         }
 
         void encode(StringBuffer sb) {
