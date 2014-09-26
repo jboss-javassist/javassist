@@ -140,8 +140,9 @@ public class NewExpr extends Expr {
 
     private int canReplace() throws CannotCompileException {
         int op = iterator.byteAt(newPos + 3);
-        if (op == Opcode.DUP)
-            return 4;
+        if (op == Opcode.DUP)     // Typical single DUP or Javaflow DUP DUP2_X2 POP2
+            return ((iterator.byteAt(newPos + 4) == Opcode.DUP2_X2
+                 && iterator.byteAt(newPos + 5) == Opcode.POP2)) ? 6 : 4;
         else if (op == Opcode.DUP_X1
                  && iterator.byteAt(newPos + 4) == Opcode.SWAP)
             return 5;
