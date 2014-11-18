@@ -772,17 +772,25 @@ class CtClassType extends CtClass {
         return null;
     }
 
-    public CtMethod getEnclosingMethod() throws NotFoundException {
+    public CtBehavior getEnclosingBehavior() throws NotFoundException {
         ClassFile cf = getClassFile2();
         EnclosingMethodAttribute ema
                 = (EnclosingMethodAttribute)cf.getAttribute(
                                                 EnclosingMethodAttribute.tag);
-        if (ema != null) {
+        if (ema == null)
+            return null;
+        else {
             CtClass enc = classPool.get(ema.className());
-            return enc.getMethod(ema.methodName(), ema.methodDescriptor());
+            String name = ema.methodName();
+            switch (name) {
+            case MethodInfo.nameInit:
+                return enc.getConstructor(ema.methodDescriptor());
+            case MethodInfo.nameClinit:
+                return enc.getClassInitializer();
+            default:
+                return enc.getMethod(name, ema.methodDescriptor());
+            }
         }
-
-        return null;
     }
 
     public CtClass makeNestedClass(String name, boolean isStatic) {

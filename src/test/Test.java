@@ -8,7 +8,9 @@ public class Test {
         }
 
         ClassPool cp = ClassPool.getDefault();
-        CtClass str = cp.get("java.lang.String");
+        CtClass inner3 = cp.get("test2.Anon$Anon2.1");
+        CtBehavior ct = inner3.getEnclosingBehavior();
+/*        CtClass str = cp.get("java.lang.String");
         CtClass cc = cp.get("Test");
         cc.getClassFile().setMajorVersion(javassist.bytecode.ClassFile.JAVA_4);
         CtMethod m = cc.getDeclaredMethod("bar");
@@ -16,7 +18,7 @@ public class Test {
         m.insertAfter(" dismiss( aVar );" , true);
         cc.getClassFile().setMajorVersion(javassist.bytecode.ClassFile.JAVA_7);
         m.insertBefore("aVar = initVar();");
-        cc.writeFile();
+        cc.writeFile();*/
     }
 
     public void bar(int i) { foo(i); }

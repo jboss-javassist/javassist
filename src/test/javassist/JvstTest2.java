@@ -523,6 +523,17 @@ public class JvstTest2 extends JvstTestRoot {
             assertEquals(out,
                          inner.getEnclosingMethod().getDeclaringClass());
         }
+
+        assertNull(out.getEnclosingMethod());
+        assertNull(out.getEnclosingBehavior());
+
+        CtClass inner2 = sloader.get("test2.Anon$Anon2$1");
+        assertTrue(inner2.getEnclosingBehavior() instanceof CtConstructor);
+        assertEquals(sloader.get("test2.Anon$Anon2"), inner2.getEnclosingBehavior().getDeclaringClass());
+        CtClass inner3 = sloader.get("test2.Anon$Anon3$1");
+        assertTrue(inner3.getEnclosingBehavior() instanceof CtConstructor);
+        assertTrue(((CtConstructor)inner3.getEnclosingBehavior()).isClassInitializer());
+        assertEquals(sloader.get("test2.Anon$Anon3"), inner3.getEnclosingBehavior().getDeclaringClass());
     }
 
     public void testMethodInInner() throws Exception {

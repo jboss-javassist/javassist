@@ -20,6 +20,8 @@ import java.io.DataInputStream;
 import java.io.IOException;
 import java.util.Map;
 
+import javassist.CtConstructor;
+
 /**
  * <code>EnclosingMethod_attribute</code>.
  */
@@ -98,12 +100,18 @@ public class EnclosingMethodAttribute extends AttributeInfo {
 
     /**
      * Returns the method name specified by <code>method_index</code>.
+     * If the method is a class initializer (static constructor),
+     * {@link MethodInfo#nameClinit} is returned. 
      */
     public String methodName() {
         ConstPool cp = getConstPool();
         int mi = methodIndex();
-        int ni = cp.getNameAndTypeName(mi);
-        return cp.getUtf8Info(ni);
+        if (mi == 0)
+            return MethodInfo.nameClinit;
+        else {
+            int ni = cp.getNameAndTypeName(mi);
+            return cp.getUtf8Info(ni);
+        }
     }
 
     /**
