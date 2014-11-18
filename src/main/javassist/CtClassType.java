@@ -1205,6 +1205,20 @@ class CtClassType extends CtClass {
         return cms;
     }
 
+    public CtMethod[] getDeclaredMethods(String name) throws NotFoundException {
+        CtMember.Cache memCache = getMembers();
+        CtMember mth = memCache.methodHead();
+        CtMember mthTail = memCache.lastMethod();
+        ArrayList<CtMethod> methods = new ArrayList<CtMethod>();
+        while (mth != mthTail) {
+            mth = mth.next();
+            if (mth.getName().equals(name))
+                methods.add((CtMethod)mth);
+        }
+
+        return methods.toArray(new CtMethod[methods.size()]);
+    }
+
     public CtMethod getDeclaredMethod(String name) throws NotFoundException {
         CtMember.Cache memCache = getMembers();
         CtMember mth = memCache.methodHead();

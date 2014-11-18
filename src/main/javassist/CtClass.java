@@ -26,10 +26,10 @@ import java.io.OutputStream;
 import java.net.URL;
 import java.security.ProtectionDomain;
 import java.util.Collection;
+
 import javassist.bytecode.ClassFile;
 import javassist.bytecode.Descriptor;
 import javassist.bytecode.Opcode;
-import javassist.bytecode.SignatureAttribute;
 import javassist.expr.ExprEditor;
 
 /* Note:
@@ -989,6 +989,20 @@ public abstract class CtClass {
     public CtMethod getDeclaredMethod(String name, CtClass[] params)
         throws NotFoundException
     {
+        throw new NotFoundException(name);
+    }
+
+    /**
+     * Retrieves methods with the specified name among the methods
+     * declared in the class.  Multiple methods with different parameters
+     * may be returned.
+     *
+     * <p>Note: this method does not search the superclasses.</p>
+     *
+     * @param name      method name.
+     * @since 3.19
+     */
+    public CtMethod[] getDeclaredMethods(String name) throws NotFoundException {
         throw new NotFoundException(name);
     }
 

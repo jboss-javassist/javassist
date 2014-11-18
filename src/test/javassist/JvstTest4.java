@@ -5,7 +5,10 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.util.HashSet;
+import java.util.List;
+
 import javassist.bytecode.*;
+import javassist.bytecode.annotation.Annotation;
 import javassist.expr.*;
 
 public class JvstTest4 extends JvstTestRoot {
@@ -1037,5 +1040,36 @@ public class JvstTest4 extends JvstTestRoot {
         test4.AnnoArg.AnnoArgAt a = (test4.AnnoArg.AnnoArgAt)m.getAnnotations()[0];
         assertEquals("test4.AnnoArg$B", a.value().getName());
         System.out.println(a.value().getName());
+    }
+
+    public void testDeclaredMethods() throws Exception {
+        CtClass cc = sloader.get("test4.DeclMethodsList");
+        CtMethod[] meth = cc.getDeclaredMethods("foo");
+        assertEquals(2, meth.length);
+        assertEquals("()V", meth[0].getSignature());
+        assertEquals("(I)I", meth[1].getSignature());
+        meth = cc.getDeclaredMethods("bar");
+        assertEquals(1, meth.length);
+        assertEquals("()V", meth[0].getSignature());
+        meth = cc.getDeclaredMethods("baz");
+        assertEquals(0, meth.length);
+    }
+
+    public void testAnnotationLoader() throws Exception {
+        CtClass anno = sloader.makeAnnotation("test4.AnnoLoadAnno", null);
+        anno.debugWriteFile();
+        CtClass cc = sloader.get("test4.AnnoLoad");
+        CtMethod m = cc.getDeclaredMethod("foo");
+        ClassFile cf = cc.getClassFile();
+        ConstPool cp = cf.getConstPool();
+        AnnotationsAttribute attr
+            = new AnnotationsAttribute(cp, AnnotationsAttribute.visibleTag);
+        Annotation a = new Annotation(anno.getName(), cp);
+        attr.setAnnotation(a);
+        m.getMethodInfo().addAttribute(attr);
+        cc.writeFile();
+        Object obj = m.getAnnotations()[0];
+        String name = obj.getClass().getName();
+        assertEquals(anno.getName(), name);
     }
 }

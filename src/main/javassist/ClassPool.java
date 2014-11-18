@@ -815,7 +815,7 @@ public class ClassPool {
 
     /**
      * Creates a new public nested class.
-     * This method is called by CtClassType.makeNestedClass().
+     * This method is called by {@link CtClassType#makeNestedClass()}.
      *
      * @param classname     a fully-qualified class name.
      * @return      the nested class.
@@ -855,6 +855,23 @@ public class ClassPool {
         CtClass clazz = new CtNewClass(name, this, true, superclass);
         cacheCtClass(name, clazz, true);
         return clazz;
+    }
+
+    /**
+     * Creates a new annotation.
+     * If there already exists a class/interface with the same name,
+     * the new interface overwrites that previous one.
+     *
+     * @param name      a fully-qualified interface name.
+     *                  Or null if the annotation has no super interface. 
+     * @param superclass the super interface.
+     * @throws RuntimeException if the existing interface is frozen.
+     * @since 3.19
+     */
+    public CtClass makeAnnotation(String name, CtClass superclass) throws RuntimeException {
+        CtClass cc = makeInterface(name, superclass);
+        cc.setModifiers(cc.getModifiers() | Modifier.ANNOTATION);
+        return cc;
     }
 
     /**
