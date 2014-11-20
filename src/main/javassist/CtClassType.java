@@ -795,14 +795,12 @@ class CtClassType extends CtClass {
         else {
             CtClass enc = classPool.get(ema.className());
             String name = ema.methodName();
-            switch (name) {
-            case MethodInfo.nameInit:
+            if (MethodInfo.nameInit.equals(name))
                 return enc.getConstructor(ema.methodDescriptor());
-            case MethodInfo.nameClinit:
+            else if(MethodInfo.nameClinit.equals(name))
                 return enc.getClassInitializer();
-            default:
+            else
                 return enc.getMethod(name, ema.methodDescriptor());
-            }
         }
     }
 

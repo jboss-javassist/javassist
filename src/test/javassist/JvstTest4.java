@@ -662,7 +662,7 @@ public class JvstTest4 extends JvstTestRoot {
         long t2 = endTime2 - endTime;
         long t3 = endTime3 - endTime2;
         System.out.println("JIRA150: " + t1 + ", " + t2 + ", " + t3);
-        assertTrue(t2 < t1 * 4);
+        assertTrue(t2 < t1 * 5);
         assertTrue(t3 < t1 * 3);
     }
 
