@@ -1060,7 +1060,7 @@ public class JvstTest4 extends JvstTestRoot {
     }
 
     public void testAnnotationLoader() throws Exception {
-        CtClass anno = sloader.makeAnnotation("test4.AnnoLoadAnno", null);
+        CtClass anno = sloader.makeAnnotation("test4.AnnoLoadAnno");
         anno.debugWriteFile();
         CtClass cc = sloader.get("test4.AnnoLoad");
         CtMethod m = cc.getDeclaredMethod("foo");
@@ -1073,8 +1073,7 @@ public class JvstTest4 extends JvstTestRoot {
         attr.setAnnotation(a);
         m.getMethodInfo().addAttribute(attr);
         cc.writeFile();
-        Object obj = m.getAnnotations()[0];
-        String name = obj.getClass().getName();
-        assertEquals(anno.getName(), name);
+        Class<?> rc = ((java.lang.annotation.Annotation)m.getAnnotations()[0]).annotationType();
+        assertEquals(anno.getName(), rc.getName());
     }
 }

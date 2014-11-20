@@ -864,14 +864,19 @@ public class ClassPool {
      *
      * @param name      a fully-qualified interface name.
      *                  Or null if the annotation has no super interface. 
-     * @param superclass the super interface.
      * @throws RuntimeException if the existing interface is frozen.
      * @since 3.19
      */
-    public CtClass makeAnnotation(String name, CtClass superclass) throws RuntimeException {
-        CtClass cc = makeInterface(name, superclass);
-        cc.setModifiers(cc.getModifiers() | Modifier.ANNOTATION);
-        return cc;
+    public CtClass makeAnnotation(String name) throws RuntimeException {
+        try {
+            CtClass cc = makeInterface(name, get("java.lang.annotation.Annotation"));
+            cc.setModifiers(cc.getModifiers() | Modifier.ANNOTATION);
+            return cc;
+        }
+        catch (NotFoundException e) {
+            // should never happen.
+            throw new RuntimeException(e.getMessage(), e);
+        }
     }
 
     /**
