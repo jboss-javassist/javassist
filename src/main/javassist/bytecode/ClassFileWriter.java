@@ -507,6 +507,7 @@ public class ClassFileWriter {
          * Returns the length of the bytecode that has been added so far.
          *
          * @return      the length in bytes.
+         * @since 3.19
          */
         public int size() { return output.getPos() - startPos - 14; } 
 
