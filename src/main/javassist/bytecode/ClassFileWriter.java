@@ -145,7 +145,7 @@ public class ClassFileWriter {
             output.writeShort(fields.size());
             fields.write(output);
 
-            output.writeShort(methods.size());
+            output.writeShort(methods.numOfMethods());
             methods.write(output);
         }
         catch (IOException e) {}
@@ -190,7 +190,7 @@ public class ClassFileWriter {
         out.writeShort(fields.size());
         fields.write(out);
 
-        out.writeShort(methods.size());
+        out.writeShort(methods.numOfMethods());
         methods.write(out);
         if (aw == null)
             out.writeShort(0);
@@ -503,7 +503,14 @@ public class ClassFileWriter {
             output.writeInt(startPos + 2, output.getPos() - startPos - 6);
         }
 
-        int size() { return methodCount; }
+        /**
+         * Returns the length of the bytecode that has been added so far.
+         *
+         * @return      the length in bytes.
+         */
+        public int size() { return output.getPos() - startPos - 14; } 
+
+        int numOfMethods() { return methodCount; }
 
         int dataSize() { return output.size(); }
 

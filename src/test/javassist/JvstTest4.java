@@ -181,15 +181,19 @@ public class JvstTest4 extends JvstTestRoot {
         ClassFileWriter.MethodWriter mw = cfw.getMethodWriter();
 
         mw.begin(AccessFlag.PUBLIC, MethodInfo.nameInit, "()V", null, null);
+        assertEquals(0, mw.size());
         mw.add(Opcode.ALOAD_0);
+        assertEquals(1, mw.size());
         mw.addInvoke(Opcode.INVOKESPECIAL, "java/lang/Object", MethodInfo.nameInit, "()V");
         mw.add(Opcode.RETURN);
         mw.codeEnd(1, 1);
         mw.end(null, null);
 
         mw.begin(AccessFlag.PUBLIC, "move", "(II)V", null, null);
+        assertEquals(0, mw.size());
         mw.add(Opcode.ALOAD_0);
         mw.addInvoke(Opcode.INVOKEVIRTUAL, "java/lang/Object", "toString", "()Ljava/lang/String;");
+        assertEquals(4, mw.size());
         mw.add(Opcode.POP);
         mw.add(Opcode.RETURN);
         mw.add(Opcode.POP);
@@ -1065,6 +1069,7 @@ public class JvstTest4 extends JvstTestRoot {
         AnnotationsAttribute attr
             = new AnnotationsAttribute(cp, AnnotationsAttribute.visibleTag);
         Annotation a = new Annotation(anno.getName(), cp);
+        a.addMemberValue("value", new javassist.bytecode.annotation.StringMemberValue("file/path", cp));
         attr.setAnnotation(a);
         m.getMethodInfo().addAttribute(attr);
         cc.writeFile();
