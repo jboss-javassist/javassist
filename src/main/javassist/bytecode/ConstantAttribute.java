@@ -70,4 +70,53 @@ public class ConstantAttribute extends AttributeInfo {
                                         classnames);
         return new ConstantAttribute(newCp, index);
     }
+
+    /**
+     * Returns true if the given object represents the same constant value
+     * as this object.
+     */
+    public boolean equals(Object obj) {
+        if (obj instanceof ConstantAttribute) {
+            ConstantAttribute sa = (ConstantAttribute)obj;
+            return sa.getValue().equals(getValue()); 
+        }
+        else
+            return false;
+    }
+
+	/**
+	 * Dumps the content of the attribute
+	 * @return human readable content
+	 */
+    public String Dump()
+    {
+    	Object value = getValue();
+    	return "ConstantValue: " + value.getClass() + ": " + value.toString() + ";";
+    }
+
+    Object getValue()
+    {
+    	int  index = getConstantValue();  
+
+        if (index == 0)
+            return null;
+
+        switch (constPool.getTag(index)) {
+            case ConstPool.CONST_Long :
+                return new Long(constPool.getLongInfo(index));
+            case ConstPool.CONST_Float :
+                return new Float(constPool.getFloatInfo(index));
+            case ConstPool.CONST_Double :
+                return new Double(constPool.getDoubleInfo(index));
+            case ConstPool.CONST_Integer :
+                int value = constPool.getIntegerInfo(index);
+                    return new Integer(value);
+            case ConstPool.CONST_String :
+                return constPool.getStringInfo(index);
+            default :
+                throw new RuntimeException("bad tag: " + constPool.getTag(index)
+                                           + " at " + index);
+        }
+    }
+
 }

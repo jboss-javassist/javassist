@@ -205,7 +205,12 @@ public final class ConstPool {
         thisClassInfo = i;
     }
 
-    ConstInfo getItem(int n) {
+    /**
+     * returns constant item number n 
+     * @param n - constant item number
+     * @return requested item
+     */
+    public ConstInfo getItem(int n) {
         return items.elementAt(n);
     }
 

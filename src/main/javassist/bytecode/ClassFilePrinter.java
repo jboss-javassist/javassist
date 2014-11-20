@@ -105,6 +105,7 @@ public class ClassFilePrinter {
                             + ", max locals " + ca.getMaxLocals()
                             + ", " + ca.getExceptionTable().size()
                             + " catch blocks");
+                out.println("checksum: " + ca.GetCodeChecksum());
                 out.println("<code attribute begin>");
                 printAttributes(ca.getAttributes(), out, kind);
                 out.println("<code attribute end>");
@@ -147,7 +148,7 @@ public class ClassFilePrinter {
             else
                 out.println("attribute: " + ai.getName()
                             + " (" + ai.get().length + " byte): "
-                            + ai.getClass().getName());
+                            + ai.getClass().getName() + " content: " + ai.Dump());
         }
     }
 }

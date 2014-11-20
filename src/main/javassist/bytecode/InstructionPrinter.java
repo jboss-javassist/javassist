@@ -71,6 +71,9 @@ public class InstructionPrinter implements Opcode {
      * position. 
      */
     public static String instructionString(CodeIterator iter, int pos, ConstPool pool) {
+    	return instructionString(iter, pos, pool, true);
+    }
+    public static String instructionString(CodeIterator iter, int pos, ConstPool pool, boolean AddConstIndex) {
         int opcode = iter.byteAt(pos);
 
         if (opcode > opcodes.length || opcode < 0)
@@ -83,10 +86,10 @@ public class InstructionPrinter implements Opcode {
             case SIPUSH:
                 return opstring + " " + iter.s16bitAt(pos + 1);
             case LDC:
-                return opstring + " " + ldc(pool, iter.byteAt(pos + 1));
+                return opstring + " " + ldc(pool, iter.byteAt(pos + 1), AddConstIndex);
             case LDC_W :
             case LDC2_W :
-                return opstring + " " + ldc(pool, iter.u16bitAt(pos + 1));
+                return opstring + " " + ldc(pool, iter.u16bitAt(pos + 1), AddConstIndex);
             case ILOAD:
             case LLOAD:
             case FLOAD:
@@ -130,26 +133,26 @@ public class InstructionPrinter implements Opcode {
             case PUTSTATIC:
             case GETFIELD:
             case PUTFIELD:
-                return opstring + " " + fieldInfo(pool, iter.u16bitAt(pos + 1));
+                return opstring + " " + fieldInfo(pool, iter.u16bitAt(pos + 1), AddConstIndex);
             case INVOKEVIRTUAL:
             case INVOKESPECIAL:
             case INVOKESTATIC:
-                return opstring + " " + methodInfo(pool, iter.u16bitAt(pos + 1));
+                return opstring + " " + methodInfo(pool, iter.u16bitAt(pos + 1), AddConstIndex);
             case INVOKEINTERFACE:
-                return opstring + " " + interfaceMethodInfo(pool, iter.u16bitAt(pos + 1));
+                return opstring + " " + interfaceMethodInfo(pool, iter.u16bitAt(pos + 1), AddConstIndex);
             case INVOKEDYNAMIC:
                 return opstring + " " + iter.u16bitAt(pos + 1);
             case NEW:
-                return opstring + " " + classInfo(pool, iter.u16bitAt(pos + 1));
+                return opstring + " " + classInfo(pool, iter.u16bitAt(pos + 1), AddConstIndex);
             case NEWARRAY:
                 return opstring + " " + arrayInfo(iter.byteAt(pos + 1));
             case ANEWARRAY:
             case CHECKCAST:
-                return opstring + " " + classInfo(pool, iter.u16bitAt(pos + 1));
+                return opstring + " " + classInfo(pool, iter.u16bitAt(pos + 1), AddConstIndex);
             case WIDE:
                 return wide(iter, pos);
             case MULTIANEWARRAY:
-                return opstring + " " + classInfo(pool, iter.u16bitAt(pos + 1));
+                return opstring + " " + classInfo(pool, iter.u16bitAt(pos + 1), AddConstIndex);
             case GOTO_W:
             case JSR_W:
                 return opstring + " " + (iter.s32bitAt(pos + 1)+ pos);
@@ -207,30 +210,65 @@ public class InstructionPrinter implements Opcode {
 
 
     private static String classInfo(ConstPool pool, int index) {
-        return "#" + index + " = Class " + pool.getClassInfo(index);
+        return classInfo(pool, index, true);
+    }
+    
+    private static String classInfo(ConstPool pool, int index, boolean AddConstIndex) {
+    	String res = "Class " + pool.getClassInfo(index);
+    	if (AddConstIndex)
+    	{
+    	  res = "#" + index + " = " + res;
+    	}
+        return res;
     }
 
 
     private static String interfaceMethodInfo(ConstPool pool, int index) {
-        return "#" + index + " = Method "
+    	return interfaceMethodInfo(pool, index, true);
+    }
+    private static String interfaceMethodInfo(ConstPool pool, int index, boolean AddConstIndex) {
+    	String res = "Method "
                 + pool.getInterfaceMethodrefClassName(index) + "."
                 + pool.getInterfaceMethodrefName(index) + "("
                 + pool.getInterfaceMethodrefType(index) + ")";
+    	if (AddConstIndex)
+    	{
+    		res = "#" + index + " = " + res; 
+    	}
+    	return res;  
     }
 
     private static String methodInfo(ConstPool pool, int index) {
-        return "#" + index + " = Method "
+    	return methodInfo(pool, index, true);
+    }
+    
+    private static String methodInfo(ConstPool pool, int index, boolean AddConstIndex) {
+    	String res = "Method "
                 + pool.getMethodrefClassName(index) + "."
                 + pool.getMethodrefName(index) + "("
                 + pool.getMethodrefType(index) + ")";
+    	if (AddConstIndex)
+    	{
+    		res = "#" + index + " = " + res;
+    	}
+   		return res;  
     }
 
 
     private static String fieldInfo(ConstPool pool, int index) {
-        return "#" + index + " = Field "
+      return fieldInfo(pool, index, true);
+    }
+    
+    private static String fieldInfo(ConstPool pool, int index, boolean AddConstIndex) {
+    	String res = "Field "
             + pool.getFieldrefClassName(index) + "."
             + pool.getFieldrefName(index) + "("
             + pool.getFieldrefType(index) + ")";
+    	if (AddConstIndex)
+    	{
+    		res = "#" + index + " = " + res; 
+    	}
+    	return res;  
     }
 
 
@@ -274,20 +312,29 @@ public class InstructionPrinter implements Opcode {
 
 
     private static String ldc(ConstPool pool, int index) {
+    	return ldc(pool, index, true);
+    }
+    
+    private static String ldc(ConstPool pool, int index, boolean AddConstIndex) {
         int tag = pool.getTag(index);
+        String res = ""; 
+        if (AddConstIndex)
+        {
+        	res += "#" + index + " = "; 
+        }
         switch (tag) {
             case ConstPool.CONST_String:
-                return "#" + index + " = \"" + pool.getStringInfo(index) + "\"";
+                return  res + "\"" + pool.getStringInfo(index) + "\"";
             case ConstPool.CONST_Integer:
-                return "#" + index + " = int " + pool.getIntegerInfo(index);
+                return res + " int " + pool.getIntegerInfo(index);
             case ConstPool.CONST_Float:
-                return "#" + index + " = float " + pool.getFloatInfo(index);
+                return res + " float " + pool.getFloatInfo(index);
             case ConstPool.CONST_Long:
-                return "#" + index + " = long " + pool.getLongInfo(index);
+                return res + " long " + pool.getLongInfo(index);
             case ConstPool.CONST_Double:
-                return "#" + index + " = int " + pool.getDoubleInfo(index);
+                return res + " int " + pool.getDoubleInfo(index);
             case ConstPool.CONST_Class:
-                return classInfo(pool, index);
+                return classInfo(pool, index, AddConstIndex);
             default:
                 throw new RuntimeException("bad LDC: " + tag);
         }

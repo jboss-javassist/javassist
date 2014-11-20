@@ -16,6 +16,8 @@
 
 package javassist.bytecode;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
 import java.io.IOException;
@@ -698,5 +700,80 @@ public class AnnotationsAttribute extends AttributeInfo {
             currentMember = amv;
             return pos;
         }
+    }
+    
+    /**
+     * Returns true if the given object represents the same AnnotationsAttribute
+     * as this object.  The equality test checks the member values.
+     */
+    public boolean equals(Object obj) 
+    {
+        if (obj instanceof AnnotationsAttribute) {
+        	AnnotationsAttribute a = (AnnotationsAttribute)obj;
+            return a.CompareAnnotations(this.getAnnotations(), a.getAnnotations()).isEmpty();
+        }
+        else
+            return false;
+    }
+
+    String CompareAnnotations(Annotation[] a1, Annotation[] a2) 
+    {
+  	  String res = "";
+      if (null != a1)
+      {
+  		if (null != a2)
+  		{
+  			int a1size = a1.length;
+  			int a2size = a2.length;
+  	        for (int i = 0; i < a1size; ++i) 
+  	        {
+  	            int a1count = 0;
+  	            for (int j = 0; j < a2size; ++j) 
+  	            {
+  	            	if ( a1[i].toString().equals(a2[j].toString())) 
+  	            	{
+  	            		a1count++;
+  	            	}
+  	            }
+  	            if (a1count < 1)
+  	            {
+              		res += "Annotation: " + a1[i].toString() + " removed\n";
+  	            }
+  	        }
+  	        for (int i = 0; i < a2size; ++i) 
+  	        {
+  	            int a2count = 0;
+  	            for (int j = 0; j < a1size; ++j) 
+  	            {
+  	            	if ( a2[i].toString().equals(a1[j].toString())) 
+  	            	{
+  	            		a2count++;
+  	            	}
+  	            }
+  	            if (a2count < 1)
+  	            {
+              		res += "Annotation: " + a2[i].toString() + " added\n"; 
+  	            }
+  	        }
+  		}
+  		else
+  		{
+  	        res += "Annotations were removed: " + a1.toString() + "\n"; 
+  		}
+  	  } 
+  	  else 
+  	  {
+  		  res += "Annotations were added: " + a2.toString() + "\n"; 
+  	  }
+  	  return res;
+    }
+
+	/**
+	 * Dumps the content of the attribute
+	 * @return human readable content
+	 */
+    public String Dump()
+    {
+      return toString();	
     }
 }

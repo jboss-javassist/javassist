@@ -106,12 +106,13 @@ public class EnclosingMethodAttribute extends AttributeInfo {
     public String methodName() {
         ConstPool cp = getConstPool();
         int mi = methodIndex();
-        if (mi == 0)
-            return MethodInfo.nameClinit;
-        else {
-            int ni = cp.getNameAndTypeName(mi);
-            return cp.getUtf8Info(ni);
+        // 0 is not a valid index for a method's name
+        if (mi==0)
+        {
+        	return null;
         }
+        int ni = cp.getNameAndTypeName(mi);
+        return cp.getUtf8Info(ni);
     }
 
     /**
@@ -120,6 +121,11 @@ public class EnclosingMethodAttribute extends AttributeInfo {
     public String methodDescriptor() {
         ConstPool cp = getConstPool();
         int mi = methodIndex();
+        // 0 is not a valid index for a method's name
+        if (mi==0)
+        {
+        	return null;
+        }
         int ti = cp.getNameAndTypeDescriptor(mi);
         return cp.getUtf8Info(ti);
     }
@@ -139,4 +145,46 @@ public class EnclosingMethodAttribute extends AttributeInfo {
             return new EnclosingMethodAttribute(newCp, className(),
                                             methodName(), methodDescriptor());
     }
+    
+    /**
+     * Returns true if the given object represents the same EnclosingMethodAttribute
+     * as this object.  The equality test checks the member values.
+     */
+	public boolean equals(Object obj) {
+        if (obj instanceof EnclosingMethodAttribute) {
+        	EnclosingMethodAttribute ema = (EnclosingMethodAttribute)obj;
+        	int thisMethod = methodIndex();
+        	int emaMethod = ema.methodIndex();
+        	if (thisMethod == 0 || emaMethod == 0)
+        	{
+        	  if (thisMethod==emaMethod)
+        	  {
+                return ema.className().equals(className());
+              }
+        	  else
+        	  {
+        		return false;
+        	  }
+        	}
+        	else
+        	{
+                return ema.className().equals(className())
+                  && ema.methodName().equals(methodName()) 
+                  && ema.methodDescriptor().equals(methodDescriptor());
+        	}
+        }
+        else
+            return false;
+    }
+
+	/**
+	 * Dumps the content of the attribute
+	 * @return human readable content
+	 */
+	public String Dump()
+    {
+      return "EnclosingMethod: class " + className() + " method: " + methodName() 
+    		  + " " + methodDescriptor();
+    }
+	
 }

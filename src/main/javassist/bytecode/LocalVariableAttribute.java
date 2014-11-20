@@ -20,6 +20,8 @@ import java.io.DataInputStream;
 import java.io.IOException;
 import java.util.Map;
 
+import javassist.Modifier;
+
 /**
  * <code>LocalVariableTable_attribute</code>.
  */
@@ -331,4 +333,104 @@ public class LocalVariableAttribute extends AttributeInfo {
     LocalVariableAttribute makeThisAttr(ConstPool cp, byte[] dest) {
         return new LocalVariableAttribute(cp, tag, dest);
     }
+    
+    /**
+     * Returns true if the given object represents the same LocalVariableAttribute 
+     * as this object.  The equality test checks the local variables lists.
+     */
+    public boolean equals(Object obj) 
+    {
+        if (obj instanceof LocalVariableAttribute) {
+        	LocalVariableAttribute lv = (LocalVariableAttribute)obj;
+        	
+            return CompareLocalVariables(this, lv).isEmpty();
+}
+        else
+            return false;
+    }
+
+	private String GetEntry(int idx)
+	{
+      return startPc(idx) + " " + codeLength(idx) + " " + variableName(idx)
+        + " " + signature(idx) + " " + index(idx);
+	}
+	
+    private String CompareLocalVariables(LocalVariableAttribute lva1,
+		LocalVariableAttribute lva2) 
+    {
+    	String res = "";
+        if (null != lva1)
+        {
+            if (null != lva2)
+            {
+      		  int lv1size = lva1.tableLength();
+      		  int lv2size = lva2.tableLength();
+      	      for (int i = 0; i < lv1size; ++i) 
+              {
+                int lv1count = 0;
+                String lv1Value = lva1.GetEntry(i);
+      	        for (int j = 0; j < lv2size; ++j) 
+      	        {
+               	  if ( lv1Value.equals(lva2.GetEntry(j)))
+               	  {
+               		lv1count++;
+                  }
+                }
+      	        if (lv1count < 1)
+                {
+           		  res += "LocalVariables: " + lv1Value + " removed\n";
+                }
+              }
+      	      for (int i = 0; i < lv2size; ++i) 
+      	      {
+      	        int lv2count = 0;
+                String lv2Value = lva2.GetEntry(i);
+      	        for (int j = 0; j < lv1size; ++j) 
+      	        {
+      	       	  if ( lv2Value.equals(lva1.GetEntry(j)) ) 
+      	       	  {
+      	      	    lv2count++;
+               	  }
+                }
+                if (lv2count < 1)
+      	        {
+              	  res += "LocalVariables: " + lv2Value + " added\n"; 
+      	        }
+      	      }
+      	    }
+            else
+      	    {
+                res += "LocalVariables were removed: " + lva1.Dump() + "\n";
+      	    }
+      	  } 
+      else 
+      {
+   	    if (null != lva2)
+    	{
+  		  res += "LocalVariables were added: " + lva2.Dump() + "\n"; 
+    	}
+      }
+      return res;
+	}
+
+
+	/**
+	 * Dumps the content of the attribute
+	 * @return human readable content
+	 */
+    public String Dump()
+    {
+        String res = "localvariables: {";
+        int len = tableLength();
+        for (int i = 0; i < len; i++ )
+        {
+      	  res += "startPC: " + startPc(i) + " codeLength: "
+      	    + codeLength(i) + " variableName: " + variableName(i) 
+      	    + " signature: " + signature(i) + " index: " 
+      	    + index(i) + " | ";
+        }
+        res += "}";
+        return res;
+    }
+
 }

@@ -19,11 +19,14 @@ package javassist.bytecode;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.ArrayList;
 import java.util.ListIterator;
 import java.util.List;
 import java.util.Iterator;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 // Note: if you define a new subclass of AttributeInfo, then
 //       update AttributeInfo.read(), .copy(), and (maybe) write().
@@ -254,6 +257,168 @@ public class AttributeInfo {
         return newList;
     }
 
+    /**
+     * Returns true if the given object represents the same attribute
+     * as this object.  The equality test checks the member values.
+     */
+    public boolean equals(Object obj) {
+        if (obj instanceof AttributeInfo) {
+            AttributeInfo ai = (AttributeInfo)obj;
+            return ai.getName().equals(getName()) && Arrays.equals(ai.info, this.info);
+        }
+        else
+            return false;
+    }
+    
+    /**
+     * Compares attribute lists 
+     * @param attributes1 - first list
+     * @param attributes2 - second list
+     * @return human readable difference between the lists
+     */
+    public static String CompareAttributes(List attributes1, List attributes2)
+    {
+      return CompareAttributes(attributes1, attributes2, new ArrayList<String>() );
+    }
+    
+    /**
+     * Compares attribute lists ignoring attributes from the ignoreList 
+     * @param attributes1 - first list
+     * @param attributes2 - second list
+     * @param ignoreList- list attribute names to ignore;
+     *                     if attribute name matches, that attribute won't be compared
+     * @return human readable difference between the lists
+     */
+    public static String CompareAttributes(List attributes1, List attributes2, List<String> ignoreList)
+    {
+      return CompareAttributes(attributes1, attributes2, ignoreList, new ArrayList<String>() );
+    }
+    
+    /**
+     * Compares attribute lists ignoring attributes from the ignoreList 
+     * @param attributes1 - first list
+     * @param attributes2 - second list
+     * @param ignoreList - list attribute names to ignore; if attribute name matches 
+     *                     that attribute won't be compared
+     * @param ignoreRegexps - list of regular expressions matched against attribute content (using toString())
+     *                     if attribute content matches for some attribute in ignoreList, 
+     *                     that attribute won't be compared
+     * @return human readable difference between the lists
+     */
+    public static String CompareAttributes(List attributes1, List attributes2, List<String> ignoreList, List<String> ignoreRegexps) 
+    {
+  	  String res = "";
+  	  ArrayList<Pattern> ignorePatterns = new ArrayList<Pattern>();
+  	  for (String item : ignoreRegexps )
+  	  {
+  		  ignorePatterns.add(Pattern.compile(item));
+  	  }
+  	  
+      if (null != attributes1)
+      {
+  		if (null != attributes2)
+  		{
+  			int a1size = attributes1.size();
+  			int a2size = attributes2.size();
+  	        for (int i = 0; i < a1size; ++i) 
+  	        {
+  	            AttributeInfo ai1 = (AttributeInfo)attributes1.get(i);
+  	            if (ignoreList.contains(ai1.getName()) && patternMatches(ignorePatterns, ai1.toString())) 
+  	            {
+  	            	continue;
+  	            }
+  	            int a1count = 0;
+  	            for (int j = 0; j < a2size; ++j) 
+  	            {
+  	            	AttributeInfo ai2 = (AttributeInfo)attributes2.get(j);
+  	  	            if (ignoreList.contains(ai2.getName()) && patternMatches(ignorePatterns, ai2.toString())) 
+  	  	            {
+  	  	            	continue;
+  	  	            }
+  	            	if ( ai1.equals(ai2)) 
+  	            	{
+  	            		a1count++;
+  	            	}
+  	            }
+  	            if (a1count < 1)
+  	            {
+              		res += "Attributes are different: " + ai1.Dump() 
+              		  + " 1 -> " + a1count + "\n";
+  	            }
+  	        }
+  	        for (int i = 0; i < a2size; ++i) 
+  	        {
+  	            AttributeInfo ai2 = (AttributeInfo)attributes2.get(i);
+  	            if (ignoreList.contains(ai2.getName()) && patternMatches(ignorePatterns, ai2.toString())) 
+  	            {
+  	            	continue;
+  	            }
+  	            int a2count = 0;
+  	            for (int j = 0; j < a1size; ++j) 
+  	            {
+  	            	AttributeInfo ai1 = (AttributeInfo)attributes1.get(j);
+  	  	            if (ignoreList.contains(ai1.getName()) && patternMatches(ignorePatterns, ai1.toString())) 
+  	  	            {
+  	  	            	continue;
+  	  	            }
+  	            	if ( ai2.equals(ai1)) 
+  	            	{
+  	            		a2count++;
+  	            	}
+  	            }
+  	            if (a2count < 1)
+  	            {
+              		res += "Attributes are different: " + ai2.Dump() 
+              		  + " " + a2count + " -> 1\n";
+  	            }
+  	        }
+  		}
+  		else
+  		{
+  		  res += "Attributes were added: " + attributes1.toString() + "\n"; 
+  		}
+  	  } 
+  	  else 
+  	  {
+        res += "Attributes were removed: " + attributes2.toString() + "\n"; 
+  	  }
+  	  return res;
+    }
+
+    /**
+     * checks if the value matches at least one of the ignorePatterns
+     * @param ignorePatterns - patterns to match
+     * @param value - string to check
+     * @return true if ignorePatterns lsit is empty or value matches at least one of ignorePatterns
+     */
+    private static boolean patternMatches(ArrayList<Pattern> ignorePatterns,
+			String value) 
+    {
+    	if (ignorePatterns.isEmpty())
+    	{
+    		return true;
+    	}
+    	for (Pattern p:ignorePatterns)
+    	{
+    		Matcher m = p.matcher(value);
+    		if (m.matches()) {
+    			return true;
+    		}
+    	}
+    	return false;
+	}
+
+	/**
+	 * Dumps the content of the attribute
+	 * @return human readable content
+	 */
+    public String Dump()
+    {
+      String res = "";
+      res += getName() + " " + InstructionEqualizer.getHex(info);
+      return res;
+    }
+    
     /* The following two methods are used to implement
      * ClassFile.renameClass().
      * Only CodeAttribute, LocalVariableAttribute,
@@ -288,4 +453,46 @@ public class AttributeInfo {
             ai.getRefClasses(classnames);
         }
     }
+    
+	/**
+	 * Utility method to compare two string arrays and return human readable difference
+	 * @param ilist1 - first string array
+	 * @param ilist2 - second string array
+	 * @param name - name to represent the compared entities
+	 * @return human readable difference between two string arrays
+	 */
+    public static String CompareStringArrays(String[] ilist1, String[] ilist2, String name)
+	{
+		  String res = "";
+		  for (int i = 0; i<ilist1.length; ++i)
+		  {
+			boolean matched = false;
+		    for (int j = 0; j<ilist2.length; ++j)
+		    {
+		      if (ilist1[i].equals(ilist2[j])) {
+		    	matched = true;
+		    	break;
+              }
+		    }
+		    if (! matched) {
+		      res += name + ": " + ilist1[i] + " has been removed\n";
+		    }
+		  }
+		  for (int i = 0; i<ilist2.length; ++i)
+		  {
+			boolean matched = false;
+		    for (int j = 0; j<ilist1.length; ++j)
+		    {
+		      if (ilist2[i].equals(ilist1[j])) {
+		    	matched = true;
+		    	break;
+		      }
+		    }
+		    if (! matched) {
+		      res += name + ": " + ilist2[i] + " has been added\n";
+		    }
+		  }
+		  return res;
+	}
+
 }

@@ -171,4 +171,62 @@ public class ExceptionsAttribute extends AttributeInfo {
         int index = nth * 2 + 2;        // nth >= 0
         return ((info[index] & 0xff) << 8) | (info[index + 1] & 0xff);
     }
+    
+    /**
+     * Returns true if the given object represents the same ExceptionsAttribute 
+     * as this object.  The equality test checks the exception lists.
+     */
+    public boolean equals(Object obj) {
+        if (obj instanceof ExceptionsAttribute) {
+        	ExceptionsAttribute ea = (ExceptionsAttribute)obj;
+            return CompareExceptions(this, ea).isEmpty();
+        }
+        else
+            return false;
+    }
+
+    String CompareExceptions(ExceptionsAttribute e1, ExceptionsAttribute e2) 
+    {
+      String res = "";
+      if (null != e1)
+      {
+        if (null != e2)
+        {
+          String[] e1list = e1.getExceptions();
+          String[] e2list = e2.getExceptions();
+          res += AttributeInfo.CompareStringArrays(e1list, e2list, "Exceptions");
+        }
+        else
+        {
+          res += "Exceptions were added: " + e1.Dump() + "\n"; 
+        }
+      } 
+      else 
+      {
+        if (null != e2)
+        {
+          res += "Exceptions were removed: " + e2.Dump() + "\n";
+        }
+      }
+      return res;
+    }
+    	
+
+	/**
+	 * Dumps the content of the attribute
+	 * @return human readable content
+	 */
+    public String Dump()
+    {
+      String res = "Exceptions: {";
+      int len = tableLength();
+      String[] exceptions = getExceptions();
+      for (int i = 0; i < len; i++ )
+      {
+    	  res += exceptions[i] + " ";
+      }
+      res += "}";
+      return res;
+    }
+    
 }

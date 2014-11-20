@@ -87,6 +87,28 @@ public class SignatureAttribute extends AttributeInfo {
         return new SignatureAttribute(newCp, getSignature());
     }
 
+    /**
+     * Returns true if the given object represents the same SignatureAttribute 
+     * as this object. 
+     */
+	public boolean equals(Object obj) {
+        if (obj instanceof SignatureAttribute) {
+            SignatureAttribute sa = (SignatureAttribute)obj;
+            return sa.getName().equals(getName()); 
+        }
+        else
+            return false;
+    }
+    
+	/**
+	 * Dumps the content of the attribute
+	 * @return human readable content
+	 */
+    public String Dump()
+    {
+      return getName();
+    }
+
     void renameClass(String oldname, String newname) {
         String sig = renameClass(getSignature(), oldname, newname);
         setSignature(sig);

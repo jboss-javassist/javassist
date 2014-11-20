@@ -17,8 +17,12 @@
 package javassist.bytecode;
 
 import java.io.DataInputStream;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Map;
 import java.io.IOException;
+
+import javassist.Modifier;
 
 /**
  * <code>InnerClasses_attribute</code>.
@@ -29,6 +33,8 @@ public class InnerClassesAttribute extends AttributeInfo {
      */
     public static final String tag = "InnerClasses";
 
+    private String signature;
+    
     InnerClassesAttribute(ConstPool cp, int n, DataInputStream in)
         throws IOException
     {
@@ -156,6 +162,125 @@ public class InnerClassesAttribute extends AttributeInfo {
         ByteArray.write16bit(flags, get(), nth * 8 + 8);
     }
 
+    public String GetSignature()
+    {
+    	if (null == signature) {
+    		signature = updateSignature();
+    	}
+    	return signature;
+    }
+
+    String updateSignature() {
+    	String res = "";
+
+        int len = tableLength();
+        for (int i = 0; i < len; i++ )
+        {
+      	  res += innerClass(i) + outerClass(i) + innerName(i) + accessFlags(i);
+        }
+        
+        try {
+			MessageDigest digest = java.security.MessageDigest.getInstance("MD5");
+			digest.update(res.getBytes());
+			res = InstructionEqualizer.getHex(digest.digest());
+		} catch (NoSuchAlgorithmException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+        
+        return res;
+    }
+
+    /**
+     * Returns true if the given object represents the same InnerClassesAttribute  
+     * as this object.  The equality test checks the inner classes' lists.
+     */
+	public boolean equals(Object obj) {
+        if (obj instanceof InnerClassesAttribute) {
+        	InnerClassesAttribute ic = (InnerClassesAttribute)obj;
+            return CompareInnerClasses(this, ic).isEmpty();
+        }
+        else
+            return false;
+    }
+	
+	String GetEntry(int idx)
+	{
+      return innerClass(idx) + outerClass(idx) + innerName(idx) + accessFlags(idx);
+	}
+    
+    String CompareInnerClasses(InnerClassesAttribute ic1, InnerClassesAttribute ic2) 
+    {
+  	  String res = "";
+      if (null != ic1)
+      {
+        if (null != ic2)
+        {
+  		  int ic1size = ic1.tableLength();
+  		  int ic2size = ic2.tableLength();
+  	      for (int i = 0; i < ic1size; ++i) 
+          {
+            int ic1count = 0;
+            String ic1Value = ic1.GetEntry(i);
+  	        for (int j = 0; j < ic2size; ++j) 
+  	        {
+           	  if ( ic1Value.equals(ic2.GetEntry(j)))
+           	  {
+           		ic1count++;
+              }
+            }
+  	        if (ic1count < 1)
+            {
+       		  res += "Innerclasses: " + ic1Value + " removed\n";
+            }
+          }
+  	      for (int i = 0; i < ic2size; ++i) 
+  	      {
+  	        int ic2count = 0;
+            String ic2Value = ic2.GetEntry(i);
+  	        for (int j = 0; j < ic1size; ++j) 
+  	        {
+  	       	  if ( ic2Value.equals(ic1.GetEntry(j)) ) 
+  	       	  {
+  	      	    ic2count++;
+           	  }
+            }
+            if (ic2count < 1)
+  	        {
+          	  res += "Innerclasses: " + ic2Value + " added\n"; 
+  	        }
+  	      }
+  	    }
+        else
+  	    {
+  		  res += "InnerClasses were removed: " + ic1.Dump() + "\n"; 
+  	    }
+  	  } 
+  	  else 
+  	  {
+        res += "InnerClasses were added: " + ic2.Dump() + "\n"; 
+  	  }
+  	  return res;
+    }
+
+	/**
+	 * Dumps the content of the attribute
+	 * @return human readable content
+	 */
+    public String Dump()
+    {
+      String res = "innerclasses: {";
+      int len = tableLength();
+      for (int i = 0; i < len; i++ )
+      {
+    	  res += "inner_cii: " + innerClass(i) + " outer_cii: "
+    	    +outerClass(i) + " inner_name: " + innerName(i) 
+    	    + " aflags: " + Modifier.toString(AccessFlag.toModifier(accessFlags(i))) + "|";
+      }
+      res += "}";
+      return res;
+    }
+    
     /**
      * Appends a new entry.
      *

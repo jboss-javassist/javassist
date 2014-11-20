@@ -278,4 +278,56 @@ public class ExceptionTable implements Cloneable {
             out.writeShort(e.catchType);
         }
     }
+    
+    /**
+     * Returns true if the given object represents the same ExceptionTable 
+     * as this object.
+     */
+    public boolean equals(Object obj) 
+    {
+        if (obj instanceof ExceptionTable) {
+            ExceptionTable et = (ExceptionTable)obj;
+            
+            int mySize = entries.size();
+            int etSize = et.size();
+            
+            if (mySize != etSize)
+            {
+            	return false;
+            }
+
+            for (int i = 0; i<mySize; ++i)
+            {
+            	ExceptionTableEntry oe = (ExceptionTableEntry)et.entries.get(i);
+            	ExceptionTableEntry me = (ExceptionTableEntry)entries.get(i);
+            	if (oe.startPc == me.startPc && oe.endPc == me.endPc 
+           		  && oe.handlerPc == me.handlerPc 
+           		  && ((me.catchType == 0 && oe.catchType==0) 
+           			|| constPool.getClassInfo(me.catchType).equals(et.constPool.getClassInfo(oe.catchType))))
+            	{
+            		return true;
+            	}
+            }
+            return true;
+        }
+        else
+            return false;
+    }
+    
+	/**
+	 * Dumps the content of the table
+	 * @return human readable content
+	 */
+    public String Dump()
+    {
+      int mySize = entries.size();
+      String res = "size: " + mySize + "\n";
+      for (int i = 0; i<mySize; ++i)
+      {
+      	ExceptionTableEntry e = (ExceptionTableEntry)entries.get(i);
+      	res += "spc: " + e.startPc + " epc: " + e.endPc + " hpc: " + e.handlerPc
+      	  + " catch: '" + constPool.getClassInfo(e.catchType) + "'\n";
+      }
+      return res;	  
+    }
 }

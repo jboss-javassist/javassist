@@ -46,6 +46,7 @@ public class CodeAttribute extends AttributeInfo implements Opcode {
     private int maxLocals;
     private ExceptionTable exceptions;
     private ArrayList attributes;
+    private String codeChecksum;
 
     /**
      * Constructs a <code>Code_attribute</code>.
@@ -192,6 +193,80 @@ public class CodeAttribute extends AttributeInfo implements Opcode {
      */
     public void set(byte[] newinfo) {
         throw new UnsupportedOperationException("CodeAttribute.set()");
+    }
+
+    /**
+     * returns checksum (md5) of the code attribute
+     * @return md5 checksum representing the code
+     */
+    public String GetCodeChecksum()
+    {
+    	if (null == codeChecksum) {
+    		codeChecksum = updateCodeChecksum();
+    	}
+    	return codeChecksum;
+    }
+    
+    /**
+     * updates checksum value of the code attribute
+     * @return md5 checksum representing the code
+     */
+    private String updateCodeChecksum() {
+        String res = InstructionEqualizer.getChecksum(this);
+        return res;
+	}
+
+    /**
+     * Returns true if the given object represents the same CodeAttribute
+     * as this object.  The equality test checks the member values.
+     */
+	public boolean equals(Object obj) {
+        if (obj instanceof CodeAttribute) {
+        	ArrayList<String> ignoreList = new ArrayList<String>();
+        	//ignoreList.add("LineNumberTable");
+            CodeAttribute ca = (CodeAttribute)obj;
+            return ca.getName().equals(getName())
+              && ca.maxLocals == this.maxLocals
+              && ca.maxStack == this.maxStack
+              && ca.exceptions.equals(this.exceptions)
+              && ca.GetCodeChecksum().equals(this.GetCodeChecksum())
+              && CompareAttributes(ca.attributes, this.attributes, ignoreList).isEmpty();
+        }
+        else
+            return false;
+    }
+    
+	/**
+	 * Dumps the content of the attribute
+	 * @return human readable content
+	 */
+    public String Dump()
+    {
+      return getName() + " maxLocals:" + maxLocals + " maxStack:" + maxStack 
+      + " exceptions: " + exceptions.Dump() + "Code checksum:"+ GetCodeChecksum()
+      + "\n code:"+ InstructionEqualizer.getHex(getCode()) + " attributes: " + attributes.toString();
+/*      String res = "";
+      if (info != null)
+      {
+    	CodeIterator iterator = this.iterator();
+    	while (iterator.hasNext()) 
+    	{
+    	  int pos;
+    	  try 
+    	  {
+    	    pos = iterator.next();
+    	  } catch (BadBytecode e) {
+    	    throw new RuntimeException(e);
+    	  }
+          res += pos + ": " + InstructionPrinter.instructionString(iterator, pos, constPool, false) + "\n";
+        }
+      }
+ 
+ 
+      res = getName() + " maxLocals:" + maxLocals + " maxStack:" + maxStack 
+        + " exceptions: " + exceptions.Dump() + "\ninfo:"+ res
+        + "\n attributes: " + attributes.toString();
+      return res;*/
     }
 
     void renameClass(String oldname, String newname) {
