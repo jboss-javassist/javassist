@@ -181,15 +181,19 @@ public class JvstTest4 extends JvstTestRoot {
         ClassFileWriter.MethodWriter mw = cfw.getMethodWriter();
 
         mw.begin(AccessFlag.PUBLIC, MethodInfo.nameInit, "()V", null, null);
+        assertEquals(0, mw.size());
         mw.add(Opcode.ALOAD_0);
+        assertEquals(1, mw.size());
         mw.addInvoke(Opcode.INVOKESPECIAL, "java/lang/Object", MethodInfo.nameInit, "()V");
         mw.add(Opcode.RETURN);
         mw.codeEnd(1, 1);
         mw.end(null, null);
 
         mw.begin(AccessFlag.PUBLIC, "move", "(II)V", null, null);
+        assertEquals(0, mw.size());
         mw.add(Opcode.ALOAD_0);
         mw.addInvoke(Opcode.INVOKEVIRTUAL, "java/lang/Object", "toString", "()Ljava/lang/String;");
+        assertEquals(4, mw.size());
         mw.add(Opcode.POP);
         mw.add(Opcode.RETURN);
         mw.add(Opcode.POP);
@@ -658,7 +662,7 @@ public class JvstTest4 extends JvstTestRoot {
         long t2 = endTime2 - endTime;
         long t3 = endTime3 - endTime2;
         System.out.println("JIRA150: " + t1 + ", " + t2 + ", " + t3);
-        assertTrue(t2 < t1 * 4);
+        assertTrue(t2 < t1 * 5);
         assertTrue(t3 < t1 * 3);
     }
 
@@ -1056,7 +1060,7 @@ public class JvstTest4 extends JvstTestRoot {
     }
 
     public void testAnnotationLoader() throws Exception {
-        CtClass anno = sloader.makeAnnotation("test4.AnnoLoadAnno", null);
+        CtClass anno = sloader.makeAnnotation("test4.AnnoLoadAnno");
         anno.debugWriteFile();
         CtClass cc = sloader.get("test4.AnnoLoad");
         CtMethod m = cc.getDeclaredMethod("foo");
@@ -1065,11 +1069,11 @@ public class JvstTest4 extends JvstTestRoot {
         AnnotationsAttribute attr
             = new AnnotationsAttribute(cp, AnnotationsAttribute.visibleTag);
         Annotation a = new Annotation(anno.getName(), cp);
+        a.addMemberValue("value", new javassist.bytecode.annotation.StringMemberValue("file/path", cp));
         attr.setAnnotation(a);
         m.getMethodInfo().addAttribute(attr);
         cc.writeFile();
-        Object obj = m.getAnnotations()[0];
-        String name = obj.getClass().getName();
-        assertEquals(anno.getName(), name);
+        Class<?> rc = ((java.lang.annotation.Annotation)m.getAnnotations()[0]).annotationType();
+        assertEquals(anno.getName(), rc.getName());
     }
 }

@@ -676,7 +676,20 @@ class CtClassType extends CtClass {
         }
         catch (ClassNotFoundException e) {
             ClassLoader cl2 = cp.getClass().getClassLoader();
-            return anno.toAnnotationType(cl2, cp);
+            try {
+                return anno.toAnnotationType(cl2, cp);
+            }
+            catch (ClassNotFoundException e2){
+                try {
+                    Class<?> clazz = cp.get(anno.getTypeName()).toClass();
+                    return javassist.bytecode.annotation.AnnotationImpl.make(
+                                            clazz.getClassLoader(),
+                                            clazz, cp, anno);
+                }
+                catch (Throwable e3) {
+                    throw new ClassNotFoundException(anno.getTypeName());
+                }
+            }
         }
     }
 
@@ -782,14 +795,12 @@ class CtClassType extends CtClass {
         else {
             CtClass enc = classPool.get(ema.className());
             String name = ema.methodName();
-            switch (name) {
-            case MethodInfo.nameInit:
+            if (MethodInfo.nameInit.equals(name))
                 return enc.getConstructor(ema.methodDescriptor());
-            case MethodInfo.nameClinit:
+            else if(MethodInfo.nameClinit.equals(name))
                 return enc.getClassInitializer();
-            default:
+            else
                 return enc.getMethod(name, ema.methodDescriptor());
-            }
         }
     }
 
