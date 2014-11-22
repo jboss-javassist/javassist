@@ -21,6 +21,7 @@ import java.lang.ref.WeakReference;
 import java.util.WeakHashMap;
 import java.util.List;
 import java.util.Iterator;
+
 import javassist.*;
 import javassist.bytecode.*;
 import javassist.compiler.ast.*;
@@ -521,6 +522,19 @@ public class MemberResolver implements TokenId {
         catch (NotFoundException e) {}
         throw new CompileError("cannot find the super class of "
                                + c.getName());
+    }
+
+    public static CtClass getSuperInterface(CtClass c, String interfaceName)
+        throws CompileError
+    {
+        try {
+            CtClass[] intfs = c.getInterfaces();
+            for (int i = 0; i < intfs.length; i++)
+                if (intfs[i].getName().equals(interfaceName))
+                    return intfs[i];
+        } catch (NotFoundException e) {}
+        throw new CompileError("cannot find the super inetrface " + interfaceName
+                               + " of " + c.getName());
     }
 
     public static String javaToJvmName(String classname) {

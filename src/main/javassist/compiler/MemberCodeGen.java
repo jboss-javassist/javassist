@@ -489,30 +489,44 @@ public class MemberCodeGen extends CodeGen {
             }
             else if (op == '.') {
                 ASTree target = e.oprand1();
-                if (target instanceof Keyword)
-                    if (((Keyword)target).get() == SUPER)
-                        isSpecial = true;
-
-                try {
-                    target.accept(this);
+                String classFollowedByDotSuper = TypeChecker.isDotSuper(target);
+                if (classFollowedByDotSuper != null) {
+                    isSpecial = true;
+                    targetClass = MemberResolver.getSuperInterface(thisClass,
+                                                        classFollowedByDotSuper);
+                    if (inStaticMethod || (cached != null && cached.isStatic()))
+                        isStatic = true;            // should be static
+                    else {
+                        aload0pos = bytecode.currentPc();
+                        bytecode.addAload(0);       // this
+                    }
                 }
-                catch (NoFieldException nfe) {
-                    if (nfe.getExpr() != target)
-                        throw nfe;
+                else {
+                    if (target instanceof Keyword)
+                        if (((Keyword)target).get() == SUPER)
+                            isSpecial = true;
 
-                    // it should be a static method.
-                    exprType = CLASS;
-                    arrayDim = 0;
-                    className = nfe.getField(); // JVM-internal
-                    isStatic = true;
+                    try {
+                        target.accept(this);
+                    }
+                    catch (NoFieldException nfe) {
+                        if (nfe.getExpr() != target)
+                            throw nfe;
+
+                        // it should be a static method.
+                        exprType = CLASS;
+                        arrayDim = 0;
+                        className = nfe.getField(); // JVM-internal
+                        isStatic = true;
+                    }
+
+                    if (arrayDim > 0)
+                        targetClass = resolver.lookupClass(javaLangObject, true);
+                    else if (exprType == CLASS /* && arrayDim == 0 */)
+                        targetClass = resolver.lookupClassByJvmName(className);
+                    else
+                        badMethod();
                 }
-
-                if (arrayDim > 0)
-                    targetClass = resolver.lookupClass(javaLangObject, true);
-                else if (exprType == CLASS /* && arrayDim == 0 */)
-                    targetClass = resolver.lookupClassByJvmName(className);
-                else
-                    badMethod();
             }
             else
                 badMethod();

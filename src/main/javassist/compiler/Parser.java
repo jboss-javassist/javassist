@@ -1001,6 +1001,7 @@ public final class Parser implements TokenId {
      *              | postfix.expr "." Identifier
      *              | postfix.expr ( "[" "]" )* "." CLASS
      *              | postfix.expr "#" Identifier
+     *              | postfix.expr "." SUPER
      *
      * "#" is not an operator of regular Java.  It separates
      * a class name and a member name in an expression for static member
@@ -1058,9 +1059,10 @@ public final class Parser implements TokenId {
             case '.' :
                 lex.get();
                 t = lex.get();
-                if (t == CLASS) {
+                if (t == CLASS)
                     expr = parseDotClass(expr, 0);
-                }
+                else if (t == SUPER)
+                    expr = Expr.make('.', new Symbol(toClassName(expr)), new Keyword(t));
                 else if (t == Identifier) {
                     str = lex.getString();
                     expr = Expr.make('.', expr, new Member(str));

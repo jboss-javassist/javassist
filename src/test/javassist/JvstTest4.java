@@ -5,7 +5,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.util.HashSet;
-import java.util.List;
 
 import javassist.bytecode.*;
 import javassist.bytecode.annotation.Annotation;
@@ -662,8 +661,9 @@ public class JvstTest4 extends JvstTestRoot {
         long t2 = endTime2 - endTime;
         long t3 = endTime3 - endTime2;
         System.out.println("JIRA150: " + t1 + ", " + t2 + ", " + t3);
-        assertTrue(t2 < t1 * 5);
-        assertTrue(t3 < t1 * 3);
+        assertTrue("performance test (the next try may succeed): " + t1 + "/ 5 < " + t2,
+                   t2 < t1 * 5);
+        assertTrue("", t3 < t1 * 3);
     }
 
     public void testJIRA150b() throws Exception {

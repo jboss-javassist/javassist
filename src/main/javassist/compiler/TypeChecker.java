@@ -656,28 +656,34 @@ public class TypeChecker extends Visitor implements Opcode, TokenId {
                                                false);
             else if (op == '.') {
                 ASTree target = e.oprand1();
-                try {
-                    target.accept(this);
-                }
-                catch (NoFieldException nfe) {
-                    if (nfe.getExpr() != target)
-                        throw nfe;
+                String classFollowedByDotSuper = isDotSuper(target);
+                if (classFollowedByDotSuper != null)
+                    targetClass = MemberResolver.getSuperInterface(thisClass,
+                                                        classFollowedByDotSuper);
+                else {
+                    try {
+                        target.accept(this);
+                    }
+                    catch (NoFieldException nfe) {
+                        if (nfe.getExpr() != target)
+                            throw nfe;
 
-                    // it should be a static method.
-                    exprType = CLASS;
-                    arrayDim = 0;
-                    className = nfe.getField(); // JVM-internal
-                    e.setOperator(MEMBER);
-                    e.setOprand1(new Symbol(MemberResolver.jvmToJavaName(
-                                                            className)));
-                }
+                        // it should be a static method.
+                        exprType = CLASS;
+                        arrayDim = 0;
+                        className = nfe.getField(); // JVM-internal
+                        e.setOperator(MEMBER);
+                        e.setOprand1(new Symbol(MemberResolver.jvmToJavaName(
+                                                                className)));
+                    }
 
-                if (arrayDim > 0)
-                    targetClass = resolver.lookupClass(javaLangObject, true);
-                else if (exprType == CLASS /* && arrayDim == 0 */)
-                    targetClass = resolver.lookupClassByJvmName(className);
-                else
-                    badMethod();
+                    if (arrayDim > 0)
+                        targetClass = resolver.lookupClass(javaLangObject, true);
+                    else if (exprType == CLASS /* && arrayDim == 0 */)
+                        targetClass = resolver.lookupClassByJvmName(className);
+                    else
+                        badMethod();
+                }
             }
             else
                 badMethod();
@@ -692,6 +698,26 @@ public class TypeChecker extends Visitor implements Opcode, TokenId {
 
     private static void badMethod() throws CompileError {
         throw new CompileError("bad method");
+    }
+
+    /**
+     * Returns non-null if target is something like Foo.super
+     * for accessing the default method in an interface.
+     * Otherwise, null.
+     *
+     * @return the class name followed by {@code .super} or null.
+     */
+    static String isDotSuper(ASTree target) {
+        if (target instanceof Expr) {
+            Expr e = (Expr)target;
+            if (e.getOperator() == '.') {
+                ASTree right = e.oprand2();
+                if (right instanceof Keyword && ((Keyword)right).get() == SUPER)
+                    return ((Symbol)e.oprand1()).get();
+            }
+        }
+
+        return null;
     }
 
     /**
