@@ -20,6 +20,7 @@ import javassist.bytecode.*;
 import javassist.compiler.Javac;
 import javassist.compiler.CompileError;
 import javassist.expr.ExprEditor;
+import javassist.tools.Callback;
 
 /**
  * <code>CtBehavior</code> represents a method, a constructor,
@@ -714,6 +715,29 @@ public abstract class CtBehavior extends CtMember {
     }
 
     /**
+     * Inserts callback at the beginning of the body.
+     *
+     * <p>If this object represents a constructor,
+     * the callback is inserted before
+     * a constructor in the super class or this class is called.
+     * Therefore, the inserted callback is subject to constraints described
+     * in Section 4.8.2 of The Java Virtual Machine Specification (2nd ed).
+     * For example, it cannot access instance fields or methods although
+     * it may assign a value to an instance field directly declared in this
+     * class.  Accessing static fields and methods is allowed.
+     * Use <code>insertBeforeBody()</code> in <code>CtConstructor</code>.
+     *
+     * @param callback       the source code representing the inserted bytecode.
+     *                  It must be a single statement or block.
+     * @see CtConstructor#insertBeforeBody(String)
+     */
+    public void insertBefore(Callback callback)
+            throws CannotCompileException
+    {
+        insertBefore(callback.toString(), true);
+    }
+
+    /**
      * Inserts bytecode at the beginning of the body.
      *
      * <p>If this object represents a constructor,
@@ -776,6 +800,39 @@ public abstract class CtBehavior extends CtMember {
         catch (BadBytecode e) {
             throw new CannotCompileException(e);
         }
+    }
+
+    /**
+     * Inserts callback bytecode at the end of the body.
+     * The callback is inserted just before every return insturction.
+     * It is not executed when an exception is thrown.
+     *
+     * @param callback       the source code representing the inserted bytecode.
+     *                  It must be a single statement or block.
+     */
+    public void insertAfter(Callback callback)
+            throws CannotCompileException
+    {
+        insertAfter(callback.toString(), false);
+    }
+
+    /**
+     * Inserts callback bytecode at the end of the body.
+     * The callback is inserted just before every return insturction.
+     * It is not executed when an exception is thrown.
+     *
+     * @param callback       the callback source code representing the inserted bytecode.
+     *                  It must be a single statement or block.
+     * @param asFinally         true if the inserted bytecode is executed
+     *                  not only when the control normally returns
+     *                  but also when an exception is thrown.
+     *                  If this parameter is true, the inserted code cannot
+     *                  access local variables.
+     */
+    public void insertAfter(Callback callback, boolean asFinally)
+            throws CannotCompileException
+    {
+        insertAfter(callback.toString(), asFinally);
     }
 
     /**
@@ -1135,6 +1192,29 @@ public abstract class CtBehavior extends CtMember {
     }
 
     /**
+     * Inserts callback bytecode at the specified line in the body.
+     * It is equivalent to:
+     *
+     * <br><code>insertAt(lineNum, true, src)</code>
+     *
+     * <br>See this method as well.
+     *
+     * @param lineNum   the line number.  The bytecode is inserted at the
+     *                  beginning of the code at the line specified by this
+     *                  line number.
+     * @param callback  the callback source code representing the inserted bytecode.
+     *                  It must be a single statement or block.
+     * @return      the line number at which the callback bytecode has been inserted.
+     *
+     * @see CtBehavior#insertAt(int,boolean,String)
+     */
+    public int insertAt(int lineNum, Callback callback)
+            throws CannotCompileException
+    {
+        return insertAt(lineNum, true, callback.toString());
+    }
+
+    /**
      * Inserts bytecode at the specified line in the body.
      *
      * <p>If there is not
@@ -1209,5 +1289,33 @@ public abstract class CtBehavior extends CtMember {
         catch (BadBytecode e) {
             throw new CannotCompileException(e);
         }
+    }
+
+    /**
+     * Inserts callback bytecode at the specified line in the body.
+     *
+     * <p>If there is not
+     * a statement at the specified line, the bytecode might be inserted
+     * at the line including the first statement after that line specified.
+     * For example, if there is only a closing brace at that line, the
+     * bytecode would be inserted at another line below.
+     * To know exactly where the bytecode will be inserted, call with
+     * <code>modify</code> set to <code>false</code>.
+     *
+     * @param lineNum   the line number.  The bytecode is inserted at the
+     *                  beginning of the code at the line specified by this
+     *                  line number.
+     * @param modify    if false, this method does not insert the bytecode.
+     *                  It instead only returns the line number at which
+     *                  the bytecode would be inserted.
+     * @param callback  the callback source code representing the inserted bytecode.
+     *                  It must be a single statement or block.
+     *                  If modify is false, the value of src can be null.
+     * @return      the line number at which the bytecode has been inserted.
+     */
+    public int insertAt(int lineNum, boolean modify, Callback callback)
+            throws CannotCompileException
+    {
+       return insertAt(lineNum,modify,callback.toString());
     }
 }
