@@ -243,14 +243,14 @@ public class AttributeInfo {
         }
     }
 
-    static ArrayList copyAll(ArrayList list, ConstPool cp) {
+    static ArrayList<AttributeInfo> copyAll(ArrayList<AttributeInfo> list, ConstPool cp) {
         if (list == null)
             return null;
 
-        ArrayList newList = new ArrayList();
+        ArrayList<AttributeInfo> newList = new ArrayList<AttributeInfo>();
         int n = list.size();
         for (int i = 0; i < n; ++i) {
-            AttributeInfo attr = (AttributeInfo)list.get(i);
+            AttributeInfo attr = list.get(i);
             newList.add(attr.copy(cp, null));
         }
 
@@ -271,12 +271,40 @@ public class AttributeInfo {
     }
     
     /**
+     * Special equals in case if some of nested attributes should be ignored during 
+     * the comparison
+     * @param obj - object to compare
+     * @param ignoreList - list of nested attribute tags to be ignored 
+     * @return true if the given object represents the same attribute
+     * as this object with taking into account ignoreList. The equality test checks the member values.
+     */
+    public boolean equals(AttributeInfo attr, List<String> ignoreList)
+    {
+    	return equals(attr, ignoreList, new ArrayList<Pattern>());
+    }
+    
+    /**
+     * Special equals in case if some of nested attributes should be ignored during 
+     * the comparison
+     * @param obj - object to compare
+     * @param ignoreList - list of nested attribute tags to be ignored 
+     * @param ignoreRegexps - list of regular expressions those to be tested on the attribute's
+     * value included into ignoreList in order to be actually ignored during comparison 
+     * @return true if the given object represents the same attribute
+     * as this object with taking into account ignoreList. The equality test checks the member values.
+     */
+    public boolean equals(AttributeInfo attr, List<String> ignoreList, List<Pattern> ignoreRegexps)
+    {
+    	return equals(attr);
+    }
+    
+    /**
      * Compares attribute lists 
      * @param attributes1 - first list
      * @param attributes2 - second list
      * @return human readable difference between the lists
      */
-    public static String CompareAttributes(List attributes1, List attributes2)
+    public static String CompareAttributes(List<AttributeInfo> attributes1, List<AttributeInfo> attributes2)
     {
       return CompareAttributes(attributes1, attributes2, new ArrayList<String>() );
     }
@@ -289,9 +317,9 @@ public class AttributeInfo {
      *                     if attribute name matches, that attribute won't be compared
      * @return human readable difference between the lists
      */
-    public static String CompareAttributes(List attributes1, List attributes2, List<String> ignoreList)
+    public static String CompareAttributes(List<AttributeInfo> attributes1, List<AttributeInfo> attributes2, List<String> ignoreList)
     {
-      return CompareAttributes(attributes1, attributes2, ignoreList, new ArrayList<String>() );
+      return CompareAttributes(attributes1, attributes2, ignoreList, new ArrayList<Pattern>() );
     }
     
     /**
@@ -305,15 +333,9 @@ public class AttributeInfo {
      *                     that attribute won't be compared
      * @return human readable difference between the lists
      */
-    public static String CompareAttributes(List attributes1, List attributes2, List<String> ignoreList, List<String> ignoreRegexps) 
+    public static String CompareAttributes(List<AttributeInfo> attributes1, List<AttributeInfo> attributes2, List<String> ignoreList, List<Pattern> ignorePatterns) 
     {
   	  String res = "";
-  	  ArrayList<Pattern> ignorePatterns = new ArrayList<Pattern>();
-  	  for (String item : ignoreRegexps )
-  	  {
-  		  ignorePatterns.add(Pattern.compile(item));
-  	  }
-  	  
       if (null != attributes1)
       {
   		if (null != attributes2)
@@ -335,7 +357,7 @@ public class AttributeInfo {
   	  	            {
   	  	            	continue;
   	  	            }
-  	            	if ( ai1.equals(ai2)) 
+  	            	if ( ai1.equals(ai2, ignoreList, ignorePatterns)) 
   	            	{
   	            		a1count++;
   	            	}
@@ -361,7 +383,7 @@ public class AttributeInfo {
   	  	            {
   	  	            	continue;
   	  	            }
-  	            	if ( ai2.equals(ai1)) 
+  	            	if ( ai2.equals(ai1, ignoreList, ignorePatterns)) 
   	            	{
   	            		a2count++;
   	            	}
@@ -391,7 +413,7 @@ public class AttributeInfo {
      * @param value - string to check
      * @return true if ignorePatterns lsit is empty or value matches at least one of ignorePatterns
      */
-    private static boolean patternMatches(ArrayList<Pattern> ignorePatterns,
+    private static boolean patternMatches(List<Pattern> ignorePatterns,
 			String value) 
     {
     	if (ignorePatterns.isEmpty())

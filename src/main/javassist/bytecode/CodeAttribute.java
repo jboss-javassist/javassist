@@ -21,8 +21,8 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.List;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 /**
  * <code>Code_attribute</code>.
@@ -222,18 +222,37 @@ public class CodeAttribute extends AttributeInfo implements Opcode {
      */
 	public boolean equals(Object obj) {
         if (obj instanceof CodeAttribute) {
-        	ArrayList<String> ignoreList = new ArrayList<String>();
-        	//ignoreList.add("LineNumberTable");
             CodeAttribute ca = (CodeAttribute)obj;
+            return equals(ca, new ArrayList<String>(), new ArrayList<Pattern>());
+        }
+        else
+            return false;
+    }
+    
+    /**
+     * Special equals in case if some of nested attributes should be ignored during 
+     * the comparison
+     * @param obj - object to compare
+     * @param ignoreList - list of nested attribute tags to be ignored 
+     * @param ignoreRegexps - list of regular expressions those to be tested on the attribute's
+     * value included into ignoreList in order to be actually ignored during comparison 
+     * @return true if the given object represents the same attribute
+     * as this object with taking into account ignoreList. The equality test checks the member values.
+     */
+	@Override
+    public boolean equals(AttributeInfo attr, List<String> ignoreList, List<Pattern> ignoreRegexps)
+    {
+        if (attr instanceof CodeAttribute) {
+            CodeAttribute ca = (CodeAttribute)attr;
             return ca.getName().equals(getName())
               && ca.maxLocals == this.maxLocals
               && ca.maxStack == this.maxStack
               && ca.exceptions.equals(this.exceptions)
               && ca.GetCodeChecksum().equals(this.GetCodeChecksum())
-              && CompareAttributes(ca.attributes, this.attributes, ignoreList).isEmpty();
-        }
-        else
+                && CompareAttributes(ca.attributes, this.attributes, ignoreList, ignoreRegexps).isEmpty();
+        } else {
             return false;
+        }
     }
     
 	/**

@@ -44,6 +44,7 @@ public class Comparer {
 	private String tmpDir = "tmp";
 	private String outputDir = "output";
 	List<Pattern> diffIgnoreFiles = new ArrayList<Pattern>();
+	boolean ignoreLineNumberDifferenceForMethods = true;
 
 	/**
 	 * Default constructor
@@ -67,11 +68,12 @@ public class Comparer {
 	 *            of certain class files in a jar file by file name
 	 */
 	public Comparer(String tmpdir, String outputDir,
-			List<Pattern> fileDiffIgnorePatterns) {
+			List<Pattern> fileDiffIgnorePatterns, boolean ignoreLineNumberDifferenceForMethods) {
 		super();
 		this.tmpDir = tmpdir;
 		this.outputDir = outputDir;
 		this.diffIgnoreFiles = fileDiffIgnorePatterns;
+		this.ignoreLineNumberDifferenceForMethods = ignoreLineNumberDifferenceForMethods;
 	}
 
 	/**
@@ -87,14 +89,14 @@ public class Comparer {
 	 * @throws java.io.FileNotFoundException
 	 * @throws java.io.IOException
 	 */
-	public static String CompareClasses(String class1, String class2)
+	public static String CompareClasses(String class1, String class2, boolean ignoreLineNumbersForMethods)
 			throws java.io.FileNotFoundException, java.io.IOException {
 		BufferedInputStream fin = new BufferedInputStream(new FileInputStream(
 				class1));
 		ClassFile cf1 = new ClassFile(new DataInputStream(fin));
 		fin = new BufferedInputStream(new FileInputStream(class2));
 		ClassFile cf2 = new ClassFile(new DataInputStream(fin));
-		return CompareClasses(cf1, cf2);
+		return CompareClasses(cf1, cf2, ignoreLineNumbersForMethods);
 	}
 
 	/**
@@ -106,7 +108,7 @@ public class Comparer {
 	 *            - second classfile to compare
 	 * @return human readable information about difference between cf1 and cf2
 	 */
-	public static String CompareClasses(ClassFile cf1, ClassFile cf2) {
+	public static String CompareClasses(ClassFile cf1, ClassFile cf2, boolean ignoreLineNumbersForMethods) {
 		String res = "";
 		if (cf1.getMajorVersion() != cf2.getMajorVersion()) {
 			res += "Major version is different: " + cf1.getMajorVersion()
@@ -136,12 +138,12 @@ public class Comparer {
 		res += AttributeInfo.CompareStringArrays(cf1.getInterfaces(),
 				cf2.getInterfaces(), "Interface");
 		res += CompareFields(cf1.getFields(), cf2.getFields());
-		res += CompareMethods(cf1.getMethods(), cf2.getMethods());
+		res += CompareMethods(cf1.getMethods(), cf2.getMethods(), ignoreLineNumbersForMethods);
 
 		ArrayList<String> ignoreList = new ArrayList<String>();
 		ignoreList.add("RuntimeVisibleAnnotations");
-		ArrayList<String> ignorePatterns = new ArrayList<String>();
-		ignorePatterns.add(".*com.softcomputer.totalqc.common.TQCVersion.*");
+		ArrayList<Pattern> ignorePatterns = new ArrayList<Pattern>();
+		ignorePatterns.add(Pattern.compile(".*com.softcomputer.totalqc.common.TQCVersion.*"));
 
 		res += AttributeInfo.CompareAttributes(cf1.getAttributes(),
 				cf2.getAttributes(), ignoreList, ignorePatterns);
@@ -207,7 +209,7 @@ public class Comparer {
 	}
 
 	private static String CompareMethods(List<MethodInfo> methods1,
-			List<MethodInfo> methods2) {
+			List<MethodInfo> methods2, boolean ignoreLineNumbers) {
 		String res = "";
 		int m1Count = methods1.size();
 		int m2Count = methods2.size();
@@ -222,8 +224,12 @@ public class Comparer {
 						&& m1info.getDescriptor()
 								.equals(m2info.getDescriptor())) {
 					if (m1info.getAccessFlags() == m2info.getAccessFlags()) {
+			        	ArrayList<String> ignoreList = new ArrayList<String>();
+			        	if (ignoreLineNumbers) {
+			        		ignoreList.add("LineNumberTable");
+			        	}
 						String attrDiff = AttributeInfo.CompareAttributes(
-								m1info.getAttributes(), m2info.getAttributes());
+								m1info.getAttributes(), m2info.getAttributes(), ignoreList);
 						if (attrDiff.length() > 0) {
 							res += methodDesc + "\n" + attrDiff;
 						}
@@ -335,7 +341,7 @@ public class Comparer {
 									jar1.getInputStream(c1e)));
 							ClassFile cf2 = new ClassFile(new DataInputStream(
 									jar2.getInputStream(c2e)));
-							String cDiff = CompareClasses(cf1, cf2);
+							String cDiff = CompareClasses(cf1, cf2, ignoreLineNumberDifferenceForMethods);
 							if (cDiff.length() > 0) {
 								resReplace.files.add(new FileElement(null,
 										j1entry, cDiff));
