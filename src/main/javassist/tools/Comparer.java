@@ -371,6 +371,8 @@ public class Comparer {
 		if (!resRemove.files.isEmpty()) {
 			removeEl.files.add(resRemove);
 		}
+		jar1.close();
+		jar2.close();
 	}
 
 	boolean fileToBeIgnored(String fileName) {
