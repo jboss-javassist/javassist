@@ -606,10 +606,10 @@ public class JvstTest4 extends JvstTestRoot {
         assertEquals(packageName, obj.getClass().getPackage().getName());
     }
 
-    public static final String BASE_PATH="../";
-    public static final String JAVASSIST_JAR=BASE_PATH+"javassist.jar";
-    public static final String CLASSES_FOLDER=BASE_PATH+"build/classes";
-    public static final String TEST_CLASSES_FOLDER=BASE_PATH+"build/test-classes";
+    public static final String BASE_PATH = "../";
+    public static final String JAVASSIST_JAR = BASE_PATH + "javassist.jar";
+    public static final String CLASSES_FOLDER = BASE_PATH + "build/classes";
+    public static final String TEST_CLASSES_FOLDER = BASE_PATH + "build/test-classes";
 
     public static class Inner1 {
         public static int get() {
@@ -661,8 +661,8 @@ public class JvstTest4 extends JvstTestRoot {
         long t2 = endTime2 - endTime;
         long t3 = endTime3 - endTime2;
         System.out.println("JIRA150: " + t1 + ", " + t2 + ", " + t3);
-        assertTrue("performance test (the next try may succeed): " + t1 + "/ 5 < " + t2,
-                   t2 < t1 * 5);
+        assertTrue("performance test (the next try may succeed): " + t1 + "/ 6 < " + t2,
+                   t2 < t1 * 6);
         assertTrue("", t3 < t1 * 3);
     }
 
@@ -691,15 +691,17 @@ public class JvstTest4 extends JvstTestRoot {
         }
 
         // try to run garbage collection.
+        int[][] mem = new int[100][];
         int[] large;
         for (int i = 0; i < 100; i++) {
             large = new int[1000000];
-            large[large.length - 2] = 9;
+            large[large.length - 2] = 9 + i;
+            mem[i] = large;
         }
         System.gc();
         System.gc();
         int size = javassist.compiler.MemberResolver.getInvalidMapSize();
-        System.out.println("JIRA150b " + size);
+        System.out.println("JIRA150b " + size + " " + mem[mem.length - 1][mem[0].length - 2]);
         assertTrue("JIRA150b size: " + origSize + " " + size, size < origSize + N);
     }
 

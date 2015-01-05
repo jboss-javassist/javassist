@@ -350,15 +350,24 @@ public class AnnotationsAttribute extends AttributeInfo {
             return pos;
         }
 
+        /**
+         * {@code element_value_paris}
+         */
         final int memberValuePair(int pos) throws Exception {
             int nameIndex = ByteArray.readU16bit(info, pos);
             return memberValuePair(pos + 2, nameIndex);
         }
 
+        /**
+         * {@code element_value_paris[]}
+         */
         int memberValuePair(int pos, int nameIndex) throws Exception {
             return memberValue(pos);
         }
 
+        /**
+         * {@code element_value}
+         */
         final int memberValue(int pos) throws Exception {
             int tag = info[pos] & 0xff;
             if (tag == 'e') {
@@ -385,18 +394,33 @@ public class AnnotationsAttribute extends AttributeInfo {
             }
         }
 
+        /**
+         * {@code const_value_index}
+         */
         void constValueMember(int tag, int index) throws Exception {}
 
+        /**
+         * {@code enum_const_value}
+         */
         void enumMemberValue(int pos, int typeNameIndex, int constNameIndex)
             throws Exception {
         }
 
+        /**
+         * {@code class_info_index}
+         */
         void classMemberValue(int pos, int index) throws Exception {}
 
+        /**
+         * {@code annotation_value}
+         */
         int annotationMemberValue(int pos) throws Exception {
             return annotation(pos);
         }
 
+        /**
+         * {@code array_value}
+         */
         int arrayMemberValue(int pos, int num) throws Exception {
             for (int i = 0; i < num; ++i) {
                 pos = memberValue(pos);
@@ -470,9 +494,15 @@ public class AnnotationsAttribute extends AttributeInfo {
          *                  It can be null.
          */
         Copier(byte[] info, ConstPool src, ConstPool dest, Map map) {
+            this(info, src, dest, map, true); 
+        }
+
+        Copier(byte[] info, ConstPool src, ConstPool dest, Map map, boolean makeWriter) {
             super(info);
             output = new ByteArrayOutputStream();
-            writer = new AnnotationsWriter(output, dest);
+            if (makeWriter)
+                writer = new AnnotationsWriter(output, dest);
+
             srcPool = src;
             destPool = dest;
             classnames = map;

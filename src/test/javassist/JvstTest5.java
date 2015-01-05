@@ -1,5 +1,8 @@
 package javassist;
 
+import java.lang.annotation.Annotation;
+import java.lang.reflect.TypeVariable;
+
 public class JvstTest5 extends JvstTestRoot {
     public JvstTest5(String name) {
         super(name);
@@ -30,5 +33,15 @@ public class JvstTest5 extends JvstTestRoot {
         assertEquals(1, invoke(obj, "run"));
         assertEquals(10, invoke(obj, "run2"));
         assertEquals(10, invoke(obj, "run3"));
+    }
+
+    public void testTypeAnno() throws Exception {
+        CtClass cc = sloader.get("test5.TypeAnno");
+        cc.getClassFile().compact();
+        cc.writeFile();
+        Object obj = make(cc.getName());
+        TypeVariable<?> t = obj.getClass().getTypeParameters()[0];
+        Annotation[] annos = t.getAnnotations();
+        assertEquals("@test5.TypeAnnoA()", annos[0].toString());
     }
 }
