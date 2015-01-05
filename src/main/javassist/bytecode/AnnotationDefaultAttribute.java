@@ -30,18 +30,18 @@ import java.util.Map;
  *
  * <p>For example, if you declare the following annotation type:
  *
- * <ul><pre>
+ * <pre>
  * &#64;interface Author {
  *   String name() default "Shakespeare";
  *   int age() default 99;
  * }
- * </pre></ul>
+ * </pre>
  *
  * <p>The defautl values of <code>name</code> and <code>age</code>
  * are stored as annotation default attributes in <code>Author.class</code>.
  * The following code snippet obtains the default value of <code>name</code>:
  * 
- * <ul><pre>
+ * <pre>
  * ClassPool pool = ...
  * CtClass cc = pool.get("Author");
  * CtMethod cm = cc.getDeclaredMethod("age");
@@ -50,14 +50,14 @@ import java.util.Map;
  *         = (AnnotationDefaultAttribute)
  *           minfo.getAttribute(AnnotationDefaultAttribute.tag);
  * MemberValue value = ada.getDefaultValue());    // default value of age
- * </pre></ul>
+ * </pre>
  *
  * <p>If the following statement is executed after the code above,
  * the default value of age is set to 80:
  *
- * <ul><pre>
+ * <pre>
  * ada.setDefaultValue(new IntegerMemberValue(minfo.getConstPool(), 80));
- * </pre></ul>
+ * </pre>
  *
  * @see AnnotationsAttribute
  * @see javassist.bytecode.annotation.MemberValue

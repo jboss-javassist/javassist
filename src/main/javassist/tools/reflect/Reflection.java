@@ -35,16 +35,16 @@ import javassist.bytecode.MethodInfo;
  *
  * <p>To do this, the original class file representing a reflective class:
  *
- * <ul><pre>
+ * <pre>
  * class Person {
  *   public int f(int i) { return i + 1; }
  *   public int value;
  * }
- * </pre></ul>
+ * </pre>
  *
  * <p>is modified so that it represents a class:
  *
- * <ul><pre>
+ * <pre>
  * class Person implements Metalevel {
  *   public int _original_f(int i) { return i + 1; }
  *   public int f(int i) { <i>delegate to the metaobject</i> }
@@ -57,7 +57,7 @@ import javassist.bytecode.MethodInfo;
  *   public Metaobject _getMetaobject() { <i>return a metaobject</i> }
  *   public void _setMetaobject(Metaobject m) { <i>change a metaobject</i> }
  * }
- * </pre></ul>
+ * </pre>
  *
  * @see javassist.tools.reflect.ClassMetaobject
  * @see javassist.tools.reflect.Metaobject

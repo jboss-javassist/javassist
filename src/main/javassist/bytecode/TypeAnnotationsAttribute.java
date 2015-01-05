@@ -10,6 +10,8 @@ import javassist.bytecode.annotation.TypeAnnotationsWriter;
  * A class representing
  * {@code RuntimeVisibleTypeAnnotations} attribute and
  * {@code RuntimeInvisibleTypeAnnotations} attribute.
+ *
+ * @since 3.19
  */
 public class TypeAnnotationsAttribute extends AttributeInfo {
     /**

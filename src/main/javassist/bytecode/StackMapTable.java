@@ -272,7 +272,7 @@ public class StackMapTable extends AttributeInfo {
          * 
          * @param pos               the position.
          * @param offsetDelta
-         * @param k                 the <cod>k</code> last locals are absent. 
+         * @param k                 the <code>k</code> last locals are absent. 
          */
         public void chopFrame(int pos, int offsetDelta, int k) throws BadBytecode {}
 
@@ -307,7 +307,7 @@ public class StackMapTable extends AttributeInfo {
          * @param offsetDelta
          * @param tags          <code>locals[i].tag</code>.
          * @param data          <code>locals[i].cpool_index</code>
-         *                      or <cod>locals[i].offset</code>.
+         *                      or <code>locals[i].offset</code>.
          */
         public void appendFrame(int pos, int offsetDelta, int[] tags, int[] data)
             throws BadBytecode {} 
@@ -594,7 +594,7 @@ public class StackMapTable extends AttributeInfo {
          * @param tag           <code>stack[0].tag</code>.
          * @param data          <code>stack[0].cpool_index</code>
          *                      if the tag is <code>OBJECT</code>,
-         *                      or <cod>stack[0].offset</code>
+         *                      or <code>stack[0].offset</code>
          *                      if the tag is <code>UNINIT</code>.
          *                      Otherwise, this parameter is not used.
          */
@@ -630,7 +630,7 @@ public class StackMapTable extends AttributeInfo {
          *                      either 1, 2, or 3.
          * @param data          <code>locals[].cpool_index</code>
          *                      if the tag is <code>OBJECT</code>,
-         *                      or <cod>locals[].offset</code>
+         *                      or <code>locals[].offset</code>
          *                      if the tag is <code>UNINIT</code>.
          *                      Otherwise, this parameter is not used.
          */
@@ -652,13 +652,13 @@ public class StackMapTable extends AttributeInfo {
          * @param localTags     <code>locals[].tag</code>.
          * @param localData     <code>locals[].cpool_index</code>
          *                      if the tag is <code>OBJECT</code>,
-         *                      or <cod>locals[].offset</code>
+         *                      or <code>locals[].offset</code>
          *                      if the tag is <code>UNINIT</code>.
          *                      Otherwise, this parameter is not used.
          * @param stackTags     <code>stack[].tag</code>.
          * @param stackData     <code>stack[].cpool_index</code>
          *                      if the tag is <code>OBJECT</code>,
-         *                      or <cod>stack[].offset</code>
+         *                      or <code>stack[].offset</code>
          *                      if the tag is <code>UNINIT</code>.
          *                      Otherwise, this parameter is not used.
          */

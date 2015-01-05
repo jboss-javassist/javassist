@@ -29,7 +29,7 @@ import javassist.convert.*;
  * <code>CtMethod.instrument()</code> as a parameter.
  *
  * <p>Example:
- * <ul><pre>
+ * <pre>
  * ClassPool cp = ClassPool.getDefault();
  * CtClass point = cp.get("Point");
  * CtClass singleton = cp.get("Singleton");
@@ -37,7 +37,7 @@ import javassist.convert.*;
  * CodeConverter conv = new CodeConverter();
  * conv.replaceNew(point, singleton, "makePoint");
  * client.instrument(conv);
- * </pre></ul>
+ * </pre>
  *
  * <p>This program substitutes "<code>Singleton.makePoint()</code>"
  * for all occurrences of "<code>new Point()</code>"
@@ -59,22 +59,22 @@ public class CodeConverter {
      * <code>Singleton</code>, respectively)
      * replaces all occurrences of:
      *
-     * <ul><code>new Point(x, y)</code></ul>
+     * <pre>new Point(x, y)</pre>
      *
      * in the method body with:
      *
-     * <ul><code>Singleton.createPoint(x, y)</code></ul>
+     * <pre>Singleton.createPoint(x, y)</pre>
      *
      * <p>This enables to intercept instantiation of <code>Point</code>
      * and change the samentics.  For example, the following
      * <code>createPoint()</code> implements the singleton pattern:
      *
-     * <ul><pre>public static Point createPoint(int x, int y) {
+     * <pre>public static Point createPoint(int x, int y) {
      *     if (aPoint == null)
      *         aPoint = new Point(x, y);
      *     return aPoint;
      * }
-     * </pre></ul>
+     * </pre>
      *
      * <p>The static method call substituted for the original <code>new</code>
      * expression must be
@@ -109,11 +109,11 @@ public class CodeConverter {
      * <code>Point2</code>, respectively)
      * replaces all occurrences of:
      *
-     * <ul><code>new Point(x, y)</code></ul>
+     * <pre>new Point(x, y)</pre>
      *
      * in the method body with:
      *
-     * <ul><code>new Point2(x, y)</code></ul>
+     * <pre>new Point2(x, y)</pre>
      *
      * <p>Note that <code>Point2</code> must be type-compatible with <code>Point</code>.
      * It must have the same set of methods, fields, and constructors as the
@@ -157,19 +157,19 @@ public class CodeConverter {
      *
      * <p>For example, the program below
      *
-     * <ul><pre>Point p = new Point();
-     * int newX = p.x + 3;</pre></ul>
+     * <pre>Point p = new Point();
+     * int newX = p.x + 3;</pre>
      *
      * <p>can be translated into:
      *
-     * <ul><pre>Point p = new Point();
-     * int newX = Accessor.readX(p) + 3;</pre></ul>
+     * <pre>Point p = new Point();
+     * int newX = Accessor.readX(p) + 3;</pre>
      *
      * <p>where
      *
-     * <ul><pre>public class Accessor {
+     * <pre>public class Accessor {
      *     public static int readX(Object target) { ... }
-     * }</pre></ul>
+     * }</pre>
      *
      * <p>The type of the parameter of <code>readX()</code> must
      * be <code>java.lang.Object</code> independently of the actual
@@ -198,19 +198,19 @@ public class CodeConverter {
      *
      * <p>For example, the program below
      *
-     * <ul><pre>Point p = new Point();
-     * p.x = 3;</pre></ul>
+     * <pre>Point p = new Point();
+     * p.x = 3;</pre>
      *
      * <p>can be translated into:
      *
-     * <ul><pre>Point p = new Point();
-     * Accessor.writeX(3);</pre></ul>
+     * <pre>Point p = new Point();
+     * Accessor.writeX(3);</pre>
      *
      * <p>where
      *
-     * <ul><pre>public class Accessor {
+     * <pre>public class Accessor {
      *     public static void writeX(Object target, int value) { ... }
-     * }</pre></ul>
+     * }</pre>
      *
      * <p>The type of the first parameter of <code>writeX()</code> must
      * be <code>java.lang.Object</code> independently of the actual
@@ -401,27 +401,27 @@ public class CodeConverter {
      * method.  For example, if the originally invoked method is
      * <code>move()</code>:
      *
-     * <ul><pre>class Point {
+     * <pre>class Point {
      *     Point move(int x, int y) { ... }
-     * }</pre></ul>
+     * }</pre>
      *
      * <p>Then the before method must be something like this:
      *
-     * <ul><pre>class Verbose {
+     * <pre>class Verbose {
      *     static void print(Point target, int x, int y) { ... }
-     * }</pre></ul>
+     * }</pre>
      *
      * <p>The <code>CodeConverter</code> would translate bytecode
      * equivalent to:
      *
-     * <ul><pre>Point p2 = p.move(x + y, 0);</pre></ul>
+     * <pre>Point p2 = p.move(x + y, 0);</pre>
      *
      * <p>into the bytecode equivalent to:
      *
-     * <ul><pre>int tmp1 = x + y;
+     * <pre>int tmp1 = x + y;
      * int tmp2 = 0;
      * Verbose.print(p, tmp1, tmp2);
-     * Point p2 = p.move(tmp1, tmp2);</pre></ul>
+     * Point p2 = p.move(tmp1, tmp2);</pre>
      *
      * @param origMethod        the method originally invoked.
      * @param beforeMethod      the method invoked before
@@ -448,27 +448,28 @@ public class CodeConverter {
      * method.  For example, if the originally invoked method is
      * <code>move()</code>:
      *
-     * <ul><pre>class Point {
+     * <pre>class Point {
      *     Point move(int x, int y) { ... }
-     * }</pre></ul>
+     * }</pre>
      *
      * <p>Then the after method must be something like this:
      *
-     * <ul><pre>class Verbose {
+     * <pre>class Verbose {
      *     static void print(Point target, int x, int y) { ... }
-     * }</pre></ul>
+     * }</pre>
      *
      * <p>The <code>CodeConverter</code> would translate bytecode
      * equivalent to:
      *
-     * <ul><pre>Point p2 = p.move(x + y, 0);</pre></ul>
+     * <pre>Point p2 = p.move(x + y, 0);</pre>
      *
      * <p>into the bytecode equivalent to:
      *
-     * <ul><pre>int tmp1 = x + y;
+     * <pre>
+     * int tmp1 = x + y;
      * int tmp2 = 0;
      * Point p2 = p.move(tmp1, tmp2);
-     * Verbose.print(p, tmp1, tmp2);</pre></ul>
+     * Verbose.print(p, tmp1, tmp2);</pre>
      *
      * @param origMethod        the method originally invoked.
      * @param afterMethod       the method invoked after

@@ -43,7 +43,7 @@ import javassist.bytecode.Opcode;
  * // Method to analyze
  * public Object doSomething(int x) {
  *     Number n;
- *     if (x < 5) {
+ *     if (x &lt; 5) {
  *        n = new Double(0);
  *     } else {
  *        n = new Long(0);

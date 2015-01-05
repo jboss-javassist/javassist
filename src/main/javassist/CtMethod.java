@@ -71,16 +71,18 @@ public final class CtMethod extends CtBehavior {
      * <p>For example, suppose that a method <code>at()</code> is as
      * follows:
      *
-     * <ul><pre>public X at(int i) {
+     * <pre>
+     * public X at(int i) {
      *     return (X)super.elementAt(i);
-     * }</pre></ul>
+     * }</pre>
      *
      * <p>(<code>X</code> is a class name.)  If <code>map</code> substitutes
      * <code>String</code> for <code>X</code>, then the created method is:
      *
-     * <ul><pre>public String at(int i) {
+     * <pre>
+     * public String at(int i) {
      *     return (String)super.elementAt(i);
-     * }</pre></ul>
+     * }</pre>
      *
      * <p>By default, all the occurrences of the names of the class
      * declaring <code>at()</code> and the superclass are replaced

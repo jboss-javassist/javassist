@@ -377,7 +377,7 @@ public class SignatureAttribute extends AttributeInfo {
 
         /**
          * Constructs a <code>TypeParameter</code> representing a type parametre
-         * like <code>&lt;T extends ... &gt;<code>.
+         * like <code>&lt;T extends ... &gt;</code>.
          *
          * @param name      parameter name.
          * @param superClass    an upper bound class-type (or null).
@@ -394,7 +394,7 @@ public class SignatureAttribute extends AttributeInfo {
 
         /**
          * Constructs a <code>TypeParameter</code> representing a type parameter
-         * like <code>&lt;T&gt;<code>.
+         * like <code>&lt;T&gt;</code>.
          *
          * @param name          parameter name.
          */

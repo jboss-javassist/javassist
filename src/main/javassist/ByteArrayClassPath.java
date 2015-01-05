@@ -29,11 +29,11 @@ import java.net.MalformedURLException;
  * into a <code>CtClass</code> object representing the class with a name
  * <code>classname</code>, then do as following:
  *
- * <ul><pre>
+ * <pre>
  * ClassPool cp = ClassPool.getDefault();
  * cp.insertClassPath(new ByteArrayClassPath(classname, b));
  * CtClass cc = cp.get(classname);
- * </pre></ul>
+ * </pre>
  *
  * <p>The <code>ClassPool</code> object <code>cp</code> uses the created
  * <code>ByteArrayClassPath</code> object as the source of the class file.

@@ -26,7 +26,7 @@ import javassist.bytecode.ClassFilePrinter;
  * the class file is broken.
  *
  * <p>For example,
- * <ul><pre>% java javassist.tools.Dump foo.class</pre></ul>
+ * <pre>% java javassist.tools.Dump foo.class</pre>
  *
  * <p>prints the contents of the constant pool and the list of methods
  * and fields.

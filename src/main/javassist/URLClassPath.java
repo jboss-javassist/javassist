@@ -41,8 +41,8 @@ public class URLClassPath implements ClassPath {
      * "org.javassist.test.Main", then the given URL is used for loading that class.
      * The <code>URLClassPath</code> obtains a class file from:
      *
-     * <ul><pre>http://www.javassist.org:80/java/classes/org/javassist/test/Main.class
-     * </pre></ul>
+     * <pre>http://www.javassist.org:80/java/classes/org/javassist/test/Main.class
+     * </pre>
      *
      * <p>Here, we assume that <code>host</code> is "www.javassist.org",
      * <code>port</code> is 80, and <code>directory</code> is "/java/classes/".

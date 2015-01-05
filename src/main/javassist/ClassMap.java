@@ -25,7 +25,7 @@ import javassist.bytecode.Descriptor;
  * definition or a method body.  Define a subclass of this class
  * if a more complex mapping algorithm is needed.  For example,
  *
- * <ul><pre>class MyClassMap extends ClassMap {
+ * <pre>class MyClassMap extends ClassMap {
  *   public Object get(Object jvmClassName) {
  *     String name = toJavaName((String)jvmClassName);
  *     if (name.startsWith("java."))
@@ -33,7 +33,7 @@ import javassist.bytecode.Descriptor;
  *     else
  *         return super.get(jvmClassName);
  *   }
- * }</pre></ul>
+ * }</pre>
  *
  * <p>This subclass maps <code>java.lang.String</code> to
  * <code>java2.lang.String</code>.  Note that <code>get()</code>

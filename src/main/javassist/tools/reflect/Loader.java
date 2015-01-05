@@ -27,7 +27,7 @@ import javassist.ClassPool;
  * including a reflective class,
  * you must write a start-up program as follows:
  *
- * <ul><pre>
+ * <pre>
  * public class Main {
  *   public static void main(String[] args) throws Throwable {
  *     javassist.tools.reflect.Loader cl
@@ -37,11 +37,11 @@ import javassist.ClassPool;
  *     cl.run("MyApp", args);
  *   }
  * }
- * </pre></ul>
+ * </pre>
  *
  * <p>Then run this program as follows:
  *
- * <ul><pre>% java javassist.tools.reflect.Loader Main arg1, ...</pre></ul>
+ * <pre>% java javassist.tools.reflect.Loader Main arg1, ...</pre>
  *
  * <p>This command runs <code>Main.main()</code> with <code>arg1</code>, ...
  * and <code>Main.main()</code> runs <code>MyApp.main()</code> with
@@ -52,7 +52,7 @@ import javassist.ClassPool;
  *
  * <p>Also, you can run <code>MyApp</code> in a slightly different way:
  *
- * <ul><pre>
+ * <pre>
  * public class Main2 {
  *   public static void main(String[] args) throws Throwable {
  *     javassist.tools.reflect.Loader cl = new javassist.tools.reflect.Loader();
@@ -61,11 +61,11 @@ import javassist.ClassPool;
  *     cl.run("MyApp", args);
  *   }
  * }
- * </pre></ul>
+ * </pre>
  *
  * <p>This program is run as follows:
  *
- * <ul><pre>% java Main2 arg1, ...</pre></ul>
+ * <pre>% java Main2 arg1, ...</pre>
  *
  * <p>The difference from the former one is that the class <code>Main</code>
  * is loaded by <code>javassist.tools.reflect.Loader</code> whereas the class
@@ -78,7 +78,7 @@ import javassist.ClassPool;
  *
  * <p>The class <code>Main2</code> is equivalent to this class:
  *
- * <ul><pre>
+ * <pre>
  * public class Main3 {
  *   public static void main(String[] args) throws Throwable {
  *     Reflection reflection = new Reflection();
@@ -89,7 +89,7 @@ import javassist.ClassPool;
  *     cl.run("MyApp", args);
  *   }
  * }
- * </pre></ul>
+ * </pre>
  *
  * <p><b>Note:</b>
  *

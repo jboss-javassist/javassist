@@ -24,7 +24,7 @@ import javassist.bytecode.analysis.FramePrinter;
  *  of all methods in a class.
  *
  * <p>For example,
- * <ul><pre>% java javassist.tools.framedump foo.class</pre></ul>
+ * <pre>% java javassist.tools.framedump foo.class</pre>
  */
 public class framedump {
     private framedump() {}

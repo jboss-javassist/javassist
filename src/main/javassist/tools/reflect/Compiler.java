@@ -50,8 +50,8 @@ class CompiledClass {
  * by that class name is not reflective.
  * 
  * <p>For example,
- * <ul><pre>% java Compiler Dog -m MetaDog -c CMetaDog Cat -m MetaCat Cow
- * </pre></ul>
+ * <pre>% java Compiler Dog -m MetaDog -c CMetaDog Cat -m MetaCat Cow
+ * </pre>
  *
  * <p>modifies class files <code>Dog.class</code>, <code>Cat.class</code>,
  * and <code>Cow.class</code>.

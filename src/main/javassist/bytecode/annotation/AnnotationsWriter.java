@@ -28,7 +28,7 @@ import javassist.bytecode.ConstPool;
  *
  * <p>The following code snippet is an example of use of this class:
  *
- * <ul><pre>
+ * <pre>
  * ConstPool pool = ...;
  * output = new ByteArrayOutputStream();
  * writer = new AnnotationsWriter(output, pool);
@@ -45,14 +45,14 @@ import javassist.bytecode.ConstPool;
  * AnnotationsAttribute anno
  *     = new AnnotationsAttribute(pool, AnnotationsAttribute.visibleTag,
  *                                attribute_info);
- * </pre></ul>
+ * </pre>
  *
  * <p>The code snippet above generates the annotation attribute
  * corresponding to this annotation:
  *
- * <ul><pre>
+ * <pre>
  * &nbsp;@Author(name = "chiba", address = "tokyo")
- * </pre></ul>
+ * </pre>
  *
  * @see javassist.bytecode.AnnotationsAttribute
  * @see javassist.bytecode.ParameterAnnotationsAttribute

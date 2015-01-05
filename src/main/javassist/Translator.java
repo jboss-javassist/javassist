@@ -47,8 +47,8 @@ public interface Translator {
      * Is invoked by a <code>Loader</code> for notifying that
      * a class is loaded.  The <code>Loader</code> calls
      *
-     * <ul><pre>
-     * pool.get(classname).toBytecode()</pre></ul>
+     * <pre>
+     * pool.get(classname).toBytecode()</pre>
      *
      * to read the class file after <code>onLoad()</code> returns.
      *

@@ -27,10 +27,10 @@ import java.net.URL;
  * with a user-defined class loader and any class files are not found with
  * the default <code>ClassPool</code>.  For example,
  *
- * <ul><pre>
+ * <pre>
  * ClassPool cp = ClassPool.getDefault();
  * cp.insertClassPath(new ClassClassPath(this.getClass()));
- * </pre></ul>
+ * </pre>
  *
  * This code snippet permanently adds a <code>ClassClassPath</code>
  * to the default <code>ClassPool</code>.  Note that the default

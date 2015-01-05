@@ -33,8 +33,8 @@ import java.io.ObjectOutputStream;
  * <p>To obtain a class metaobject, calls <code>_getClass()</code>
  * on a reflective object.  For example,
  *
- * <ul><pre>ClassMetaobject cm = ((Metalevel)reflectiveObject)._getClass();
- * </pre></ul>
+ * <pre>ClassMetaobject cm = ((Metalevel)reflectiveObject)._getClass();
+ * </pre>
  *
  * @see javassist.tools.reflect.Metaobject
  * @see javassist.tools.reflect.Metalevel
@@ -56,7 +56,7 @@ public class ClassMetaobject implements Serializable {
      * Specifies how a <code>java.lang.Class</code> object is loaded.
      *
      * <p>If true, it is loaded by:
-     * <ul><pre>Thread.currentThread().getContextClassLoader().loadClass()</pre></ul>
+     * <pre>Thread.currentThread().getContextClassLoader().loadClass()</pre>
      * <p>If false, it is loaded by <code>Class.forName()</code>.
      * The default value is false.
      */
@@ -337,7 +337,7 @@ public class ClassMetaobject implements Serializable {
      * original name.
      *
      * <p>This method is useful, in conjuction with
-     * <link>ClassMetaobject#getMethod()</link>, to obtain a quick reference
+     * {@link ClassMetaobject#getMethod()}, to obtain a quick reference
      * to the original method in the reflected class (i.e. not the proxy
      * method), using the original name of the method.
      *

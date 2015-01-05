@@ -9,6 +9,8 @@ import javassist.bytecode.ConstPool;
  * A convenience class for constructing a
  * {@code ..TypeAnnotations_attribute}.
  * See the source code of the {@link javassist.bytecode.TypeAnnotationsAttribute} class.
+ *
+ * @since 3.19
  */
 public class TypeAnnotationsWriter extends AnnotationsWriter {
     /**

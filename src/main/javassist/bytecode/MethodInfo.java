@@ -52,13 +52,13 @@ public class MethodInfo {
     public static boolean doPreverify = false;
 
     /**
-     * The name of constructors: <code>&lt;init&gt</code>.
+     * The name of constructors: <code>&lt;init&gt;</code>.
      */
     public static final String nameInit = "<init>";
 
     /**
      * The name of class initializer (static initializer):
-     * <code>&lt;clinit&gt</code>.
+     * <code>&lt;clinit&gt;</code>.
      */
     public static final String nameClinit = "<clinit>";
 

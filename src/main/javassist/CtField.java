@@ -144,9 +144,9 @@ public class CtField extends CtMember {
      * Compiles the given source code and creates a field.
      * Examples of the source code are:
      *
-     * <ul><pre>
+     * <pre>
      * "public String name;"
-     * "public int k = 3;"</pre></ul>
+     * "public int k = 3;"</pre>
      *
      * <p>Note that the source code ends with <code>';'</code>
      * (semicolon).
@@ -551,8 +551,7 @@ public class CtField extends CtMember {
          * value of the field.  The constructor of the created object receives
          * the parameter:
          *
-         * <ul><code>Object obj</code> - the object including the field.<br>
-         * </ul>
+         * <p><code>Object obj</code> - the object including the field.
          *
          * <p>If the initialized field is static, then the constructor does
          * not receive any parameters.
@@ -574,10 +573,9 @@ public class CtField extends CtMember {
          * value of the field.  The constructor of the created object receives
          * the parameters:
          *
-         * <ul><code>Object obj</code> - the object including the field.<br>
+         * <p><code>Object obj</code> - the object including the field.<br>
          *     <code>String[] strs</code> - the character strings specified
          *                              by <code>stringParams</code><br>
-         * </ul>
          *
          * <p>If the initialized field is static, then the constructor
          * receives only <code>strs</code>.
@@ -602,11 +600,10 @@ public class CtField extends CtMember {
          * value of the field.  The constructor of the created object receives
          * the parameters:
          *
-         * <ul><code>Object obj</code> - the object including the field.<br>
+         * <p><code>Object obj</code> - the object including the field.<br>
          *     <code>Object[] args</code> - the parameters passed to the
          *                      constructor of the object including the
          *                      filed.
-         * </ul>
          *
          * <p>If the initialized field is static, then the constructor does
          * not receive any parameters.
@@ -631,13 +628,12 @@ public class CtField extends CtMember {
          * value of the field.  The constructor of the created object receives
          * the parameters:
          *
-         * <ul><code>Object obj</code> - the object including the field.<br>
+         * <p><code>Object obj</code> - the object including the field.<br>
          *     <code>String[] strs</code> - the character strings specified
          *                              by <code>stringParams</code><br>
          *     <code>Object[] args</code> - the parameters passed to the
          *                      constructor of the object including the
          *                      filed.
-         * </ul>
          *
          * <p>If the initialized field is static, then the constructor receives
          * only <code>strs</code>.
@@ -662,8 +658,7 @@ public class CtField extends CtMember {
          * value as the initial value of the field.
          * The called method receives the parameters:
          *
-         * <ul><code>Object obj</code> - the object including the field.<br>
-         * </ul>
+         * <p><code>Object obj</code> - the object including the field.
          *
          * <p>If the initialized field is static, then the method does
          * not receive any parameters.
@@ -692,10 +687,9 @@ public class CtField extends CtMember {
          * value as the initial value of the field.  The called method
          * receives the parameters:
          *
-         * <ul><code>Object obj</code> - the object including the field.<br>
+         * <p><code>Object obj</code> - the object including the field.<br>
          *     <code>String[] strs</code> - the character strings specified
          *                              by <code>stringParams</code><br>
-         * </ul>
          *
          * <p>If the initialized field is static, then the method
          * receive only <code>strs</code>.
@@ -727,11 +721,10 @@ public class CtField extends CtMember {
          * value as the initial value of the field.  The called method
          * receives the parameters:
          *
-         * <ul><code>Object obj</code> - the object including the field.<br>
+         * <p><code>Object obj</code> - the object including the field.<br>
          *     <code>Object[] args</code> - the parameters passed to the
          *                      constructor of the object including the
          *                      filed.
-         * </ul>
          *
          * <p>If the initialized field is static, then the method does
          * not receive any parameters.
@@ -760,13 +753,12 @@ public class CtField extends CtMember {
          * value as the initial value of the field.  The called method
          * receives the parameters:
          *
-         * <ul><code>Object obj</code> - the object including the field.<br>
+         * <p><code>Object obj</code> - the object including the field.<br>
          *     <code>String[] strs</code> - the character strings specified
          *                              by <code>stringParams</code><br>
          *     <code>Object[] args</code> - the parameters passed to the
          *                      constructor of the object including the
          *                      filed.
-         * </ul>
          *
          * <p>If the initialized field is static, then the method
          * receive only <code>strs</code>.

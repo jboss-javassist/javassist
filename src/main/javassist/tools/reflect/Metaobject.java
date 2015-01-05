@@ -37,8 +37,9 @@ import java.io.ObjectOutputStream;
  * <p>To obtain a metaobject, calls <code>_getMetaobject()</code>
  * on a reflective object.  For example,
  *
- * <ul><pre>Metaobject m = ((Metalevel)reflectiveObject)._getMetaobject();
- * </pre></ul>
+ * <pre>
+ * Metaobject m = ((Metalevel)reflectiveObject)._getMetaobject();
+ * </pre>
  *
  * @see javassist.tools.reflect.ClassMetaobject
  * @see javassist.tools.reflect.Metalevel
@@ -199,7 +200,8 @@ public class Metaobject implements Serializable {
      * <p>Note: this method is not invoked if the base-level method
      * is invoked by a constructor in the super class.  For example,
      *
-     * <ul><pre>abstract class A {
+     * <pre>
+     * abstract class A {
      *   abstract void initialize();
      *   A() {
      *       initialize();    // not intercepted
@@ -212,7 +214,7 @@ public class Metaobject implements Serializable {
      *       super();
      *       initialize();    // intercepted
      *   }
-     * }</pre></ul>
+     * }</pre>
      *
      * <p>if an instance of B is created,
      * the invocation of initialize() in B is intercepted only once.

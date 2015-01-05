@@ -28,7 +28,7 @@ public class Desc {
      * Specifies how a <code>java.lang.Class</code> object is loaded.
      *
      * <p>If true, it is loaded by:
-     * <ul><pre>Thread.currentThread().getContextClassLoader().loadClass()</pre></ul>
+     * <pre>Thread.currentThread().getContextClassLoader().loadClass()</pre>
      * <p>If false, it is loaded by <code>Class.forName()</code>.
      * The default value is false.
      */

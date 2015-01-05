@@ -40,7 +40,7 @@ import javassist.CannotCompileException;
  *
  * <p>The following code is an example:
  *
- * <ul><pre>
+ * <pre>
  * CtMethod cm = ...;
  * cm.instrument(new ExprEditor() {
  *     public void edit(MethodCall m) throws CannotCompileException {
@@ -49,7 +49,7 @@ import javassist.CannotCompileException;
  *                                + m.getLineNumber());
  *     }
  * });
- * </pre></ul>
+ * </pre>
  *
  * <p>This code inspects all method calls appearing in the method represented
  * by <code>cm</code> and it prints the names and the line numbers of the

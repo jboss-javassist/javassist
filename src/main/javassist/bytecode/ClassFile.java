@@ -319,7 +319,7 @@ public final class ClassFile {
      *
      * <p>The returned value is obtained from <code>inner_class_access_flags</code>
      * of the entry representing this nested class itself
-     * in <code>InnerClasses_attribute</code>>. 
+     * in <code>InnerClasses_attribute</code>. 
      */
     public int getInnerAccessFlags() {
         InnerClassesAttribute ica
