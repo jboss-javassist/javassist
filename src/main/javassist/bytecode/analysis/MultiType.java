@@ -22,19 +22,19 @@ import java.util.Map;
 import javassist.CtClass;
 
 /**
- * MultiType represents an unresolved type. Whenever two <literal>Type</literal>
+ * MultiType represents an unresolved type. Whenever two {@code Type}
  * instances are merged, if they share more than one super type (either an
- * interface or a superclass), then a <literal>MultiType</literal> is used to
- * represent the possible super types. The goal of a <literal>MultiType</literal>
+ * interface or a superclass), then a {@code MultiType} is used to
+ * represent the possible super types. The goal of a {@code MultiType}
  * is to reduce the set of possible types down to a single resolved type. This
  * is done by eliminating non-assignable types from the typeset when the
- * <literal>MultiType</literal> is passed as an argument to
+ * {@code MultiType} is passed as an argument to
  * {@link Type#isAssignableFrom(Type)}, as well as removing non-intersecting
  * types during a merge.
  *
- * Note: Currently the <litera>MultiType</literal> instance is reused as much
+ * Note: Currently the {@code MultiType} instance is reused as much
  * as possible so that updates are visible from all frames. In addition, all
- * <literal>MultiType</literal> merge paths are also updated. This is somewhat
+ * {@code MultiType} merge paths are also updated. This is somewhat
  * hackish, but it appears to handle most scenarios.
  *
  * @author Jason T. Greene

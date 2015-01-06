@@ -59,13 +59,13 @@ import javassist.bytecode.Opcode;
  * // 5:   new #18; //class java/lang/Double
  * // 8:   dup
  * // 9:   dconst_0
- * // 10:  invokespecial   #44; //Method java/lang/Double."<init>":(D)V
+ * // 10:  invokespecial   #44; //Method java/lang/Double."&lt;init&gt;":(D)V
  * // 13:  astore_2
  * // 14:  goto    26
  * // 17:  new #16; //class java/lang/Long
  * // 20:  dup
  * // 21:  lconst_1
- * // 22:  invokespecial   #47; //Method java/lang/Long."<init>":(J)V
+ * // 22:  invokespecial   #47; //Method java/lang/Long."&lt;init&gt;":(J)V
  * // 25:  astore_2
  * // 26:  aload_2
  * // 27:  areturn

@@ -337,7 +337,7 @@ public class ClassMetaobject implements Serializable {
      * original name.
      *
      * <p>This method is useful, in conjuction with
-     * {@link ClassMetaobject#getMethod()}, to obtain a quick reference
+     * {@link ClassMetaobject#getMethod(int)}, to obtain a quick reference
      * to the original method in the reflected class (i.e. not the proxy
      * method), using the original name of the method.
      *

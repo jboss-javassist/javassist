@@ -115,11 +115,9 @@ public class Loader extends javassist.Loader {
      * and calls <code>main()</code> in that class.
      *
      * @param args              command line parameters.
-     * <ul>
-     * <code>args[0]</code> is the class name to be loaded.
-     * <br><code>args[1..n]</code> are parameters passed
+     * <br>&nbsp;&nbsp;<code>args[0]</code> is the class name to be loaded.
+     * <br>&nbsp;&nbsp;<code>args[1..n]</code> are parameters passed
      *                      to the target <code>main()</code>.
-     * </ul>
      */
     public static void main(String[] args) throws Throwable {
         Loader cl = new Loader();
