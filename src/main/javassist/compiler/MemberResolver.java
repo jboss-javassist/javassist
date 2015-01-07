@@ -299,7 +299,7 @@ public class MemberResolver implements TokenId {
     }
 
     /**
-     * @param name      a qualified class name. e.g. java.lang.String
+     * @param className      a qualified class name. e.g. java.lang.String
      */
     public CtField lookupField(String className, Symbol fieldName)
         throws CompileError
@@ -326,7 +326,7 @@ public class MemberResolver implements TokenId {
     }
 
     /**
-     * @parma classname         jvm class name.
+     * @param classname         jvm class name.
      */
     public CtClass lookupClass(int type, int dim, String classname)
         throws CompileError

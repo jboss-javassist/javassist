@@ -104,7 +104,7 @@ public abstract class Tracer implements TypeTag {
      * @param pos           the position of LOOKUPSWITCH
      * @param code          bytecode
      * @param n             the number of case labels
-     * @param offsetPos     the position of the table of pairs of a value and a branch target.
+     * @param pairsPos      the position of the table of pairs of a value and a branch target.
      * @param defaultOffset     the offset to the default branch target.
      */
     protected void visitLookupSwitch(int pos, byte[] code, int n,

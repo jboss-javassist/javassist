@@ -21,7 +21,7 @@ import javassist.compiler.CompileError;
 /**
  * The visitor pattern.
  *
- * @see ast.ASTree#accept(Visitor)
+ * @see ASTree#accept(Visitor)
  */
 public class Visitor {
     public void atASTList(ASTList n) throws CompileError {}

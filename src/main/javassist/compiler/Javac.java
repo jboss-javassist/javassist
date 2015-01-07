@@ -185,8 +185,8 @@ public class Javac {
     /**
      * Compiles a method (or constructor) body.
      *
-     * @src	a single statement or a block.
-     *          If null, this method produces a body returning zero or null.
+     * @param src	a single statement or a block.
+     *              If null, this method produces a body returning zero or null.
      */
     public Bytecode compileBody(CtBehavior method, String src)
         throws CompileError
@@ -346,7 +346,7 @@ public class Javac {
      * <code>isStatic</code> must be recorded before compilation.
      * <code>maxLocals</code> is updated to include $0,...
      *
-     * @paaram use0     true if $0 is used.
+     * @param use0     true if $0 is used.
      * @param varNo     the register number of $0 (use0 is true)
      *                          or $1 (otherwise).
      * @param target    the type of $0 (it can be null if use0 is false).

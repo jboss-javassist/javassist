@@ -250,7 +250,7 @@ public class ClassPool {
      * caching of classes.
      *
      * @see #getCached(String)
-     * @see #removeCached(String,CtClass)
+     * @see #removeCached(String)
      */
     protected void cacheCtClass(String classname, CtClass c, boolean dynamic) {
         classes.put(classname, c);
@@ -517,7 +517,6 @@ public class ClassPool {
 
     /**
      * @param useCache      false if the cached CtClass must be ignored.
-     * @param searchParent  false if the parent class pool is not searched.
      * @return null     if the class could not be found.
      */
     protected synchronized CtClass get0(String classname, boolean useCache)

@@ -29,7 +29,7 @@ public class TypedBlock extends BasicBlock {
      * Divides the method body into basic blocks.
      * The type information of the first block is initialized.
      *
-     * @param optmize       if it is true and the method does not include
+     * @param optimize       if it is true and the method does not include
      *                      branches, this method returns null.
      */
     public static TypedBlock[] makeBlocks(MethodInfo minfo, CodeAttribute ca,
