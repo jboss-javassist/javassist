@@ -661,9 +661,9 @@ public class JvstTest4 extends JvstTestRoot {
         long t2 = endTime2 - endTime;
         long t3 = endTime3 - endTime2;
         System.out.println("JIRA150: " + t1 + ", " + t2 + ", " + t3);
-        assertTrue("performance test (the next try may succeed): " + t1 + "/ 6 < " + t2,
+        assertTrue("performance test (the next try may succeed): " + t2 + " < 6 * " + t1,
                    t2 < t1 * 6);
-        assertTrue("", t3 < t1 * 3);
+        assertTrue(t3 + " < 3 * " + t1, t3 < t1 * 3);
     }
 
     public void testJIRA150b() throws Exception {

@@ -44,4 +44,13 @@ public class JvstTest5 extends JvstTestRoot {
         Annotation[] annos = t.getAnnotations();
         assertEquals("@test5.TypeAnnoA()", annos[0].toString());
     }
+
+    public void testJIRA241() throws Exception {
+        CtClass cc = sloader.get("test5.JIRA241");
+        CtMethod testMethod = cc.getDeclaredMethod("test");
+        testMethod.insertAfter("System.out.println(\"inserted!\");");
+        cc.writeFile();
+        Object obj = make(cc.getName());
+        assertEquals(10, invoke(obj, "run"));
+    }
 }

@@ -917,7 +917,9 @@ public abstract class CtBehavior extends CtMember {
         // the gap length might be a multiple of 4.
         iterator.writeByte(Opcode.NOP, pos);
         boolean wide = subr + 2 - pos > Short.MAX_VALUE;
-        pos = iterator.insertGapAt(pos, wide ? 4 : 2, false).position;
+        int len = wide ? 4 : 2;
+        CodeIterator.Gap gap = iterator.insertGapAt(pos, len, false);
+        pos = gap.position + gap.length - len;
         int offset = iterator.getMark() - pos;
         if (wide) {
             iterator.writeByte(Opcode.GOTO_W, pos);
@@ -928,7 +930,11 @@ public abstract class CtBehavior extends CtMember {
             iterator.write16bit(offset, pos + 1);
         }
         else {
-            pos = iterator.insertGapAt(pos, 2, false).position;
+            if (gap.length < 4) {
+                CodeIterator.Gap gap2 =  iterator.insertGapAt(gap.position, 2, false);
+                pos = gap2.position + gap2.length + gap.length - 4; 
+            }
+
             iterator.writeByte(Opcode.GOTO_W, pos);
             iterator.write32bit(iterator.getMark() - pos, pos + 1);
         }

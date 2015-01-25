@@ -360,6 +360,7 @@ public class BasicBlock {
                             prev.length = m.position - prev.position;
                             // the incoming flow from dead code is not counted
                             // bb.incoming++;
+                            prev.stop = true;   // because the incoming flow is not counted.
                             prev.exit = makeArray(bb);
                         }
                     }
