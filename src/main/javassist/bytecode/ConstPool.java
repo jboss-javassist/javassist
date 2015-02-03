@@ -94,9 +94,19 @@ public final class ConstPool {
     public static final int CONST_Utf8 = Utf8Info.tag;
 
     /**
-     * <code>Cosnt_MethodHandle</code>
+     * <code>CONSTANT_MethodHandle</code>
      */
     public static final int CONST_MethodHandle = MethodHandleInfo.tag;
+
+    /**
+     * <code>CONSTANT_MethodHandle</code>
+     */
+    public static final int CONST_MethodType = MethodTypeInfo.tag;
+
+    /**
+     * <code>CONSTANT_MethodHandle</code>
+     */
+    public static final int CONST_InvokeDynamic = InvokeDynamicInfo.tag;
 
     /**
      * Represents the class using this constant pool table.

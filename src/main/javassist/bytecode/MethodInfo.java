@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
 import javassist.ClassPool;
 import javassist.bytecode.stackmap.MapMaker;
 
@@ -30,9 +31,25 @@ import javassist.bytecode.stackmap.MapMaker;
  *
  * <p>The bytecode sequence of the method is represented
  * by a <code>CodeAttribute</code> object.
+ *
+ * <p>The following code adds the default constructor to a class:
+ * of <code>int</code> type:
+ * <blockquote><pre>
+ * ClassFile cf = ...
+ * Bytecode code = new Bytecode(cf.getConstPool());
+ * code.addAload(0);
+ * code.addInvokespecial("java/lang/Object", MethodInfo.nameInit, "()V");
+ * code.addReturn(null);
+ * code.setMaxLocals(1);
+ *
+ * MethodInfo minfo = new MethodInfo(cf.getConstPool(), MethodInfo.nameInit, "()V");
+ * minfo.setCodeAttribute(code.toCodeAttribute());
+ * cf.addMethod(minfo);
+ * </pre></blockquote>
  * 
  * @see #getCodeAttribute()
  * @see CodeAttribute
+ * @see Bytecode
  * @see javassist.CtMethod#getMethodInfo()
  * @see javassist.CtConstructor#getMethodInfo()
  */

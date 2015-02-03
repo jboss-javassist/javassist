@@ -97,6 +97,12 @@ class CtClassType extends CtClass {
         qualifiedName = classfile.getName();
     }
 
+    CtClassType(ClassFile cf, ClassPool cp) {
+        this((String)null, cp);
+        classfile = cf;
+        qualifiedName = classfile.getName();
+    }
+
     protected void extendToString(StringBuffer buffer) {
         if (wasChanged)
             buffer.append("changed ");

@@ -25,6 +25,15 @@ import java.util.ArrayList;
 /**
  * <code>field_info</code> structure.
  *
+ * <p>The following code adds a public field <code>width</code>
+ * of <code>int</code> type:
+ * <blockquote><pre>
+ * ClassFile cf = ...
+ * FieldInfo f = new FieldInfo(cf.getConstPool(), "width", "I");
+ * f.setAccessFlags(AccessFlag.PUBLIC);
+ * cf.addField(f);
+ * </pre></blockquote>
+ *
  * @see javassist.CtField#getFieldInfo()
  */
 public final class FieldInfo {

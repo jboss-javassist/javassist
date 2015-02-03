@@ -23,13 +23,38 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
+
 import javassist.CannotCompileException;
 
 /**
  * <code>ClassFile</code> represents a Java <code>.class</code> file, which
  * consists of a constant pool, methods, fields, and attributes.
- * 
+ *
+ * <p>For example,
+ * <blockquote><pre>
+ * ClassFile cf = new ClassFile(false, "test.Foo", null);
+ * cf.setInterfaces(new String[] { "java.lang.Cloneable" });
+ *
+ * FieldInfo f = new FieldInfo(cf.getConstPool(), "width", "I");
+ * f.setAccessFlags(AccessFlag.PUBLIC);
+ * cf.addField(f);
+ *
+ * cf.write(new DataOutputStream(new FileOutputStream("Foo.class")));
+ * </pre></blockquote>
+ * This code generates a class file <code>Foo.class</code> for the following class:
+ * <blockquote><pre>
+ * package test;
+ * class Foo implements Cloneable {
+ *     public int width;
+ * }
+ * </pre></blockquote>
+ * </p>
+ *
+ * @see FieldInfo
+ * @see MethodInfo
+ * @see ClassFileWriter
  * @see javassist.CtClass#getClassFile()
+ * @see javassist.ClassPool#makeClass(ClassFile)
  */
 public final class ClassFile {
     int major, minor; // version number
@@ -132,7 +157,7 @@ public final class ClassFile {
      * @param classname
      *            a fully-qualified class name
      * @param superclass
-     *            a fully-qualified super class name
+     *            a fully-qualified super class name or null.
      */
     public ClassFile(boolean isInterface, String classname, String superclass) {
         major = MAJOR_VERSION;
