@@ -78,6 +78,28 @@ class file.  <code>write()</code> in <code>ClassFile</code>
 writes the contents of the class file to a given
 <code>DataOutputStream</code>.
 
+<p>You can create a new class file from scratch.  For example,
+<blockquote><pre>
+ClassFile cf = new ClassFile(false, "test.Foo", null);
+cf.setInterfaces(new String[] { "java.lang.Cloneable" });
+ 
+FieldInfo f = new FieldInfo(cf.getConstPool(), "width", "I");
+f.setAccessFlags(AccessFlag.PUBLIC);
+cf.addField(f);
+
+cf.write(new DataOutputStream(new FileOutputStream("Foo.class")));
+</pre></blockquote>
+
+<p>this code generates a class file <code>Foo.class</code> that contains
+the implementation of the following class:
+
+<blockquote><pre>
+package test;
+class Foo implements Cloneable {
+    public int width;
+}
+</pre></blockquote>
+
 <p><br>
 
 <a name="member">
@@ -218,6 +240,27 @@ It is also reflected on the <code>CodeAttribute</code> object
 constructed from the <code>Bytecode</code> object.
 To recompute the maximum stack depth of a method body,
 call <code>computeMaxStack()</code> in <code>CodeAttribute</code>.
+
+<p><code>Bytecode</code> can be used to construct a method.
+For example,
+
+<blockquote><pre>
+ClassFile cf = ...
+Bytecode code = new Bytecode(cf.getConstPool());
+code.addAload(0);
+code.addInvokespecial("java/lang/Object", MethodInfo.nameInit, "()V");
+code.addReturn(null);
+code.setMaxLocals(1);
+
+MethodInfo minfo = new MethodInfo(cf.getConstPool(), MethodInfo.nameInit, "()V");
+minfo.setCodeAttribute(code.toCodeAttribute());
+cf.addMethod(minfo);
+</pre></blockquote>
+
+<p>this code makes the default constructor and adds it to the class specified
+by <code>cf</code>.  The <code>Bytecode</code> object is first converted into
+a <code>CodeAttribute</code> object and then added to the method specified
+by <code>minfo</code>.  The method is finally added to a class file <code>cf</code>. 
 
 <p><br>
 
@@ -427,6 +470,6 @@ CtClass.debugDump = "./dump";
 
 <hr>
 Java(TM) is a trademark of Sun Microsystems, Inc.<br>
-Copyright (C) 2000-2014 by Shigeru Chiba, All rights reserved.
+Copyright (C) 2000-2015 by Shigeru Chiba, All rights reserved.
 </body>
 </html>

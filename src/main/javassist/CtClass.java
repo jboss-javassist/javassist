@@ -463,6 +463,11 @@ public abstract class CtClass {
      * and the methods so that the type variable <code>T</code> can be
      * accessible through reflection.
      *
+     * <p><code>MethodSignature</code> is a utility class.  You can directly
+     * pass the signature string to the <code>setGenericSignature</code> method.
+     * For the specification of the signatures, see Section 4.7.9.1 <i>Signatures</i>
+     * of The Java Virtual Machine Specification (Java SE 8).
+     *
      * @param sig       a generic signature.
      * @see javassist.bytecode.SignatureAttribute.ClassSignature#encode()
      * @see javassist.bytecode.SignatureAttribute.MethodSignature#encode()
