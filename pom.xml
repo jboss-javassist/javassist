@@ -11,6 +11,10 @@
   <name>Javassist</name>
   <url>http://www.javassist.org/</url>
 
+  <organization>
+    <name>Shigeru Chiba, www.javassist.org</name>
+  </organization>
+
   <issueManagement>
     <system>JIRA</system>
     <url>https://jira.jboss.org/jira/browse/JASSIST/</url>
@@ -164,7 +168,10 @@
         <version>2.6</version>
         <configuration>
           <archive>
-            <manifestFile>${project.build.sourceDirectory}/META-INF/MANIFEST.MF</manifestFile>
+            <manifest>
+              <mainClass>javassist.CtClass</mainClass>
+              <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+            </manifest>
           </archive>
         </configuration>
       </plugin>
