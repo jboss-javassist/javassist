@@ -9,8 +9,26 @@ import java.util.UUID;
 /**
  * Creates bytecode that when executed calls back to the instance's result method.
  *
- * Inserts callbacks in <code>CtBehaviour</code>
- *
+ * Example of how to create and insert a callback:
+ * <pre>{@code
+ * ctMethod.insertAfter(new Callback("Thread.currentThread()") {
+ *     @literal@Override
+ *     public void result(Object... objects) {
+ *         Thread thread = (Thread) objects[0];
+ *         // do something with thread...
+ *     }
+ * }.sourceCode());
+ * }</pre>
+ * Contains utility methods for inserts callbacks in <code>CtBehaviour</code>, example:
+ * <pre>{@code
+ * insertAfter(ctBehaviour, new Callback("Thread.currentThread(), dummyString") {
+ *     @literal@Override
+ *     public void result(Object... objects) {
+ *         Thread thread = (Thread) objects[0];
+ *         // do something with thread...
+ *     }
+ * });
+ * }</pre>
  */
 public abstract class Callback {
 
@@ -22,8 +40,8 @@ public abstract class Callback {
      * Constructs a new <code>Callback</code> object.
      *
      * @param src       The source code representing the inserted callback bytecode.
-     *                  Can be one or many single statements or blocks each returning one object.
-     *                  If many single statements or blocks are used they must be comma separated.
+     *                  Can be one or many single statements each returning one object.
+     *                  If many single statements are used they must be comma separated.
      */
     public Callback(String src){
         String uuid = UUID.randomUUID().toString();
@@ -48,7 +66,7 @@ public abstract class Callback {
     }
 
     /**
-     * Inserts callback at the beginning of the body.
+     * Utility method to insert callback at the beginning of the body.
      *
      * @param callback  The callback
      *
@@ -61,7 +79,7 @@ public abstract class Callback {
     }
 
     /**
-     * Inserts callback at the end of the body.
+     * Utility method to inserts callback at the end of the body.
      * The callback is inserted just before every return instruction.
      * It is not executed when an exception is thrown.
      *
@@ -77,7 +95,7 @@ public abstract class Callback {
     }
 
     /**
-     * Inserts callback at the end of the body.
+     * Utility method to inserts callback at the end of the body.
      * The callback is inserted just before every return instruction.
      * It is not executed when an exception is thrown.
      *
@@ -98,7 +116,7 @@ public abstract class Callback {
     }
 
     /**
-     * Inserts callback at the specified line in the body.
+     * Utility method to inserts callback at the specified line in the body.
      *
      * @param behavior  The behaviour to insert callback in
      * @param callback  The callback representing.
