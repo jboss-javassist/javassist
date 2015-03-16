@@ -33,7 +33,7 @@ public class CallbackTest extends TestCase {
             }
         });
 
-        // Change class and invoke method();
+        // Change class and invoke method;
         classToChange.toClass();
         new DummyClass().dummyMethod();
     }
