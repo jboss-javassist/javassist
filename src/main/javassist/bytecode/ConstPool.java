@@ -637,33 +637,59 @@ public final class ConstPool {
      *
      * @param index int position of CONSTANT_String_info
      * @param newConstant String new CONSTANT_String_info
+     *
      */
     public void setStringInfo(int index, String newConstant) {
 
         Object obj = getItem(index);
-        if (obj instanceof Utf8Info) {
-            Utf8Info si = (Utf8Info) obj;
-            setItem(index, si, new Utf8Info(newConstant, index));
+        if (obj instanceof StringInfo) {
+            StringInfo si = (StringInfo) obj;
+            setItem(si.string, ((Utf8Info) getItem(si.string)), new Utf8Info(newConstant, si.string));
         }
     }
-    
+
+    /**
+     * Obtains the index of <code>CONSTANT_String_info</code> of the given
+     * String.
+     *
+     * @param strConstant String with the <code>CONSTANT_String_info</code>
+     * @return int Index of the String in the ConstPool Table
+     */
+    public int getIndexStringInfo(String strConstant) {
+
+        Object obj;
+        StringInfo si;
+        Utf8Info utf;
+        for (int i = 0; i < items.size(); i++) {
+            obj = getItem(i);
+            if (obj instanceof StringInfo) {
+                si = (StringInfo) obj;
+                utf = ((Utf8Info) getItem(si.string));
+                if (utf.string.equalsIgnoreCase(strConstant)) {
+                    return si.index;
+                }
+            }
+        }
+        return -1;
+    }
+
     /**
      * Change <code>CONSTANT_String_info</code> String for a given String.
      *
-     * @param oldConstant String to change. <code> old CONSTANT_String_info</code> 
+     * @param oldConstant String to change.
+     * <code> old CONSTANT_String_info</code>
      * @param newConstant String <code> new CONSTANT_String_info </code>
      */
     public void setStringInfo(String oldConstant, String newConstant) {
 
-        Object obj;
-        Utf8Info si;
-        for (int i = 0; i < items.size(); i++) {
-            obj = getItem(i);
-            if (obj instanceof Utf8Info) {
-                si = (Utf8Info) obj;
-                if (si.string.equalsIgnoreCase(oldConstant)) {
-                    setItem(i, si, new Utf8Info(newConstant, i));
-                }                
+        Object obj = getItem(getIndexStringInfo(oldConstant));
+        StringInfo si;
+        Utf8Info utf;
+        if (obj instanceof StringInfo) {
+            si = (StringInfo) obj;
+            utf = ((Utf8Info) getItem(si.string));
+            if (utf.string.equalsIgnoreCase(oldConstant)) {
+                setItem(si.string, utf, new Utf8Info(newConstant, si.string));
             }
         }
     }
