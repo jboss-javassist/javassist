@@ -894,7 +894,7 @@ public final class ConstPool {
         if (found != null) {
             items.setElement(index, newInfo);
             itemsCache.remove(info);
-            itemsCache.put(info, newInfo);
+            itemsCache.put(newInfo, newInfo);
         }
     }
     
