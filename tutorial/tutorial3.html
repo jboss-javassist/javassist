@@ -1,0 +1,475 @@
+<html>
+<head>
+   <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+   <title>Javassist Tutorial</title>
+   <link rel="stylesheet" type="text/css" href="brown.css">
+</head>
+
+<body>
+
+<div align="right">Getting Started with Javassist</div>
+
+<div align="left"><a href="tutorial2.html">Previous page</a></div>
+
+<p>
+<a href="#intro">5. Bytecode level API</a>
+<ul>
+<li><a href="#classfile">Obtaining a <code>ClassFile</code> object</a>
+<br><li><a href="#member">Adding and removing a member</a>
+<br><li><a href="#traverse">Traversing a method body</a>
+<br><li><a href="#bytecode">Producing a bytecode sequence</a>
+<br><li><a href="#annotation">Annotations (Meta tags)</a>
+
+</ul>
+
+<p><a href="#generics">6. Generics</a>
+
+<p><a href="#varargs">7. Varargs</a>
+
+<p><a href="#j2me">8. J2ME</a>
+
+<p><a href="#boxing">9. Boxing/Unboxing
+
+<p><a href="#debug">10. Debug</a>
+
+<p><br>
+
+<a name="intro">
+<h2>5. Bytecode level API</h2>
+
+<p>
+Javassist also provides lower-level API for directly editing
+a class file.  To use this level of API, you need detailed
+knowledge of the Java bytecode and the class file format
+while this level of API allows you any kind of modification
+of class files.
+
+<p>
+If you want to just produce a simple class file,
+<code>javassist.bytecode.ClassFileWriter</code> might provide
+the best API for you.  It is much faster than
+<code>javassist.bytecode.ClassFile</code> although its API
+is minimum.
+
+<a name="classfile">
+<h3>5.1 Obtaining a <code>ClassFile</code> object</h3>
+
+<p>A <code>javassist.bytecode.ClassFile</code> object represents
+a class file.  To obtian this object, <code>getClassFile()</code>
+in <code>CtClass</code> should be called.
+
+<p>Otherwise, you can construct a
+<code>javassist.bytecode.ClassFile</code> directly from a class file.
+For example,
+
+<ul><pre>
+BufferedInputStream fin
+    = new BufferedInputStream(new FileInputStream("Point.class"));
+ClassFile cf = new ClassFile(new DataInputStream(fin));
+</pre></ul>
+
+<p>
+This code snippet creats a <code>ClassFile</code> object from
+<code>Point.class</code>.
+
+<p>
+A <code>ClassFile</code> object can be written back to a
+class file.  <code>write()</code> in <code>ClassFile</code>
+writes the contents of the class file to a given
+<code>DataOutputStream</code>.
+
+<p>You can create a new class file from scratch.  For example,
+<blockquote><pre>
+ClassFile cf = new ClassFile(false, "test.Foo", null);
+cf.setInterfaces(new String[] { "java.lang.Cloneable" });
+ 
+FieldInfo f = new FieldInfo(cf.getConstPool(), "width", "I");
+f.setAccessFlags(AccessFlag.PUBLIC);
+cf.addField(f);
+
+cf.write(new DataOutputStream(new FileOutputStream("Foo.class")));
+</pre></blockquote>
+
+<p>this code generates a class file <code>Foo.class</code> that contains
+the implementation of the following class:
+
+<blockquote><pre>
+package test;
+class Foo implements Cloneable {
+    public int width;
+}
+</pre></blockquote>
+
+<p><br>
+
+<a name="member">
+<h3>5.2 Adding and removing a member</h3>
+
+<p>
+<code>ClassFile</code> provides <code>addField()</code> and
+<code>addMethod()</code> for adding a field or a method (note that
+a constructor is regarded as a method at the bytecode level).
+It also provides <code>addAttribute()</code> for adding an attribute
+to the class file.
+
+<p>
+Note that <code>FieldInfo</code>, <code>MethodInfo</code>, and
+<code>AttributeInfo</code> objects include a link to a
+<code>ConstPool</code> (constant pool table) object.  The <code>ConstPool</code>
+object must be common to the <code>ClassFile</code> object and
+a <code>FieldInfo</code> (or <code>MethodInfo</code> etc.) object
+that is added to that <code>ClassFile</code> object.
+In other words, a <code>FieldInfo</code> (or <code>MethodInfo</code> etc.) object
+must not be shared among different <code>ClassFile</code> objects.
+
+<p>
+To remove a field or a method from a <code>ClassFile</code> object,
+you must first obtain a <code>java.util.List</code>
+object containing all the fields of the class.  <code>getFields()</code>
+and <code>getMethods()</code> return the lists.  A field or a method can
+be removed by calling <code>remove()</code> on the <code>List</code> object.
+An attribute can be removed in a similar way.
+Call <code>getAttributes()</code> in <code>FieldInfo</code> or
+<code>MethodInfo</code> to obtain the list of attributes,
+and remove one from the list.
+
+
+<p><br>
+
+<a name="traverse">
+<h3>5.3 Traversing a method body</h3>
+
+<p>
+To examine every bytecode instruction in a method body,
+<code>CodeIterator</code> is useful.  To otbain this object,
+do as follows:
+
+<ul><pre>
+ClassFile cf = ... ;
+MethodInfo minfo = cf.getMethod("move");    // we assume move is not overloaded.
+CodeAttribute ca = minfo.getCodeAttribute();
+CodeIterator i = ca.iterator();
+</pre></ul>
+
+<p>
+A <code>CodeIterator</code> object allows you to visit every
+bytecode instruction one by one from the beginning to the end.
+The following methods are part of the methods declared in
+<code>CodeIterator</code>:
+
+<ul>
+<li><code>void begin()</code><br>
+Move to the first instruction.<br>
+<li><code>void move(int index)</code><br>
+Move to the instruction specified by the given index.<br>
+<li><code>boolean hasNext()</code><br>
+Returns true if there is more instructions.<br>
+<li><code>int next()</code><br>
+Returns the index of the next instruction.<br>
+<em>Note that it does not return the opcode of the next
+instruction.</em><br>
+<li><code>int byteAt(int index)</code><br>
+Returns the unsigned 8bit value at the index.<br>
+<li><code>int u16bitAt(int index)</code><br>
+Returns the unsigned 16bit value at the index.<br>
+<li><code>int write(byte[] code, int index)</code><br>
+Writes a byte array at the index.<br>
+<li><code>void insert(int index, byte[] code)</code><br>
+Inserts a byte array at the index.
+Branch offsets etc. are automatically adjusted.<br>
+</ul>
+
+<p>The following code snippet displays all the instructions included
+in a method body:
+
+<ul><pre>
+CodeIterator ci = ... ;
+while (ci.hasNext()) {
+    int index = ci.next();
+    int op = ci.byteAt(index);
+    System.out.println(Mnemonic.OPCODE[op]);
+}
+</pre></ul>
+
+<p><br>
+
+<a name="bytecode">
+<h3>5.4 Producing a bytecode sequence</h3>
+
+<p>
+A <code>Bytecode</code> object represents a sequence of bytecode
+instructions.  It is a growable array of bytecode.
+Here is a sample code snippet:
+
+<ul><pre>
+ConstPool cp = ...;    // constant pool table
+Bytecode b = new Bytecode(cp, 1, 0);
+b.addIconst(3);
+b.addReturn(CtClass.intType);
+CodeAttribute ca = b.toCodeAttribute();
+</pre></ul>
+
+<p>
+This produces the code attribute representing the following sequence:
+
+<ul><pre>
+iconst_3
+ireturn
+</pre></ul>
+
+<p>
+You can also obtain a byte array containing this sequence by
+calling <code>get()</code> in <code>Bytecode</code>.  The
+obtained array can be inserted in another code attribute.
+
+<p>
+While <code>Bytecode</code> provides a number of methods for adding a
+specific instruction to the sequence, it provides
+<code>addOpcode()</code> for adding an 8bit opcode and
+<code>addIndex()</code> for adding an index.
+The 8bit value of each opcode is defined in the <code>Opcode</code>
+interface.
+
+<p>
+<code>addOpcode()</code> and other methods for adding a specific
+instruction are automatically maintain the maximum stack depth
+unless the control flow does not include a branch.
+This value can be obtained by calling <code>getMaxStack()</code>
+on the <code>Bytecode</code> object.
+It is also reflected on the <code>CodeAttribute</code> object
+constructed from the <code>Bytecode</code> object.
+To recompute the maximum stack depth of a method body,
+call <code>computeMaxStack()</code> in <code>CodeAttribute</code>.
+
+<p><code>Bytecode</code> can be used to construct a method.
+For example,
+
+<blockquote><pre>
+ClassFile cf = ...
+Bytecode code = new Bytecode(cf.getConstPool());
+code.addAload(0);
+code.addInvokespecial("java/lang/Object", MethodInfo.nameInit, "()V");
+code.addReturn(null);
+code.setMaxLocals(1);
+
+MethodInfo minfo = new MethodInfo(cf.getConstPool(), MethodInfo.nameInit, "()V");
+minfo.setCodeAttribute(code.toCodeAttribute());
+cf.addMethod(minfo);
+</pre></blockquote>
+
+<p>this code makes the default constructor and adds it to the class specified
+by <code>cf</code>.  The <code>Bytecode</code> object is first converted into
+a <code>CodeAttribute</code> object and then added to the method specified
+by <code>minfo</code>.  The method is finally added to a class file <code>cf</code>. 
+
+<p><br>
+
+<a name="annotation">
+<h3>5.5 Annotations (Meta tags)</h3>
+
+<p>Annotations are stored in a class file
+as runtime invisible (or visible) annotations attribute.
+These attributes can be obtained from <code>ClassFile</code>,
+<code>MethodInfo</code>, or <code>FieldInfo</code> objects.
+Call <code>getAttribute(AnnotationsAttribute.invisibleTag)</code>
+on those objects.  For more details, see the javadoc manual
+of <code>javassist.bytecode.AnnotationsAttribute</code> class
+and the <code>javassist.bytecode.annotation</code> package.
+
+<p>Javassist also let you access annotations by the higher-level
+API.
+If you want to access annotations through <code>CtClass</code>,
+call <code>getAnnotations()</code> in <code>CtClass</code> or
+<code>CtBehavior</code>.
+
+<p><br>
+
+<h2><a name="generics">6. Generics</a></h2>
+
+<p>The lower-level API of Javassist fully supports generics
+introduced by Java 5.  On the other hand, the higher-level
+API such as <code>CtClass</code> does not directly support
+generics.  However, this is not a serious problem for bytecode
+transformation.
+
+<p>The generics of Java is implemented by the erasure technique.
+After compilation, all type parameters are dropped off.  For
+example, suppose that your source code declares a parameterized
+type <code>Vector&lt;String&gt;</code>:
+
+<ul><pre>
+Vector&lt;String&gt; v = new Vector&lt;String&gt();
+  :
+String s = v.get(0);
+</pre></ul>
+
+<p>The compiled bytecode is equivalent to the following code:
+
+<ul><pre>
+Vector v = new Vector();
+  :
+String s = (String)v.get(0);
+</pre></ul>
+
+<p>So when you write a bytecode transformer, you can just drop
+off all type parameters.  Because the compiler embedded in Javassist
+does not support generics,
+you must insert an explicit type cast at the
+caller site if the source code is compiled by Javassist, for example,
+through <code>CtMethod.make()</code>.  No type cast
+is necessary if the source code is compiled by a normal Java compiler
+such as <code>javac</code>.
+
+<p>For example, if you have a class:
+
+<ul><pre>
+public class Wrapper&lt;T&gt; {
+  T value;
+  public Wrapper(T t) { value = t; }
+}
+</pre></ul>
+
+<p>and want to add an interface <code>Getter&lt;T&gt;</code> to the
+class <code>Wrapper&lt;T&gt;</code>:
+
+<ul><pre>
+public interface Getter&lt;T&gt; {
+  T get();
+}
+</pre></ul>
+
+<p>then the interface you really have to add is <code>Getter</code>
+(the type parameters <code>&lt;T&gt;</code> drops off)
+and the method you also have to add to the <code>Wrapper</code>
+class is this simple one:
+
+<ul><pre>
+public Object get() { return value; }
+</pre></ul>
+
+<p>Note that no type parameters are necessary.
+Since <code>get</code> returns an <code>Object</code>, an explicit type cast
+is needed at the caller site if the source code is compiled by Javassist.
+For example, if the type parameter <code>T</code>
+is <code>String</code>, then <code>(String)</code> must be inserted as follows:
+
+<ul><pre>
+Wrapper w = ...
+String s = (String)w.get();
+</pre></ul>
+
+<p>The type cast is not needed if the source code is compiled by a normal Java
+compiler because it will automatically insert a type cast. 
+
+<p>If you need to make type parameters accessible through reflection
+during runtime, you have to add generic signatures to the class file.
+For more details, see the API documentation (javadoc) of the
+<code>setGenericSignature</code> method in the <code>CtClass</code>.
+
+<p><br>
+
+<h2><a name="varargs">7. Varargs</a></h2>
+
+<p>Currently, Javassist does not directly support varargs.  So to make a method with varargs,
+you must explicitly set a method modifier.  But this is easy.
+Suppose that now you want to make the following method:
+
+<ul><pre>
+public int length(int... args) { return args.length; }
+</pre></ul>
+
+<p>The following code using Javassist will make the method shown above:
+
+<ul><pre>
+CtClass cc = /* target class */;
+CtMethod m = CtMethod.make("public int length(int[] args) { return args.length; }", cc);
+m.setModifiers(m.getModifiers() | Modifier.VARARGS);
+cc.addMethod(m);
+<pre></ul>
+
+<p>The parameter type <code>int...</code> is changed into <code>int[]</code>
+and <code>Modifier.VARARGS</code> is added to the method modifiers.
+
+<p>To call this method in the source code compiled by the compiler embedded in Javassist,
+you must write:
+
+<ul><pre>
+length(new int[] { 1, 2, 3 });
+</pre></ul>
+
+<p>instead of this method call using the varargs mechanism:
+
+<ul><pre>
+length(1, 2, 3);
+</pre></ul>
+
+<p><br>
+
+<h2><a name="j2me">8. J2ME</a></h2>
+
+<p>If you modify a class file for the J2ME execution environment,
+you must perform <it>preverification</it>.  Preverifying is basically
+producing stack maps, which is similar to stack map tables introduced
+into J2SE at JDK 1.6.  Javassist maintains the stack maps for J2ME only if
+<code>javassist.bytecode.MethodInfo.doPreverify</code> is true.
+
+<p>You can also manually
+produce a stack map for a modified method.
+For a given method represented by a <code>CtMethod</code> object <code>m</code>,
+you can produce a stack map by calling the following methods:
+
+<ul><pre>
+m.getMethodInfo().rebuildStackMapForME(cpool);
+</pre></ul>
+
+<p>Here, <code>cpool</code> is a <code>ClassPool</code> object, which is
+available by calling <code>getClassPool()</code> on a <code>CtClass</code>
+object.  A <code>ClassPool</code> object is responsible for finding
+class files from given class pathes.  To obtain all the <code>CtMethod</code>
+objects, call the <code>getDeclaredMethods</code> method on a <code>CtClass</code> object.
+
+<p><br>
+
+<h2><a name="boxing">9. Boxing/Unboxing</h2>
+
+<p>Boxing and unboxing in Java are syntactic sugar.  There is no bytecode for
+boxing or unboxing.  So the compiler of Javassist does not support them.
+For example, the following statement is valid in Java:
+
+<ul><pre>
+Integer i = 3;
+</pre></ul>
+
+<p>since boxing is implicitly performed.  For Javassist, however, you must explicitly
+convert a value type from <code>int</code> to <code>Integer</code>:
+
+<ul><pre>
+Integer i = new Integer(3);
+</pre></ul>
+
+<p><br>
+
+<h2><a name="debug">10. Debug</h2>
+
+<p>Set <code>CtClass.debugDump</code> to a directory name.
+Then all class files modified and generated by Javassist are saved in that
+directory.  To stop this, set <code>CtClass.debugDump</code> to null.
+The default value is null.
+
+<p>For example,
+
+<ul><pre>
+CtClass.debugDump = "./dump";
+</pre></ul>
+
+<p>All modified class files are saved in <code>./dump</code>.
+
+<p><br>
+
+<a href="tutorial2.html">Previous page</a>
+
+<hr>
+Java(TM) is a trademark of Sun Microsystems, Inc.<br>
+Copyright (C) 2000-2015 by Shigeru Chiba, All rights reserved.
+</body>
+</html>

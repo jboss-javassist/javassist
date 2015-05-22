@@ -1,0 +1,13 @@
+bin/
+eclipse-output/
+target/
+runtest/
+html/
+lib/
+
+.DS_Store
+.classpath
+.project
+.settings
+TestLog.xml
+

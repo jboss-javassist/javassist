@@ -1,0 +1,19 @@
+h1,h2,h3 {
+	color:#663300;
+	padding:4px 6px 6px 10px;
+	border-width:1px 0px 1px 0px;
+	border-color:#F5DEB3;
+	border-style:solid;
+}
+
+h3 {
+	padding-left: 30px;
+}
+
+h4 {
+	color:#663300;
+}
+
+em {
+	color:#cc0000;
+}

@@ -1,0 +1,203 @@
+<html>
+<body>
+<h2>Remote Method Invocation</h2>
+
+<P>Javassist enables an applet to access a remote object as if it is a
+local object.  The applet can communicate through a socket with the
+host that executes the web server distributing that applet.  However,
+the applet cannot directly call a method on an object if the object is
+on a remote host.  The <code>javassist.tools.rmi</code> package provides
+a mechanism for the applet to transparently access the remote object.
+The rules that the applet must be subject to are simpler than the
+standard Java RMI.
+
+<h3>1. Sample applet</h3>
+
+<P>The applet showing below is a simple number counter.
+If you press the button, the number is increased by one.
+An interesting feature of this applet is that the object
+recording the current number is contained by the web server
+written in Java.  The applet must access the object through a socket
+to obtain the current number.
+
+<p><center>
+<applet codebase="http://localhost:5001"
+code="sample.rmi.CountApplet" width=200 height=200>
+<param name=name value="counter">
+<param name=button value="+1">
+</applet>
+</center>
+
+<p>However, the program of the applet does not need to directly handle
+a socket.  The <code>ObjectImporter</code> provided by Javassist deals
+with all the awkward programming.
+Look at the lines shown with red:
+
+<p><b>Figure 1: Applet</b>
+
+<pre>
+<font color="red">import javassist.tools.rmi.ObjectImporter;</font>
+
+public class CountApplet extends Applet implements ActionListener {
+  private Font font;
+  <font color="red">private ObjectImporter importer;
+  private Counter counter;</font>
+  private AlertDialog dialog;
+  private String message;
+
+  public void init() {
+    font = new Font("SansSerif", Font.ITALIC, 40);
+    Button b = new Button(getParameter("button"));
+    b.addActionListener(this);
+    add(b);
+    <font color="red">importer = new ObjectImporter(this);</font>
+    dialog = new AlertDialog();
+    message = "???";
+  }
+
+  public void start() {
+    String counterName = getParameter("name");
+    <font color="red">counter = (Counter)importer.getObject(counterName);</font>
+    message = Integer.toString(<font color="red">counter.get()</font>);
+  }
+
+  /* The method called when the button is pressed.
+  */
+  public void actionPerformed(ActionEvent e) {
+    message = Integer.toString(<font color="red">counter.increase()</font>);
+    repaint();
+  }
+
+  public void paint(Graphics g) {
+    g.setFont(font);
+    g.drawRect(50, 50, 100, 100);
+    g.setColor(Color.blue);
+    g.drawString(message, 60, 120);
+  }
+}
+</pre>
+
+<p>A <code>Counter</code> object running on a remote host
+maintains the counter number.  To access this object, the applet first
+calls <code>getObject()</code> on an <code>ObjectImporter</code>
+to obtain a reference to the object.  The parameter is the name associated
+with the object by the web server.  Once the reference is obtained, it
+is delt with as if it is a reference to a local object.
+For example, <code>counter.get()</code> and <code>counter.increase()</code>
+call methods on the remote object.
+
+<p>The definition of the <code>Counter</code> class is also
+straightforward:
+
+<p><b>Figure 2: Remote object</b>
+
+<pre>
+public class Counter {
+  private int count = 0;
+
+  public int get() {
+    return count;
+  }
+
+  public int increase() {
+    count += 1;
+    return count;
+  }
+}
+</pre>
+
+<p>Note that the <code>javassist.tools.rmi</code> package does not require
+the <code>Counter</code> class to be an interface unlike the Java RMI,
+with which <code>Counter</code> must be an interface and it must be
+implemented by another class.
+
+<p>To make the <code>Counter</code> object available from the applet,
+it must be registered with the web server.  A <code>AppletServer</code>
+object is a simple webserver that can distribute <code>.html</code> files
+and <code>.class</code> files (Java applets).
+
+<p><b>Figure 3: Server-side program</b>
+
+<pre>
+public class MyWebServer {
+  public static void main(String[] args) throws IOException, CannotCompileException
+  {
+      AppletServer web = new AppletServer(args[0]);
+      <font color="red">web.exportObject("counter", new Counter());</font>
+      web.run();
+  }
+}
+</pre>
+
+<p>The <code>exportObject()</code> method registers a remote object
+with the <code>AppletServer</code> object.  In the example above,
+a <code>Counter</code> object is registered.  The applet can access
+the object with the name "counter".  The web server starts the service
+if the <code>run()</code> method is called.
+
+<p><br>
+
+<h3>2. Features</h3>
+
+The remote method invocation mechanism provided by Javassist has the
+following features:
+
+<ul>
+<li><b>Regular Java syntax:</b><br>
+	The applet can call a method on a remote object with regular
+	Java syntax.
+<p>
+
+<li><b>No special naming convention:</b><br>
+	The applet can use the same class name as the server-side program.
+	The reference object to a remote <code>Foo</code> object is
+	also represented by the class <code>Foo</code>.
+	Unlike other similar
+	systems, it is not represented by a different class such as
+	<code>ProxyFoo</code> or an interface implemented by
+	<code>Foo</code>.
+<p>
+
+<li><b>No extra compiler:</b><br>
+	All the programs, both the applet and the server-side program,
+	are compiled by the regular Java compiler.  No external compiler
+	is needed.
+</ul>
+
+<p> With the Java RMI or Voyager, the applet programmer must define
+an interface for every remote object class and access the remote object
+through that interface.
+On the other hand, the <code>javassist.tools.rmi</code> package does not
+require the programmer to follow that programming convention.
+It is suitable for writing simple distributed programs like applets.
+
+<p><br>
+
+<h3>3. Inside of the system</h3>
+
+<p>A key idea of the implementation is that the applet and the server-side
+program must use different versions of the class <code>Counter</code>.
+The <code>Counter</code> object in the applet must work as a proxy
+object, which transfers the method invocations to the <code>Counter</code>
+object in the server-side program.
+
+<p>With other systems like the Java RMI, the class of this proxy object is
+produced by a special compiler such as <code>rmic</code>.
+It must be manually maintained by the programmer.
+
+<center><img src="inside.gif"></center>
+
+<p>However, Javassist automatically generates the proxy class at
+runtime so that the programmer does not have to be concerned about the
+maintenance of the proxy class.
+If the web browser running the applet
+requests to load the <code>Counter</code> class, which is the class
+of an exported object,
+then the web server
+transfers the version of <code>Counter</code> that Javassist generates
+as a proxy class.
+
+<p><br>
+
+</body>
+</html>

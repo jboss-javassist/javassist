@@ -1,0 +1,39 @@
+<H2>Class Evolution</H2>
+
+<P>This is a demonstration of the class evolution mechanism
+implemented with Javassist.  This mechanism enables a Java program to
+reload an existing class file.  Although the reloaded class file is
+not applied to exiting objects (the old class file is used for those
+objects), it is effective in newly created objects.
+
+<P>Since the reloading is transparently executed, no programming
+convention is needed.  However, there are some limitations on possible
+changes of the class definition.  For example, the new class definition
+must have the same set of methods as the old one.  These limitations are
+necessary for keeping the type system consistent.
+
+
+<H3><a href="java.html">Run WebPage.show()</a></H3>
+
+<P>The web server creates a new <code>WebPage</code> object and
+calls <code>show()</code> on that object.  This method works as
+if it is a CGI script or a servlet and you will see the html file
+produced by this method on your browser.
+
+<H3><a href="update.html">Change WebPage.class</a></H3>
+
+<P>The web server overwrites class file <code>WebPage.class</code>
+on the local disk.  Then it signals that <code>WebPage.class</code>
+must be reloaded into the JVM.  If you run <code>WebPage.show()</code>
+again, you will see a different page on your browser.
+
+<H3>Source files</H3>
+
+<P>Web server: <A HREF="DemoServer.java"><code>DemoServer.java</code></A>
+
+<P>WebPage: <A HREF="WebPage.java"><code>WebPage.java</code></A> and
+another  <A HREF="sample/evolve/WebPage.java"><code>WebPage.java</code></A>
+
+<P>Class loader: <A HREF="DemoLoader.java"><code>DemoLoader.java</code></A>,
+	<A HREF="Evolution.java"><code>Evolution.java</code></A>, and
+	<A HREF="VersionManager.java"><code>VersionManager.java</code></A>.

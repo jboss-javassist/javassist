@@ -1,0 +1,35 @@
+<html>
+<body>
+Runtime Behavioral Reflection.
+
+<p>(also recently known as interceptors or AOP?)
+
+<p>This package enables a metaobject to trap method calls and field
+accesses  on a regular Java object.  It provides a class
+<code>Reflection</code>, which is a main module for implementing
+runtime behavioral reflection.
+It also provides
+a class <code>Loader</code> and <code>Compiler</code>
+as utilities for dynamically or statically
+translating a regular class into a reflective class.
+
+<p>An instance of the reflective class is associated with
+a runtime metaobject and a runtime class metaobject, which control
+the behavior of that instance.
+The runtime
+metaobject is created for every (base-level) instance but the
+runtime class metaobject is created for every (base-level) class.
+<code>Metaobject</code> is the root class of the runtime
+metaobject and <code>ClassMetaobject</code> is the root class
+of the runtime class metaobject.
+
+<p>This package is provided as a sample implementation of the
+reflection mechanism with Javassist.  All the programs in this package
+uses only the regular Javassist API; they never call any hidden
+methods.
+
+<p>The most significant class in this package is <code>Reflection</code>.
+See the description of this class first.
+
+</body>
+</html>
