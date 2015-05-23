@@ -1,2 +1,1 @@
-# www.javassist.org
-Web site contents.
+The contents of www.javassist.org
