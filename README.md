@@ -1,5 +1,5 @@
 Java bytecode engineering toolkit
-### Javassist version 3
+### [Javassist version 3](http://www.javassist.org)
 
 Copyright (C) 1999- by Shigeru Chiba, All rights reserved.
 
