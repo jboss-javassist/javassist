@@ -53,4 +53,18 @@ public class JvstTest5 extends JvstTestRoot {
         Object obj = make(cc.getName());
         assertEquals(10, invoke(obj, "run"));
     }
+
+    public void testJIRA246() throws Exception {
+        CtClass ctClass = sloader.makeClass("test5.JIRA246Test");
+        ctClass.addInterface(sloader.get(test5.JIRA246.Test.class.getName()));
+        String methodBody = "public void test() { defaultMethod(); }";
+        CtMethod ctMethod = CtMethod.make(methodBody, ctClass);
+        ctClass.addMethod(ctMethod);
+    }
+
+    public void testJIRA246b() throws Exception {
+        CtClass ctClass = sloader.get(test5.JIRA246.A.class.getName());
+        String src = "public void id() { get(); }";
+        CtMethod make = CtNewMethod.make(src, ctClass);
+    }
 }

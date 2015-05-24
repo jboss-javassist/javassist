@@ -139,30 +139,29 @@ public class MemberResolver implements TokenId {
         }
         catch (NotFoundException e) {}
 
-        if (isIntf || Modifier.isAbstract(mod))
-            try {
-                CtClass[] ifs = clazz.getInterfaces();
-                int size = ifs.length;
-                for (int i = 0; i < size; ++i) {
-                    Method r = lookupMethod(ifs[i], methodName,
-                                            argTypes, argDims, argClassNames,
-                                            onlyExact);
+        try {
+            CtClass[] ifs = clazz.getInterfaces();
+            int size = ifs.length;
+            for (int i = 0; i < size; ++i) {
+                Method r = lookupMethod(ifs[i], methodName,
+                        argTypes, argDims, argClassNames,
+                        onlyExact);
+                if (r != null)
+                    return r;
+            }
+
+            if (isIntf) {
+                // finally search java.lang.Object.
+                CtClass pclazz = clazz.getSuperclass();
+                if (pclazz != null) {
+                    Method r = lookupMethod(pclazz, methodName, argTypes,
+                                            argDims, argClassNames, onlyExact);
                     if (r != null)
                         return r;
                 }
-
-                if (isIntf) {
-                    // finally search java.lang.Object.
-                    CtClass pclazz = clazz.getSuperclass();
-                    if (pclazz != null) {
-                        Method r = lookupMethod(pclazz, methodName, argTypes,
-                                                argDims, argClassNames, onlyExact);
-                        if (r != null)
-                            return r;
-                    }
-                }
             }
-            catch (NotFoundException e) {}
+        }
+        catch (NotFoundException e) {}
 
         return maybe;
     }
