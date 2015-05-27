@@ -70,8 +70,10 @@ public class SerialVersionUID {
     /**
      * Calculate default value. See Java Serialization Specification, Stream
      * Unique Identifiers.
+     *
+     * @since 3.20
      */
-    static long calculateDefault(CtClass clazz)
+    public static long calculateDefault(CtClass clazz)
         throws CannotCompileException
     {
         try {
