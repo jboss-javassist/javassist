@@ -67,4 +67,28 @@ public class JvstTest5 extends JvstTestRoot {
         String src = "public void id() { get(); }";
         CtMethod make = CtNewMethod.make(src, ctClass);
     }
+
+    public void testJIRA242() throws Exception {
+        Boolean ss = new Boolean(2 > 3);
+        ClassPool cp = ClassPool.getDefault();
+        CtClass cc = cp.get("test5.JIRA242$Hello");
+        CtMethod m = cc.getDeclaredMethod("say");
+        m.insertBefore("{ System.out.println(\"Say Hello...\"); }");
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("BOOL_SERIES = createBooleanSeriesStep();");
+        //Below code cause the issue
+        sb.append("BOOL_SERIES.setValue(3>=3);"); //lets comment this and run it will work 
+        // Below code snippets will work
+        // this cast into exact class and call the same function
+        sb.append("((test5.JIRA242$BooleanDataSeries)BOOL_SERIES).setValue(3>=3);");
+        // this code snippet will set exact boolean variable to the function.
+        sb.append("boolean var = 3>=3;");
+        sb.append("BOOL_SERIES.setValue(var);");
+
+        m.insertBefore(sb.toString());
+        cc.writeFile();
+        Object obj = make(cc.getName());
+        assertEquals(0, invoke(obj, "say"));
+    }
 }

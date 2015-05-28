@@ -568,9 +568,6 @@ public class MemberCodeGen extends CodeGen {
         // generate code for evaluating arguments.
         atMethodArgs(args, types, dims, cnames);
 
-        // used by invokeinterface
-        int count = bytecode.getStackDepth() - stack + 1;
-
         if (found == null)
             found = resolver.lookupMethod(targetClass, thisClass, thisMethod,
                                           mname, types, dims, cnames);
@@ -587,12 +584,12 @@ public class MemberCodeGen extends CodeGen {
         }
 
         atMethodCallCore2(targetClass, mname, isStatic, isSpecial,
-                          aload0pos, count, found);
+                          aload0pos, found);
     }
 
     private void atMethodCallCore2(CtClass targetClass, String mname,
                                    boolean isStatic, boolean isSpecial,
-                                   int aload0pos, int count,
+                                   int aload0pos,
                                    MemberResolver.Method found)
         throws CompileError
     {
@@ -651,8 +648,10 @@ public class MemberCodeGen extends CodeGen {
                 || declClass.isInterface() != targetClass.isInterface())
                 declClass = targetClass;
 
-            if (declClass.isInterface())
-                bytecode.addInvokeinterface(declClass, mname, desc, count);
+            if (declClass.isInterface()) {
+                int nargs = Descriptor.paramSize(desc) + 1;
+                bytecode.addInvokeinterface(declClass, mname, desc, nargs);
+            }
             else
                 if (isStatic)
                     throw new CompileError(mname + " is not static");
