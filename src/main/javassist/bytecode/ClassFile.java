@@ -30,7 +30,7 @@ import javassist.CannotCompileException;
  * <code>ClassFile</code> represents a Java <code>.class</code> file, which
  * consists of a constant pool, methods, fields, and attributes.
  *
- * <p>For example,
+ * <p>For example,</p>
  * <blockquote><pre>
  * ClassFile cf = new ClassFile(false, "test.Foo", null);
  * cf.setInterfaces(new String[] { "java.lang.Cloneable" });
@@ -41,14 +41,13 @@ import javassist.CannotCompileException;
  *
  * cf.write(new DataOutputStream(new FileOutputStream("Foo.class")));
  * </pre></blockquote>
- * This code generates a class file <code>Foo.class</code> for the following class:
+ * <p>This code generates a class file <code>Foo.class</code> for the following class:</p>
  * <blockquote><pre>
  * package test;
  * class Foo implements Cloneable {
  *     public int width;
  * }
  * </pre></blockquote>
- * </p>
  *
  * @see FieldInfo
  * @see MethodInfo

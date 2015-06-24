@@ -25,26 +25,24 @@ import java.util.UUID;
 /**
  * Creates bytecode that when executed calls back to the instance's result method.
  *
- * Example of how to create and insert a callback:
- * <pre>{@code
+ * <p>Example of how to create and insert a callback:</p>
+ * <pre>
  * ctMethod.insertAfter(new Callback("Thread.currentThread()") {
- *     @literal@Override
  *     public void result(Object... objects) {
  *         Thread thread = (Thread) objects[0];
  *         // do something with thread...
  *     }
  * }.sourceCode());
- * }</pre>
- * Contains utility methods for inserts callbacks in <code>CtBehaviour</code>, example:
- * <pre>{@code
+ * </pre>
+ * <p>Contains utility methods for inserts callbacks in <code>CtBehaviour</code>, example:</p>
+ * <pre>
  * insertAfter(ctBehaviour, new Callback("Thread.currentThread(), dummyString") {
- *     @literal@Override
  *     public void result(Object... objects) {
  *         Thread thread = (Thread) objects[0];
  *         // do something with thread...
  *     }
  * });
- * }</pre>
+ * </pre>
  *
  * @author Marten Hedborg
  */
