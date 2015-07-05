@@ -660,6 +660,17 @@ public abstract class CtClass {
         return new CtClass[0];
     }
 
+    
+    /**
+     * Removes all Inner Class Attribute
+     * when the InnerName of attribute matches name.
+     * 
+     * @param name
+     */
+    public void removeNestedClass( String name ){
+    }
+
+
     /**
      * Sets the modifiers.
      *
@@ -807,6 +818,7 @@ public abstract class CtClass {
     public CtClass makeNestedClass(String name, boolean isStatic) {
         throw new RuntimeException(getName() + " is not a class");
     }
+
 
     /**
      * Returns an array containing <code>CtField</code> objects
