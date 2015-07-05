@@ -22,6 +22,8 @@ import java.io.IOException;
 
 /**
  * <code>InnerClasses_attribute</code>.
+ * 
+ * @see jvms-4.7.6 The InnerClasses Attribute
  */
 public class InnerClassesAttribute extends AttributeInfo {
     /**
@@ -195,6 +197,50 @@ public class InnerClassesAttribute extends AttributeInfo {
         ByteArray.write16bit(flags, newData, len + 6);
 
         set(newData);
+    }
+
+    /**
+     * Set <code>number_of_classes</code> = 0 and then
+     * trim the <code>classes</code> records into 0 length.
+     */
+    public void clear() {
+        byte[] ndata = new byte[2];
+        ByteArray.write16bit(0, ndata, 0);
+        set(ndata);
+    }
+
+    /**
+     * Remove the <code>classes[nth]</code> record.
+     * The constant pool for <code>classes[nth]</code> is left unreleased in this version.
+     * 
+     * @param nth
+     */
+    public void remove(int nth) {
+        //original size
+        int n = tableLength();
+        //new size
+        int N = n - 1;
+
+        int[] innerClass = new int[N];
+        int[] outerClass = new int[N];
+        int[] name = new int[N];
+        int[] flags = new int[N];
+
+        for (int i = 0, I = 0; i < n; i++) {
+            if (i == nth)
+                continue;
+            innerClass[I] = innerClassIndex(i);
+            outerClass[I] = outerClassIndex(i);
+            name[I] = innerNameIndex(i);
+            flags[I] = accessFlags(i);
+            I++;
+        }
+
+        clear();
+
+        for (int i = 0; i < N; i++) {
+            append(innerClass[i], outerClass[i], name[i], flags[i]);
+        }
     }
 
     /**
