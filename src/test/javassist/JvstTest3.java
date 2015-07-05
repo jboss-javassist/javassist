@@ -1,5 +1,16 @@
 package javassist;
 
+import java.nio.charset.Charset;
+//import java.nio.file.Files;
+//import java.nio.file.Path;
+//import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+
 import javassist.bytecode.*;
 import javassist.bytecode.annotation.*;
 import javassist.expr.*;
@@ -234,6 +245,115 @@ public class JvstTest3 extends JvstTestRoot {
         assertEquals(name, ica.innerName(0));
         return ica.accessFlags(0);
     }
+    
+    /**
+     * Test the {@link CtClass#removeNestedClass(String)}
+     * by removing an various inner classes in the {@link InnerRemoval} and
+     * checking the bytes of Inner class name are removed.
+     * 
+     * @throws Exception
+     */
+    public void testRemoveInner() throws Exception {
+    	{
+    		String[] innerElem1 = new String[]{
+    				"Public",
+    				"Private",
+    				"Package",
+    				"Protected",
+    		};
+    		String[] innerElem2 = new String[]{
+    				"NonStatic",
+    				"Static",
+    		};
+    		String classname = InnerRemoval.class.getName();
+    		
+    		//build inner class names
+    		List<String> innerNames = new ArrayList<String>();
+    		for ( int E1 = 0; E1 < innerElem1.length; E1 ++ ){
+    			for ( int E2 = 0; E2 < innerElem2.length; E2 ++ ){
+    				innerNames.add(  classname +  "$In" + innerElem1[E1] + innerElem2[E2] );
+    			}
+    		}
+    		
+    		//let's remove an inner class from the class
+    		for ( String removalInnerName : innerNames ){
+    			byte[] btUntouched, btRemoved;
+    			{
+    				ClassPool.doPruning = true;
+    				CtClassType cc0 = (CtClassType) dloader.get(classname);
+    				
+    				btUntouched = cc0.toBytecode();
+//    				{
+//    					Path p = Paths.get( "before" ,cc0.getSimpleName() + ".class");
+//    					p.toFile().getParentFile().mkdirs();
+//    					Files.write( p , btUntouched);
+//    				}
+    				
+    	    		tearDown();
+    	    		setUp();
+    			}
+    			{
+    				CtClassType cc0 = (CtClassType) dloader.get(classname);
+        			cc0.removeNestedClass(removalInnerName);
+        			
+        			btRemoved= cc0.toBytecode();
+        			
+//        			{
+//        				Path p = Paths.get( "after" ,cc0.getSimpleName() + ".class");
+//        				p.toFile().getParentFile().mkdirs();
+//        				Files.write( p , btRemoved);
+//        			}
+        			
+    	    		tearDown();
+    	    		setUp();
+    			}
+    			
+    			//check removed!!
+    			for ( Map.Entry<String,byte[]> Case_byteCodeInvestigating :
+	    				new HashMap<String,byte[]>(){{
+	    					put("untouched", btUntouched);
+	    					put("removed", btRemoved);
+	    				}}.entrySet() ){
+    				
+    				for ( String innerNameInvestigating : innerNames ){
+    					
+    					String descriptorNameInvestigating = innerNameInvestigating.replace(".", "/");
+    					byte[] innerNameByteInvestigating = descriptorNameInvestigating.getBytes(Charset.forName("UTF-8"));
+    					byte[] byteCodeInvestigating = Case_byteCodeInvestigating.getValue();
+
+    					if ( Case_byteCodeInvestigating.getKey().equals( "removed" ) && innerNameInvestigating.equals(removalInnerName) ){
+    						//the bytes for the nested class 'innerName' cannot be found
+    						//if and only if 'innerNameInvestigating' eq 'removalInnerName' and 'bytecodeInvestigating' eq "removed".
+    						for ( int bi = 0; bi <= byteCodeInvestigating.length - innerNameByteInvestigating.length; bi ++ ){
+    							assertFalse(
+    									innerNameInvestigating + "@" + Case_byteCodeInvestigating.getKey() + " removing " + removalInnerName
+    									,
+    									Arrays.equals(
+    											innerNameByteInvestigating
+    											, Arrays.copyOfRange(byteCodeInvestigating, bi, bi+innerNameByteInvestigating.length)));
+
+    						}
+    					}else{
+    						boolean x = false;
+    						for ( int bi = 0; bi <= byteCodeInvestigating.length - innerNameByteInvestigating.length; bi ++ ){
+    							x |=
+    									Arrays.equals(
+    											innerNameByteInvestigating
+    											, Arrays.copyOfRange(byteCodeInvestigating, bi, bi+innerNameByteInvestigating.length));
+
+    						}
+    						assertTrue(
+    									innerNameInvestigating + "@" + Case_byteCodeInvestigating.getKey() + " removing " + removalInnerName
+    											, x);
+    					}
+    				}
+    			}
+    			
+    		}
+
+    	}
+    }
+
 
     public void testConstructorToMethod() throws Exception {
         CtClass cc = sloader.get("test3.Constructor");

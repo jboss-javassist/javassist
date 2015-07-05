@@ -437,7 +437,34 @@ class CtClassType extends CtClass {
         return (CtClass[])list.toArray(new CtClass[list.size()]);
     }
 
-    public void setModifiers(int mod) {
+    @Override
+	public void removeNestedClass(String nameS) {
+    	
+        ClassFile cf = getClassFile2();
+        InnerClassesAttribute ica
+            = (InnerClassesAttribute)cf.getAttribute(InnerClassesAttribute.tag);
+        if (ica == null) {
+        	return;
+        }
+
+        AGAIN:
+        while ( true ){
+        	int n = ica.tableLength();
+        	for (int i = 0; i < n; i++) {
+        		String name = ica.innerClass(i);
+        		if ( nameS.equals(name) ){
+        			checkModify();
+        			gcConstPool = true;
+        			ica.remove(i);
+        			continue AGAIN;//try again when removal occurs.
+        		}
+        	}
+        	break;
+        }
+        return;
+	}
+
+	public void setModifiers(int mod) {
         ClassFile cf = getClassFile2();
         if (Modifier.isStatic(mod)) {
             int flags = cf.getInnerAccessFlags();
