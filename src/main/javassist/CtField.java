@@ -244,11 +244,11 @@ public class CtField extends CtMember {
     /**
      * Returns true if the class has the specified annotation class.
      *
-     * @param clz the annotation class.
+     * @param clz the name of annotation class.
      * @return <code>true</code> if the annotation is found, otherwise <code>false</code>.
      * @since 3.11
      */
-    public boolean hasAnnotation(Class clz) {
+    public boolean hasAnnotation(String clz) {
         FieldInfo fi = getFieldInfo2();
         AnnotationsAttribute ainfo = (AnnotationsAttribute)
                     fi.getAttribute(AnnotationsAttribute.invisibleTag);  

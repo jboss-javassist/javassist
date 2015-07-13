@@ -30,7 +30,7 @@ public abstract class CtMember {
      */
     static class Cache extends CtMember {
         protected void extendToString(StringBuffer buffer) {}
-        public boolean hasAnnotation(Class clz) { return false; }
+        public boolean hasAnnotation(String clz) { return false; }
         public Object getAnnotation(Class clz)
             throws ClassNotFoundException { return null; }
         public Object[] getAnnotations()
@@ -214,7 +214,18 @@ public abstract class CtMember {
      * @return <code>true</code> if the annotation is found, otherwise <code>false</code>.
      * @since 3.11
      */
-    public abstract boolean hasAnnotation(Class clz);
+    public boolean hasAnnotation(Class clz) {
+        return hasAnnotation(clz.getName());
+    }
+
+    /**
+     * Returns true if the class has the specified annotation class.
+     *
+     * @param annotClzName the name of annotation class.
+     * @return <code>true</code> if the annotation is found, otherwise <code>false</code>.
+     * @since 3.11
+     */
+    public abstract boolean hasAnnotation(String annotClzName);
 
     /**
      * Returns the annotation if the class has the specified annotation class.

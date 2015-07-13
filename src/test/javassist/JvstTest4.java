@@ -101,6 +101,10 @@ public class JvstTest4 extends JvstTestRoot {
 
         assertTrue(cc.hasAnnotation(test4.Anno1.class));
         assertFalse(cc.hasAnnotation(java.lang.annotation.Documented.class));
+        
+        assertTrue(cc.hasAnnotation(test4.Anno1.class.getName()));
+        assertFalse(cc.hasAnnotation(java.lang.annotation.Documented.class.getName()));
+        
         assertEquals("empty", ((test4.Anno1)cc.getAnnotation(test4.Anno1.class)).value());
         assertNull(cc.getAnnotation(Deprecated.class));
 
