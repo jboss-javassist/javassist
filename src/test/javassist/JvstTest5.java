@@ -91,4 +91,13 @@ public class JvstTest5 extends JvstTestRoot {
         Object obj = make(cc.getName());
         assertEquals(0, invoke(obj, "say"));
     }
+
+    public void testJIRA249() throws Exception {
+        CtClass cc = sloader.get("test5.BoolTest");
+        CtMethod testMethod = cc.getDeclaredMethod("test");
+        testMethod.insertBefore("i = foo(true & true);");
+        cc.writeFile();
+        Object obj = make(cc.getName());
+        assertEquals(1, invoke(obj, "run"));
+    }
 }

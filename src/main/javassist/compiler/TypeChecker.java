@@ -502,7 +502,7 @@ public class TypeChecker extends Visitor implements Opcode, TokenId {
         else
             insertCast(expr, type1, type2);
 
-        if (CodeGen.isP_INT(exprType))
+        if (CodeGen.isP_INT(exprType) && exprType != BOOLEAN)
             exprType = INT;         // type1 may be BYTE, ...
     }
 
