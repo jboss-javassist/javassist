@@ -661,6 +661,14 @@ public abstract class CtClass {
     }
 
     /**
+     * Removes all Inner Class Attribute
+     * when the InnerName of attribute matches the name.
+     * 
+     * @param name
+     */
+    public void removeNestedClass(String name) {}
+
+    /**
      * Sets the modifiers.
      *
      * <p>If the class is a nested class, this method also modifies
