@@ -3,6 +3,9 @@ package javassist;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.TypeVariable;
 
+import javassist.bytecode.ClassFile;
+import javassist.bytecode.InnerClassesAttribute;
+
 public class JvstTest5 extends JvstTestRoot {
     public JvstTest5(String name) {
         super(name);
@@ -96,6 +99,28 @@ public class JvstTest5 extends JvstTestRoot {
         CtClass cc = sloader.get("test5.BoolTest");
         CtMethod testMethod = cc.getDeclaredMethod("test");
         testMethod.insertBefore("i = foo(true & true);");
+        cc.writeFile();
+        Object obj = make(cc.getName());
+        assertEquals(1, invoke(obj, "run"));
+    }
+
+    public void testInnerClassAttributeRemove() throws Exception {
+        CtClass cc = sloader.get("test5.InnerClassRemove");
+        ClassFile cf = cc.getClassFile();
+        InnerClassesAttribute ica = (InnerClassesAttribute)cf.getAttribute(InnerClassesAttribute.tag);
+        String second = ica.innerClass(1);
+        String secondName = ica.innerName(1);
+        String third = ica.innerClass(2);
+        String thirdName = ica.innerName(2);
+        assertEquals(3, ica.remove(3));
+        assertEquals(2, ica.remove(0));
+        assertEquals(second, ica.innerClass(0));
+        assertEquals(secondName, ica.innerName(0));
+        assertEquals(third, ica.innerClass(1));
+        assertEquals(thirdName, ica.innerName(1));
+        assertEquals(1, ica.remove(1));
+        assertEquals(second, ica.innerClass(0));
+        assertEquals(secondName, ica.innerName(0));
         cc.writeFile();
         Object obj = make(cc.getName());
         assertEquals(1, invoke(obj, "run"));
