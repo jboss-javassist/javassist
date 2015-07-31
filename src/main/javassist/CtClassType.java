@@ -687,7 +687,7 @@ class CtClassType extends CtClass {
             }
             catch (ClassNotFoundException e2){
                 try {
-                    Class<?> clazz = cp.get(anno.getTypeName()).toClass();
+                    Class clazz = cp.get(anno.getTypeName()).toClass();
                     return javassist.bytecode.annotation.AnnotationImpl.make(
                                             clazz.getClassLoader(),
                                             clazz, cp, anno);
@@ -1226,14 +1226,14 @@ class CtClassType extends CtClass {
         CtMember.Cache memCache = getMembers();
         CtMember mth = memCache.methodHead();
         CtMember mthTail = memCache.lastMethod();
-        ArrayList<CtMethod> methods = new ArrayList<CtMethod>();
+        ArrayList methods = new ArrayList();
         while (mth != mthTail) {
             mth = mth.next();
             if (mth.getName().equals(name))
                 methods.add((CtMethod)mth);
         }
 
-        return methods.toArray(new CtMethod[methods.size()]);
+        return (CtMethod[]) methods.toArray(new CtMethod[methods.size()]);
     }
 
     public CtMethod getDeclaredMethod(String name) throws NotFoundException {
