@@ -399,7 +399,7 @@ public class ProxyTester extends TestCase {
     public static void testJIRA189() throws Exception {
     	Class persistentClass = Target189.PublishedArticle.class;
         ProxyFactory factory = new ProxyFactory();
-        factory.writeDirectory = ".";
+        // factory.writeDirectory = ".";
         factory.setUseCache(false);
         factory.setSuperclass(persistentClass);
         factory.setInterfaces(new Class[] { Target189.TestProxy.class });
@@ -417,7 +417,7 @@ public class ProxyTester extends TestCase {
 
     public void testJIRA127() throws Exception {
         ProxyFactory proxyFactory = new ProxyFactory();
-        proxyFactory.writeDirectory = ".";
+        // proxyFactory.writeDirectory = ".";
         proxyFactory.setInterfaces(new Class[]{ Target127.Sub.class });
         Target127.Sub proxy = (Target127.Sub)proxyFactory.create(new Class[0], new Object[0], new MethodHandler() {
             public Object invoke(Object self, Method thisMethod, Method proceed, Object[] args) throws Throwable {

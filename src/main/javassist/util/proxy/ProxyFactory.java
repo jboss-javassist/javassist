@@ -1146,22 +1146,39 @@ public class ProxyFactory {
         for (int i = 0; i < methods.length; i++)
             if (!Modifier.isPrivate(methods[i].getModifiers())) {
                 Method m = methods[i];
-                String key = m.getName() + ':' + RuntimeSupport.makeDescriptor(m);	// see keyToDesc().
+                String key = m.getName() + ':' + RuntimeSupport.makeDescriptor(m);  // see keyToDesc().
                 if (key.startsWith(HANDLER_GETTER_KEY))
                     hasGetHandler = true;
 
                 // JIRA JASSIST-85
                 // put the method to the cache, retrieve previous definition (if any) 
-                Method oldMethod = (Method)hash.put(key, methods[i]); 
+                Method oldMethod = (Method)hash.put(key, m);
+
+                // JIRA JASSIST-244
+                // ignore a bridge method with the same signature that the overridden one has.
+                if (null != oldMethod && isBridge(m)
+                    && !Modifier.isPublic(oldMethod.getDeclaringClass().getModifiers())
+                    && !Modifier.isAbstract(oldMethod.getModifiers()) && !isOverloaded(i, methods))
+                    hash.put(key, oldMethod);
 
                 // check if visibility has been reduced 
                 if (null != oldMethod && Modifier.isPublic(oldMethod.getModifiers())
-                                      && !Modifier.isPublic(methods[i].getModifiers()) ) { 
+                                      && !Modifier.isPublic(m.getModifiers()) ) { 
                     // we tried to overwrite a public definition with a non-public definition,
                     // use the old definition instead. 
                     hash.put(key, oldMethod); 
                 }
             }
+    }
+
+    private static boolean isOverloaded(int index, Method[] methods) {
+        String name = methods[index].getName();
+        for (int i = 0; i < methods.length; i++)
+            if (i != index)
+                if (name.equals(methods[i].getName()))
+                    return true;
+
+        return false;
     }
 
     private static final String HANDLER_GETTER_KEY

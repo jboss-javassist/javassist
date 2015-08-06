@@ -99,4 +99,45 @@ public class ProxySimpleTest extends TestCase {
     public static class WriteReplace2 implements Serializable {
         public Object writeReplace(int i) { return new Integer(i); }
     }
+
+    String value244;
+
+    public void testJIRA244() throws Exception {
+        ProxyFactory factory = new ProxyFactory();
+        factory.setSuperclass(Extended244.class);
+        Extended244 e = (Extended244)factory.create(null, null, new MethodHandler() {
+            @Override
+            public Object invoke(Object self, Method thisMethod,
+                    Method proceed, Object[] args) throws Throwable {
+                value244 += thisMethod.getDeclaringClass().getName();
+                return proceed.invoke(self);
+            }
+        });
+
+        value244 = "";
+        assertEquals("base", e.base());
+        System.out.println(value244);
+        assertEquals(Extended244.class.getName(), value244);
+
+        value244 = "";
+        assertEquals("ext", e.extended());
+        System.out.println(value244);
+        assertEquals(Extended244.class.getName(), value244);
+
+        value244 = "";
+        assertEquals("base2ext2", e.base2());
+        System.out.println(value244);
+        assertEquals(Extended244.class.getName(), value244);
+    }
+
+    // if Base244 is private, then Extended244 has a bridge method for base().
+    private static abstract class Base244 {
+        public String base() { return "base"; }
+        public String base2() { return "base2"; }
+    }
+
+    public static class Extended244 extends Base244 {
+        public String extended() { return "ext"; }
+        public String base2() { return super.base2() + "ext2"; }
+    }
 }
