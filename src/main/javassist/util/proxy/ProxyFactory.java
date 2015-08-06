@@ -1163,7 +1163,7 @@ public class ProxyFactory {
 
                 // check if visibility has been reduced 
                 if (null != oldMethod && Modifier.isPublic(oldMethod.getModifiers())
-                                      && !Modifier.isPublic(m.getModifiers()) ) { 
+                                      && !Modifier.isPublic(m.getModifiers())) { 
                     // we tried to overwrite a public definition with a non-public definition,
                     // use the old definition instead. 
                     hash.put(key, oldMethod); 
