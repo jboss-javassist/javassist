@@ -159,20 +159,20 @@ public abstract class CtBehavior extends CtMember {
     }
 
     /**
-     * Returns true if the class has the specified annotation class.
+     * Returns true if the class has the specified annotation type.
      *
-     * @param clz the name of annotation class.
+     * @param typeName      the name of annotation type.
      * @return <code>true</code> if the annotation is found,
      *         otherwise <code>false</code>.
-     * @since 3.11
+     * @since 3.21
      */
-    public boolean hasAnnotation(String clz) {
+    public boolean hasAnnotation(String typeName) {
        MethodInfo mi = getMethodInfo2();
        AnnotationsAttribute ainfo = (AnnotationsAttribute)
                    mi.getAttribute(AnnotationsAttribute.invisibleTag);  
        AnnotationsAttribute ainfo2 = (AnnotationsAttribute)
                    mi.getAttribute(AnnotationsAttribute.visibleTag);  
-       return CtClassType.hasAnnotationType(clz,
+       return CtClassType.hasAnnotationType(typeName,
                                             getDeclaringClass().getClassPool(),
                                             ainfo, ainfo2);
     }

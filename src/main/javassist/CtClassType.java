@@ -452,15 +452,18 @@ class CtClassType extends CtClass {
     }
 
     //@Override
-    public boolean hasAnnotation(String annotClzName) {
+    public boolean hasAnnotation(String annotationName) {
         ClassFile cf = getClassFile2();
         AnnotationsAttribute ainfo = (AnnotationsAttribute)
                 cf.getAttribute(AnnotationsAttribute.invisibleTag);
         AnnotationsAttribute ainfo2 = (AnnotationsAttribute)
                 cf.getAttribute(AnnotationsAttribute.visibleTag);
-        return hasAnnotationType(annotClzName, getClassPool(), ainfo, ainfo2);
+        return hasAnnotationType(annotationName, getClassPool(), ainfo, ainfo2);
     }
 
+    /**
+     * @deprecated
+     */
     static boolean hasAnnotationType(Class clz, ClassPool cp,
                                      AnnotationsAttribute a1,
                                      AnnotationsAttribute a2)
@@ -468,7 +471,7 @@ class CtClassType extends CtClass {
         return hasAnnotationType(clz.getName(), cp, a1, a2);
     }
 
-    static boolean hasAnnotationType(String annotationClzNm, ClassPool cp,
+    static boolean hasAnnotationType(String annotationTypeName, ClassPool cp,
                                      AnnotationsAttribute a1,
                                      AnnotationsAttribute a2)
     {
@@ -484,16 +487,14 @@ class CtClassType extends CtClass {
         else
             anno2 = a2.getAnnotations();
 
-        //        String typeName = clz.getName();
-        String typeName = annotationClzNm;
         if (anno1 != null)
             for (int i = 0; i < anno1.length; i++)
-                if (anno1[i].getTypeName().equals(typeName))
+                if (anno1[i].getTypeName().equals(annotationTypeName))
                     return true;
 
         if (anno2 != null)
             for (int i = 0; i < anno2.length; i++)
-                if (anno2[i].getTypeName().equals(typeName))
+                if (anno2[i].getTypeName().equals(annotationTypeName))
                     return true;
 
         return false;

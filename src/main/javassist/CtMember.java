@@ -208,9 +208,9 @@ public abstract class CtMember {
     public abstract void setModifiers(int mod);
 
     /**
-     * Returns true if the class has the specified annotation class.
+     * Returns true if the class has the specified annotation type.
      *
-     * @param clz the annotation class.
+     * @param clz the annotation type.
      * @return <code>true</code> if the annotation is found, otherwise <code>false</code>.
      * @since 3.11
      */
@@ -219,26 +219,26 @@ public abstract class CtMember {
     }
 
     /**
-     * Returns true if the class has the specified annotation class.
+     * Returns true if the class has the specified annotation type.
      *
-     * @param annotClzName the name of annotation class.
+     * @param annotationTypeName the name of annotation type.
      * @return <code>true</code> if the annotation is found, otherwise <code>false</code>.
-     * @since 3.11
+     * @since 3.21
      */
-    public abstract boolean hasAnnotation(String annotClzName);
+    public abstract boolean hasAnnotation(String annotationTypeName);
 
     /**
-     * Returns the annotation if the class has the specified annotation class.
+     * Returns the annotation if the class has the specified annotation type.
      * For example, if an annotation <code>@Author</code> is associated
      * with this member, an <code>Author</code> object is returned.
      * The member values can be obtained by calling methods on
      * the <code>Author</code> object.
      *
-     * @param clz the annotation class.
+     * @param annotationType    the annotation type.
      * @return the annotation if found, otherwise <code>null</code>.
      * @since 3.11
      */
-    public abstract Object getAnnotation(Class clz) throws ClassNotFoundException;
+    public abstract Object getAnnotation(Class annotationType) throws ClassNotFoundException;
 
     /**
      * Returns the annotations associated with this member.
