@@ -589,6 +589,17 @@ public abstract class CtClass {
      * @since 3.11
      */
     public boolean hasAnnotation(Class clz) {
+        return hasAnnotation(clz.getName());
+    }
+
+    /**
+     * Returns true if the class has the specified annotation class.
+     *
+     * @param annotClzName the name of annotation class.
+     * @return <code>true</code> if the annotation is found, otherwise <code>false</code>.
+     * @since 3.11
+     */
+    public boolean hasAnnotation(String annotClzName) {
         return false;
     }
 

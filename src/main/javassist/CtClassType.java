@@ -451,17 +451,26 @@ class CtClassType extends CtClass {
         cf.setAccessFlags(AccessFlag.of(mod));
     }
 
-    public boolean hasAnnotation(Class clz) {
+    //@Override
+    public boolean hasAnnotation(String annotClzName) {
         ClassFile cf = getClassFile2();
         AnnotationsAttribute ainfo = (AnnotationsAttribute)
-                cf.getAttribute(AnnotationsAttribute.invisibleTag);  
+                cf.getAttribute(AnnotationsAttribute.invisibleTag);
         AnnotationsAttribute ainfo2 = (AnnotationsAttribute)
-                cf.getAttribute(AnnotationsAttribute.visibleTag);  
-        return hasAnnotationType(clz, getClassPool(), ainfo, ainfo2);
+                cf.getAttribute(AnnotationsAttribute.visibleTag);
+        return hasAnnotationType(annotClzName, getClassPool(), ainfo, ainfo2);
     }
 
     static boolean hasAnnotationType(Class clz, ClassPool cp,
-                                     AnnotationsAttribute a1, AnnotationsAttribute a2)
+                                     AnnotationsAttribute a1,
+                                     AnnotationsAttribute a2)
+    {
+        return hasAnnotationType(clz.getName(), cp, a1, a2);
+    }
+
+    static boolean hasAnnotationType(String annotationClzNm, ClassPool cp,
+                                     AnnotationsAttribute a1,
+                                     AnnotationsAttribute a2)
     {
         Annotation[] anno1, anno2;
 
@@ -475,16 +484,17 @@ class CtClassType extends CtClass {
         else
             anno2 = a2.getAnnotations();
 
-        String typeName = clz.getName();
+        //        String typeName = clz.getName();
+        String typeName = annotationClzNm;
         if (anno1 != null)
-           for (int i = 0; i < anno1.length; i++)
-              if (anno1[i].getTypeName().equals(typeName))
-                  return true;
+            for (int i = 0; i < anno1.length; i++)
+                if (anno1[i].getTypeName().equals(typeName))
+                    return true;
 
         if (anno2 != null)
-           for (int i = 0; i < anno2.length; i++)
-              if (anno2[i].getTypeName().equals(typeName))
-                  return true;
+            for (int i = 0; i < anno2.length; i++)
+                if (anno2[i].getTypeName().equals(typeName))
+                    return true;
 
         return false;
     }
