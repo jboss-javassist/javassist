@@ -642,7 +642,7 @@ public class MemberCodeGen extends CodeGen {
             bytecode.addInvokestatic(declClass, mname, desc);
         }
         else if (isSpecial)    // if (isSpecial && notStatic(acc))
-            bytecode.addInvokespecial(declClass, mname, desc);
+            bytecode.addInvokespecial(targetClass, mname, desc);
         else {
             if (!Modifier.isPublic(declClass.getModifiers())
                 || declClass.isInterface() != targetClass.isInterface())

@@ -128,11 +128,11 @@ public class JvstTest5 extends JvstTestRoot {
 
     public void testJIRA248() throws Exception {
         CtClass cc = sloader.get("test5.JIRA248");
-        String methodBody = "public int run() { return foo() + super.foo(); }";
+        String methodBody = "public int run() { return foo() + super.foo() + super.bar(); }";
         CtMethod ctMethod = CtMethod.make(methodBody, cc);
         cc.addMethod(ctMethod);
         cc.writeFile();
         Object obj = make(cc.getName());
-        assertEquals(71, invoke(obj, "run"));
+        assertEquals(271, invoke(obj, "run"));
     }
 }
