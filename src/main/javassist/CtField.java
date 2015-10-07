@@ -374,6 +374,17 @@ public class CtField extends CtMember {
 
     /**
      * Sets the type of the field.
+     *
+     * <p>This method does not automatically update method bodies that access
+     * this field.  They have to be explicitly updated.  For example,
+     * if some method contains an expression {@code t.value} and the type
+     * of the variable {@code t} is changed by {@link #setType(CtClass)}
+     * from {@code int} to {@code double}, then {@ t.value} has to be modified
+     * since the bytecode of {@code t.value} contains the type information.
+     * </p>
+     *
+     * @see CodeConverter
+     * @see javassist.expr.ExprEditor
      */
     public void setType(CtClass clazz) {
         declaringClass.checkModify();
