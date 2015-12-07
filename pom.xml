@@ -147,7 +147,7 @@
           <target>1.6</target>
           <testSource>1.8</testSource>
           <testTarget>1.8</testTarget>
-          <compilerArgument>-parameters</compilerArgument>
+          <testCompilerArgument>-parameters</testCompilerArgument>
         </configuration>
       </plugin>
       <plugin>
