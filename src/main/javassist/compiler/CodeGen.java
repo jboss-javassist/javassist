@@ -1420,12 +1420,13 @@ public abstract class CodeGen extends Visitor implements Opcode, TokenId {
         int type = expr.getType();
         oprand.accept(this);
         int srcType = exprType;
+        int srcDim = arrayDim;
         if (invalidDim(srcType, arrayDim, className, type, dim, name, true)
             || srcType == VOID || type == VOID)
             throw new CompileError(msg);
 
         if (type == CLASS) {
-            if (!isRefType(srcType))
+            if (!isRefType(srcType) && srcDim == 0)
                 throw new CompileError(msg);
 
             return toJvmArrayName(name, dim);

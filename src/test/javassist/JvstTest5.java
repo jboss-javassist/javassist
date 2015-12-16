@@ -135,4 +135,11 @@ public class JvstTest5 extends JvstTestRoot {
         Object obj = make(cc.getName());
         assertEquals(40271, invoke(obj, "run"));
     }
+
+    public void testInvalidCastWithDollar() throws Exception {
+        String code = "{ new JavassistInvalidCastTest().inspectReturn((Object) ($w) $_); } ";
+        CtClass c = sloader.get("test5.InvalidCastDollar");
+        for (CtMethod method : c.getDeclaredMethods())
+            method.insertAfter(code);
+    }
 }
