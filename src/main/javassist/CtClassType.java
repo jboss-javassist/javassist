@@ -192,7 +192,24 @@ class CtClassType extends CtClass {
         try {
             fin = classPool.openClassfile(getName());
             if (fin == null)
-                throw new NotFoundException(getName());
+            {
+                CtClass tmp = classPool.makeClass(getName());
+
+                if (tmp == null)
+                {
+                    throw new NotFoundException(getName());
+                }
+                else
+                {
+                    try
+                    {
+                        fin = new ByteArrayInputStream(tmp.toBytecode());
+                    }
+                    catch (CannotCompileException e)
+                    {
+                    }
+                }
+            }
 
             fin = new BufferedInputStream(fin);
             ClassFile cf = new ClassFile(new DataInputStream(fin));
@@ -451,29 +468,17 @@ class CtClassType extends CtClass {
         cf.setAccessFlags(AccessFlag.of(mod));
     }
 
-    //@Override
-    public boolean hasAnnotation(String annotationName) {
+    public boolean hasAnnotation(Class clz) {
         ClassFile cf = getClassFile2();
         AnnotationsAttribute ainfo = (AnnotationsAttribute)
-                cf.getAttribute(AnnotationsAttribute.invisibleTag);
+                cf.getAttribute(AnnotationsAttribute.invisibleTag);  
         AnnotationsAttribute ainfo2 = (AnnotationsAttribute)
-                cf.getAttribute(AnnotationsAttribute.visibleTag);
-        return hasAnnotationType(annotationName, getClassPool(), ainfo, ainfo2);
+                cf.getAttribute(AnnotationsAttribute.visibleTag);  
+        return hasAnnotationType(clz, getClassPool(), ainfo, ainfo2);
     }
 
-    /**
-     * @deprecated
-     */
     static boolean hasAnnotationType(Class clz, ClassPool cp,
-                                     AnnotationsAttribute a1,
-                                     AnnotationsAttribute a2)
-    {
-        return hasAnnotationType(clz.getName(), cp, a1, a2);
-    }
-
-    static boolean hasAnnotationType(String annotationTypeName, ClassPool cp,
-                                     AnnotationsAttribute a1,
-                                     AnnotationsAttribute a2)
+                                     AnnotationsAttribute a1, AnnotationsAttribute a2)
     {
         Annotation[] anno1, anno2;
 
@@ -487,15 +492,16 @@ class CtClassType extends CtClass {
         else
             anno2 = a2.getAnnotations();
 
+        String typeName = clz.getName();
         if (anno1 != null)
-            for (int i = 0; i < anno1.length; i++)
-                if (anno1[i].getTypeName().equals(annotationTypeName))
-                    return true;
+           for (int i = 0; i < anno1.length; i++)
+              if (anno1[i].getTypeName().equals(typeName))
+                  return true;
 
         if (anno2 != null)
-            for (int i = 0; i < anno2.length; i++)
-                if (anno2[i].getTypeName().equals(annotationTypeName))
-                    return true;
+           for (int i = 0; i < anno2.length; i++)
+              if (anno2[i].getTypeName().equals(typeName))
+                  return true;
 
         return false;
     }
@@ -698,7 +704,7 @@ class CtClassType extends CtClass {
             }
             catch (ClassNotFoundException e2){
                 try {
-                    Class clazz = cp.get(anno.getTypeName()).toClass();
+                    Class<?> clazz = cp.get(anno.getTypeName()).toClass();
                     return javassist.bytecode.annotation.AnnotationImpl.make(
                                             clazz.getClassLoader(),
                                             clazz, cp, anno);
@@ -1237,14 +1243,14 @@ class CtClassType extends CtClass {
         CtMember.Cache memCache = getMembers();
         CtMember mth = memCache.methodHead();
         CtMember mthTail = memCache.lastMethod();
-        ArrayList methods = new ArrayList();
+        ArrayList<CtMethod> methods = new ArrayList<CtMethod>();
         while (mth != mthTail) {
             mth = mth.next();
             if (mth.getName().equals(name))
                 methods.add((CtMethod)mth);
         }
 
-        return (CtMethod[]) methods.toArray(new CtMethod[methods.size()]);
+        return methods.toArray(new CtMethod[methods.size()]);
     }
 
     public CtMethod getDeclaredMethod(String name) throws NotFoundException {
