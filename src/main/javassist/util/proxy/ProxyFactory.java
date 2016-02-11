@@ -421,19 +421,20 @@ public class ProxyFactory {
     }
 
     private Class createClass1() {
-        if (thisClass == null) {
+        Class result = thisClass;
+        if (result == null) {
             ClassLoader cl = getClassLoader();
             synchronized (proxyCache) {
                 if (factoryUseCache)
                     createClass2(cl);
                 else 
                     createClass3(cl);
+
+                result = thisClass;
+                // don't retain any unwanted references
+                thisClass = null;
             }
         }
-
-        // don't retain any unwanted references
-        Class result = thisClass;
-        thisClass = null;
 
         return result;
     }
