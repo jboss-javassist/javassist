@@ -78,7 +78,7 @@ public class Annotation {
      * Constructs an annotation including no members.  A member can be
      * later added to the created annotation by <code>addMemberValue()</code>. 
      *
-     * @param typeName  the name of the annotation interface type.
+     * @param typeName  the fully-qualified name of the annotation interface type.
      * @param cp        the constant pool table.
      *
      * @see #addMemberValue(String, MemberValue)

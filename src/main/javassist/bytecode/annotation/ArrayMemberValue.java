@@ -130,7 +130,7 @@ public class ArrayMemberValue extends MemberValue {
      * Writes the value.
      */
     public void write(AnnotationsWriter writer) throws IOException {
-        int num = values.length;
+        int num = values == null ? 0 : values.length;
         writer.arrayValue(num);
         for (int i = 0; i < num; ++i)
             values[i].write(writer);

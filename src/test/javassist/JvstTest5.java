@@ -3,7 +3,9 @@ package javassist;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.TypeVariable;
 
+import javassist.bytecode.AnnotationsAttribute;
 import javassist.bytecode.ClassFile;
+import javassist.bytecode.ConstPool;
 import javassist.bytecode.InnerClassesAttribute;
 
 public class JvstTest5 extends JvstTestRoot {
@@ -141,5 +143,29 @@ public class JvstTest5 extends JvstTestRoot {
         CtClass c = sloader.get("test5.InvalidCastDollar");
         for (CtMethod method : c.getDeclaredMethods())
             method.insertAfter(code);
+    }
+
+    public void testJIRA256() throws Exception {
+        // CtClass ec = sloader.get("test5.Entity");
+
+        CtClass cc = sloader.makeClass("test5.JIRA256");
+        ClassFile ccFile = cc.getClassFile();
+        ConstPool constpool = ccFile.getConstPool();
+         
+        AnnotationsAttribute attr = new AnnotationsAttribute(constpool, AnnotationsAttribute.visibleTag);
+        javassist.bytecode.annotation.Annotation entityAnno
+            = new javassist.bytecode.annotation.Annotation("test5.Entity", constpool);
+            // = new javassist.bytecode.annotation.Annotation(constpool, ec);
+
+        entityAnno.addMemberValue("value", new javassist.bytecode.annotation.ArrayMemberValue(constpool));
+        attr.addAnnotation(entityAnno);
+        ccFile.addAttribute(attr);
+
+        cc.writeFile();
+        Object o = make(cc.getName());
+        assertTrue(o.getClass().getName().equals("test5.JIRA256"));
+
+        java.lang.annotation.Annotation[] annotations = o.getClass().getDeclaredAnnotations();
+        assertEquals(1, annotations.length); 
     }
 }
