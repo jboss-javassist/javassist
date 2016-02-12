@@ -170,18 +170,24 @@ class CtClassType extends CtClass {
     }
 
     public ClassFile getClassFile2() {
+        return getClassFile3(true);
+    }
+
+    public ClassFile getClassFile3(boolean doCompress) {
         ClassFile cfile = classfile;
         if (cfile != null)
             return cfile;
 
-        classPool.compress();
+        if (doCompress)
+            classPool.compress();
+
         if (rawClassfile != null) {
             try {
-                classfile = new ClassFile(new DataInputStream(
-                                            new ByteArrayInputStream(rawClassfile)));
+                ClassFile cf = new ClassFile(new DataInputStream(
+                                             new ByteArrayInputStream(rawClassfile)));
                 rawClassfile = null;
                 getCount = GET_THRESHOLD;
-                return classfile;
+                return setClassFile(cf);
             }
             catch (IOException e) {
                 throw new RuntimeException(e.toString(), e);
@@ -201,8 +207,7 @@ class CtClassType extends CtClass {
                         + cf.getName() + " found in "
                         + qualifiedName.replace('.', '/') + ".class");
 
-            classfile = cf;
-            return cf;
+            return setClassFile(cf);
         }
         catch (NotFoundException e) {
             throw new RuntimeException(e.toString(), e);
@@ -246,7 +251,7 @@ class CtClassType extends CtClass {
      * for saving memory space.
      */
     private synchronized void saveClassFile() {
-        /* getMembers() and releaseClassFile() are also synchronized.
+        /* getMembers() and removeClassFile() are also synchronized.
          */
         if (classfile == null || hasMemberCache() != null)
             return;
@@ -265,6 +270,16 @@ class CtClassType extends CtClass {
     private synchronized void removeClassFile() {
         if (classfile != null && !isModified() && hasMemberCache() == null)
             classfile = null;
+    }
+
+    /**
+     * Updates {@code classfile} if it is null.
+     */
+    private synchronized ClassFile setClassFile(ClassFile cf) {
+        if (classfile == null)
+            classfile = cf;
+
+        return classfile;
     }
 
     public ClassPool getClassPool() { return classPool; }
@@ -861,8 +876,9 @@ class CtClassType extends CtClass {
      * Returns null if members are not cached.
      */
     protected CtMember.Cache hasMemberCache() {
-        if (memberCache != null)
-            return (CtMember.Cache)memberCache.get();
+        WeakReference cache = memberCache;
+        if (cache != null)
+            return (CtMember.Cache)cache.get();
         else
             return null;
     }
@@ -881,7 +897,7 @@ class CtClassType extends CtClass {
     }
 
     private void makeFieldCache(CtMember.Cache cache) {
-        List list = getClassFile2().getFields();
+        List list = getClassFile3(false).getFields();
         int n = list.size();
         for (int i = 0; i < n; ++i) {
             FieldInfo finfo = (FieldInfo)list.get(i);
@@ -891,7 +907,7 @@ class CtClassType extends CtClass {
     }
 
     private void makeBehaviorCache(CtMember.Cache cache) {
-        List list = getClassFile2().getMethods();
+        List list = getClassFile3(false).getMethods();
         int n = list.size();
         for (int i = 0; i < n; ++i) {
             MethodInfo minfo = (MethodInfo)list.get(i);
