@@ -126,19 +126,25 @@ public final class ClassFile {
      * if the JVM supports <code>java.util.zip.DeflaterInputStream</code>.
      * It is 51 (JDK 1.7)
      * if the JVM supports <code>java.lang.invoke.CallSite</code>.
+     * It is 52 (JDK 1.8)
+     * if the JVM supports <code>java.util.function.Function</code>.
      */
-    public static int MAJOR_VERSION = JAVA_3;
+    public static final int MAJOR_VERSION;
 
     static {
+        int ver = JAVA_3;
         try {
             Class.forName("java.lang.StringBuilder");
-            MAJOR_VERSION = JAVA_5;
+            ver = JAVA_5;
             Class.forName("java.util.zip.DeflaterInputStream");
-            MAJOR_VERSION = JAVA_6;
+            ver = JAVA_6;
             Class.forName("java.lang.invoke.CallSite");
-            MAJOR_VERSION = JAVA_7;
+            ver = JAVA_7;
+            Class.forName("java.util.function.Function");
+            ver = JAVA_8;
         }
         catch (Throwable t) {}
+        MAJOR_VERSION = ver;
     }
 
     /**

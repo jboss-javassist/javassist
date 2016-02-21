@@ -1243,7 +1243,8 @@ public class ProxyFactory {
         Bytecode code = new Bytecode(cp, 0, 0);
         code.addAload(0);
         int s = addLoadParameters(code, meth.getParameterTypes(), 1);
-        code.addInvokespecial(declClass.getName(), meth.getName(), desc);
+        code.addInvokespecial(declClass.isInterface(), cp.addClassInfo(declClass.getName()),
+                              meth.getName(), desc);
         addReturn(code, meth.getReturnType());
         code.setMaxLocals(++s);
         delegator.setCodeAttribute(code.toCodeAttribute());
