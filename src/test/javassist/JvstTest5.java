@@ -7,6 +7,8 @@ import javassist.bytecode.AnnotationsAttribute;
 import javassist.bytecode.ClassFile;
 import javassist.bytecode.ConstPool;
 import javassist.bytecode.InnerClassesAttribute;
+import javassist.expr.ExprEditor;
+import javassist.expr.MethodCall;
 
 public class JvstTest5 extends JvstTestRoot {
     public JvstTest5(String name) {
@@ -167,5 +169,18 @@ public class JvstTest5 extends JvstTestRoot {
 
         java.lang.annotation.Annotation[] annotations = o.getClass().getDeclaredAnnotations();
         assertEquals(1, annotations.length); 
+    }
+
+    public void testProceedToDefaultMethod() throws Exception {
+        CtClass cc = ClassPool.getDefault().get("test5.ProceedDefault");
+        CtMethod mth = cc.getDeclaredMethod("bar");
+        mth.instrument(new ExprEditor() {
+            public void edit(MethodCall c) throws CannotCompileException {
+                c.replace("$_ = $proceed($$) + 10000;");
+            }
+        });
+        cc.writeFile();
+        Object obj = make(cc.getName());
+        assertEquals(21713, invoke(obj, "run"));
     }
 }

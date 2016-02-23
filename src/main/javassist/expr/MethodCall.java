@@ -215,7 +215,7 @@ public class MethodCall extends Expr {
                 jc.recordStaticProceed(classname, methodname);
             else if (c == INVOKESPECIAL)
                 jc.recordSpecialProceed(Javac.param0Name, classname,
-                                        methodname, signature);
+                                        methodname, signature, index);
             else
                 jc.recordProceed(Javac.param0Name, methodname);
 

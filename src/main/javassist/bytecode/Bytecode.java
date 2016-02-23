@@ -976,13 +976,27 @@ public class Bytecode extends ByteVector implements Cloneable, Opcode {
      * @see Descriptor#ofConstructor(CtClass[])
      */
     public void addInvokespecial(boolean isInterface, int clazz, String name, String desc) {
-        add(INVOKESPECIAL);
         int index;
         if (isInterface)
             index = constPool.addInterfaceMethodrefInfo(clazz, name, desc);
         else
             index = constPool.addMethodrefInfo(clazz, name, desc);
 
+        addInvokespecial(index, desc);
+    }
+
+    /**
+     * Appends INVOKESPECIAL.
+     *
+     * @param index     the index of <code>CONSTANT_Methodref_info</code>
+     *                  or <code>CONSTANT_InterfaceMethodref_info</code>
+     * @param desc      the descriptor of the method signature.
+     *
+     * @see Descriptor#ofMethod(CtClass,CtClass[])
+     * @see Descriptor#ofConstructor(CtClass[])
+     */
+    public void addInvokespecial(int index, String desc) {
+        add(INVOKESPECIAL);
         addIndex(index);
         growStack(Descriptor.dataSize(desc) - 1);
     }

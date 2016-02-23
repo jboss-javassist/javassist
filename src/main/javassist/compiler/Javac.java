@@ -516,27 +516,25 @@ public class Javac {
      * @param methodname    the method name.
      * @param descriptor    the method descriptor.
      */
-    public void recordSpecialProceed(String target, String classname,
-                                     String methodname, String descriptor)
+    public void recordSpecialProceed(String target, final String classname,
+                                     final String methodname, final String descriptor,
+                                     final int methodIndex)
         throws CompileError
     {
         Parser p = new Parser(new Lex(target));
         final ASTree texpr = p.parseExpression(stable);
-        final String cname = classname;
-        final String method = methodname;
-        final String desc = descriptor;
 
         ProceedHandler h = new ProceedHandler() {
                 public void doit(JvstCodeGen gen, Bytecode b, ASTList args)
                     throws CompileError
                 {
-                    gen.compileInvokeSpecial(texpr, cname, method, desc, args);
+                    gen.compileInvokeSpecial(texpr, methodIndex, descriptor, args);
                 }
 
                 public void setReturnType(JvstTypeChecker c, ASTList args)
                     throws CompileError
                 {
-                    c.compileInvokeSpecial(texpr, cname, method, desc, args);
+                    c.compileInvokeSpecial(texpr, classname, methodname, descriptor, args);
                 }
 
             };

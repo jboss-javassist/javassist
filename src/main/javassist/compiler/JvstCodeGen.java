@@ -393,16 +393,15 @@ public class JvstCodeGen extends MemberCodeGen {
 
     /* called by Javac#recordSpecialProceed().
      */
-    void compileInvokeSpecial(ASTree target, String classname,
-                              String methodname, String descriptor,
-                              ASTList args)
+    void compileInvokeSpecial(ASTree target, int methodIndex,
+                              String descriptor, ASTList args)
         throws CompileError
     {
         target.accept(this);
         int nargs = getMethodArgsLength(args);
         atMethodArgs(args, new int[nargs], new int[nargs],
                      new String[nargs]);
-        bytecode.addInvokespecial(classname, methodname, descriptor);
+        bytecode.addInvokespecial(methodIndex, descriptor);
         setReturnType(descriptor, false, false);
         addNullIfVoid();
     }
