@@ -139,7 +139,7 @@ public class JvstTest5 extends JvstTestRoot {
     }
 
     public void testInvalidCastWithDollar() throws Exception {
-        String code = "{ new JavassistInvalidCastTest().inspectReturn((Object) ($w) $_); } ";
+        String code = "{ new test5.JavassistInvalidCastTest().inspectReturn((Object) ($w) $_); } ";
         CtClass c = sloader.get("test5.InvalidCastDollar");
         for (CtMethod method : c.getDeclaredMethods())
             method.insertAfter(code);
