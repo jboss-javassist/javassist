@@ -104,7 +104,8 @@ public class MemberResolver implements TokenId {
             int n = list.size();
             for (int i = 0; i < n; ++i) {
                 MethodInfo minfo = (MethodInfo)list.get(i);
-                if (minfo.getName().equals(methodName)) {
+                if (minfo.getName().equals(methodName)
+                    && (minfo.getAccessFlags() & AccessFlag.BRIDGE) == 0) {
                     int res = compareSignature(minfo.getDescriptor(),
                                            argTypes, argDims, argClassNames);
                     if (res != NO) {
@@ -121,7 +122,8 @@ public class MemberResolver implements TokenId {
         if (onlyExact)
             maybe = null;
         else
-            onlyExact = maybe != null;
+            if (maybe != null)
+                return maybe;
 
         int mod = clazz.getModifiers();
         boolean isIntf = Modifier.isInterface(mod);

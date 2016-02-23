@@ -171,6 +171,18 @@ public class JvstTest5 extends JvstTestRoot {
         assertEquals(1, annotations.length); 
     }
 
+    public void testJIRA250() throws Exception {
+        CtClass cc = sloader.makeClass("test5.JIRA250", sloader.get("test5.JIRA250Super"));
+        cc.addMethod(CtNewMethod.make(
+                "    public test5.JIRA250Bar getBar() {" + 
+                "        return super.getBar();\n" +
+                "    }\n", cc));
+        cc.addMethod(CtNewMethod.make("public int run() { getBar(); return 1; }", cc));
+        cc.writeFile();
+        Object obj = make(cc.getName());
+        assertEquals(1, invoke(obj, "run"));
+    }
+
     public void testProceedToDefaultMethod() throws Exception {
         CtClass cc = ClassPool.getDefault().get("test5.ProceedDefault");
         CtMethod mth = cc.getDeclaredMethod("bar");
