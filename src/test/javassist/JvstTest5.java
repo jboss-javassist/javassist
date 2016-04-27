@@ -195,4 +195,29 @@ public class JvstTest5 extends JvstTestRoot {
         Object obj = make(cc.getName());
         assertEquals(21713, invoke(obj, "run"));
     }
+
+    public void testBadClass() throws Exception {
+        CtClass badClass = ClassPool.getDefault().makeClass("badClass");
+        String src = String.join(System.getProperty("line.separator"),
+                "public void eval () {",
+                "    if (true) {",
+                "        double t=0;",
+                "    } else {",
+                "        double t=0;",
+                "    }",
+                "    for (int i=0; i < 2; i++) {",
+                "        int a=0;",
+                "        int b=0;",
+                "        int c=0;",
+                "        int d=0;",
+                "        if (true) {",
+                "            int e = 0;",
+                "        }",
+                "    }",
+                "}");
+        System.out.println(src);
+        badClass.addMethod(CtMethod.make(src, badClass));
+        Class clazzz = badClass.toClass();
+        Object obj = clazzz.newInstance(); // <-- falls here
+    }
 }

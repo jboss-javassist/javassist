@@ -319,11 +319,12 @@ public abstract class TypeData {
             }
 
             if (isBasicType) {
+                is2WordType = kind.is2WordType();
                 for (int i = 0; i < size; i++) {
                     TypeVar cv = (TypeVar)scc.get(i);
                     cv.lowers.clear();
                     cv.lowers.add(kind);
-                    is2WordType = kind.is2WordType();
+                    cv.is2WordType = kind.is2WordType();
                 }
             }
             else {
