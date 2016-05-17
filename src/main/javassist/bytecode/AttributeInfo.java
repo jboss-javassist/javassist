@@ -30,6 +30,10 @@ import java.util.Iterator;
 
 /**
  * <code>attribute_info</code> structure.
+ *
+ * @see ClassFile#getAttribute(String)
+ * @see MethodInfo#getAttribute(String)
+ * @see FieldInfo#getAttribute(String)
  */
 public class AttributeInfo {
     protected ConstPool constPool;
