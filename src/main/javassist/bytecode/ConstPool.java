@@ -222,6 +222,9 @@ public final class ConstPool {
     /**
      * Returns the <code>tag</code> field of the constant pool table
      * entry at the given index.
+     *
+     * @return either <code>CONST_Class</code>, <code>CONST_Fieldref</code>,
+     *         <code>CONST_Methodref</code>, or ...  
      */
     public int getTag(int index) {
         return getItem(index).getTag();
