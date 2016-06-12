@@ -20,12 +20,12 @@ public class Test {
         annotation = new Annotation(constPool, classPool.get("Table"));
         annotation.addMemberValue("name", new StringMemberValue("name", constPool));
         annotation.addMemberValue("schema", new StringMemberValue("schema", constPool));
-        ArrayMemberValue blankMemberValueArray = new ArrayMemberValue(new AnnotationMemberValue(constPool), constPool);
-        blankMemberValueArray.setValue(new MemberValue[0]);
-        annotation.addMemberValue("uniqueConstraints", blankMemberValueArray);
-        annotation.addMemberValue("indexes", blankMemberValueArray);
+//        ArrayMemberValue blankMemberValueArray = new ArrayMemberValue(new AnnotationMemberValue(constPool), constPool);
+//        blankMemberValueArray.setValue(new MemberValue[0]);
+//        annotation.addMemberValue("textValues", blankMemberValueArray);
         annotations[1] = annotation;
         attrib.setAnnotations(annotations);
         cf.addAttribute(attrib);
+        System.out.println("done");
     }
 }
