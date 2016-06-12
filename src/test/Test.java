@@ -4,7 +4,7 @@ import javassist.bytecode.annotation.*;
 
 @interface Entity {}
 
-@interface Table {}
+@interface Table { String[] textValues() default {}; }
 
 public class Test {
     public static void main(String[] args) throws Exception {
