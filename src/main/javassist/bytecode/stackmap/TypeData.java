@@ -335,6 +335,24 @@ public abstract class TypeData {
                 }
             }
         }
+        
+        private CtClass getOrMakeCtClassIfNotLoadedYet(ClassPool cp, String className) throws NotFoundException
+        {
+            CtClass cc;
+            try
+            {
+                cc = cp.get(className);
+            }
+            catch (NotFoundException e)
+            {
+                cc = cp.makeClass(className);
+                if (cc == null) {
+                    throw e;
+                }
+            }
+
+            return cc;
+        }
 
         private String fixTypes2(ArrayList scc, HashSet lowersSet, ClassPool cp) throws NotFoundException {
             Iterator it = lowersSet.iterator();
@@ -342,18 +360,25 @@ public abstract class TypeData {
                 return null;      // only NullType
             else if (lowersSet.size() == 1)
                 return (String)it.next(); 
-            else {
-            	CtClass cc = cp.get((String)it.next());
-            	while (it.hasNext())
-            		cc = commonSuperClassEx(cc, cp.get((String)it.next()));
+            else
+            {
+                String className = (String) it.next();
+                CtClass cc = getOrMakeCtClassIfNotLoadedYet(cp, className);
 
-            	if (cc.getSuperclass() == null || isObjectArray(cc))
-            	    cc = fixByUppers(scc, cp, new HashSet(), cc);
+                while (it.hasNext())
+                {
+                    className = (String) it.next();
+                    CtClass tmp = getOrMakeCtClassIfNotLoadedYet(cp, className);
+                    cc = commonSuperClassEx(cc, tmp);
+                }
 
-            	if (cc.isArray())
-            	    return Descriptor.toJvmName(cc);
-            	else
-            	    return cc.getName();
+                if (cc.getSuperclass() == null || isObjectArray(cc))
+                { cc = fixByUppers(scc, cp, new HashSet(), cc); }
+
+                if (cc.isArray())
+                { return Descriptor.toJvmName(cc); }
+                else
+                { return cc.getName(); }
             }
         }
 
@@ -376,7 +401,8 @@ public abstract class TypeData {
                 if (t.uppers != null) {
                     int s = t.uppers.size();
                     for (int k = 0; k < s; k++) {
-                        CtClass cc = cp.get((String)t.uppers.get(k));
+                        String className = (String)t.uppers.get(k);
+                        CtClass cc = getOrMakeCtClassIfNotLoadedYet(cp, className);
                         if (cc.subtypeOf(type))
                             type = cc;
                     }
