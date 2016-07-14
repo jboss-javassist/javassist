@@ -234,7 +234,8 @@ final class ClassPoolTail {
     }
 
     public ClassPath appendSystemPath() {
-        return appendClassPath(new ClassClassPath());
+    	appendClassPath(new ClassClassPath());
+    	return appendClassPath(new ClassClassPath(CtClass.class));
     }
 
     public ClassPath insertClassPath(String pathname)

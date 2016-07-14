@@ -19,6 +19,8 @@ package javassist;
 import java.io.InputStream;
 import java.net.URL;
 
+import javassist.bytecode.ClassFile;
+
 /**
  * A search-path for obtaining a class file
  * by <code>getResourceAsStream()</code> in <code>java.lang.Class</code>.
@@ -43,7 +45,10 @@ import java.net.URL;
  * @see LoaderClassPath
  */
 public class ClassClassPath implements ClassPath {
-    private Class thisClass;
+	private static final boolean useJigsaw
+		= ClassFile.MAJOR_VERSION >= ClassFile.JAVA_9;
+
+		private Class thisClass;
 
     /** Creates a search path.
      *
@@ -70,9 +75,17 @@ public class ClassClassPath implements ClassPath {
     /**
      * Obtains a class file by <code>getResourceAsStream()</code>.
      */
-    public InputStream openClassfile(String classname) {
-        String jarname = "/" + classname.replace('.', '/') + ".class";
-        return thisClass.getResourceAsStream(jarname);
+    public InputStream openClassfile(String classname) throws NotFoundException {
+        String jarname = classname.replace('.', '/') + ".class";
+        if (useJigsaw)
+        	try {
+        		return thisClass.getModule().getResourceAsStream(jarname);
+        	}
+        	catch (java.io.IOException e) {
+        		throw new NotFoundException(classname, e);
+        	}
+        else
+        	return thisClass.getResourceAsStream('/' + jarname);
     }
 
     /**
@@ -81,8 +94,22 @@ public class ClassClassPath implements ClassPath {
      * @return null if the class file could not be found. 
      */
     public URL find(String classname) {
-        String jarname = "/" + classname.replace('.', '/') + ".class";
-        return thisClass.getResource(jarname);
+        String jarname = classname.replace('.', '/') + ".class";
+        if (useJigsaw)
+        	try {
+        		InputStream is = thisClass.getModule().getResourceAsStream(jarname);
+        		if (is == null)
+        			return null;
+        		else {
+        			is.close();
+        			return new URL("jar:file:unknown.jar!/" + jarname);
+        		}
+        	}
+        	catch (java.io.IOException e) {
+        		return null;
+        	}
+        else
+        	return thisClass.getResource('/' + jarname);
     }
 
     /**
