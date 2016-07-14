@@ -104,7 +104,7 @@ class ProxyMaker extends Thread implements MethodHandler {
 			factory.setSuperclass(SampleBean.class);
 			factory.setInterfaces(SampleBean.class.getInterfaces());
 			factory.setFilter(FINALIZE_FILTER);
-			factory.setHandler(this);
+			// factory.setHandler(this);
 
 			Class proxyClass = factory.createClass();
 			//System.out.println("proxy name: " + proxyClass.getName());

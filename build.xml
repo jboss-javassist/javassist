@@ -64,6 +64,7 @@
            debug="on"
            deprecation="on"
            optimize="off"
+    	   includeantruntime="true"
            includes="**">
             <classpath refid="classpath"/>
     </javac>
@@ -77,6 +78,7 @@
 	       source="1.6"
 	       target="1.6"
            optimize="off"
+    	   includeantruntime="true"
            includes="**">
       <classpath refid="classpath"/>
     </javac>
@@ -88,6 +90,7 @@
            debug="on"
            deprecation="on"
            optimize="off"
+    	   includeantruntime="false"
            includes="**">
             <classpath refid="test.compile.classpath"/>
             <compilerarg value="-parameters" />        

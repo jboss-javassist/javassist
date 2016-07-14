@@ -516,15 +516,15 @@ public class JvstTest2 extends JvstTestRoot {
         CtClass out = sloader.get("test2.Anon");
         CtClass inner = sloader.get("test2.Anon$1");
         if (System.getProperty("java.vm.version").startsWith("1.4"))
-            assertTrue(inner.getEnclosingMethod() == null);
+            assertTrue(inner.getEnclosingBehavior() == null);
         else {
-            assertEquals("make", inner.getEnclosingMethod().getName());
+            assertEquals("make", inner.getEnclosingBehavior().getName());
             assertEquals(out, inner.getDeclaringClass());
             assertEquals(out,
-                         inner.getEnclosingMethod().getDeclaringClass());
+                         inner.getEnclosingBehavior().getDeclaringClass());
         }
 
-        assertNull(out.getEnclosingMethod());
+        assertNull(out.getEnclosingBehavior());
         assertNull(out.getEnclosingBehavior());
 
         CtClass inner2 = sloader.get("test2.Anon$Anon2$1");
