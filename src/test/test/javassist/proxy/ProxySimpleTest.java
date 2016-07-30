@@ -140,4 +140,63 @@ public class ProxySimpleTest extends TestCase {
         public String extended() { return "ext"; }
         public String base2() { return super.base2() + "ext2"; }
     }
+
+    String valueDefaultMethods = "";
+
+    public void testDefaultMethods() throws Exception {
+        valueDefaultMethods = "";
+        ProxyFactory f = new ProxyFactory();
+        f.writeDirectory = "./proxy";
+        f.setSuperclass(Default3.class);
+        Class c = f.createClass();
+        MethodHandler mi = new MethodHandler() {
+            public Object invoke(Object self, Method m, Method proceed,
+                                 Object[] args) throws Throwable {
+                valueDefaultMethods += "1";
+                return proceed.invoke(self, args);  // execute the original method.
+            }
+        };
+        Default3 foo = (Default3)c.newInstance();
+        ((Proxy)foo).setHandler(mi);
+        foo.foo();
+        foo.bar();
+        assertEquals("11", valueDefaultMethods);   
+    }
+
+    public void testDefaultMethods2() throws Exception {
+        valueDefaultMethods = "";
+        ProxyFactory f = new ProxyFactory();
+        f.writeDirectory = "./proxy";
+        f.setInterfaces(new Class[] { Default2.class });
+        Class c = f.createClass();
+        MethodHandler mi = new MethodHandler() {
+            public Object invoke(Object self, Method m, Method proceed,
+                                 Object[] args) throws Throwable {
+                valueDefaultMethods += "1";
+                return proceed.invoke(self, args);  // execute the original method.
+            }
+        };
+        Default2 foo = (Default2)c.newInstance();
+        ((Proxy)foo).setHandler(mi);
+        foo.foo();
+        foo.bar();
+        assertEquals("11", valueDefaultMethods);   
+    }
+
+    public static interface Default1 {
+        default int foo() { return 0; }
+        default int baz() { return 2; }
+    }
+
+    public static interface Default2 extends Default1 {
+        default int bar() { return 1; }
+    }
+
+    public static class Default3 implements Default2 {
+        public int foo() { return Default2.super.foo(); }
+    }
+    
+    public static class Default4 extends Default3 {
+        public int baz() { return super.baz(); }
+    }
 }
