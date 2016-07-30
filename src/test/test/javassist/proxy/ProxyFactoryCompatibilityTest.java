@@ -3,6 +3,7 @@ package test.javassist.proxy;
 import javassist.*;
 import javassist.util.proxy.MethodFilter;
 import javassist.util.proxy.MethodHandler;
+import javassist.util.proxy.Proxy;
 import javassist.util.proxy.ProxyFactory;
 import javassist.util.proxy.ProxyObject;
 import junit.framework.TestCase;
@@ -71,22 +72,23 @@ public class ProxyFactoryCompatibilityTest extends TestCase
         factory.setSuperclass(TestClass.class);
         factory.setInterfaces(new Class[] { TestInterface.class});
         factory.setFilter(filter);
-        factory.setHandler(handler);
 
         // create the same class twice and check that it is reused
         Class proxyClass3 =  factory.createClass();
         System.out.println("created third class " + proxyClass3.getName());
         TestClass proxy3 = (TestClass)proxyClass3.newInstance();
+        ((Proxy)proxy3).setHandler(handler);
         proxy3.testMethod();
         assertTrue(proxy3.isTestCalled());
 
         Class proxyClass4 =  factory.createClass();
         System.out.println("created fourth class " + proxyClass4.getName());
         TestClass proxy4 = (TestClass)proxyClass4.newInstance();
+        ((Proxy)proxy4).setHandler(handler);
         proxy4.testMethod();
         assertTrue(proxy4.isTestCalled());
 
-        assertTrue(proxyClass3 != proxyClass4);
+        assertTrue(proxyClass3 == proxyClass4);
     }
 
     /**

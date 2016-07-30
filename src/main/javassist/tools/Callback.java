@@ -28,7 +28,7 @@ import java.util.UUID;
  * <p>Example of how to create and insert a callback:</p>
  * <pre>
  * ctMethod.insertAfter(new Callback("Thread.currentThread()") {
- *     public void result(Object... objects) {
+ *     public void result(Object[] objects) {
  *         Thread thread = (Thread) objects[0];
  *         // do something with thread...
  *     }
@@ -37,7 +37,7 @@ import java.util.UUID;
  * <p>Contains utility methods for inserts callbacks in <code>CtBehaviour</code>, example:</p>
  * <pre>
  * insertAfter(ctBehaviour, new Callback("Thread.currentThread(), dummyString") {
- *     public void result(Object... objects) {
+ *     public void result(Object[] objects) {
  *         Thread thread = (Thread) objects[0];
  *         // do something with thread...
  *     }
@@ -45,10 +45,11 @@ import java.util.UUID;
  * </pre>
  *
  * @author Marten Hedborg
+ * @author Shigeru Chiba
  */
 public abstract class Callback {
 
-    public static HashMap<String, Callback> callbacks = new HashMap<String, Callback>();
+    public static HashMap callbacks = new HashMap();
 
     private final String sourceCode;
 
@@ -70,9 +71,8 @@ public abstract class Callback {
      *
      * @param objects   Objects that the bytecode in callback returns
      */
-    public abstract void result(Object... objects);
+    public abstract void result(Object[] objects);
 
-    @Override
     public String toString(){
         return sourceCode();
     }
