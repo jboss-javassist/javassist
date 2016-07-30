@@ -20,11 +20,11 @@ import javassist.bytecode.StackMapTable;
 
 public interface TypeTag {
     String TOP_TYPE = "*top*";
-    TypeData TOP = new TypeData.BasicType(TOP_TYPE, StackMapTable.TOP);
-    TypeData INTEGER = new TypeData.BasicType("int", StackMapTable.INTEGER);
-    TypeData FLOAT = new TypeData.BasicType("float", StackMapTable.FLOAT);
-    TypeData DOUBLE = new TypeData.BasicType("double", StackMapTable.DOUBLE);
-    TypeData LONG = new TypeData.BasicType("long", StackMapTable.LONG);
+    TypeData.BasicType TOP = new TypeData.BasicType(TOP_TYPE, StackMapTable.TOP, ' ');
+    TypeData.BasicType INTEGER = new TypeData.BasicType("int", StackMapTable.INTEGER, 'I');
+    TypeData.BasicType FLOAT = new TypeData.BasicType("float", StackMapTable.FLOAT, 'F');
+    TypeData.BasicType DOUBLE = new TypeData.BasicType("double", StackMapTable.DOUBLE, 'D');
+    TypeData.BasicType LONG = new TypeData.BasicType("long", StackMapTable.LONG, 'J');
 
     // and NULL, THIS, OBJECT, UNINIT
 }
