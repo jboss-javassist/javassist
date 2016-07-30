@@ -1230,7 +1230,7 @@ public class ProxyFactory {
         return minfo;
     }
 
-    private static MethodInfo makeDelegator(Method meth, String desc,
+    private MethodInfo makeDelegator(Method meth, String desc,
                 ConstPool cp, Class declClass, String delegatorName) {
         MethodInfo delegator = new MethodInfo(cp, delegatorName, desc);
         delegator.setAccessFlags(Modifier.FINAL | Modifier.PUBLIC
@@ -1243,12 +1243,27 @@ public class ProxyFactory {
         Bytecode code = new Bytecode(cp, 0, 0);
         code.addAload(0);
         int s = addLoadParameters(code, meth.getParameterTypes(), 1);
-        code.addInvokespecial(declClass.isInterface(), cp.addClassInfo(declClass.getName()),
+        Class targetClass = invokespecialTarget(declClass);
+        code.addInvokespecial(targetClass.isInterface(), cp.addClassInfo(targetClass.getName()),
                               meth.getName(), desc);
         addReturn(code, meth.getReturnType());
         code.setMaxLocals(++s);
         delegator.setCodeAttribute(code.toCodeAttribute());
         return delegator;
+    }
+
+    /* Suppose that the receiver type is S, the invoked method
+     * is declared in T, and U is the immediate super class of S
+     * (or its interface).  If S <: U <: T (S <: T reads "S extends T"), 
+     * the target type of invokespecial has to be not T but U.
+     */
+    private Class invokespecialTarget(Class declClass) {
+        if (declClass.isInterface())
+            for (Class i: interfaces)
+                if (declClass.isAssignableFrom(i))
+                    return i;
+
+        return superClass;
     }
 
     /**
