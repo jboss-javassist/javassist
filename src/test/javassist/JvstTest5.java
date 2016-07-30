@@ -220,4 +220,19 @@ public class JvstTest5 extends JvstTestRoot {
         Class clazzz = badClass.toClass();
         Object obj = clazzz.newInstance(); // <-- falls here
     }
+
+    public void test83StackmapWithArrayType() throws Exception {
+    	final CtClass ctClass = sloader.get("test5.StackmapWithArray83");
+        final CtMethod method = ctClass.getDeclaredMethod("bytecodeVerifyError");
+        method.addLocalVariable("test_localVariable", CtClass.intType);
+        method.insertBefore("{ test_localVariable = 1; }");
+
+        final CtMethod method2 = ctClass.getDeclaredMethod("bytecodeVerifyError2");
+        method2.addLocalVariable("test_localVariable", CtClass.intType);
+        method2.insertBefore("{ test_localVariable = 1; }");
+
+        ctClass.writeFile();
+        Object obj = make(ctClass.getName());
+        assertEquals(1, invoke(obj, "run"));
+    }
 }
