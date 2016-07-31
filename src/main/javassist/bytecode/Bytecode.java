@@ -1025,13 +1025,20 @@ public class Bytecode extends ByteVector implements Cloneable, Opcode {
      * @see Descriptor#ofMethod(CtClass,CtClass[])
      */
     public void addInvokestatic(CtClass clazz, String name, String desc) {
-        addInvokestatic(constPool.addClassInfo(clazz), name, desc);
+        boolean isInterface;
+        if (clazz == THIS)
+            isInterface = false;
+        else
+            isInterface = clazz.isInterface();
+
+        addInvokestatic(constPool.addClassInfo(clazz), name, desc, isInterface);
     }
 
     /**
      * Appends INVOKESTATIC.
      *
      * @param classname the fully-qualified class name.
+     *                  It must not be an interface-type name.
      * @param name      the method name
      * @param desc      the descriptor of the method signature.
      *
@@ -1045,15 +1052,26 @@ public class Bytecode extends ByteVector implements Cloneable, Opcode {
      * Appends INVOKESTATIC.
      *
      * @param clazz     the index of <code>CONSTANT_Class_info</code>
-     *                  structure.
+     *                  structure.  It must not be an interface type.
      * @param name      the method name
      * @param desc      the descriptor of the method signature.
      *
      * @see Descriptor#ofMethod(CtClass,CtClass[])
      */
     public void addInvokestatic(int clazz, String name, String desc) {
+        addInvokestatic(clazz, name, desc, false);
+    }
+
+    private void addInvokestatic(int clazz, String name, String desc,
+                                 boolean isInterface) {
         add(INVOKESTATIC);
-        addIndex(constPool.addMethodrefInfo(clazz, name, desc));
+        int index;
+        if (isInterface)
+            index = constPool.addInterfaceMethodrefInfo(clazz, name, desc);
+        else
+            index = constPool.addMethodrefInfo(clazz, name, desc);
+
+        addIndex(index);
         growStack(Descriptor.dataSize(desc));
     }
 
