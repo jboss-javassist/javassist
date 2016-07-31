@@ -234,8 +234,9 @@ final class ClassPoolTail {
     }
 
     public ClassPath appendSystemPath() {
-    	appendClassPath(new ClassClassPath());
-    	return appendClassPath(new ClassClassPath(CtClass.class));
+        ClassLoader cl = Thread.currentThread().getContextClassLoader();
+        appendClassPath(new LoaderClassPath(cl));
+    	return appendClassPath(new ModuleClassPath());
     }
 
     public ClassPath insertClassPath(String pathname)

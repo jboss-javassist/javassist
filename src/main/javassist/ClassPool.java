@@ -220,10 +220,12 @@ public class ClassPool {
      * </pre>
      *
      * <p>If the default class pool cannot find any class files,
-     * try <code>ClassClassPath</code> and <code>LoaderClassPath</code>.
+     * try <code>ClassClassPath</code>, <code>ModuleClassPath</code>,
+     * or <code>LoaderClassPath</code>.
      *
      * @see ClassClassPath
      * @see LoaderClassPath
+     * @see ModuleClassPath
      */
     public static synchronized ClassPool getDefault() {
         if (defaultPool == null) {

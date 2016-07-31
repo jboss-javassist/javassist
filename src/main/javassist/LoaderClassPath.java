@@ -31,6 +31,10 @@ import java.lang.ref.WeakReference;
  *
  * <p>The given class loader must have both <code>getResourceAsStream()</code>
  * and <code>getResource()</code>.
+ * 
+ * <p>Class files in a named module are private to that module.
+ * This method cannot obtain class files in named modules.
+ * </p>
  *
  * @author <a href="mailto:bill@jboss.org">Bill Burke</a>
  * @author Shigeru Chiba
@@ -38,6 +42,7 @@ import java.lang.ref.WeakReference;
  * @see ClassPool#insertClassPath(ClassPath)
  * @see ClassPool#appendClassPath(ClassPath)
  * @see ClassClassPath
+ * @see ModuleClassPath
  */
 public class LoaderClassPath implements ClassPath {
     private WeakReference clref;
