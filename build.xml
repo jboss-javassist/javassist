@@ -97,7 +97,7 @@
     </javac>
   </target>
 
-  <target name="runtest" depends="test-compile">
+  <target name="runtest" depends="jar,test-compile">
     <junit fork="true" printsummary="true" dir="${test.run.dir}">
       <jvmarg value="-XX:-FailOverToOldVerifier" />
       <classpath refid="test.classpath"/>
