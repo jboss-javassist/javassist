@@ -16,11 +16,17 @@
 
 package javassist;
 
-import java.io.*;
-import java.util.jar.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FilenameFilter;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.Hashtable;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
 
 final class ClassPathList {
     ClassPathList next;
@@ -234,9 +240,14 @@ final class ClassPoolTail {
     }
 
     public ClassPath appendSystemPath() {
-        ClassLoader cl = Thread.currentThread().getContextClassLoader();
-        appendClassPath(new LoaderClassPath(cl));
-    	return appendClassPath(new ModuleClassPath());
+        if (javassist.bytecode.ClassFile.MAJOR_VERSION < javassist.bytecode.ClassFile.JAVA_9) {
+            return appendClassPath(new ClassClassPath());
+        }
+        else {
+            ClassLoader cl = Thread.currentThread().getContextClassLoader();
+            appendClassPath(new LoaderClassPath(cl));
+            return appendClassPath(new ModuleClassPath());
+        }
     }
 
     public ClassPath insertClassPath(String pathname)
