@@ -209,7 +209,7 @@ public class MemberCodeGen extends CodeGen {
         boolean tryNotReturn = !hasReturned;
         if (tryNotReturn) {
             bc.addOpcode(Opcode.GOTO);
-            gotoList.add(new Integer(bc.currentPc()));
+            gotoList.add(Integer.valueOf(bc.currentPc()));
             bc.addIndex(0);   // correct later
         }
 
@@ -235,7 +235,7 @@ public class MemberCodeGen extends CodeGen {
 
             if (!hasReturned) {
                 bc.addOpcode(Opcode.GOTO);
-                gotoList.add(new Integer(bc.currentPc()));
+                gotoList.add(Integer.valueOf(bc.currentPc()));
                 bc.addIndex(0);   // correct later
                 tryNotReturn = true;
             }

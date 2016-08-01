@@ -1041,7 +1041,7 @@ public class JvstTest extends JvstTestRoot {
     }
 
     public void testPackage() throws Exception {
-        Object obj = new Loader().loadClass("test1.Pac").newInstance();
+        Object obj = new Loader().loadClass("test1.Pac").getConstructor().newInstance();
         assertEquals(1, invoke(obj, "run"));
     }
 

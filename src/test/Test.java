@@ -48,7 +48,7 @@ public class Test {
         ctClass.debugWriteFile();
         Class<?> cc = ctClass.toClass();
         System.out.println(cc.getName());
-        InvalidStackMapFrame obj = (InvalidStackMapFrame)cc.newInstance();
+        InvalidStackMapFrame obj = (InvalidStackMapFrame)cc.getDeclaredConstructor().newInstance();
         obj.bytecodeVerifyError();
     }
 }

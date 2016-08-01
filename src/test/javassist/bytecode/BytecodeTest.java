@@ -29,7 +29,7 @@ public class BytecodeTest extends TestCase {
     }
 
     protected Object make(String name) throws Exception {
-        return cloader.loadClass(name).newInstance();
+        return cloader.loadClass(name).getConstructor().newInstance();
     }
 
     protected int invoke(Object target, String method) throws Exception {

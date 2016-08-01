@@ -8,6 +8,6 @@ public class ConstField {
     public static final double d = 9.0;
     public static final String s = "const";
     public static final Object obj = null;
-    public static final Integer integer = new Integer(4);
+    public static final Integer integer = Integer.valueOf(4);
     public static int k = 2;
 }

@@ -606,7 +606,7 @@ public class JvstTest4 extends JvstTestRoot {
         pool.makePackage(pool.getClassLoader(), packageName);
         CtClass ctcl = pool.makeClass("test4.pack.Clazz");
         Class cl = ctcl.toClass();
-        Object obj = cl.newInstance();
+        Object obj = cl.getConstructor().newInstance();
         assertEquals(packageName, obj.getClass().getPackage().getName());
     }
 
@@ -1029,7 +1029,7 @@ public class JvstTest4 extends JvstTestRoot {
 
         newClass.debugWriteFile();
         Class<?> cClass = newClass.toClass();
-        Object o = cClass.newInstance();
+        Object o = cClass.getConstructor().newInstance();
         java.lang.reflect.Method m = cClass.getMethod("evaluate");
         m.invoke(o);
         m = cClass.getMethod("evaluate2");

@@ -27,7 +27,7 @@ public class JBPAPP9257Test extends TestCase {
                 // method.
             }
         };
-        Foo foo = (Foo)c.newInstance();
+        Foo foo = (Foo)c.getConstructor().newInstance();
         try {
             ((ProxyObject)foo).setHandler(mi);
             fail("foo is a ProxyObject!");
@@ -55,7 +55,7 @@ public class JBPAPP9257Test extends TestCase {
                 // method.
             }
         };
-        Foo2 foo = (Foo2)c.newInstance();
+        Foo2 foo = (Foo2)c.getConstructor().newInstance();
         try {
             ((ProxyObject)foo).setHandler(mi);
             fail("foo is a ProxyObject!");

@@ -66,7 +66,7 @@ public class IntegerMemberValue extends MemberValue {
     }
 
     Object getValue(ClassLoader cl, ClassPool cp, Method m) {
-        return new Integer(getValue());
+        return Integer.valueOf(getValue());
     }
 
     Class getType(ClassLoader cl) {

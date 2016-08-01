@@ -93,8 +93,8 @@ public class ProxyCacheGCTest extends TestCase
             Class javaHandlerClass = classPool.toClass(ctHandlerClass);
             Class javaFilterClass = classPool.toClass(ctFilterClass);
 
-            MethodHandler handler= (MethodHandler)javaHandlerClass.newInstance();
-            MethodFilter filter = (MethodFilter)javaFilterClass.newInstance();
+            MethodHandler handler= (MethodHandler)javaHandlerClass.getConstructor().newInstance();
+            MethodFilter filter = (MethodFilter)javaFilterClass.getConstructor().newInstance();
 
             // ok, now create a factory and a proxy class and proxy from that factory
             factory.setFilter(filter);
@@ -102,7 +102,7 @@ public class ProxyCacheGCTest extends TestCase
             // factory.setSuperclass(Object.class);
 
             Class proxyClass = factory.createClass();
-            Object target = proxyClass.newInstance();
+            Object target = proxyClass.getConstructor().newInstance();
             ((ProxyObject)target).setHandler(handler);
         } catch (Exception e) {
             e.printStackTrace();

@@ -61,7 +61,7 @@ public class DoubleMemberValue extends MemberValue {
     }
 
     Object getValue(ClassLoader cl, ClassPool cp, Method m) {
-        return new Double(getValue());
+        return Double.valueOf(getValue());
     }
 
     Class getType(ClassLoader cl) {

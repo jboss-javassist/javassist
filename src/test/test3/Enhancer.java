@@ -35,7 +35,7 @@ public class Enhancer {
                 }
             });
         Class c = e.createClass();
-        EnhanceTest obj = (EnhanceTest)c.newInstance();
+        EnhanceTest obj = (EnhanceTest)c.getConstructor().newInstance();
         obj.foo("test");
     }
 

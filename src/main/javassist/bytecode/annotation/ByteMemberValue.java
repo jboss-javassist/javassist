@@ -59,7 +59,7 @@ public class ByteMemberValue extends MemberValue {
     }
 
     Object getValue(ClassLoader cl, ClassPool cp, Method m) {
-        return new Byte(getValue());
+        return Byte.valueOf(getValue());
     }
 
     Class getType(ClassLoader cl) {

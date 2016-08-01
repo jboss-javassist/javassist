@@ -76,7 +76,7 @@ public class JvstTest5 extends JvstTestRoot {
     }
 
     public void testJIRA242() throws Exception {
-        Boolean ss = new Boolean(2 > 3);
+        Boolean ss = Boolean.valueOf(2 > 3);
         ClassPool cp = ClassPool.getDefault();
         CtClass cc = cp.get("test5.JIRA242$Hello");
         CtMethod m = cc.getDeclaredMethod("say");
@@ -218,7 +218,7 @@ public class JvstTest5 extends JvstTestRoot {
         System.out.println(src);
         badClass.addMethod(CtMethod.make(src, badClass));
         Class clazzz = badClass.toClass();
-        Object obj = clazzz.newInstance(); // <-- falls here
+        Object obj = clazzz.getConstructor().newInstance(); // <-- falls here
     }
 
     public void test83StackmapWithArrayType() throws Exception {

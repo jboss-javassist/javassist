@@ -17,6 +17,7 @@
 package javassist.util.proxy;
 
 import java.io.Serializable;
+import java.lang.reflect.InvocationTargetException;
 import java.io.ObjectStreamException;
 import java.security.AccessController;
 import java.security.PrivilegedActionException;
@@ -82,9 +83,15 @@ class SerializedProxy implements Serializable {
             ProxyFactory f = new ProxyFactory();
             f.setSuperclass(loadClass(superClass));
             f.setInterfaces(infs);
-            Proxy proxy = (Proxy)f.createClass(filterSignature).newInstance();
+            Proxy proxy = (Proxy)f.createClass(filterSignature).getConstructor().newInstance();
             proxy.setHandler(handler);
             return proxy;
+        }
+        catch (NoSuchMethodException e) {
+            throw new java.io.InvalidClassException(e.getMessage());
+        }
+        catch (InvocationTargetException e) {
+            throw new java.io.InvalidClassException(e.getMessage());
         }
         catch (ClassNotFoundException e) {
             throw new java.io.InvalidClassException(e.getMessage());

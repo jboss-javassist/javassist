@@ -60,7 +60,7 @@ public class LongMemberValue extends MemberValue {
     }
 
     Object getValue(ClassLoader cl, ClassPool cp, Method m) {
-        return new Long(getValue());
+        return Long.valueOf(getValue());
     }
 
     Class getType(ClassLoader cl) {

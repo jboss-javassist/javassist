@@ -416,18 +416,18 @@ public class CtField extends CtMember {
         ConstPool cp = fieldInfo.getConstPool();
         switch (cp.getTag(index)) {
             case ConstPool.CONST_Long :
-                return new Long(cp.getLongInfo(index));
+                return Long.valueOf(cp.getLongInfo(index));
             case ConstPool.CONST_Float :
-                return new Float(cp.getFloatInfo(index));
+                return Float.valueOf(cp.getFloatInfo(index));
             case ConstPool.CONST_Double :
-                return new Double(cp.getDoubleInfo(index));
+                return Double.valueOf(cp.getDoubleInfo(index));
             case ConstPool.CONST_Integer :
                 int value = cp.getIntegerInfo(index);
                 // "Z" means boolean type.
                 if ("Z".equals(fieldInfo.getDescriptor()))
-                    return new Boolean(value != 0);
+                    return Boolean.valueOf(value != 0);
                 else
-                    return new Integer(value);
+                    return Integer.valueOf(value);
             case ConstPool.CONST_String :
                 return cp.getStringInfo(index);
             default :
