@@ -82,7 +82,7 @@ public class ClassClassPath implements ClassPath {
      */
     public InputStream openClassfile(String classname) throws NotFoundException {
         String filename = '/' + classname.replace('.', '/') + ".class";
-        return thisClass.getResourceAsStream('/' + filename);
+        return thisClass.getResourceAsStream(filename);
     }
 
     /**
