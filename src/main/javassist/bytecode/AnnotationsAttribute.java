@@ -214,6 +214,29 @@ public class AnnotationsAttribute extends AttributeInfo {
     }
 
     /**
+     * Removes an annotation by type.
+     *
+     * @param type        of annotation to remove
+     * @return whether an annotation with the given type has been removed
+     */
+    public boolean removeAnnotation(String type) {
+        Annotation[] annotations = getAnnotations();
+        for (int i = 0; i < annotations.length; i++) {
+            if (annotations[i].getTypeName().equals(type)) {
+                Annotation[] newlist = new Annotation[annotations.length - 1];
+                System.arraycopy(annotations, 0, newlist, 0, i);
+                if (i < annotations.length - 1) {
+                    System.arraycopy(annotations, i + 1, newlist, i,
+                                     annotations.length - i - 1);
+                }
+                setAnnotations(newlist);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * Parses the annotations and returns a data structure representing
      * that parsed annotations.  Note that changes of the node values of the
      * returned tree are not reflected on the annotations represented by
