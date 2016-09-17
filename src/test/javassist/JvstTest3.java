@@ -1086,7 +1086,8 @@ public class JvstTest3 extends JvstTestRoot {
         CtMethod m3 = CtMethod.make("public void foo3() {}", cc);
         try {
             cc.addMethod(m3);
-            fail();
+            if (ClassFile.MAJOR_VERSION < ClassFile.JAVA_8)
+                fail();
         }
         catch (CannotCompileException e) {
             // System.out.println(e);

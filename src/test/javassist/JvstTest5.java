@@ -235,4 +235,20 @@ public class JvstTest5 extends JvstTestRoot {
         Object obj = make(ctClass.getName());
         assertEquals(1, invoke(obj, "run"));
     }
+
+    public void testAddDefaultMethod() throws Exception {
+        CtClass cc = sloader.makeInterface("test5.AddDefaultMethod");
+        cc.addMethod(CtNewMethod.make("static int foo() { return 1; }", cc));
+        cc.addMethod(CtNewMethod.make("public static int foo1() { return 1; }", cc));
+        cc.addMethod(CtNewMethod.make("public int foo2() { return 1; }", cc));
+        cc.addMethod(CtNewMethod.make("int foo3() { return 1; }", cc));
+        try {
+            cc.addMethod(CtNewMethod.make("private int foo4() { return 1; }", cc));
+            fail();
+        } catch (CannotCompileException e) {}
+        try {
+            cc.addMethod(CtNewMethod.make("private static int foo5() { return 1; }", cc));
+            fail();
+        } catch (CannotCompileException e) {}
+    }
 }
