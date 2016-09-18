@@ -4,6 +4,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.TypeVariable;
 
 import javassist.bytecode.AnnotationsAttribute;
+import javassist.bytecode.AttributeInfo;
 import javassist.bytecode.ClassFile;
 import javassist.bytecode.ConstPool;
 import javassist.bytecode.InnerClassesAttribute;
@@ -250,5 +251,37 @@ public class JvstTest5 extends JvstTestRoot {
             cc.addMethod(CtNewMethod.make("private static int foo5() { return 1; }", cc));
             fail();
         } catch (CannotCompileException e) {}
+    }
+
+    public void testRemoveAnnotatino() throws Exception {
+        CtClass cc = sloader.get("test5.RemoveAnnotation");
+        AnnotationsAttribute aa
+            = (AnnotationsAttribute)cc.getClassFile().getAttribute(AnnotationsAttribute.invisibleTag);
+        assertTrue(aa.removeAnnotation("test5.RemoveAnno1"));
+        AttributeInfo ai = cc.getClassFile().removeAttribute(AnnotationsAttribute.invisibleTag);
+        assertEquals(ai.getName(), AnnotationsAttribute.invisibleTag);
+
+        CtMethod foo = cc.getDeclaredMethod("foo");
+        AnnotationsAttribute aa2 = (AnnotationsAttribute)foo.getMethodInfo().getAttribute(AnnotationsAttribute.invisibleTag);
+        assertTrue(aa2.removeAnnotation("test5.RemoveAnno1"));
+
+        CtMethod bar = cc.getDeclaredMethod("bar");
+        AnnotationsAttribute aa3 = (AnnotationsAttribute)bar.getMethodInfo().getAttribute(AnnotationsAttribute.invisibleTag);
+        assertFalse(aa3.removeAnnotation("test5.RemoveAnno1"));
+        assertTrue(aa3.removeAnnotation("test5.RemoveAnno2"));
+        AttributeInfo ai2 = bar.getMethodInfo().removeAttribute(AnnotationsAttribute.invisibleTag);
+        assertEquals(ai2.getName(), AnnotationsAttribute.invisibleTag);
+
+        CtMethod run = cc.getDeclaredMethod("run");
+        AttributeInfo ai3 = run.getMethodInfo().removeAttribute(AnnotationsAttribute.invisibleTag);
+        assertNull(ai3);
+
+        CtField baz = cc.getDeclaredField("baz");
+        AttributeInfo ai4 = baz.getFieldInfo().removeAttribute(AnnotationsAttribute.invisibleTag);
+        assertEquals(ai4.getName(), AnnotationsAttribute.invisibleTag);
+
+        cc.writeFile();
+        Object obj = make(cc.getName());
+        assertEquals(3, invoke(obj, "run"));
     }
 }

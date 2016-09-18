@@ -215,9 +215,12 @@ public class AnnotationsAttribute extends AttributeInfo {
 
     /**
      * Removes an annotation by type.
+     * After removing an annotation, if {@link #numAnnotations()} returns 0,
+     * this annotations attribute has to be removed.
      *
      * @param type        of annotation to remove
      * @return whether an annotation with the given type has been removed
+     * @since 3.21
      */
     public boolean removeAnnotation(String type) {
         Annotation[] annotations = getAnnotations();
