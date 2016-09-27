@@ -235,4 +235,11 @@ public class JvstTest5 extends JvstTestRoot {
         Object obj = make(ctClass.getName());
         assertEquals(1, invoke(obj, "run"));
     }
+
+    public void testLoaderClassPath() throws Exception {
+        ClassPool cp = new ClassPool();
+        cp.appendClassPath(new LoaderClassPath(new Loader()));
+        assertNotNull(cp.get(Object.class.getName()));
+        assertNotNull(cp.get(this.getClass().getName()));
+    }
 }

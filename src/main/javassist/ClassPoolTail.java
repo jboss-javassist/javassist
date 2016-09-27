@@ -245,8 +245,7 @@ final class ClassPoolTail {
         }
         else {
             ClassLoader cl = Thread.currentThread().getContextClassLoader();
-            appendClassPath(new LoaderClassPath(cl));
-            return appendClassPath(new ModuleClassPath());
+            return appendClassPath(new LoaderClassPath(cl, true));
         }
     }
 
