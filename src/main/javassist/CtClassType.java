@@ -1400,10 +1400,11 @@ class CtClassType extends CtClass {
 
         int mod = m.getModifiers();
         if ((getModifiers() & Modifier.INTERFACE) != 0) {
-            m.setModifiers(mod | Modifier.PUBLIC);
-            if ((mod & Modifier.ABSTRACT) == 0)
+            if (Modifier.isProtected(mod) || Modifier.isPrivate(mod))
                 throw new CannotCompileException(
-                        "an interface method must be abstract: " + m.toString());
+                        "an interface method must be public: " + m.toString());
+
+            m.setModifiers(mod | Modifier.PUBLIC);
         }
 
         getMembers().addMethod(m);

@@ -771,6 +771,11 @@ public final class ClassFile {
      * Returns the attribute with the specified name.  If there are multiple
      * attributes with that name, this method returns either of them.   It
      * returns null if the specified attributed is not found.
+     *
+     * <p>An attribute name can be obtained by, for example,
+     * {@link AnnotationsAttribute#visibleTab} or
+     * {@link AnnotationsAttribute#invisibleTab}. 
+     * </p>
      * 
      * @param name          attribute name
      * @see #getAttributes()
@@ -785,6 +790,17 @@ public final class ClassFile {
         }
 
         return null;
+    }
+
+    /**
+     * Removes an attribute with the specified name.
+     *
+     * @param name      attribute name.
+     * @return          the removed attribute or null.
+     * @since 3.21
+     */
+    public AttributeInfo removeAttribute(String name) {
+        return AttributeInfo.remove(attributes, name);
     }
 
     /**

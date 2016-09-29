@@ -231,16 +231,21 @@ public class AttributeInfo {
         return null;            // no such attribute
     }
 
-    static synchronized void remove(ArrayList list, String name) {
+    static synchronized AttributeInfo remove(ArrayList list, String name) {
         if (list == null)
-            return;
+            return null;
 
+        AttributeInfo removed = null;
         ListIterator iterator = list.listIterator();
         while (iterator.hasNext()) {
             AttributeInfo ai = (AttributeInfo)iterator.next();
-            if (ai.getName().equals(name))
+            if (ai.getName().equals(name)) {
                 iterator.remove();
+                removed = ai;
+            }
         }
+
+        return removed;
     }
 
     static void writeAll(ArrayList list, DataOutputStream out)
