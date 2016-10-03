@@ -316,8 +316,8 @@ public class MethodInfo {
      * method returns null.
      * 
      * <p>An attribute name can be obtained by, for example,
-     * {@link AnnotationsAttribute#visibleTab} or
-     * {@link AnnotationsAttribute#invisibleTab}.
+     * {@link AnnotationsAttribute#visibleTag} or
+     * {@link AnnotationsAttribute#invisibleTag}.
      * </p>
      * 
      * @param name attribute name

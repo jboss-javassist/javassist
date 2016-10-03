@@ -379,8 +379,8 @@ public class CtField extends CtMember {
      * this field.  They have to be explicitly updated.  For example,
      * if some method contains an expression {@code t.value} and the type
      * of the variable {@code t} is changed by {@link #setType(CtClass)}
-     * from {@code int} to {@code double}, then {@ t.value} has to be modified
-     * since the bytecode of {@code t.value} contains the type information.
+     * from {@code int} to {@code double}, then {@code t.value} has to be modified
+     * as well since the bytecode of {@code t.value} contains the type information.
      * </p>
      *
      * @see CodeConverter

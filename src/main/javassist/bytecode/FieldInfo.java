@@ -232,8 +232,8 @@ public final class FieldInfo {
      * It returns null if the specified attribute is not found.
      *
      * <p>An attribute name can be obtained by, for example,
-     * {@link AnnotationsAttribute#visibleTab} or
-     * {@link AnnotationsAttribute#invisibleTab}. 
+     * {@link AnnotationsAttribute#visibleTag} or
+     * {@link AnnotationsAttribute#invisibleTag}. 
      * </p>
      * 
      * @param name      attribute name

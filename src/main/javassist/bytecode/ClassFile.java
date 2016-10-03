@@ -763,8 +763,8 @@ public final class ClassFile {
      * returns null if the specified attributed is not found.
      *
      * <p>An attribute name can be obtained by, for example,
-     * {@link AnnotationsAttribute#visibleTab} or
-     * {@link AnnotationsAttribute#invisibleTab}. 
+     * {@link AnnotationsAttribute#visibleTag} or
+     * {@link AnnotationsAttribute#invisibleTag}. 
      * </p>
      * 
      * @param name          attribute name
