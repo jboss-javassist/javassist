@@ -606,7 +606,7 @@ public class JvstTest4 extends JvstTestRoot {
         pool.makePackage(pool.getClassLoader(), packageName);
         CtClass ctcl = pool.makeClass("test4.pack.Clazz");
         Class cl = ctcl.toClass();
-        Object obj = cl.newInstance();
+        Object obj = cl.getConstructor().newInstance();
         assertEquals(packageName, obj.getClass().getPackage().getName());
     }
 
@@ -872,10 +872,17 @@ public class JvstTest4 extends JvstTestRoot {
         CtClass cc = sloader.get("test4.JIRA181");
         CtField field = cc.getField("aField");
         String s = field.getAnnotation(test4.JIRA181.Condition.class).toString();
-        assertEquals("@test4.JIRA181$Condition(condition=test4.JIRA181<T>.B.class)", s);
+        if (ClassFile.MAJOR_VERSION < ClassFile.JAVA_9)
+            assertEquals("@test4.JIRA181$Condition(condition=test4.JIRA181<T>.B.class)", s);
+        else
+            assertEquals("@test4.JIRA181$Condition(condition=test4.JIRA181.B.class)", s);
+
         CtField field2 = cc.getField("aField2");
         String s2 = field2.getAnnotation(test4.JIRA181.Condition2.class).toString();
-        assertEquals("@test4.JIRA181$Condition2(condition=test4.JIRA181<T>.B[].class)", s2);
+        if (ClassFile.MAJOR_VERSION < ClassFile.JAVA_9)
+            assertEquals("@test4.JIRA181$Condition2(condition=test4.JIRA181<T>.B[].class)", s2);
+        else
+            assertEquals("@test4.JIRA181$Condition2(condition=test4.JIRA181.B[].class)", s2);
     }
 
     public void testJIRA195() throws Exception {
@@ -1022,7 +1029,7 @@ public class JvstTest4 extends JvstTestRoot {
 
         newClass.debugWriteFile();
         Class<?> cClass = newClass.toClass();
-        Object o = cClass.newInstance();
+        Object o = cClass.getConstructor().newInstance();
         java.lang.reflect.Method m = cClass.getMethod("evaluate");
         m.invoke(o);
         m = cClass.getMethod("evaluate2");

@@ -189,7 +189,7 @@ public class ObjectImporter implements java.io.Serializable {
     private Object createProxy(int oid, String classname) throws Exception {
         Class c = Class.forName(classname);
         Constructor cons = c.getConstructor(proxyConstructorParamTypes);
-        return cons.newInstance(new Object[] { this, new Integer(oid) });
+        return cons.newInstance(new Object[] { this, Integer.valueOf(oid) });
     }
 
     /**

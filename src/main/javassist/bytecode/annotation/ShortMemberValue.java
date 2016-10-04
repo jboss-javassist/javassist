@@ -60,7 +60,7 @@ public class ShortMemberValue extends MemberValue {
     }
 
     Object getValue(ClassLoader cl, ClassPool cp, Method m) {
-        return new Short(getValue());
+        return Short.valueOf(getValue());
     }
 
     Class getType(ClassLoader cl) {

@@ -34,7 +34,7 @@ public class JvstTestRoot extends TestCase {
     }
 
     protected Object make(String name) throws Exception {
-        return cloader.loadClass(name).newInstance();
+        return cloader.loadClass(name).getConstructor().newInstance();
     }
 
     protected int invoke(Object target, String method) throws Exception {
@@ -47,7 +47,7 @@ public class JvstTestRoot extends TestCase {
         throws Exception {
         Method m =
             target.getClass().getMethod(method, new Class[] { int.class });
-        Object res = m.invoke(target, new Object[] { new Integer(arg)});
+        Object res = m.invoke(target, new Object[] { Integer.valueOf(arg)});
         return ((Integer) res).intValue();
     }
 }

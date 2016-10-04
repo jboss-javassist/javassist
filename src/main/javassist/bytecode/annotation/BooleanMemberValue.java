@@ -59,7 +59,7 @@ public class BooleanMemberValue extends MemberValue {
     }
 
     Object getValue(ClassLoader cl, ClassPool cp, Method m) {
-        return new Boolean(getValue());
+        return Boolean.valueOf(getValue());
     }
 
     Class getType(ClassLoader cl) {

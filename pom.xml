@@ -7,7 +7,7 @@
   	Javassist (JAVA programming ASSISTant) makes Java bytecode manipulation
     simple.  It is a class library for editing bytecodes in Java.
   </description>
-  <version>3.21.0-GA</version>
+  <version>3.22.0-CR1</version>
   <name>Javassist</name>
   <url>http://www.javassist.org/</url>
 
@@ -145,8 +145,8 @@
         <configuration>
           <source>1.6</source>
           <target>1.6</target>
-          <testSource>1.8</testSource>
-          <testTarget>1.8</testTarget>
+          <testSource>1.9</testSource>
+          <testTarget>1.9</testTarget>
           <testCompilerArgument>-parameters</testCompilerArgument>
         </configuration>
       </plugin>
@@ -269,9 +269,7 @@
     <profile>
       <id>default-tools</id>
       <activation>
-        <os>
-          <family>!mac</family>
-        </os>
+        <jdk>[,1.8]</jdk>
       </activation>
       <dependencies>
         <dependency>
@@ -285,11 +283,9 @@
       </dependencies>
     </profile>
     <profile>
-      <id>mac-tools</id>
+      <id>java9-tools</id>
       <activation>
-        <os>
-          <family>mac</family>
-        </os>
+        <jdk>[1.9,]</jdk>
       </activation>
       <dependencies>
         <dependency>
@@ -298,7 +294,7 @@
           <version>${java.version}</version>
           <scope>system</scope>
           <optional>true</optional>
-          <systemPath>${java.home}/../lib/tools.jar</systemPath>
+          <systemPath>${java.home}/jrt-fs.jar</systemPath>
         </dependency>
       </dependencies>
     </profile>

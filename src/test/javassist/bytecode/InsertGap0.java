@@ -175,7 +175,7 @@ public final class InsertGap0 extends JvstTestRoot {
         Class c = cc.toClass();
         cc.stopPruning(p);
 
-        Object obj = c.newInstance();
+        Object obj = c.getConstructor().newInstance();
         assertEquals(2, invoke(obj, "run", 0));
     }
 
@@ -194,7 +194,7 @@ public final class InsertGap0 extends JvstTestRoot {
         Class c = cc.toClass();
         cc.stopPruning(p);
 
-        Object obj = c.newInstance();
+        Object obj = c.getConstructor().newInstance();
         assertEquals(0, invoke(obj, "run2", 0));
     }
 

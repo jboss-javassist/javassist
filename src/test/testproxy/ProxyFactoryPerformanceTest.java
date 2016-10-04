@@ -45,7 +45,7 @@ public class ProxyFactoryPerformanceTest extends TestCase {
         error = null;
 		Thread[] threads = new Thread[MAX_THREADS];
 		for (int i = 0; i < threads.length; ++i) {
-			threads[i] = (Thread)cl.newInstance();
+			threads[i] = (Thread)cl.getDeclaredConstructor().newInstance();
 		}
 		long time = System.currentTimeMillis();
 		for (int i = 0; i < threads.length; ++i) {

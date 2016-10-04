@@ -65,7 +65,7 @@ public class ProxyTester extends TestCase {
         f.setFilter(finalizeRemover);
         f.writeDirectory = ".";
         Class c = f.createClass();
-        Target obj = (Target)c.newInstance();
+        Target obj = (Target)c.getConstructor().newInstance();
         ((Proxy)obj).setHandler(interceptor);
         obj.m();
         assertEquals(true, obj.m(true));
@@ -92,7 +92,7 @@ public class ProxyTester extends TestCase {
         // f.setHandler(interceptor);
         f.setFilter(finalizeRemover);
         Class c = f.createClass();
-        Target1 obj = (Target1)c.newInstance();
+        Target1 obj = (Target1)c.getConstructor().newInstance();
         ((Proxy)obj).setHandler(interceptor);
         assertEquals(null, obj.m(null));
         assertEquals(1, interceptor.counter);
@@ -104,7 +104,7 @@ public class ProxyTester extends TestCase {
         // f.setHandler(interceptor);
         f.setFilter(finalizeRemover);
         Class c = f.createClass();
-        Object obj = (Object)c.newInstance();
+        Object obj = (Object)c.getConstructor().newInstance();
         ((Proxy)obj).setHandler(interceptor);
         System.out.println(obj.toString());
         assertEquals(2, interceptor.counter);
@@ -117,7 +117,7 @@ public class ProxyTester extends TestCase {
         // f.setHandler(interceptor);
         f.setFilter(finalizeRemover);
         Class c = f.createClass();
-        Object obj = (Object)c.newInstance();
+        Object obj = (Object)c.getConstructor().newInstance();
         ((Proxy)obj).setHandler(interceptor);
         System.out.println("setter1: " + obj.toString());
         ((ProxyObject)obj).setHandler(new MethodHandler() {
@@ -179,7 +179,7 @@ public class ProxyTester extends TestCase {
         f.setFilter(finalizeRemover);
         f.setInterfaces(new Class[] { Target3.class });
         Class c = f.createClass();
-        Target3 obj = (Target3)c.newInstance();
+        Target3 obj = (Target3)c.getConstructor().newInstance();
         ((Proxy)obj).setHandler(interceptor2);
         assertEquals("OK", obj.m());
         System.out.println(obj.toString());
@@ -193,14 +193,14 @@ public class ProxyTester extends TestCase {
         f.setFilter(finalizeRemover);
         f.setInterfaces(new Class[] { Target3.class, Target4.class });
         Class c = f.createClass();
-        Target3 obj = (Target3)c.newInstance();
+        Target3 obj = (Target3)c.getConstructor().newInstance();
         ((Proxy)obj).setHandler(interceptor2);
         assertEquals("OK", obj.m());
         System.out.println(obj.toString());
         assertEquals(3, interceptor2.counter);
 
         interceptor2.counter = 0;
-        Target4 obj4 = (Target4)c.newInstance();
+        Target4 obj4 = (Target4)c.getConstructor().newInstance();
         ((Proxy)obj4).setHandler(interceptor2);
         assertEquals(3, obj4.bar4());
         assertEquals(3, obj4.foo4());
@@ -219,7 +219,7 @@ public class ProxyTester extends TestCase {
                 }
             });
         Class c = f.createClass();
-        Target3 obj = (Target3)c.newInstance();
+        Target3 obj = (Target3)c.getConstructor().newInstance();
         ((Proxy)obj).setHandler(interceptor2);
         assertEquals("OK", obj.m());
         System.out.println(obj.toString());
@@ -242,7 +242,7 @@ public class ProxyTester extends TestCase {
         Class c = f.createClass();
         assertTrue(testInitFlag); // since 3.12.  Before then, this line was assertFalse(testInitFlag);
         System.out.println("testInit createClass(): " + testInitFlag);
-        TargetInit obj = (TargetInit)c.newInstance();
+        TargetInit obj = (TargetInit)c.getConstructor().newInstance();
         assertTrue(testInitFlag);
         System.out.println("testInit newInstance(): " + testInitFlag);
         ((ProxyObject)obj).setHandler(handler);
@@ -270,7 +270,7 @@ public class ProxyTester extends TestCase {
         // f.setHandler(interceptor);
         f.setFilter(finalizeRemover);
         Class c = f.createClass();
-        BridgeMethod obj = (BridgeMethod)c.newInstance();
+        BridgeMethod obj = (BridgeMethod)c.getConstructor().newInstance();
         ((Proxy)obj).setHandler(interceptor);
         Integer value = obj.m1();
         assertEquals(7, value.intValue());
@@ -370,7 +370,7 @@ public class ProxyTester extends TestCase {
         };
         ProxyFactory pf = new ProxyFactory();
         pf.setSuperclass(ReadWriteData.class);
-        Object data = pf.createClass().newInstance();
+        Object data = pf.createClass().getConstructor().newInstance();
         // Object data = new ReadWriteData();
         ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(fileName));
         oos.writeObject(data);
@@ -391,12 +391,12 @@ public class ProxyTester extends TestCase {
     public void testWriteReplace() throws Exception {
         ProxyFactory pf = new ProxyFactory();
         pf.setSuperclass(WriteReplace.class);
-        Object data = pf.createClass().newInstance();
+        Object data = pf.createClass().getConstructor().newInstance();
         assertEquals(data, ((WriteReplace)data).writeReplace());
 
         ProxyFactory pf2 = new ProxyFactory();
         pf2.setSuperclass(WriteReplace2.class);
-        Object data2 = pf2.createClass().newInstance();
+        Object data2 = pf2.createClass().getConstructor().newInstance();
         Method meth = data2.getClass().getDeclaredMethod("writeReplace", new Class[0]);
         assertEquals("javassist.util.proxy.SerializedProxy",
                     meth.invoke(data2, new Object[0]).getClass().getName());
@@ -407,7 +407,7 @@ public class ProxyTester extends TestCase {
     }
 
     public static class WriteReplace2 implements Serializable {
-        public Object writeReplace(int i) { return new Integer(i); }
+        public Object writeReplace(int i) { return Integer.valueOf(i); }
     }
 
     public static void testJIRA189() throws Exception {
@@ -418,7 +418,7 @@ public class ProxyTester extends TestCase {
         factory.setSuperclass(persistentClass);
         factory.setInterfaces(new Class[] { Target189.TestProxy.class });
         Class cl = factory.createClass();
-        Target189.TestProxy proxy = (Target189.TestProxy)cl.newInstance();
+        Target189.TestProxy proxy = (Target189.TestProxy)cl.getConstructor().newInstance();
         Target189.TestMethodHandler methodHandler = new Target189.TestMethodHandler();
         ((ProxyObject)proxy).setHandler(methodHandler);
         ((Target189.Article)proxy).getIssue();

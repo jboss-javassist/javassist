@@ -7,7 +7,7 @@ public class Signature<T> {
 
     public int run() {
         Signature<String> s = new Signature<String>();
-        return s.foo(new Integer(3), "foo", s, null).length();
+        return s.foo(Integer.valueOf(3), "foo", s, null).length();
     }
 
     <S> T foo(S s, T t, Signature<T> signature, Signature<Signature<String>> v) {

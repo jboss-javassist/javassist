@@ -27,7 +27,7 @@ public class Tester extends TestCase {
         ProxyFactory f = new ProxyFactory();
         f.setSuperclass(Hand.class);
         Class c = f.createClass();
-        Hand foo = (Hand)c.newInstance();
+        Hand foo = (Hand)c.getConstructor().newInstance();
         ((Proxy)foo).setHandler(mi);
         assertTrue(ProxyFactory.isProxyClass(c));
         assertEquals(3, foo.getHandler());

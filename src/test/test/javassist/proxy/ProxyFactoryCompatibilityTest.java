@@ -52,14 +52,14 @@ public class ProxyFactoryCompatibilityTest extends TestCase
         // create the same class twice and check that it is reused
         Class proxyClass1 =  factory.createClass();
         System.out.println("created first class " + proxyClass1.getName());
-        TestClass proxy1 = (TestClass)proxyClass1.newInstance();
+        TestClass proxy1 = (TestClass)proxyClass1.getConstructor().newInstance();
         ((ProxyObject) proxy1).setHandler(handler);
         proxy1.testMethod();
         assertTrue(proxy1.isTestCalled());
 
         Class proxyClass2 =  factory.createClass();
         System.out.println("created second class " + proxyClass2.getName());
-        TestClass proxy2 = (TestClass)proxyClass2.newInstance();
+        TestClass proxy2 = (TestClass)proxyClass2.getConstructor().newInstance();
         ((ProxyObject) proxy2).setHandler(handler);
         proxy2.testMethod();
         assertTrue(proxy2.isTestCalled());
@@ -76,14 +76,14 @@ public class ProxyFactoryCompatibilityTest extends TestCase
         // create the same class twice and check that it is reused
         Class proxyClass3 =  factory.createClass();
         System.out.println("created third class " + proxyClass3.getName());
-        TestClass proxy3 = (TestClass)proxyClass3.newInstance();
+        TestClass proxy3 = (TestClass)proxyClass3.getConstructor().newInstance();
         ((Proxy)proxy3).setHandler(handler);
         proxy3.testMethod();
         assertTrue(proxy3.isTestCalled());
 
         Class proxyClass4 =  factory.createClass();
         System.out.println("created fourth class " + proxyClass4.getName());
-        TestClass proxy4 = (TestClass)proxyClass4.newInstance();
+        TestClass proxy4 = (TestClass)proxyClass4.getConstructor().newInstance();
         ((Proxy)proxy4).setHandler(handler);
         proxy4.testMethod();
         assertTrue(proxy4.isTestCalled());

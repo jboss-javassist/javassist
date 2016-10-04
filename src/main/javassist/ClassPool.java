@@ -220,10 +220,12 @@ public class ClassPool {
      * </pre>
      *
      * <p>If the default class pool cannot find any class files,
-     * try <code>ClassClassPath</code> and <code>LoaderClassPath</code>.
+     * try <code>ClassClassPath</code>, <code>ModuleClassPath</code>,
+     * or <code>LoaderClassPath</code>.
      *
      * @see ClassClassPath
      * @see LoaderClassPath
+     * @see ModuleClassPath
      */
     public static synchronized ClassPool getDefault() {
         if (defaultPool == null) {
@@ -1152,13 +1154,13 @@ public class ClassPool {
             Object[] args;
             if (domain == null) {
                 method = defineClass1;
-                args = new Object[] { ct.getName(), b, new Integer(0),
-                                      new Integer(b.length)};
+                args = new Object[] { ct.getName(), b, Integer.valueOf(0),
+                                      Integer.valueOf(b.length)};
             }
             else {
                 method = defineClass2;
-                args = new Object[] { ct.getName(), b, new Integer(0),
-                    new Integer(b.length), domain};
+                args = new Object[] { ct.getName(), b, Integer.valueOf(0),
+                                      Integer.valueOf(b.length), domain};
             }
 
             return (Class)toClass2(method, loader, args);

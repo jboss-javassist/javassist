@@ -595,7 +595,7 @@ public abstract class CodeGen extends Visitor implements Opcode, TokenId {
                         "sorry, not support labeled break or continue");
 
         bytecode.addOpcode(Opcode.GOTO);
-        Integer pc = new Integer(bytecode.currentPc());
+        Integer pc = Integer.valueOf(bytecode.currentPc());
         bytecode.addIndex(0);
         if (notCont)
             breakList.add(pc);

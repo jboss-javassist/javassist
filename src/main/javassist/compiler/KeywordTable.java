@@ -28,6 +28,6 @@ public final class KeywordTable extends java.util.HashMap {
     }
 
     public void append(String name, int t) {
-        put(name, new Integer(t));
+        put(name, Integer.valueOf(t));
     }
 }

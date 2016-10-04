@@ -60,7 +60,7 @@ public class CharMemberValue extends MemberValue {
     }
 
     Object getValue(ClassLoader cl, ClassPool cp, Method m) {
-        return new Character(getValue());
+        return Character.valueOf(getValue());
     }
 
     Class getType(ClassLoader cl) {

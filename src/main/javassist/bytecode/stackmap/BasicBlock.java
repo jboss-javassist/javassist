@@ -196,7 +196,7 @@ public class BasicBlock {
 
         private Mark makeMark0(HashMap table, int pos,
                                boolean isBlockBegin, boolean isTarget) {
-            Integer p = new Integer(pos);
+            Integer p = Integer.valueOf(pos);
             Mark m = (Mark)table.get(p);
             if (m == null) {
                 m = new Mark(pos);

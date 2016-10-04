@@ -37,7 +37,7 @@ public class StackMapTest extends TestCase {
     }
 
     protected Object make(String name) throws Exception {
-        return cloader.loadClass(name).newInstance();
+        return cloader.loadClass(name).getConstructor().newInstance();
     }
 
     protected int invoke(Object target, String method) throws Exception {
@@ -143,7 +143,7 @@ public class StackMapTest extends TestCase {
         CtClass cc = loader.get("javassist.bytecode.StackMapTest$T1");
         rebuildStackMaps2(cc);
         //Class c = cc.toClass();
-        //Object t1 = c.newInstance();
+        //Object t1 = c.getConstructor().newInstance();
         cc.writeFile();
         Object t1 = make(cc.getName());
         assertEquals(3, invoke(t1, "test"));
@@ -582,9 +582,9 @@ public class StackMapTest extends TestCase {
             if (v5)  // 246:
                 this.print2(s);
             if (v5)
-                this.log(ldcw(), v7, s, Long.valueOf(new Integer(i).longValue()), k, null);
+                this.log(ldcw(), v7, s, Long.valueOf(Integer.valueOf(i).longValue()), k, null);
             else // 290:
-                this.log(ldcw(), v7, s, Long.valueOf(new Integer(i).longValue()), k, null);
+                this.log(ldcw(), v7, s, Long.valueOf(Integer.valueOf(i).longValue()), k, null);
 
             return v5;
         }

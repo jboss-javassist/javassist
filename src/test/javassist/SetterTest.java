@@ -29,7 +29,7 @@ public class SetterTest extends TestCase {
         clazz.addMethod(CtNewMethod.getter("isBroken", field));
         Class _class = clazz.toClass();
 
-        Object object = _class.newInstance();
+        Object object = _class.getConstructor().newInstance();
         check(_class, object, true);
     }
 
@@ -47,7 +47,7 @@ public class SetterTest extends TestCase {
         clazz.addMethod(CtNewMethod.setter("setBroken", field));
         Class _class = clazz.toClass();
 
-        Object object = _class.newInstance();
+        Object object = _class.getConstructor().newInstance();
 
         set(_class, object, false);
         check(_class, object, false);
@@ -67,7 +67,7 @@ public class SetterTest extends TestCase {
         clazz.addMethod(CtNewMethod.getter("isBroken", field));
         Class _class = clazz.toClass();
 
-        Object object = _class.newInstance();
+        Object object = _class.getConstructor().newInstance();
         check(_class, object, true);
     }
 
@@ -86,7 +86,7 @@ public class SetterTest extends TestCase {
         clazz.addMethod(CtNewMethod.setter("setBroken", field));
         Class _class = clazz.toClass();
 
-        Object object = _class.newInstance();
+        Object object = _class.getConstructor().newInstance();
 
         set(_class, object, false);
         check(_class, object, false);
@@ -106,6 +106,6 @@ public class SetterTest extends TestCase {
     {
         Method method = _class.getMethod("setBroken",
                                          new Class[] {Boolean.TYPE});
-        method.invoke(object, new Object[] {new Boolean(willBe)});
+        method.invoke(object, new Object[] { Boolean.valueOf(willBe)});
     }
 }

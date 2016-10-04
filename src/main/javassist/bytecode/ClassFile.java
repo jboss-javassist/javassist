@@ -118,6 +118,12 @@ public final class ClassFile {
     public static final int JAVA_8 = 52;
 
     /**
+     * The major version number of class files
+     * for JDK 1.9.
+     */
+    public static final int JAVA_9 = 53;
+
+    /**
      * The major version number of class files created
      * from scratch.  The default value is 47 (JDK 1.3).
      * It is 49 (JDK 1.5)
@@ -128,6 +134,8 @@ public final class ClassFile {
      * if the JVM supports <code>java.lang.invoke.CallSite</code>.
      * It is 52 (JDK 1.8)
      * if the JVM supports <code>java.util.function.Function</code>.
+     * It is 53 (JDK 1.9)
+     * if the JVM supports <code>java.lang.reflect.Module</code>.
      */
     public static final int MAJOR_VERSION;
 
@@ -142,6 +150,8 @@ public final class ClassFile {
             ver = JAVA_7;
             Class.forName("java.util.function.Function");
             ver = JAVA_8;
+            Class.forName("java.lang.reflect.Module");
+            ver = JAVA_9;
         }
         catch (Throwable t) {}
         MAJOR_VERSION = ver;
