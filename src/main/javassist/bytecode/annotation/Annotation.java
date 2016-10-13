@@ -292,9 +292,17 @@ public class Annotation {
     public Object toAnnotationType(ClassLoader cl, ClassPool cp)
         throws ClassNotFoundException, NoSuchClassError
     {
-        return AnnotationImpl.make(cl,
-                        MemberValue.loadClass(cl, getTypeName()),
-                        cp, this);
+        Class clazz = MemberValue.loadClass(cl, getTypeName()); 
+        try {
+            return AnnotationImpl.make(cl, clazz, cp, this);                   
+        }
+        catch (IllegalArgumentException e) {
+            /* AnnotationImpl.make() may throw this exception
+             * when it fails to make a proxy object for some
+             * reason.
+             */
+            throw new ClassNotFoundException(clazz.getName(), e);
+        }
     }
 
     /**

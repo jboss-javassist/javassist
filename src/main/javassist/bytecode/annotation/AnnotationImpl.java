@@ -67,7 +67,9 @@ public class AnnotationImpl implements InvocationHandler {
      * @return the annotation
      */
     public static Object make(ClassLoader cl, Class clazz, ClassPool cp,
-                              Annotation anon) {
+                              Annotation anon)
+        throws IllegalArgumentException
+    {
         AnnotationImpl handler = new AnnotationImpl(anon, cp, cl);
         return Proxy.newProxyInstance(cl, new Class[] { clazz }, handler);
     }
