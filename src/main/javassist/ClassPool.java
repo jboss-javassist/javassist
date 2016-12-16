@@ -225,7 +225,6 @@ public class ClassPool {
      *
      * @see ClassClassPath
      * @see LoaderClassPath
-     * @see ModuleClassPath
      */
     public static synchronized ClassPool getDefault() {
         if (defaultPool == null) {

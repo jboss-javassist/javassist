@@ -240,13 +240,8 @@ final class ClassPoolTail {
     }
 
     public ClassPath appendSystemPath() {
-        if (javassist.bytecode.ClassFile.MAJOR_VERSION < javassist.bytecode.ClassFile.JAVA_9) {
-            return appendClassPath(new ClassClassPath());
-        }
-        else {
-            ClassLoader cl = Thread.currentThread().getContextClassLoader();
-            return appendClassPath(new LoaderClassPath(cl, true));
-        }
+        ClassLoader cl = Thread.currentThread().getContextClassLoader();
+        return appendClassPath(new LoaderClassPath(cl, true));
     }
 
     public ClassPath insertClassPath(String pathname)

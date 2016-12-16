@@ -42,45 +42,15 @@ import java.lang.ref.WeakReference;
  * @see ClassPool#insertClassPath(ClassPath)
  * @see ClassPool#appendClassPath(ClassPath)
  * @see ClassClassPath
- * @see ModuleClassPath
  */
 public class LoaderClassPath implements ClassPath {
     private WeakReference clref;
 
     /**
-     * If true, this search path implicitly includes
-     * a {@code ModuleClassPath} as a fallback.
-     * For backward compatibility, this field is set to true
-     * if the JVM is Java 9 or later.  It can be false in
-     * Java 9 but the behavior of {@code LoadClassPath} will
-     * be different from its behavior in Java 8 or older.
-     *
-     * <p>This field must be false if the JVM is Java 8 or older.
-     *
-     * @since 3.21
-     */
-    public static boolean fallbackOnModuleClassPath
-        = javassist.bytecode.ClassFile.MAJOR_VERSION >= javassist.bytecode.ClassFile.JAVA_9;
-
-    private static ModuleClassPath moduleClassPath = null;
-
-    private boolean doFallback;
-
-    /**
      * Creates a search path representing a class loader.
      */
     public LoaderClassPath(ClassLoader cl) {
-        this(cl, fallbackOnModuleClassPath);
-    }
-
-    LoaderClassPath(ClassLoader cl, boolean fallback) {
         clref = new WeakReference(cl);
-        doFallback = fallback;
-        if (fallback)
-            synchronized (LoaderClassPath.class) {
-                if (moduleClassPath == null)
-                    moduleClassPath = new ModuleClassPath();
-            }
     }
 
     public String toString() {
@@ -103,10 +73,7 @@ public class LoaderClassPath implements ClassPath {
             return null;        // not found
         else {
             InputStream is = cl.getResourceAsStream(cname);
-            if (is == null && doFallback)
-                return moduleClassPath.openClassfile(classname);
-            else
-                return is;
+            return is;
         }
     }
 
@@ -124,10 +91,7 @@ public class LoaderClassPath implements ClassPath {
             return null;        // not found
         else {
             URL url = cl.getResource(cname);
-            if (url == null && doFallback)
-                return moduleClassPath.find(classname);
-            else
-                return url;
+            return url;
         }
     }
 

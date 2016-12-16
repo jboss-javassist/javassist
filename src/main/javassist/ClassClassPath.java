@@ -47,12 +47,8 @@ import javassist.bytecode.ClassFile;
  * @see ClassPool#insertClassPath(ClassPath)
  * @see ClassPool#appendClassPath(ClassPath)
  * @see LoaderClassPath
- * @see ModuleClassPath
  */
 public class ClassClassPath implements ClassPath {
-    private static final boolean useJigsaw
-        = ClassFile.MAJOR_VERSION >= ClassFile.JAVA_9;
-
     private Class thisClass;
 
     /** Creates a search path.
