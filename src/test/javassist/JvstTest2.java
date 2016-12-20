@@ -295,8 +295,12 @@ public class JvstTest2 extends JvstTestRoot {
 
         url = cp.find("java.lang.Object").toString();
         System.out.println(url);
-        assertTrue(url.startsWith("jar:file:"));
-        assertTrue(url.endsWith(".jar!/java/lang/Object.class"));
+        if (JvstTest.java9)
+            assertEquals("jrt:/java.base/java/lang/Object.class", url);
+        else {
+            assertTrue(url.startsWith("jar:file:"));
+            assertTrue(url.endsWith(".jar!/java/lang/Object.class"));
+        }
 
         assertNull(cp.find("class.not.Exist"));
 
@@ -304,7 +308,7 @@ public class JvstTest2 extends JvstTestRoot {
         cp.insertClassPath(".");
 
         url = cp.find("test2.Inner").toString();
-        System.out.println(url);
+        System.out.println("testURL: " + url);
         assertTrue(url.startsWith("file:/"));
         assertTrue(url.endsWith("/test2/Inner.class"));
 
@@ -314,7 +318,7 @@ public class JvstTest2 extends JvstTestRoot {
         cp.insertClassPath(JAR_PATH + "javassist.jar");
 
         url = cp.find("javassist.CtClass").toString();
-        System.out.println(url);
+        System.out.println("testURL: " + url);
         assertTrue(url.startsWith("jar:file:"));
         assertTrue(url.endsWith("javassist.jar!/javassist/CtClass.class"));
 
@@ -324,9 +328,9 @@ public class JvstTest2 extends JvstTestRoot {
         cp.insertClassPath(new LoaderClassPath(cloader));
 
         url = cp.find("javassist.CtMethod").toString();
-        System.out.println(url);
-        // assertTrue(url.startsWith("jar:file:"));
-        // assertTrue(url.endsWith("javassist.jar!/javassist/CtMethod.class"));
+        System.out.println("testURL: " + url);
+        assertTrue(url.startsWith("file:"));
+        assertTrue(url.endsWith("/javassist/CtMethod.class"));
 
         assertNull(cp.find("javassist.TestURL"));
 
@@ -334,7 +338,7 @@ public class JvstTest2 extends JvstTestRoot {
         cp.insertClassPath(new ByteArrayClassPath("test2.ByteArray", null));
 
         url = cp.find("test2.ByteArray").toString();
-        System.out.println(url);
+        System.out.println("testURL: " + url);
         assertTrue(
             url.equals("file:/ByteArrayClassPath/test2/ByteArray.class"));
 
@@ -361,8 +365,13 @@ public class JvstTest2 extends JvstTestRoot {
         CtClass cc = sloader.get("java.lang.String");
         String url = cc.getURL().toString();
         System.out.println(url);
-        assertTrue(url.startsWith("jar:file:"));
-        assertTrue(url.endsWith(".jar!/java/lang/String.class"));
+        if (JvstTest.java9) {
+            assertEquals("jrt:/java.base/java/lang/String.class", url);
+        }
+        else {
+            assertTrue(url.startsWith("jar:file:"));
+            assertTrue(url.endsWith(".jar!/java/lang/String.class"));
+        }
 
         cc = sloader.get("int");
         try {

@@ -29,7 +29,7 @@ public class ProxyTester extends TestCase {
                 Object[] args) throws Exception {
             System.out.println("intercept: " + m + ", proceed: " + proceed);
             System.out.println("     modifier: "
-            				   + Modifier.toString(proceed.getModifiers()));
+                               + Modifier.toString(proceed.getModifiers()));
             counter++;
             return proceed.invoke(self, args);
         }
@@ -310,16 +310,20 @@ public class ProxyTester extends TestCase {
 
     public void testProvider() throws Exception {
         ProxyFactory.ClassLoaderProvider cp = ProxyFactory.classLoaderProvider;
-        final ClassLoader cl = Thread.currentThread().getContextClassLoader();
-        ProxyFactory.classLoaderProvider = new ProxyFactory.ClassLoaderProvider() {
-            public ClassLoader get(ProxyFactory pf) {
-                return Thread.currentThread().getContextClassLoader();
-            }
-        };
+        try {
+            final ClassLoader cl = Thread.currentThread().getContextClassLoader();
+            ProxyFactory.classLoaderProvider = new ProxyFactory.ClassLoaderProvider() {
+                public ClassLoader get(ProxyFactory pf) {
+                    return Thread.currentThread().getContextClassLoader();
+                }
+            };
 
-        ProxyFactory2 pf = new ProxyFactory2();
-        assertEquals(cl, pf.getClassLoader2());
-        ProxyFactory.classLoaderProvider = cp;
+            ProxyFactory2 pf = new ProxyFactory2();
+            assertEquals(cl, pf.getClassLoader2());
+        }
+        finally {
+            ProxyFactory.classLoaderProvider = cp;
+        }
     }
 
     @SuppressWarnings("deprecation")
@@ -363,19 +367,28 @@ public class ProxyTester extends TestCase {
     public void testReadWrite() throws Exception {
         final String fileName = "read-write.bin";
         ProxyFactory.ClassLoaderProvider cp = ProxyFactory.classLoaderProvider;
-        ProxyFactory.classLoaderProvider = new ProxyFactory.ClassLoaderProvider() {
-            public ClassLoader get(ProxyFactory pf) {
-                return new javassist.Loader();
-            }
-        };
-        ProxyFactory pf = new ProxyFactory();
-        pf.setSuperclass(ReadWriteData.class);
-        Object data = pf.createClass().getConstructor().newInstance();
-        // Object data = new ReadWriteData();
-        ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(fileName));
-        oos.writeObject(data);
-        oos.close();
-        ProxyFactory.classLoaderProvider = cp;
+        try {
+            ProxyFactory.classLoaderProvider = new ProxyFactory.ClassLoaderProvider() {
+                public ClassLoader get(ProxyFactory pf) {
+                    /* If javassist.Loader is returned, the super type of ReadWriteData class,
+                     * which is Serializable, is loaded by javassist.Loader as well as ReadWriteData.
+                     * This breaks the implementation of the object serializer.
+                     */
+                    // return new javassist.Loader();
+                    return Thread.currentThread().getContextClassLoader();
+                }
+            };
+            ProxyFactory pf = new ProxyFactory();
+            pf.setSuperclass(ReadWriteData.class);
+            Object data = pf.createClass().getConstructor().newInstance();
+            //Object data = new ReadWriteData();
+            ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(fileName));
+            oos.writeObject(data);
+            oos.close();
+        }
+        finally {
+            ProxyFactory.classLoaderProvider = cp;
+        }
 
         ObjectInputStream ois = new ObjectInputStream(new FileInputStream(fileName));
         Object data2 = ois.readObject();
@@ -411,13 +424,16 @@ public class ProxyTester extends TestCase {
     }
 
     public static void testJIRA189() throws Exception {
-    	Class persistentClass = Target189.PublishedArticle.class;
+        Class persistentClass = Target189.PublishedArticle.class;
         ProxyFactory factory = new ProxyFactory();
-        // factory.writeDirectory = ".";
+        //factory.writeDirectory = ".";
         factory.setUseCache(false);
         factory.setSuperclass(persistentClass);
         factory.setInterfaces(new Class[] { Target189.TestProxy.class });
         Class cl = factory.createClass();
+        Object obj = cl.getConstructor().newInstance();
+        System.out.println("JIRA189:" + obj.getClass().getClassLoader() + ", " + obj.getClass().getSuperclass().getName()
+                            + ", " + Target189.PublishedArticle.class.getClassLoader());
         Target189.TestProxy proxy = (Target189.TestProxy)cl.getConstructor().newInstance();
         Target189.TestMethodHandler methodHandler = new Target189.TestMethodHandler();
         ((ProxyObject)proxy).setHandler(methodHandler);

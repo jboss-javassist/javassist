@@ -1,6 +1,7 @@
 package test.javassist.proxy;
 
 import junit.framework.TestCase;
+import testproxy.ProxyTester.ReadWriteData;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -53,19 +54,28 @@ public class ProxySimpleTest extends TestCase {
     public void testReadWrite() throws Exception {
         final String fileName = "read-write.bin";
         ProxyFactory.ClassLoaderProvider cp = ProxyFactory.classLoaderProvider;
-        ProxyFactory.classLoaderProvider = new ProxyFactory.ClassLoaderProvider() {
-            public ClassLoader get(ProxyFactory pf) {
-                return new javassist.Loader();
-            }
-        };
-        ProxyFactory pf = new ProxyFactory();
-        pf.setSuperclass(ReadWriteData.class);
-        Object data = pf.createClass().getConstructor().newInstance();
-        // Object data = new ReadWriteData();
-        ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(fileName));
-        oos.writeObject(data);
-        oos.close();
-        ProxyFactory.classLoaderProvider = cp;
+        try {
+            ProxyFactory.classLoaderProvider = new ProxyFactory.ClassLoaderProvider() {
+                public ClassLoader get(ProxyFactory pf) {
+                    /* If javassist.Loader is returned, the super type of ReadWriteData class,
+                     * which is Serializable, is loaded by javassist.Loader as well as ReadWriteData.
+                     * This breaks the implementation of the object serializer.
+                     */
+                    // return new javassist.Loader();
+                    return Thread.currentThread().getContextClassLoader();
+                }
+            };
+            ProxyFactory pf = new ProxyFactory();
+            pf.setSuperclass(ReadWriteData.class);
+            Object data = pf.createClass().getConstructor().newInstance();
+            // Object data = new ReadWriteData();
+            ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(fileName));
+            oos.writeObject(data);
+            oos.close();
+        }
+        finally {
+            ProxyFactory.classLoaderProvider = cp;
+        }
 
         ObjectInputStream ois = new ObjectInputStream(new FileInputStream(fileName));
         Object data2 = ois.readObject();

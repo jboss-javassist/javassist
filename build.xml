@@ -99,7 +99,17 @@
 
   <target name="runtest" depends="jar,test-compile">
     <junit fork="true" printsummary="true" dir="${test.run.dir}">
-      <jvmarg value="-XX:-FailOverToOldVerifier" />
+      <jvmarg value="-XX:-FailOverToOldVerifier"/>
+      <classpath refid="test.classpath"/>
+      <formatter type="xml" extension=".xml"/>
+      <test name="javassist.JvstTest" outfile="TestLog" />
+    </junit>
+  </target>
+
+  <target name="runtest9" depends="jar,test-compile">
+    <junit fork="true" printsummary="true" dir="${test.run.dir}">
+      <jvmarg line="--add-opens java.base/java.lang=ALL-UNNAMED" />
+      <jvmarg value="-XX:-FailOverToOldVerifier"/>
       <classpath refid="test.classpath"/>
       <formatter type="xml" extension=".xml"/>
       <test name="javassist.JvstTest" outfile="TestLog" />

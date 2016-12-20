@@ -8,8 +8,12 @@ import javassist.expr.*;
 import javassist.runtime.*;
 
 public class JvstTest extends JvstTestRoot {
+    public static boolean java9;
+
     static {
         //javassist.bytecode.MethodInfo.doPreverify = true;
+        java9 = javassist.bytecode.ClassFile.MAJOR_VERSION
+                    >= javassist.bytecode.ClassFile.JAVA_9;
     }
     public JvstTest(String name) {
          super(name);
