@@ -444,8 +444,11 @@ public class ClassPool {
      */
     public CtClass get(String classname) throws NotFoundException {
         CtClass clazz;
+        String javalangPrefix = "java.lang.";
         if (classname == null)
             clazz = null;
+        else if (classname.startsWith(javalangPrefix))
+            clazz = new CtClassType(classname.substring(javalangPrefix.length()), this);
         else
             clazz = get0(classname, true);
 

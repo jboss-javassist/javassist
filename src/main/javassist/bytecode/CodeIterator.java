@@ -126,6 +126,10 @@ public class CodeIterator implements Opcode {
      */
     public int byteAt(int index) { return bytecode[index] & 0xff; }
 
+    public int signedByteAt(int index) { return bytecode[index]; }
+
+    public int unsignedByteAt(int index) { return byteAt(index); }
+
     /**
      * Returns the signed 8bit value at the given index.
      */
