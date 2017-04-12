@@ -27,7 +27,6 @@ import java.util.*;
 import java.lang.ref.WeakReference;
 
 import javassist.CannotCompileException;
-import javassist.NotFoundException;
 import javassist.bytecode.*;
 
 /*
@@ -795,7 +794,7 @@ public class ProxyFactory {
             superClass = OBJECT_TYPE;
             superName = superClass.getName();
             basename = interfaces.length == 0 ? superName
-                                               : interfaces[0].getName();
+                                              : interfaces[0].getName();
         } else {
             superName = superClass.getName();
             basename = superName;
@@ -805,7 +804,7 @@ public class ProxyFactory {
             throw new RuntimeException(superName + " is final");
         
         if (basename.startsWith("java."))
-            basename = "org.javassist.tmp." + basename;
+            basename = "javassist.util.proxy." + basename.replace('.', '_');
     }
 
     private void allocateClassName() {

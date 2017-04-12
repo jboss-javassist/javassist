@@ -70,34 +70,26 @@ import javassist.bytecode.Descriptor;
  * @see javassist.ClassPath
  */
 public class ClassPool {
-    // used by toClass().
-    private static java.lang.reflect.Method defineClass1, defineClass2;
-    private static java.lang.reflect.Method definePackage;
+    private static java.lang.reflect.Method definePackage = null;
 
     static {
-        try {
-            AccessController.doPrivileged(new PrivilegedExceptionAction(){
-                public Object run() throws Exception{
-                    Class cl = Class.forName("java.lang.ClassLoader");
-                    defineClass1 = cl.getDeclaredMethod("defineClass",
-                            new Class[] { String.class, byte[].class,
-                                         int.class, int.class });
-
-                    defineClass2 = cl.getDeclaredMethod("defineClass",
-                           new Class[] { String.class, byte[].class,
-                                 int.class, int.class, ProtectionDomain.class });
-
-                    definePackage = cl.getDeclaredMethod("definePackage",
-                            new Class[] { String.class, String.class, String.class,
-                                          String.class, String.class, String.class,
-                                          String.class, java.net.URL.class });
-                    return null;
-                }
-            });
-        }
-        catch (PrivilegedActionException pae) {
-            throw new RuntimeException("cannot initialize ClassPool", pae.getException());
-        }
+        if (ClassFile.MAJOR_VERSION < ClassFile.JAVA_9)
+            try {
+                AccessController.doPrivileged(new PrivilegedExceptionAction(){
+                    public Object run() throws Exception{
+                        Class cl = Class.forName("java.lang.ClassLoader");
+                        definePackage = cl.getDeclaredMethod("definePackage",
+                                new Class[] { String.class, String.class, String.class,
+                                        String.class, String.class, String.class,
+                                        String.class, java.net.URL.class });
+                        return null;
+                    }
+                });
+            }
+            catch (PrivilegedActionException pae) {
+                throw new RuntimeException("cannot initialize ClassPool",
+                                           pae.getException());
+            }
     }
 
     /**
@@ -1148,43 +1140,11 @@ public class ClassPool {
         throws CannotCompileException
     {
         try {
-            byte[] b = ct.toBytecode();
-            java.lang.reflect.Method method;
-            Object[] args;
-            if (domain == null) {
-                method = defineClass1;
-                args = new Object[] { ct.getName(), b, Integer.valueOf(0),
-                                      Integer.valueOf(b.length)};
-            }
-            else {
-                method = defineClass2;
-                args = new Object[] { ct.getName(), b, Integer.valueOf(0),
-                                      Integer.valueOf(b.length), domain};
-            }
-
-            return (Class)toClass2(method, loader, args);
+            return javassist.util.proxy.DefineClassHelper.toClass(ct.getName(),
+                    loader, domain, ct.toBytecode());
         }
-        catch (RuntimeException e) {
-            throw e;
-        }
-        catch (java.lang.reflect.InvocationTargetException e) {
-            throw new CannotCompileException(e.getTargetException());
-        }
-        catch (Exception e) {
+        catch (IOException e) {
             throw new CannotCompileException(e);
-        }
-    }
-
-    private static synchronized Object toClass2(Method method,
-            ClassLoader loader, Object[] args)
-        throws Exception
-    {
-        method.setAccessible(true);
-        try {
-            return method.invoke(loader, args);
-        }
-        finally {
-            method.setAccessible(false);
         }
     }
 
@@ -1195,7 +1155,13 @@ public class ClassPool {
      * <p>You do not necessarily need to
      * call this method.  If this method is called, then  
      * <code>getPackage()</code> on the <code>Class</code> object returned 
-     * by <code>toClass()</code> will return a non-null object.
+     * by <code>toClass()</code> will return a non-null object.</p>
+     *
+     * <p>The jigsaw module introduced by Java 9 has broken this method.
+     * In Java 9 or later, the VM argument
+     * <code>--add-opens java.base/java.lang=ALL-UNNAMED</code>
+     * has to be given to the JVM so that this method can run.
+     * </p>
      *
      * @param loader        the class loader passed to <code>toClass()</code> or
      *                      the default one obtained by <code>getClassLoader()</code>.
@@ -1204,15 +1170,19 @@ public class ClassPool {
      * @see #toClass(CtClass)
      * @see CtClass#toClass()
      * @since 3.16
+     * @deprecated
      */
     public void makePackage(ClassLoader loader, String name)
         throws CannotCompileException
     {
+        if (definePackage == null)
+            throw new CannotCompileException("give the JVM --add-opens");
+
         Object[] args = new Object[] {
                 name, null, null, null, null, null, null, null };
         Throwable t;
         try {
-            toClass2(definePackage, loader, args);
+            makePackage2(definePackage, loader, args);
             return;
         }
         catch (java.lang.reflect.InvocationTargetException e) {
@@ -1230,5 +1200,18 @@ public class ClassPool {
         }
 
         throw new CannotCompileException(t);
+    }
+
+    private static synchronized Object makePackage2(Method method,
+            ClassLoader loader, Object[] args)
+        throws Exception
+    {
+        method.setAccessible(true);
+        try {
+            return method.invoke(loader, args);
+        }
+        finally {
+            method.setAccessible(false);
+        }
     }
 }

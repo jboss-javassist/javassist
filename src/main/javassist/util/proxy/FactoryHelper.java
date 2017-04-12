@@ -16,7 +16,6 @@
 
 package javassist.util.proxy;
 
-import java.lang.reflect.Method;
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
@@ -35,28 +34,6 @@ import javassist.bytecode.ClassFile;
  * @see ProxyFactory
  */
 public class FactoryHelper {
-    private static java.lang.reflect.Method defineClass1, defineClass2;
-
-    static {
-        try {
-            Class cl = Class.forName("java.lang.ClassLoader");
-            defineClass1 = SecurityActions.getDeclaredMethod(
-                        cl,
-                        "defineClass",
-                        new Class[] { String.class, byte[].class,
-                                      int.class, int.class });
-
-            defineClass2 = SecurityActions.getDeclaredMethod(
-                        cl,
-                        "defineClass",
-                        new Class[] { String.class, byte[].class,
-                              int.class, int.class, ProtectionDomain.class });
-        }
-        catch (Exception e) {
-            throw new RuntimeException("cannot initialize");
-        }
-    }
-
     /**
      * Returns an index for accessing arrays in this class.
      *
@@ -144,45 +121,16 @@ public class FactoryHelper {
      * @since 3.3
      */
     public static Class toClass(ClassFile cf, ClassLoader loader, ProtectionDomain domain)
-            throws CannotCompileException
+        throws CannotCompileException
     {
         try {
             byte[] b = toBytecode(cf);
-            Method method;
-            Object[] args;
-            if (domain == null) {
-                method = defineClass1;
-                args = new Object[] { cf.getName(), b, Integer.valueOf(0),
-                                      Integer.valueOf(b.length) };
-            }
-            else {
-                method = defineClass2;
-                args = new Object[] { cf.getName(), b, Integer.valueOf(0),
-                                      Integer.valueOf(b.length), domain };
-            }
-
-            return toClass2(method, loader, args);
+            return DefineClassHelper.toClass(cf.getName(), loader, domain, b);
         }
-        catch (RuntimeException e) {
-            throw e;
-        }
-        catch (java.lang.reflect.InvocationTargetException e) {
-            throw new CannotCompileException(e.getTargetException());
-        }
-        catch (Exception e) {
+        catch (IOException e) {
             throw new CannotCompileException(e);
         }
-    }
-
-    private static synchronized Class toClass2(Method method,
-                                        ClassLoader loader, Object[] args)
-        throws Exception
-    {
-        SecurityActions.setAccessible(method, true);
-        Class clazz = (Class)method.invoke(loader, args);
-        SecurityActions.setAccessible(method, false);
-        return clazz;
-    }
+     }
 
     private static byte[] toBytecode(ClassFile cf) throws IOException {
         ByteArrayOutputStream barray = new ByteArrayOutputStream();

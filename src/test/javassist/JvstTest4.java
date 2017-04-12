@@ -599,11 +599,29 @@ public class JvstTest4 extends JvstTestRoot {
         });
     }
 
+    public void testMakePackage() throws Exception {
+        if (ClassFile.MAJOR_VERSION >= ClassFile.JAVA_9) {
+            ClassPool pool = ClassPool.getDefault();
+            try {
+                pool.makePackage(pool.getClassLoader(), "test4.pack2");
+                fail("makePackage() ran");
+            }
+            catch (CannotCompileException e) {}
+        }
+    }
+
     public void testPackage() throws Throwable {    // JASSIST-147
         String packageName = "test4.pack";
         ClassPool pool = ClassPool.getDefault();
-        pool.makePackage(pool.getClassLoader(), packageName);
-        pool.makePackage(pool.getClassLoader(), packageName);
+        try {
+            pool.makePackage(pool.getClassLoader(), packageName);
+            pool.makePackage(pool.getClassLoader(), packageName);
+        }
+        catch (CannotCompileException e) {
+            if (ClassFile.MAJOR_VERSION >= ClassFile.JAVA_9)
+                return;         // makePackage() does not work in Java 9.
+        }
+
         CtClass ctcl = pool.makeClass("test4.pack.Clazz");
         Class cl = ctcl.toClass();
         Object obj = cl.getConstructor().newInstance();
