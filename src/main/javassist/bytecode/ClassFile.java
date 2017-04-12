@@ -146,7 +146,7 @@ public final class ClassFile {
             ver = JAVA_5;
             Class.forName("java.util.zip.DeflaterInputStream");
             ver = JAVA_6;
-            Class.forName("java.lang.invoke.CallSite");
+            Class.forName("java.lang.invoke.CallSite", false, ClassLoader.getSystemClassLoader());
             ver = JAVA_7;
             Class.forName("java.util.function.Function");
             ver = JAVA_8;
