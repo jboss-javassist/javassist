@@ -104,7 +104,7 @@ public class FactoryHelper {
     /**
      * Loads a class file by a given class loader.
      * This method uses a default protection domain for the class
-     * but it may not work with a security manager or a sigend jar file.
+     * but it may not work with a security manager or a signed jar file.
      *
      * @see #toClass(ClassFile,ClassLoader,ProtectionDomain)
      */
@@ -125,7 +125,10 @@ public class FactoryHelper {
     {
         try {
             byte[] b = toBytecode(cf);
-            return DefineClassHelper.toClass(cf.getName(), loader, domain, b);
+            if (ProxyFactory.onlyPublicMethods)
+                return DefineClassHelper.toPublicClass(cf.getName(), b);
+            else
+                return DefineClassHelper.toClass(cf.getName(), loader, domain, b);
         }
         catch (IOException e) {
             throw new CannotCompileException(e);

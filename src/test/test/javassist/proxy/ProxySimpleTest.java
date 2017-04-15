@@ -1,7 +1,6 @@
 package test.javassist.proxy;
 
 import junit.framework.TestCase;
-import testproxy.ProxyTester.ReadWriteData;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -208,5 +207,73 @@ public class ProxySimpleTest extends TestCase {
 
     public static class Default4 extends Default3 {
         public int baz() { return super.baz(); }
+    }
+
+    public void testPublicProxy() throws Exception {
+        ProxyFactory f = new ProxyFactory();
+        f.writeDirectory = "./proxy";
+        f.setSuperclass(PubProxy.class);
+        Class c = f.createClass();
+        MethodHandler mi = new MethodHandler() {
+            public Object invoke(Object self, Method m, Method proceed,
+                                 Object[] args) throws Throwable {
+                PubProxy.result += args[0].toString();
+                return proceed.invoke(self, args);
+            }
+        };
+        PubProxy.result = "";
+        PubProxy foo = (PubProxy)c.getConstructor().newInstance();
+        ((Proxy)foo).setHandler(mi);
+        foo.foo(1);
+        foo.bar(2);
+        foo.baz(3);
+        assertEquals("c1p2q3r", PubProxy.result);
+    }
+
+    public static class PubProxy {
+        public static String result;
+        public PubProxy() { result += "c"; }
+        PubProxy(int i) { result += "d"; }
+        void foo(int i) { result += "p"; }
+        protected void bar(int i) { result += "q"; }
+        public void baz(int i) { result += "r"; }
+    }
+
+    public void testPublicProxy2() throws Exception {
+        boolean b = ProxyFactory.onlyPublicMethods;
+        ProxyFactory.onlyPublicMethods = true;
+        ProxyFactory f = new ProxyFactory();
+        f.writeDirectory = "./proxy";
+        f.setSuperclass(PubProxy2.class);
+        Class c = f.createClass();
+        MethodHandler mi = new MethodHandler() {
+            public Object invoke(Object self, Method m, Method proceed,
+                                 Object[] args) throws Throwable {
+                PubProxy2.result += args[0].toString();
+                return proceed.invoke(self, args);
+            }
+        };
+
+        PubProxy2.result = "";
+        try {
+            PubProxy2 foo = (PubProxy2)c.getConstructor().newInstance();
+            ((Proxy)foo).setHandler(mi);
+            foo.foo(1);     // mi does not intercept this call.
+            foo.bar(2);
+            foo.baz(3);
+            assertEquals("cp2q3r", PubProxy2.result);
+        }
+        finally {
+            ProxyFactory.onlyPublicMethods = b;
+        }
+    }
+
+    public static class PubProxy2 {
+        public static String result;
+        public PubProxy2() { result += "c"; }
+        PubProxy2(int i) { result += "d"; }
+        void foo(int i) { result += "p"; }
+        protected void bar(int i) { result += "q"; }
+        public void baz(int i) { result += "r"; }
     }
 }

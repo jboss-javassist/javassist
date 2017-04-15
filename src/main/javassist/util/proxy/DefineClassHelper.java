@@ -68,6 +68,15 @@ public class DefineClassHelper {
     /**
      * Loads a class file by a given class loader.
      *
+     * <p>This first tries to use {@code sun.misc.Unsafe} to load a class.
+     * Then it tries to use a {@code protected} method in {@code java.lang.ClassLoader}
+     * via {@code PrivilegedAction}.  Since the latter approach is not available
+     * any longer by default in Java 9 or later, the JVM argument
+     * {@code --add-opens java.base/java.lang=ALL-UNNAMED} must be given to the JVM.
+     * If this JVM argument cannot be given, {@link #toPublicClass(String,byte[])}
+     * should be used instead.
+     * </p>
+     *
      * @param domain        if it is null, a default domain is used.
      * @since 3.22
      */
@@ -75,9 +84,7 @@ public class DefineClassHelper {
                                    ProtectionDomain domain, byte[] bcode)
         throws CannotCompileException
     {
-        if (ClassFile.MAJOR_VERSION < ClassFile.JAVA_9)
-            return toClass2(className, loader, domain, bcode);
-        else {
+        if (ClassFile.MAJOR_VERSION >= ClassFile.JAVA_9)
             if (sunMiscUnsafe != null)
                 try {
                     return sunMiscUnsafe.defineClass(className, bcode, 0, bcode.length,
@@ -85,14 +92,24 @@ public class DefineClassHelper {
                 }
                 catch (Throwable t2) {}
 
-            try {
-                Lookup lookup = MethodHandles.lookup();
-                lookup = lookup.dropLookupMode(java.lang.invoke.MethodHandles.Lookup.PRIVATE);
-                return lookup.defineClass(bcode);
-            }
-            catch (Throwable t) {
-                throw new CannotCompileException(t);
-            }
+        return toClass2(className, loader, domain, bcode);
+    }
+
+    /**
+     * Loads a class file by {@code java.lang.invoke.MethodHandles.Lookup}.
+     *
+     * @since 3.22
+     */
+    static Class<?> toPublicClass(String className, byte[] bcode)
+        throws CannotCompileException
+    {
+        try {
+            Lookup lookup = MethodHandles.lookup();
+            lookup = lookup.dropLookupMode(java.lang.invoke.MethodHandles.Lookup.PRIVATE);
+            return lookup.defineClass(bcode);
+        }
+        catch (Throwable t) {
+            throw new CannotCompileException(t);
         }
     }
 
