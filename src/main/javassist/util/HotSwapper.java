@@ -70,7 +70,12 @@ class Trigger {
  * repatedly call <code>reload()</code> on the same <code>HotSwapper</code>
  * object so that they can reload a number of classes.
  *
+ * <p>{@code HotSwap} depends on the debug agent to perform hot-swapping
+ * but it is reported that the debug agent is buggy under massively multithreaded
+ * environments.  If you encounter a problem, try {@link HotSwapAgent}.
+ *
  * @since 3.1
+ * @see HotSwapAgent
  */
 public class HotSwapper {
     private VirtualMachine jvm;
