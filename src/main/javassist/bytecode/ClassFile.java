@@ -150,7 +150,7 @@ public final class ClassFile {
             ver = JAVA_7;
             Class.forName("java.util.function.Function");
             ver = JAVA_8;
-            Class.forName("java.lang.reflect.Module");
+            Class.forName("java.lang.Module");
             ver = JAVA_9;
         }
         catch (Throwable t) {}
