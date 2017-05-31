@@ -18,6 +18,10 @@ public class HotswapTest extends TestCase {
     }
 
     public void testHotswap() throws Exception {
+        if (javassist.bytecode.ClassFile.MAJOR_VERSION
+            >= javassist.bytecode.ClassFile.JAVA_9)
+            return;
+
         Foo f = new Foo();
         assertEquals(1, f.foo());
 

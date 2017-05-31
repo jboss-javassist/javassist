@@ -149,9 +149,8 @@ public class HotSwapAgent {
 
             String nameOfRunningVM = ManagementFactory.getRuntimeMXBean().getName();
             String pid = nameOfRunningVM.substring(0, nameOfRunningVM.indexOf('@'));
-
             VirtualMachine vm = VirtualMachine.attach(pid);
-            vm.loadAgent(agentJar.getAbsolutePath(), "");
+            vm.loadAgent(agentJar.getAbsolutePath(), null);
             vm.detach();
         }
         catch (Exception e) {
