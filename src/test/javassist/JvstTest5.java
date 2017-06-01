@@ -3,6 +3,7 @@ package javassist;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.TypeVariable;
 
+import javassist.bytecode.AccessFlag;
 import javassist.bytecode.AnnotationsAttribute;
 import javassist.bytecode.AttributeInfo;
 import javassist.bytecode.ClassFile;
@@ -290,5 +291,59 @@ public class JvstTest5 extends JvstTestRoot {
         cc.writeFile();
         Object obj = make(cc.getName());
         assertEquals(3, invoke(obj, "run"));
+    }
+
+    public void testInnerClassModifiers() throws Exception {
+        CtClass cc = sloader.get("test5.InnerModifier$NonStatic");
+        try {
+            cc.setModifiers(Modifier.PUBLIC | Modifier.STATIC);
+            fail();
+        }
+        catch (RuntimeException e) {
+            if (!e.getMessage().startsWith("cannot change "))
+                fail();
+        }
+
+        cc.setModifiers(Modifier.PUBLIC);
+        cc.writeFile();
+
+        assertEquals(Modifier.PUBLIC, cc.getModifiers());
+        InnerClassesAttribute ica = getInnerClassAttr(cc);
+        int i = ica.find("test5.InnerModifier$NonStatic");
+        assertTrue(i >= 0);
+        assertEquals(Modifier.PUBLIC, ica.accessFlags(i));
+
+        CtClass cc2 = sloader.get("test5.InnerModifier$Static");
+
+        InnerClassesAttribute ica3 = getInnerClassAttr(cc2);
+        int i3 = ica3.find("test5.InnerModifier$Static");
+        assertTrue(i3 >= 0);
+        assertEquals(AccessFlag.STATIC, ica3.accessFlags(i3));
+
+        cc2.setModifiers(Modifier.PROTECTED | Modifier.STATIC);
+        cc2.setModifiers(Modifier.PUBLIC);
+        cc2.writeFile();
+
+        assertEquals(Modifier.PUBLIC | Modifier.STATIC, cc2.getModifiers());
+        InnerClassesAttribute ica2 = getInnerClassAttr(cc2);
+        int i2 = ica2.find("test5.InnerModifier$Static");
+        assertTrue(i2 >= 0);
+        assertEquals(AccessFlag.PUBLIC | AccessFlag.STATIC, ica2.accessFlags(i2));
+
+        CtClass cc3 = cc.getDeclaringClass();
+        assertTrue(cc3.isModified());
+        cc3.writeFile();
+
+        InnerClassesAttribute ica4 = getInnerClassAttr(cc3);
+        int i4 = ica4.find("test5.InnerModifier$Static");
+        assertTrue(i4 >= 0);
+        assertEquals(AccessFlag.PUBLIC | AccessFlag.STATIC, ica4.accessFlags(i4));
+        int i5 = ica4.find("test5.InnerModifier$NonStatic");
+        assertTrue(i5 >= 0);
+        assertEquals(Modifier.PUBLIC, ica4.accessFlags(i5));
+    }
+
+    private InnerClassesAttribute getInnerClassAttr(CtClass cc) {
+        return (InnerClassesAttribute)cc.getClassFile2().getAttribute(InnerClassesAttribute.tag);
     }
 }

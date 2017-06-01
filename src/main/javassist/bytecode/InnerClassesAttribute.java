@@ -64,8 +64,10 @@ public class InnerClassesAttribute extends AttributeInfo {
     /**
      * Returns the class name indicated
      * by <code>classes[nth].inner_class_info_index</code>.
+     * The class name is fully-qualified and separated by dot.
      *
      * @return null or the class name.
+     * @see ConstPool#getClassInfo(int)
      */
     public String innerClass(int nth) {
         int i = innerClassIndex(nth);
@@ -154,6 +156,22 @@ public class InnerClassesAttribute extends AttributeInfo {
      */
     public void setAccessFlags(int nth, int flags) {
         ByteArray.write16bit(flags, get(), nth * 8 + 8);
+    }
+
+    /**
+     * Finds the entry for the given inner class.
+     *
+     * @param name      the fully-qualified class name separated by dot and $.
+     * @return the index or -1 if not found.
+     * @since 3.22
+     */
+    public int find(String name) {
+        int n = tableLength();
+        for (int i = 0; i < n; i++)
+            if (name.equals(innerClass(i)))
+                return i;
+
+        return -1;
     }
 
     /**

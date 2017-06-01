@@ -864,7 +864,7 @@ public class ClassPool {
      */
     synchronized CtClass makeNestedClass(String classname) {
         checkNotFrozen(classname);
-        CtClass clazz = new CtNewNestedClass(classname, this, false, null);
+        CtClass clazz = new CtNewClass(classname, this, false, null);
         cacheCtClass(classname, clazz, true);
         return clazz;
     }

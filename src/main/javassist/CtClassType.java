@@ -453,17 +453,46 @@ class CtClassType extends CtClass {
     }
 
     public void setModifiers(int mod) {
+        checkModify();
+        updateInnerEntry(mod, getName(), this, true);
         ClassFile cf = getClassFile2();
-        if (Modifier.isStatic(mod)) {
-            int flags = cf.getInnerAccessFlags();
-            if (flags != -1 && (flags & AccessFlag.STATIC) != 0)
-                mod = mod & ~Modifier.STATIC;
-            else
-                throw new RuntimeException("cannot change " + getName() + " into a static class");
+        cf.setAccessFlags(AccessFlag.of(mod & ~Modifier.STATIC));
+    }
+
+    private static void updateInnerEntry(int newMod, String name, CtClass clazz, boolean outer) {
+        ClassFile cf = clazz.getClassFile2();
+        InnerClassesAttribute ica
+            = (InnerClassesAttribute)cf.getAttribute(InnerClassesAttribute.tag);
+        if (ica != null) {
+            // If the class is a static inner class, its modifier
+            // does not contain the static bit.  Its inner class attribute
+            // contains the static bit.
+            int mod = newMod & ~Modifier.STATIC;
+            int i = ica.find(name);
+            if (i >= 0) {
+                int isStatic = ica.accessFlags(i) & AccessFlag.STATIC;
+                if (isStatic != 0 || !Modifier.isStatic(newMod)) {
+                    clazz.checkModify();
+                    ica.setAccessFlags(i, AccessFlag.of(mod) | isStatic);
+                    String outName = ica.outerClass(i);
+                    if (outName != null && outer)
+                        try {
+                            CtClass parent = clazz.getClassPool().get(outName);
+                            updateInnerEntry(mod, name, parent, false);
+                        }
+                        catch (NotFoundException e) {
+                            throw new RuntimeException("cannot find the declaring class: "
+                                                       + outName);
+                        }
+
+                    return;
+                }
+            }
         }
 
-        checkModify();
-        cf.setAccessFlags(AccessFlag.of(mod));
+        if (Modifier.isStatic(newMod))
+            throw new RuntimeException("cannot change " + Descriptor.toJavaName(name)
+                                       + " into a static class");
     }
 
     //@Override
