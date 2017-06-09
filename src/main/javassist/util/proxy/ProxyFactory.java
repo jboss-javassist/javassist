@@ -1027,11 +1027,12 @@ public class ProxyFactory {
             Map.Entry e = (Map.Entry)it.next();
             String key = (String)e.getKey();
             Method meth = (Method)e.getValue();
-            if (ClassFile.MAJOR_VERSION < ClassFile.JAVA_5 || !isBridge(meth))
-            	if (testBit(signature, index)) {
-            		override(className, meth, prefix, index,
-            				 keyToDesc(key, meth), cf, cp, forwarders);
-            	}
+            if (ClassFile.MAJOR_VERSION < ClassFile.JAVA_5 || !isBridge(meth) || 
+                    isBridgeAndOverloadedAndPublic(meth, signatureMethods))
+                if (testBit(signature, index)) {
+                    override(className, meth, prefix, index,
+                            keyToDesc(key, meth), cf, cp, forwarders);
+                }
 
             index++;
         }
@@ -1039,6 +1040,11 @@ public class ProxyFactory {
         return index;
     }
 
+    //JIRA JASSIST-267
+    private static boolean isBridgeAndOverloadedAndPublic(Method m, List methods) {
+        return isBridgeAndOverloaded(m, methods) && Modifier.isPublic(m.getModifiers());
+    }
+    
     private static boolean isBridge(Method m) {
     	return m.isBridge();
     }
@@ -1201,6 +1207,24 @@ public class ProxyFactory {
                 if (name.equals(methods[i].getName()))
                     return true;
 
+        return false;
+    }
+    
+    private static boolean isBridgeAndOverloaded(Method meth, List methods) {
+        if (isBridge(meth)) {
+            int cnt = 0;
+            String name = meth.getName();
+            for (Object m: methods) {
+                if (m instanceof Map.Entry<?, ?>) {
+                    Method targetMethod = ((Map.Entry<String, Method>)m).getValue();
+                    if (isBridge(targetMethod) && name.equals(targetMethod.getName())) {
+                        cnt++;
+                        if(cnt > 1)	return true;
+                    }
+                }
+            }
+        }
+        
         return false;
     }
 

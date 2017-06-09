@@ -276,4 +276,37 @@ public class ProxySimpleTest extends TestCase {
         protected void bar(int i) { result += "q"; }
         public void baz(int i) { result += "r"; }
     }
+    
+    String value267;
+    
+    public void testJIRA267() throws Exception {
+        ProxyFactory factory = new ProxyFactory();
+        factory.setSuperclass(Extended267.class);
+        Extended267 e = (Extended267)factory.create(null, null, new MethodHandler() {
+            @Override
+            public Object invoke(Object self, Method thisMethod,
+                    Method proceed, Object[] args) throws Throwable {
+                value267 += thisMethod.getDeclaringClass().getName();
+                return proceed.invoke(self, args);
+            }
+        });
+
+        value267 = "";
+        assertEquals("base", e.base());
+        System.out.println(value267);
+        assertEquals(Extended267.class.getName(), value267);
+
+        value267 = "";
+        assertEquals("base2", e.base("2"));
+        System.out.println(value267);
+        assertEquals(Extended267.class.getName(), value267);
+    }
+    
+    private static abstract class Base267 {
+        public String base() { return "base"; }
+        public String base(String s) { return "base" + s; }
+    }
+
+    public static class Extended267 extends Base267 {
+    }
 }
