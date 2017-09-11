@@ -41,12 +41,13 @@ public class AccessFlag {
     public static final int MANDATED  = 0x8000;
 
     public static final int SUPER     = 0x0020;
+    public static final int MODULE    = 0x8000;
 
     // Note: 0x0020 is assigned to both ACC_SUPER and ACC_SYNCHRONIZED
     // although java.lang.reflect.Modifier does not recognize ACC_SUPER.
 
     /**
-     * Truns the public bit on.  The protected and private bits are
+     * Turns the public bit on.  The protected and private bits are
      * cleared.
      */
     public static int setPublic(int accflags) {
@@ -54,7 +55,7 @@ public class AccessFlag {
     }
 
     /**
-     * Truns the protected bit on.  The protected and public bits are
+     * Turns the protected bit on.  The protected and public bits are
      * cleared.
      */
     public static int setProtected(int accflags) {

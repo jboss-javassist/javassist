@@ -4,6 +4,7 @@ target/
 runtest/
 html/
 lib/
+tmp/
 
 .DS_Store
 .classpath

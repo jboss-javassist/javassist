@@ -109,6 +109,16 @@ public final class ConstPool {
     public static final int CONST_InvokeDynamic = InvokeDynamicInfo.tag;
 
     /**
+     * <code>CONSTANT_Module</code>
+     */
+    public static final int CONST_Module = ModuleInfo.tag;
+
+    /**
+     * <code>CONSTANT_Package</code>
+     */
+    public static final int CONST_Package = PackageInfo.tag;
+
+    /**
      * Represents the class using this constant pool table.
      */
     public static final CtClass THIS = null;
@@ -738,6 +748,31 @@ public final class ConstPool {
     }
 
     /**
+     * Reads the <code>name_index</code> field of the
+     * <code>CONSTANT_Module_info</code> structure at the given index.
+     *
+     * @return the module name at <code>name_index</code>.
+     * @since 3.22
+     */
+    public String getModuleInfo(int index) {
+        ModuleInfo mi = (ModuleInfo)getItem(index);
+        return getUtf8Info(mi.name);
+    }
+
+    /**
+     * Reads the <code>name_index</code> field of the
+     * <code>CONSTANT_Package_info</code> structure at the given index.
+     *
+     * @return the package name at <code>name_index</code>.  It is a slash-separated name
+     * such as com/oracle/net.
+     * @since 3.22
+     */
+    public String getPackageInfo(int index) {
+        PackageInfo mi = (PackageInfo)getItem(index);
+        return getUtf8Info(mi.name);
+    }
+
+    /**
      * Determines whether <code>CONSTANT_Methodref_info</code>
      * structure at the given index represents the constructor
      * of the given class.
@@ -1118,6 +1153,26 @@ public final class ConstPool {
     }
 
     /**
+     * Adds a new <code>CONSTANT_Module_info</code>
+     * @param nameIndex         the index of the Utf8 entry.
+     * @return          the index of the added entry.
+     * @since 3.22
+     */
+    public int addModuleInfo(int nameIndex) {
+        return addItem(new ModuleInfo(nameIndex, numOfItems));
+    }
+
+    /**
+     * Adds a new <code>CONSTANT_Package_info</code>
+     * @param nameIndex         the index of the Utf8 entry.
+     * @return          the index of the added entry.
+     * @since 3.22
+     */
+    public int addPackageInfo(int nameIndex) {
+        return addItem(new PackageInfo(nameIndex, numOfItems));
+    }
+
+    /**
      * Get all the class names.
      *
      * @return a set of class names (<code>String</code> objects).
@@ -1239,6 +1294,12 @@ public final class ConstPool {
             break;
         case InvokeDynamicInfo.tag :            // 18
             info = new InvokeDynamicInfo(in, numOfItems);
+            break;
+        case ModuleInfo.tag :                   // 19
+            info = new ModuleInfo(in, numOfItems);
+            break;
+        case PackageInfo.tag :                  // 20
+            info = new PackageInfo(in, numOfItems);
             break;
         default :
             throw new IOException("invalid constant type: " + tag + " at " + numOfItems);
@@ -1994,5 +2055,91 @@ class InvokeDynamicInfo extends ConstInfo {
         out.print(bootstrap);
         out.print(", name&type #");
         out.println(nameAndType);
+    }
+}
+
+class ModuleInfo extends ConstInfo {
+    static final int tag = 19;
+    int name;
+
+    public ModuleInfo(int moduleName, int index) {
+        super(index);
+        name = moduleName;
+    }
+
+    public ModuleInfo(DataInputStream in, int index) throws IOException {
+        super(index);
+        name = in.readUnsignedShort();
+    }
+
+    public int hashCode() { return name; }
+
+    public boolean equals(Object obj) {
+        return obj instanceof ModuleInfo && ((ModuleInfo)obj).name == name;
+    }
+
+    public int getTag() { return tag; }
+
+    public String getModuleName(ConstPool cp) {
+        return cp.getUtf8Info(name);
+    }
+
+    public int copy(ConstPool src, ConstPool dest, Map map) {
+        String moduleName = src.getUtf8Info(name);
+        int newName = dest.addUtf8Info(moduleName);
+        return dest.addModuleInfo(newName);
+    }
+
+    public void write(DataOutputStream out) throws IOException {
+        out.writeByte(tag);
+        out.writeShort(name);
+    }
+
+    public void print(PrintWriter out) {
+        out.print("Module #");
+        out.println(name);
+    }
+}
+
+class PackageInfo extends ConstInfo {
+    static final int tag = 20;
+    int name;
+
+    public PackageInfo(int moduleName, int index) {
+        super(index);
+        name = moduleName;
+    }
+
+    public PackageInfo(DataInputStream in, int index) throws IOException {
+        super(index);
+        name = in.readUnsignedShort();
+    }
+
+    public int hashCode() { return name; }
+
+    public boolean equals(Object obj) {
+        return obj instanceof PackageInfo && ((PackageInfo)obj).name == name;
+    }
+
+    public int getTag() { return tag; }
+
+    public String getPackageName(ConstPool cp) {
+        return cp.getUtf8Info(name);
+    }
+
+    public int copy(ConstPool src, ConstPool dest, Map map) {
+        String packageName = src.getUtf8Info(name);
+        int newName = dest.addUtf8Info(packageName);
+        return dest.addModuleInfo(newName);
+    }
+
+    public void write(DataOutputStream out) throws IOException {
+        out.writeByte(tag);
+        out.writeShort(name);
+    }
+
+    public void print(PrintWriter out) {
+        out.print("Package #");
+        out.println(name);
     }
 }
