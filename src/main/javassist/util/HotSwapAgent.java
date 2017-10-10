@@ -52,7 +52,7 @@ import javassist.NotFoundException;
  *
  * <pre>
  * $ jshell --class-path javassist.jar
- * jshell> javassist.util.HotSwapAgent.createAgentJarFile("hotswap.jar") 
+ * jshell&gt; javassist.util.HotSwapAgent.createAgentJarFile("hotswap.jar") 
  * </pre>
  *
  * <p>Then, run the JVM with the VM argument {@code -javaagent:hotswap.jar}
