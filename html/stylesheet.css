@@ -27,30 +27,21 @@ a:link, a:visited {
     text-decoration:none;
     color:#4A6782;
 }
-a:hover, a:focus {
+a[href]:hover, a[href]:focus {
     text-decoration:none;
     color:#bb7a2a;
-}
-a:active {
-    text-decoration:none;
-    color:#4A6782;
 }
 a[name] {
     color:#353833;
 }
-a[name]:hover {
-    text-decoration:none;
-    color:#353833;
-}
-a[name]:before, a[name]:target {
+a[name]:before, a[name]:target, a[id]:before, a[id]:target {
     content:"";
-    display:block;
-    height:120px;
-    margin:-120px 0 0;
-}
-a[id]:before, a[id]:target {
+    display:inline-block;
+    position:relative;
     padding-top:129px;
     margin-top:-129px;
+}
+.searchTagResult:before, .searchTagResult:target {
     color:red;
 }
 pre {
@@ -144,7 +135,7 @@ Navigation bar styles
     margin:0;
 }
 .navPadding {
-    padding-top: 100px;
+    padding-top: 107px;
 }
 .fixedNav {
     position:fixed;
@@ -250,17 +241,19 @@ Page header and footer styles
     padding:5px 0 0 0;
 }
 .indexNav {
-    margin:10px;
     position:relative;
+    font-size:12px;
+    background-color:#dee3e9;
 }
 .indexNav ul {
-    padding:0;
-    margin:0;
+    margin-top:0;
+    padding:5px;
 }
 .indexNav ul li {
     display:inline;
     list-style-type:none;
     padding-right:10px;
+    text-transform:uppercase;
 }
 .indexNav h1 {
     font-size:13px;
@@ -339,7 +332,7 @@ Page layout container styles
 .contentContainer .description dl dd, .contentContainer .details dl dd, .serializedFormContainer dl dd {
     margin:5px 0 10px 0px;
     font-size:14px;
-    font-family:'DejaVu Sans Mono',monospace;
+    font-family:'DejaVu Serif', Georgia, "Times New Roman", Times, serif;
 }
 .serializedFormContainer dl.nameValue dt {
     margin-left:1px;
@@ -412,18 +405,20 @@ table tr td dl, table tr td dl dt, table tr td dl dd {
 /*
 Table styles
 */
-.overviewSummary, .memberSummary, .typeSummary, .useSummary, .constantsSummary, .deprecatedSummary {
+.overviewSummary, .memberSummary, .typeSummary, .useSummary, .constantsSummary, .deprecatedSummary,
+.requiresSummary, .packagesSummary, .providesSummary, .usesSummary {
     width:100%;
     border-spacing:0;
     border-left:1px solid #EEE; 
     border-right:1px solid #EEE; 
     border-bottom:1px solid #EEE; 
 }
-.overviewSummary, .memberSummary  {
+.overviewSummary, .memberSummary, .requiresSummary, .packagesSummary, .providesSummary, .usesSummary  {
     padding:0px;
 }
 .overviewSummary caption, .memberSummary caption, .typeSummary caption,
-.useSummary caption, .constantsSummary caption, .deprecatedSummary caption {
+.useSummary caption, .constantsSummary caption, .deprecatedSummary caption,
+.requiresSummary caption, .packagesSummary caption, .providesSummary caption, .usesSummary caption {
     position:relative;
     text-align:left;
     background-repeat:no-repeat;
@@ -439,16 +434,26 @@ Table styles
 }
 .overviewSummary caption a:link, .memberSummary caption a:link, .typeSummary caption a:link,
 .useSummary caption a:link, .constantsSummary caption a:link, .deprecatedSummary caption a:link,
+.requiresSummary caption a:link, .packagesSummary caption a:link, providesSummary caption a:link,
+.usesSummary caption a:link,
 .overviewSummary caption a:hover, .memberSummary caption a:hover, .typeSummary caption a:hover,
 .useSummary caption a:hover, .constantsSummary caption a:hover, .deprecatedSummary caption a:hover,
+.requiresSummary caption a:hover, .packagesSummary caption a:hover, providesSummary caption a:hover,
+.usesSummary caption a:hover,
 .overviewSummary caption a:active, .memberSummary caption a:active, .typeSummary caption a:active,
 .useSummary caption a:active, .constantsSummary caption a:active, .deprecatedSummary caption a:active,
+.requiresSummary caption a:active, .packagesSummary caption a:active, providesSummary caption a:active,
+.usesSummary caption a:active,
 .overviewSummary caption a:visited, .memberSummary caption a:visited, .typeSummary caption a:visited,
-.useSummary caption a:visited, .constantsSummary caption a:visited, .deprecatedSummary caption a:visited {
+.useSummary caption a:visited, .constantsSummary caption a:visited, .deprecatedSummary caption a:visited
+.requiresSummary caption a:visited, .packagesSummary caption a:visited, providesSummary caption a:visited,
+.usesSummary caption a:visited {
     color:#FFFFFF;
 }
 .overviewSummary caption span, .memberSummary caption span, .typeSummary caption span,
-.useSummary caption span, .constantsSummary caption span, .deprecatedSummary caption span {
+.useSummary caption span, .constantsSummary caption span, .deprecatedSummary caption span,
+.requiresSummary caption span, .packagesSummary caption span, .providesSummary caption span,
+.usesSummary caption span {
     white-space:nowrap;
     padding-top:5px;
     padding-left:12px;
@@ -460,7 +465,7 @@ Table styles
     border: none;
     height:16px;
 }
-.memberSummary caption span.activeTableTab span {
+.memberSummary caption span.activeTableTab span, .packagesSummary caption span.activeTableTab span {
     white-space:nowrap;
     padding-top:5px;
     padding-left:12px;
@@ -471,7 +476,7 @@ Table styles
     background-color:#F8981D;
     height:16px;
 }
-.memberSummary caption span.tableTab span {
+.memberSummary caption span.tableTab span, .packagesSummary caption span.tableTab span {
     white-space:nowrap;
     padding-top:5px;
     padding-left:12px;
@@ -482,7 +487,8 @@ Table styles
     background-color:#4D7A97;
     height:16px;
 }
-.memberSummary caption span.tableTab, .memberSummary caption span.activeTableTab {
+.memberSummary caption span.tableTab, .memberSummary caption span.activeTableTab,
+.packagesSummary caption span.tableTab, .packagesSummary caption span.activeTableTab {
     padding-top:0px;
     padding-left:0px;
     padding-right:0px;
@@ -491,14 +497,15 @@ Table styles
     display:inline;
 }
 .overviewSummary .tabEnd, .memberSummary .tabEnd, .typeSummary .tabEnd,
-.useSummary .tabEnd, .constantsSummary .tabEnd, .deprecatedSummary .tabEnd {
+.useSummary .tabEnd, .constantsSummary .tabEnd, .deprecatedSummary .tabEnd,
+.requiresSummary .tabEnd, .packagesSummary .tabEnd, .providesSummary .tabEnd, .usesSummary .tabEnd {
     display:none;
     width:5px;
     position:relative;
     float:left;
     background-color:#F8981D;
 }
-.memberSummary .activeTableTab .tabEnd {
+.memberSummary .activeTableTab .tabEnd, .packagesSummary .activeTableTab .tabEnd {
     display:none;
     width:5px;
     margin-right:3px;
@@ -506,7 +513,7 @@ Table styles
     float:left;
     background-color:#F8981D;
 }
-.memberSummary .tableTab .tabEnd {
+.memberSummary .tableTab .tabEnd, .packagesSummary .tableTab .tabEnd {
     display:none;
     width:5px;
     margin-right:3px;
@@ -515,19 +522,23 @@ Table styles
     float:left;
 
 }
+.rowColor th, .altColor th {
+    font-weight:normal;
+}
 .overviewSummary td, .memberSummary td, .typeSummary td,
-.useSummary td, .constantsSummary td, .deprecatedSummary td {
+.useSummary td, .constantsSummary td, .deprecatedSummary td,
+.requiresSummary td, .packagesSummary td, .providesSummary td, .usesSummary td {
     text-align:left;
     padding:0px 0px 12px 10px;
 }
-th.colOne, th.colFirst, th.colLast, .useSummary th, .constantsSummary th,
-td.colOne, td.colFirst, td.colLast, .useSummary td, .constantsSummary td{
+th.colFirst, th.colSecond, th.colLast, th.colConstructorName, .useSummary th, .constantsSummary th, .packagesSummary th,
+td.colFirst, td.colSecond, td.colLast, .useSummary td, .constantsSummary td {
     vertical-align:top;
     padding-right:0px;
     padding-top:8px;
     padding-bottom:3px;
 }
-th.colFirst, th.colLast, th.colOne, .constantsSummary th {
+th.colFirst, th.colSecond, th.colLast, th.colConstructorName, .constantsSummary th, .packagesSummary th {
     background:#dee3e9;
     text-align:left;
     padding:8px 3px 3px 7px;
@@ -536,31 +547,46 @@ td.colFirst, th.colFirst {
     white-space:nowrap;
     font-size:13px;
 }
-td.colLast, th.colLast {
+td.colSecond, th.colSecond, td.colLast, th.colConstructorName, th.colLast {
     font-size:13px;
 }
-td.colOne, th.colOne {
+.constantsSummary th, .packagesSummary th {
+    font-size:13px;
+}
+.providesSummary th.colFirst, .providesSummary th.colLast, .providesSummary td.colFirst,
+.providesSummary td.colLast {
+    white-space:normal;
     font-size:13px;
 }
 .overviewSummary td.colFirst, .overviewSummary th.colFirst,
-.useSummary td.colFirst, .useSummary th.colFirst,
-.overviewSummary td.colOne, .overviewSummary th.colOne,
+.requiresSummary td.colFirst, .requiresSummary th.colFirst,
+.packagesSummary td.colFirst, .packagesSummary td.colSecond, .packagesSummary th.colFirst, .packagesSummary th,
+.usesSummary td.colFirst, .usesSummary th.colFirst,
+.providesSummary td.colFirst, .providesSummary th.colFirst,
 .memberSummary td.colFirst, .memberSummary th.colFirst,
-.memberSummary td.colOne, .memberSummary th.colOne,
-.typeSummary td.colFirst{
-    width:25%;
+.memberSummary td.colSecond, .memberSummary th.colSecond, .memberSummary th.colConstructorName,
+.typeSummary td.colFirst {
     vertical-align:top;
 }
-td.colOne a:link, td.colOne a:active, td.colOne a:visited, td.colOne a:hover, td.colFirst a:link, td.colFirst a:active, td.colFirst a:visited, td.colFirst a:hover, td.colLast a:link, td.colLast a:active, td.colLast a:visited, td.colLast a:hover, .constantValuesContainer td a:link, .constantValuesContainer td a:active, .constantValuesContainer td a:visited, .constantValuesContainer td a:hover {
+.packagesSummary th.colLast, .packagesSummary td.colLast {
+    white-space:normal;
+}
+td.colFirst a:link, td.colFirst a:visited,
+td.colSecond a:link, td.colSecond a:visited,
+th.colFirst a:link, th.colFirst a:visited,
+th.colSecond a:link, th.colSecond a:visited,
+th.colConstructorName a:link, th.colConstructorName a:visited,
+td.colLast a:link, td.colLast a:visited,
+.constantValuesContainer td a:link, .constantValuesContainer td a:visited {
     font-weight:bold;
 }
 .tableSubHeadingColor {
     background-color:#EEEEFF;
 }
-.altColor {
+.altColor, .altColor th {
     background-color:#FFFFFF;
 }
-.rowColor {
+.rowColor, .rowColor th {
     background-color:#EEEEEF;
 }
 /*
@@ -611,8 +637,8 @@ h1.hidden {
     margin:3px 10px 2px 0px;
     color:#474747;
 }
-.deprecatedLabel, .descfrmTypeLabel, .memberNameLabel, .memberNameLink,
-.moduleLabelInClass, .overrideSpecifyLabel, .packageLabelInClass,
+.deprecatedLabel, .descfrmTypeLabel, .implementationLabel, .memberNameLabel, .memberNameLink,
+.moduleLabelInPackage, .moduleLabelInType, .overrideSpecifyLabel, .packageLabelInType,
 .packageHierarchyLabel, .paramLabel, .returnLabel, .seeLabel, .simpleTagLabel,
 .throwsLabel, .typeNameLabel, .typeNameLink, .searchTagLink {
     font-weight:bold;
@@ -751,4 +777,94 @@ ul.ui-autocomplete  li {
 .searchTagHolderResult {
     font-style:italic;
     font-size:12px;
+}
+
+.moduleGraph span {
+    display:none;
+    position:absolute;
+}
+.moduleGraph:hover span {
+    display:block;
+    margin: -100px 0 0 100px;
+    z-index: 1;
+}
+
+/*
+ * Styles for user-provided tables.
+ *
+ * borderless:
+ *      No borders, vertical margins, styled caption.
+ *      This style is provided for use with existing doc comments.
+ *      In general, borderless tables should not be used for layout purposes.
+ *
+ * plain:
+ *      Plain borders around table and cells, vertical margins, styled caption.
+ *      Best for small tables or for complex tables for tables with cells that span
+ *      rows and columns, when the "striped" style does not work well.
+ *
+ * striped:
+ *      Borders around the table and vertical borders between cells, striped rows,
+ *      vertical margins, styled caption.
+ *      Best for tables that have a header row, and a body containing a series of simple rows.
+ */
+
+table.borderless,
+table.plain,
+table.striped {
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+table.borderless > caption,
+table.plain > caption,
+table.striped > caption {
+    font-weight: bold;
+    font-size: smaller;
+}
+
+table.borderless th, table.borderless td,
+table.plain th, table.plain td,
+table.striped th, table.striped td {
+    padding: 2px 5px;
+}
+
+table.borderless,
+table.borderless > thead > tr > th, table.borderless > tbody > tr > th, table.borderless > tr > th,
+table.borderless > thead > tr > td, table.borderless > tbody > tr > td, table.borderless > tr > td {
+    border: none;
+}
+table.borderless > thead > tr, table.borderless > tbody > tr, table.borderless > tr {
+    background-color: transparent;
+}
+
+table.plain {
+    border-collapse: collapse;
+    border: 1px solid black;
+}
+table.plain > thead > tr, table.plain > tbody tr, table.plain > tr {
+    background-color: transparent;
+}
+table.plain > thead > tr > th, table.plain > tbody > tr > th, table.plain > tr > th,
+table.plain > thead > tr > td, table.plain > tbody > tr > td, table.plain > tr > td {
+    border: 1px solid black;
+}
+
+table.striped {
+    border-collapse: collapse;
+    border: 1px solid black;
+}
+table.striped > thead {
+    background-color: #DDD;
+    border: 1px solid black;
+}
+table.striped > tbody > tr:nth-child(even) {
+    background-color: #EEE
+}
+table.striped > tbody > tr:nth-child(odd) {
+    background-color: #FFF
+}
+table.striped > thead > tr > th, table.striped > tbody > tr > th,
+table.striped > tbody > tr > td, table.striped > tbody > tr > td {
+    border-left: 1px solid black;
+    border-right: 1px solid black;
 }
