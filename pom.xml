@@ -159,7 +159,7 @@
             <include>javassist/JvstTest.java</include>
           </includes>
 	  <forkMode>once</forkMode>
-          <workingDirectory>runtest</workingDirectory>
+      <workingDirectory>${project.build.directory}/runtest</workingDirectory>
         </configuration>
       </plugin>
       <plugin>

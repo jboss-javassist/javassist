@@ -628,7 +628,7 @@ public class JvstTest4 extends JvstTestRoot {
         assertEquals(packageName, obj.getClass().getPackage().getName());
     }
 
-    public static final String BASE_PATH = "../";
+    public static final String BASE_PATH = "../../";
     public static final String JAVASSIST_JAR = BASE_PATH + "javassist.jar";
     public static final String CLASSES_FOLDER = BASE_PATH + "build/classes";
     public static final String TEST_CLASSES_FOLDER = BASE_PATH + "build/test-classes";
