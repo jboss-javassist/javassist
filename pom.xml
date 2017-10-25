@@ -11,6 +11,9 @@
   <name>Javassist</name>
   <url>http://www.javassist.org/</url>
 
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>
   <organization>
     <name>Shigeru Chiba, www.javassist.org</name>
   </organization>
