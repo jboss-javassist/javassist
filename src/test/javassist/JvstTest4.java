@@ -6,10 +6,14 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.util.HashSet;
 
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
+
 import javassist.bytecode.*;
 import javassist.bytecode.annotation.Annotation;
 import javassist.expr.*;
 
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class JvstTest4 extends JvstTestRoot {
     public JvstTest4(String name) {
         super(name);

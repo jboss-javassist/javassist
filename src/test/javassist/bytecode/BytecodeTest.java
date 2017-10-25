@@ -826,12 +826,6 @@ public class BytecodeTest extends TestCase {
         assertEquals("(I)V", cPool2.getUtf8Info(cPool2.getMethodTypeInfo(mtIndex)));
     }
 
-    public static void main(String[] args) {
-        // junit.textui.TestRunner.run(suite());
-        junit.awtui.TestRunner.main(new String[] {
-            "javassist.bytecode.BytecodeTest" });
-    }
-
     public static Test suite() {
         TestSuite suite = new TestSuite("Bytecode Tests");
         suite.addTestSuite(BytecodeTest.class);

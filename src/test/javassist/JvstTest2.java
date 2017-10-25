@@ -2,10 +2,15 @@ package javassist;
 
 import java.io.*;
 import java.net.URL;
+
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
+
 import java.lang.reflect.Method;
 
 import javassist.expr.*;
 
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class JvstTest2 extends JvstTestRoot {
     public JvstTest2(String name) {
          super(name);

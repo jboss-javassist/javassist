@@ -113,12 +113,6 @@ public class CompTest extends TestCase {
         assertEquals("(int,char[],String)", s);
     }
 
-    public static void main(String[] args) {
-        // junit.textui.TestRunner.run(suite());
-        junit.awtui.TestRunner.main(new String[] {
-            "javassist.compiler.CompTest" });
-    }
-
     public static Test suite() {
         TestSuite suite = new TestSuite("Compiler Tests");
         suite.addTestSuite(CompTest.class);
