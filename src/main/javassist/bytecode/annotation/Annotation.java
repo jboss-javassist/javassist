@@ -303,6 +303,10 @@ public class Annotation {
              */
             throw new ClassNotFoundException(clazz.getName(), e);
         }
+        catch (IllegalAccessError e2) {
+            // also IllegalAccessError
+            throw new ClassNotFoundException(clazz.getName(), e2);
+        }
     }
 
     /**
