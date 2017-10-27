@@ -90,7 +90,7 @@ public class ClassMap extends java.util.HashMap {
      * @see #fix(String)
      */
     public void put(String oldname, String newname) {
-        if (oldname == newname)
+        if (oldname.equals(newname))
             return;
 
         String oldname2 = toJvmName(oldname);
