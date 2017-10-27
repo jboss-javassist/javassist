@@ -162,4 +162,33 @@ class SecurityActions {
             }
         }
     }
+
+    static Object getSunMiscUnsafeAnonymously() throws ClassNotFoundException
+    {
+        try {
+            return AccessController.doPrivileged(
+                new PrivilegedExceptionAction<Object>() { public Object run() throws
+                        ClassNotFoundException, NoSuchFieldException, SecurityException,
+                        IllegalArgumentException, IllegalAccessException {
+                    Class<?> unsafe = Class.forName("sun.misc.Unsafe");
+                    Field theUnsafe = unsafe.getDeclaredField("theUnsafe");
+                    theUnsafe.setAccessible(true);
+                    Object usf = theUnsafe.get(null);
+                    theUnsafe.setAccessible(false);
+                    return usf;
+                }
+            });
+        }
+        catch (PrivilegedActionException e) {
+            if (e.getCause() instanceof ClassNotFoundException)
+                throw (ClassNotFoundException) e.getCause();
+            if (e.getCause() instanceof NoSuchFieldException)
+                throw new ClassNotFoundException("No such instance.", e.getCause());
+            if (e.getCause() instanceof IllegalAccessException
+                    || e.getCause() instanceof IllegalAccessException
+                    || e.getCause() instanceof SecurityException)
+                throw new ClassNotFoundException("Security denied access.", e.getCause());
+            throw new RuntimeException(e.getCause());
+        }
+    }
 }
