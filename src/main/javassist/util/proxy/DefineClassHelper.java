@@ -63,9 +63,14 @@ public class DefineClassHelper
                     }
                 }
             }
+            private final StackWalker stack = StackWalker
+                    .getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE);
             private final ReferencedUnsafe sunMiscUnsafe = getReferencedUnsafe();
             private final ReferencedUnsafe getReferencedUnsafe()
             {
+                if (null != SecuredPrivileged.JAVA_9
+                        && stack.getCallerClass() != this.getClass())
+                    throw new IllegalAccessError("Access denied for caller.");
                 try {
                     Object usf = SecurityActions.getSunMiscUnsafeAnonymously();
                     MethodHandle meth = SecurityActions.getMethodHandle(ClassLoader.class, 
@@ -91,9 +96,13 @@ public class DefineClassHelper
             }
         },
         JAVA_7 {
+            private final SecurityActions stack = SecurityActions.stack;
             private final MethodHandle defineClass = getDefineClassMethodHandle();
             private final MethodHandle getDefineClassMethodHandle()
             {
+                if (null != SecuredPrivileged.JAVA_7
+                        && stack.getCallerClass() != this.getClass())
+                    throw new IllegalAccessError("Access denied for caller.");
                 try {
                     return SecurityActions.getMethodHandle(ClassLoader.class,
                         "defineClass", new Class[] {
@@ -109,6 +118,8 @@ public class DefineClassHelper
             protected Class<?> defineClass(String name, byte[] b, int off, int len,
                     ClassLoader loader, ProtectionDomain protectionDomain) throws ClassFormatError
             {
+                if (stack.getCallerClass() != DefineClassHelper.class)
+                    throw new IllegalAccessError("Access denied for caller.");
                 try {
                     return (Class<?>) defineClass.invokeWithArguments(
                             loader, name, b, off, len, protectionDomain);
@@ -121,7 +132,11 @@ public class DefineClassHelper
         },
         JAVA_OTHER {
             private final Method defineClass = getDefineClassMethod();
+            private final SecurityActions stack = SecurityActions.stack;
             private final Method getDefineClassMethod() {
+                if (null != SecuredPrivileged.JAVA_OTHER
+                        && stack.getCallerClass() != this.getClass())
+                    throw new IllegalAccessError("Access denied for caller.");
                 try {
                     return SecurityActions.getDeclaredMethod(ClassLoader.class,
                         "defineClass", new Class[] {

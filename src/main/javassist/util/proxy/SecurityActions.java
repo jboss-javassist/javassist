@@ -25,8 +25,15 @@ import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.security.PrivilegedActionException;
 import java.security.PrivilegedExceptionAction;
+class SecurityActions extends SecurityManager
+{
+    public static final SecurityActions stack = new SecurityActions();
+    public Class<?> getCallerClass()
+    {
+        return getClassContext()[2];
+    }
 
-class SecurityActions {
+
     static Method[] getDeclaredMethods(final Class<?> clazz)
     {
         if (System.getSecurityManager() == null)
