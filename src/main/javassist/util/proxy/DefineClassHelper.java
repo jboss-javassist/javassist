@@ -170,7 +170,7 @@ public class DefineClassHelper
 
         };
 
-        public abstract Class<?> defineClass(String name, byte[] b, int off, int len,
+        protected abstract Class<?> defineClass(String name, byte[] b, int off, int len,
                 ClassLoader loader, ProtectionDomain protectionDomain) throws ClassFormatError;
     }
 
@@ -231,4 +231,5 @@ public class DefineClassHelper
         }
     }
 
+    private DefineClassHelper() {}
 }
