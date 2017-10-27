@@ -15,6 +15,8 @@
  */
 package javassist.util.proxy;
 
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -51,8 +53,32 @@ class SecurityActions {
         }
     }
 
-    static Method getDeclaredMethod(final Class clazz, final String name,
-            final Class[] types) throws NoSuchMethodException {
+    static MethodHandle getMethodHandle(final Class<?> clazz, final
+                String name, final Class<?>[] params) throws NoSuchMethodException
+    {
+        try {
+            return AccessController.doPrivileged(
+                new PrivilegedExceptionAction<MethodHandle>() {
+                    public MethodHandle run() throws IllegalAccessException,
+                            NoSuchMethodException, SecurityException {
+                        Method rmet = clazz.getDeclaredMethod(name, params);
+                        rmet.setAccessible(true);
+                        MethodHandle meth = MethodHandles.lookup().unreflect(rmet);
+                        rmet.setAccessible(false);
+                        return meth;
+                    }
+                });
+        }
+        catch (PrivilegedActionException e) {
+            if (e.getCause() instanceof NoSuchMethodException)
+                throw (NoSuchMethodException) e.getCause();
+            throw new RuntimeException(e.getCause());
+        }
+    }
+
+    static Method getDeclaredMethod(final Class<?> clazz, final String name,
+            final Class<?>[] types) throws NoSuchMethodException
+    {
         if (System.getSecurityManager() == null)
             return clazz.getDeclaredMethod(name, types);
         else {
