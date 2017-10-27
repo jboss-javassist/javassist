@@ -90,6 +90,33 @@ public class DefineClassHelper
                         protectionDomain);
             }
         },
+        JAVA_7 {
+            private final MethodHandle defineClass = getDefineClassMethodHandle();
+            private final MethodHandle getDefineClassMethodHandle()
+            {
+                try {
+                    return SecurityActions.getMethodHandle(ClassLoader.class,
+                        "defineClass", new Class[] {
+                            String.class, byte[].class, int.class, int.class,
+                            ProtectionDomain.class
+                        });
+                } catch (NoSuchMethodException e) {
+                    throw new RuntimeException("cannot initialize", e);
+                }
+            }
+
+            @Override
+            protected Class<?> defineClass(String name, byte[] b, int off, int len,
+                    ClassLoader loader, ProtectionDomain protectionDomain) throws ClassFormatError
+            {
+                try {
+                    return (Class<?>) defineClass.invokeWithArguments(
+                            loader, name, b, off, len, protectionDomain);
+                } catch (Throwable e) {
+                    if (e instanceof RuntimeException) throw (RuntimeException) e;
+                    if (e instanceof ClassFormatError) throw (ClassFormatError) e;
+                    throw new ClassFormatError(e.getMessage());
+                }
             }
         },
         JAVA_OTHER {
@@ -125,16 +152,18 @@ public class DefineClassHelper
                     SecurityActions.setAccessible(defineClass, false);
                 }
             }
+
         };
 
         public abstract Class<?> defineClass(String name, byte[] b, int off, int len,
                 ClassLoader loader, ProtectionDomain protectionDomain) throws ClassFormatError;
-
-
     }
-    private static final SecuredPrivileged privileged = ClassFile.MAJOR_VERSION < ClassFile.JAVA_9
-            ? SecuredPrivileged.JAVA_OTHER
-            : SecuredPrivileged.JAVA_9;
+
+    private static final SecuredPrivileged privileged = ClassFile.MAJOR_VERSION >= ClassFile.JAVA_9
+            ? SecuredPrivileged.JAVA_9
+            : ClassFile.MAJOR_VERSION >= ClassFile.JAVA_7
+                    ? SecuredPrivileged.JAVA_7
+                    : SecuredPrivileged.JAVA_OTHER;
 
     /**
      * Loads a class file by a given class loader.
