@@ -38,10 +38,10 @@ public class DefineClassHelper
         JAVA_9 {
             final class ReferencedUnsafe
             {
-                private final Object sunMiscUnsafeTheUnsafe;
+                private final SecurityActions.TheUnsafe sunMiscUnsafeTheUnsafe;
                 private final MethodHandle defineClass;
 
-                ReferencedUnsafe(Object usf, MethodHandle meth)
+                ReferencedUnsafe(SecurityActions.TheUnsafe usf, MethodHandle meth)
                 {
                     this.sunMiscUnsafeTheUnsafe = usf;
                     this.defineClass = meth;
@@ -54,7 +54,7 @@ public class DefineClassHelper
                         throw new IllegalAccessError("Access denied for caller.");
                     try {
                         return (Class<?>) defineClass.invokeWithArguments(
-                                sunMiscUnsafeTheUnsafe,
+                                sunMiscUnsafeTheUnsafe.theUnsafe,
                                 name, b, off, len, loader, protectionDomain);
                     } catch (Throwable e) {
                         if (e instanceof RuntimeException) throw (RuntimeException) e;
@@ -72,12 +72,9 @@ public class DefineClassHelper
                         && stack.getCallerClass() != this.getClass())
                     throw new IllegalAccessError("Access denied for caller.");
                 try {
-                    Object usf = SecurityActions.getSunMiscUnsafeAnonymously();
-                    MethodHandle meth = SecurityActions.getMethodHandle(ClassLoader.class, 
-                            "defineClass", new Class[] {
-                                    String.class, byte[].class, int.class, int.class,
-                                    ProtectionDomain.class
-                                });
+                    SecurityActions.TheUnsafe usf = SecurityActions.getSunMiscUnsafeAnonymously();
+                    MethodHandle meth = MethodHandles.lookup()
+                            .unreflect(usf.methods.get("defineClass").get(0));
                     return new ReferencedUnsafe(usf, meth);
                 } catch (Throwable e) {
                     throw new RuntimeException("cannot initialize", e);

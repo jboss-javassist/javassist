@@ -25,6 +25,14 @@ import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.security.PrivilegedActionException;
 import java.security.PrivilegedExceptionAction;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javassist.bytecode.ClassFile;
+
 class SecurityActions extends SecurityManager
 {
     public static final SecurityActions stack = new SecurityActions();
@@ -170,18 +178,19 @@ class SecurityActions extends SecurityManager
         }
     }
 
-    static Object getSunMiscUnsafeAnonymously() throws ClassNotFoundException
+    static TheUnsafe getSunMiscUnsafeAnonymously() throws ClassNotFoundException
     {
         try {
             return AccessController.doPrivileged(
-                new PrivilegedExceptionAction<Object>() { public Object run() throws
+                new PrivilegedExceptionAction<TheUnsafe>() { public TheUnsafe run() throws
                         ClassNotFoundException, NoSuchFieldException, SecurityException,
                         IllegalArgumentException, IllegalAccessException {
                     Class<?> unsafe = Class.forName("sun.misc.Unsafe");
                     Field theUnsafe = unsafe.getDeclaredField("theUnsafe");
                     theUnsafe.setAccessible(true);
-                    Object usf = theUnsafe.get(null);
+                    TheUnsafe usf = stack.new TheUnsafe(unsafe, theUnsafe.get(null));
                     theUnsafe.setAccessible(false);
+                    disableWarning(usf);
                     return usf;
                 }
             });
@@ -198,4 +207,50 @@ class SecurityActions extends SecurityManager
             throw new RuntimeException(e.getCause());
         }
     }
+    class TheUnsafe
+    {
+        final Class<?> unsafe;
+        final Object theUnsafe;
+        final Map<String, List<Method>> methods =
+                new HashMap<String, List<Method>>();
+
+        TheUnsafe(Class<?> c, Object o)
+        {
+            this.unsafe = c;
+            this.theUnsafe = o;
+            for (Method m: unsafe.getDeclaredMethods()) {
+                if (!methods.containsKey(m.getName())) {
+                    methods.put(m.getName(), Collections.singletonList(m));
+                    continue;
+                }
+                if (methods.get(m.getName()).size() == 1)
+                    methods.put(m.getName(),
+                            new ArrayList<Method>(methods.get(m.getName())));
+                methods.get(m.getName()).add(m);
+            }
+        }
+
+        private Method getM(String name, Object[] o)
+        {
+            return methods.get(name).get(0);
+        }
+
+        public Object call(String name, Object... args)
+        {
+            try {
+                return getM(name, args).invoke(theUnsafe, args);
+            } catch (Throwable t) {t.printStackTrace();}
+            return null;
+        }
+    }
+    static void disableWarning(TheUnsafe tu) {
+        try {
+            if (ClassFile.MAJOR_VERSION < ClassFile.JAVA_9)
+                return;
+            Class<?> cls = Class.forName("jdk.internal.module.IllegalAccessLogger");
+            Field logger = cls.getDeclaredField("logger");
+            tu.call("putObjectVolatile", cls, tu.call("staticFieldOffset", logger), null);
+        } catch (Exception e) { /*swallow*/ }
+    }
 }
+
