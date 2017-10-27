@@ -27,29 +27,31 @@ import java.security.PrivilegedActionException;
 import java.security.PrivilegedExceptionAction;
 
 class SecurityActions {
-    static Method[] getDeclaredMethods(final Class clazz) {
+    static Method[] getDeclaredMethods(final Class<?> clazz)
+    {
         if (System.getSecurityManager() == null)
             return clazz.getDeclaredMethods();
         else {
-            return (Method[]) AccessController
-                    .doPrivileged(new PrivilegedAction() {
-                        public Object run() {
-                            return clazz.getDeclaredMethods();
-                        }
-                    });
+            return AccessController.doPrivileged(
+                new PrivilegedAction<Method[]>() {
+                    public Method[] run() {
+                        return clazz.getDeclaredMethods();
+                    }
+                });
         }
     }
 
-    static Constructor[] getDeclaredConstructors(final Class clazz) {
+    static Constructor<?>[] getDeclaredConstructors(final Class<?> clazz)
+    {
         if (System.getSecurityManager() == null)
             return clazz.getDeclaredConstructors();
         else {
-            return (Constructor[]) AccessController
-                    .doPrivileged(new PrivilegedAction() {
-                        public Object run() {
-                            return clazz.getDeclaredConstructors();
-                        }
-                    });
+            return AccessController.doPrivileged(
+                new PrivilegedAction<Constructor<?>[]>() {
+                    public Constructor<?>[] run() {
+                        return clazz.getDeclaredConstructors();
+                    }
+                });
         }
     }
 
@@ -83,12 +85,12 @@ class SecurityActions {
             return clazz.getDeclaredMethod(name, types);
         else {
             try {
-                return (Method) AccessController
-                        .doPrivileged(new PrivilegedExceptionAction() {
-                            public Object run() throws Exception {
-                                return clazz.getDeclaredMethod(name, types);
-                            }
-                        });
+                return AccessController.doPrivileged(
+                    new PrivilegedExceptionAction<Method>() {
+                        public Method run() throws Exception {
+                            return clazz.getDeclaredMethod(name, types);
+                        }
+                    });
             }
             catch (PrivilegedActionException e) {
                 if (e.getCause() instanceof NoSuchMethodException)
@@ -99,20 +101,20 @@ class SecurityActions {
         }
     }
 
-    static Constructor getDeclaredConstructor(final Class clazz,
-                                              final Class[] types)
+    static Constructor<?> getDeclaredConstructor(final Class<?> clazz,
+                                              final Class<?>[] types)
         throws NoSuchMethodException
     {
         if (System.getSecurityManager() == null)
             return clazz.getDeclaredConstructor(types);
         else {
             try {
-                return (Constructor) AccessController
-                        .doPrivileged(new PrivilegedExceptionAction() {
-                            public Object run() throws Exception {
-                                return clazz.getDeclaredConstructor(types);
-                            }
-                        });
+                return AccessController.doPrivileged(
+                    new PrivilegedExceptionAction<Constructor<?>>() {
+                        public Constructor<?> run() throws Exception {
+                            return clazz.getDeclaredConstructor(types);
+                        }
+                    });
             }
             catch (PrivilegedActionException e) {
                 if (e.getCause() instanceof NoSuchMethodException)
@@ -124,12 +126,13 @@ class SecurityActions {
     }
 
     static void setAccessible(final AccessibleObject ao,
-                              final boolean accessible) {
+                              final boolean accessible)
+    {
         if (System.getSecurityManager() == null)
             ao.setAccessible(accessible);
         else {
-            AccessController.doPrivileged(new PrivilegedAction() {
-                public Object run() {
+            AccessController.doPrivileged(new PrivilegedAction<Void>() {
+                public Void run() {
                     ao.setAccessible(accessible);
                     return null;
                 }
@@ -144,17 +147,17 @@ class SecurityActions {
             fld.set(target, value);
         else {
             try {
-                AccessController.doPrivileged(new PrivilegedExceptionAction() {
-                    public Object run() throws Exception {
-                        fld.set(target, value);
-                        return null;
-                    }
-                });
+                AccessController.doPrivileged(
+                    new PrivilegedExceptionAction<Void>() {
+                        public Void run() throws Exception {
+                            fld.set(target, value);
+                            return null;
+                        }
+                    });
             }
             catch (PrivilegedActionException e) {
                 if (e.getCause() instanceof NoSuchMethodException)
                     throw (IllegalAccessException) e.getCause();
-
                 throw new RuntimeException(e.getCause());
             }
         }
