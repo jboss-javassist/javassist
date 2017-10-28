@@ -146,6 +146,9 @@ public class CodeAttribute extends AttributeInfo implements Opcode {
      * in <code>CodeAttribute</code>.
      */
     public static class RuntimeCopyException extends RuntimeException {
+        /** default serialVersionUID */
+        private static final long serialVersionUID = 1L;
+
         /**
          * Constructs an exception.
          */

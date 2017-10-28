@@ -45,6 +45,8 @@ import java.io.ObjectOutputStream;
  * @see javassist.tools.reflect.Metalevel
  */
 public class Metaobject implements Serializable {
+    /** default serialVersionUID */
+    private static final long serialVersionUID = 1L;
     protected ClassMetaobject classmetaobject;
     protected Metalevel baseobject;
     protected Method[] methods;

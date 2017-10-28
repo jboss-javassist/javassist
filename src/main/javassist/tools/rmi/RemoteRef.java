@@ -21,6 +21,8 @@ package javassist.tools.rmi;
  * reference through a network stream.
  */
 public class RemoteRef implements java.io.Serializable {
+    /** default serialVersionUID */
+    private static final long serialVersionUID = 1L;
     public int oid;
     public String classname;
 

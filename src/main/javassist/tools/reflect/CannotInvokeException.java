@@ -29,6 +29,8 @@ import java.lang.IllegalAccessException;
  */
 public class CannotInvokeException extends RuntimeException {
 
+    /** default serialVersionUID */
+    private static final long serialVersionUID = 1L;
     private Throwable err = null;
 
     /**

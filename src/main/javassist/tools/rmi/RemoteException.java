@@ -21,6 +21,9 @@ package javassist.tools.rmi;
  * during remote method invocation.
  */
 public class RemoteException extends RuntimeException {
+    /** default serialVersionUID */
+    private static final long serialVersionUID = 1L;
+
     public RemoteException(String msg) {
         super(msg);
     }

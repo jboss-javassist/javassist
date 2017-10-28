@@ -23,6 +23,8 @@ import javassist.compiler.CompileError;
  * Variable declarator.
  */
 public class Declarator extends ASTList implements TokenId {
+    /** default serialVersionUID */
+    private static final long serialVersionUID = 1L;
     protected int varType;
     protected int arrayDim;
     protected int localVar;

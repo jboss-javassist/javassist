@@ -521,6 +521,9 @@ public abstract class CtClass {
         ClassFile cf = getClassFile2();
         if (cf != null) {
             ClassMap cm = new ClassMap() {
+                /** default serialVersionUID */
+                private static final long serialVersionUID = 1L;
+
                 public void put(String oldname, String newname) {
                     put0(oldname, newname);
                 }

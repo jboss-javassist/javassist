@@ -48,6 +48,8 @@ import javassist.bytecode.Descriptor;
  * @see CtNewMethod#copy(CtMethod,String,CtClass,ClassMap)
  */
 public class ClassMap extends java.util.HashMap {
+    /** default serialVersionUID */
+    private static final long serialVersionUID = 1L;
     private ClassMap parent;
 
     /**

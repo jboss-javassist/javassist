@@ -20,6 +20,8 @@ import java.util.HashMap;
 import javassist.compiler.ast.Declarator;
 
 public final class SymbolTable extends HashMap {
+    /** default serialVersionUID */
+    private static final long serialVersionUID = 1L;
     private SymbolTable parent;
 
     public SymbolTable() { this(null); }

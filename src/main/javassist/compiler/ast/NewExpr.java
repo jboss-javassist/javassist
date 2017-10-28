@@ -23,6 +23,8 @@ import javassist.compiler.CompileError;
  * New Expression.
  */
 public class NewExpr extends ASTList implements TokenId {
+    /** default serialVersionUID */
+    private static final long serialVersionUID = 1L;
     protected boolean newArray;
     protected int arrayType;
 

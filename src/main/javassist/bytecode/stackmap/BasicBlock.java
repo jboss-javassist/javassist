@@ -28,6 +28,9 @@ import java.util.ArrayList;
  */
 public class BasicBlock {
     static class JsrBytecode extends BadBytecode {
+        /** default serialVersionUID */
+        private static final long serialVersionUID = 1L;
+
         JsrBytecode() { super("JSR"); }
     }
 

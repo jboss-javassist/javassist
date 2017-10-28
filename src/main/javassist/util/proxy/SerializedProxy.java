@@ -31,6 +31,8 @@ import java.security.ProtectionDomain;
  * @see RuntimeSupport#makeSerializedProxy(Object)
  */
 class SerializedProxy implements Serializable {
+    /** default serialVersionUID */
+    private static final long serialVersionUID = 1L;
     private String superClass;
     private String[] interfaces;
     private byte[] filterSignature;

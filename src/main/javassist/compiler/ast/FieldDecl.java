@@ -19,6 +19,9 @@ package javassist.compiler.ast;
 import javassist.compiler.CompileError;
 
 public class FieldDecl extends ASTList {
+    /** default serialVersionUID */
+    private static final long serialVersionUID = 1L;
+
     public FieldDecl(ASTree _head, ASTList _tail) {
         super(_head, _tail);
     }

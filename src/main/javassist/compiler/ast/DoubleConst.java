@@ -23,6 +23,8 @@ import javassist.compiler.TokenId;
  * Double constant.
  */
 public class DoubleConst extends ASTree {
+    /** default serialVersionUID */
+    private static final long serialVersionUID = 1L;
     protected double value;
     protected int type;
 

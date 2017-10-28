@@ -80,6 +80,9 @@ public class ProxySerializationTest extends TestCase
 
     public static class TestFilter implements MethodFilter, Serializable
     {
+        /** default serialVersionUID */
+        private static final long serialVersionUID = 1L;
+
         public boolean isHandled(Method m) {
             if (m.getName().equals("getName")) {
                 return true;
@@ -105,6 +108,9 @@ public class ProxySerializationTest extends TestCase
 
     public static class TestHandler implements MethodHandler, Serializable
     {
+        /** default serialVersionUID */
+        private static final long serialVersionUID = 1L;
+
         public Object invoke(Object self, Method thisMethod, Method proceed, Object[] args) throws Throwable
         {
             return proceed.invoke(self, args);
@@ -127,6 +133,8 @@ public class ProxySerializationTest extends TestCase
 
     public static class TestClass implements Serializable
     {
+        /** default serialVersionUID */
+        private static final long serialVersionUID = 1L;
         public String name;
 
         public TestClass()

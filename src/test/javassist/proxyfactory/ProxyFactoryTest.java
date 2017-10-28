@@ -59,6 +59,8 @@ public class ProxyFactoryTest extends TestCase {
     
     public static class MyMethodHandler implements MethodHandler, Serializable {
 
+        /** default serialVersionUID */
+        private static final long serialVersionUID = 1L;
         private int x;
 
         public int getX() {

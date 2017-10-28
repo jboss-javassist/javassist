@@ -73,6 +73,8 @@ import java.lang.reflect.*;
  * @see javassist.tools.web.Viewer
  */
 public class ObjectImporter implements java.io.Serializable {
+    /** default serialVersionUID */
+    private static final long serialVersionUID = 1L;
     private final byte[] endofline = { 0x0d, 0x0a };
     private String servername, orgServername;
     private int port, orgPort;

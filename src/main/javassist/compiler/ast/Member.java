@@ -23,6 +23,8 @@ import javassist.CtField;
  * Member name.
  */
 public class Member extends Symbol {
+    /** default serialVersionUID */
+    private static final long serialVersionUID = 1L;
     // cache maintained by fieldAccess() in TypeChecker.
     // this is used to obtain the value of a static final field.
     private CtField field;

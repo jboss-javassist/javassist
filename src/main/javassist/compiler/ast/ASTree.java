@@ -25,6 +25,9 @@ import javassist.compiler.CompileError;
  * and <code>getRight()</code> returns null.
  */
 public abstract class ASTree implements Serializable {
+    /** default serialVersionUID */
+    private static final long serialVersionUID = 1L;
+
     public ASTree getLeft() { return null; }
 
     public ASTree getRight() { return null; }

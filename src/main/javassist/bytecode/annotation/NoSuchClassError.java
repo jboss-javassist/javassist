@@ -21,6 +21,8 @@ package javassist.bytecode.annotation;
  * It keeps the name of the class that caused this error. 
  */
 public class NoSuchClassError extends Error {
+    /** default serialVersionUID */
+    private static final long serialVersionUID = 1L;
     private String className;
 
     /**

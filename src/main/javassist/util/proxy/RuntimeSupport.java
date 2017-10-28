@@ -31,6 +31,9 @@ public class RuntimeSupport {
     public static MethodHandler default_interceptor = new DefaultMethodHandler();
 
     static class DefaultMethodHandler implements MethodHandler, Serializable {
+        /** default serialVersionUID */
+        private static final long serialVersionUID = 1L;
+
         public Object invoke(Object self, Method m,
                              Method proceed, Object[] args)
             throws Exception

@@ -23,6 +23,8 @@ import javassist.compiler.CompileError;
  * Statement.
  */
 public class Stmnt extends ASTList implements TokenId {
+    /** default serialVersionUID */
+    private static final long serialVersionUID = 1L;
     protected int operatorId;
 
     public Stmnt(int op, ASTree _head, ASTList _tail) {

@@ -22,6 +22,8 @@ import javassist.compiler.CompileError;
  * Identifier.
  */
 public class Symbol extends ASTree {
+    /** default serialVersionUID */
+    private static final long serialVersionUID = 1L;
     protected String identifier;
 
     public Symbol(String sym) {

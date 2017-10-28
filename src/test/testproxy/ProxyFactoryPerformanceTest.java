@@ -163,6 +163,9 @@ class EnhancerUser extends Thread implements InvocationHandler {
 */
 
 class SampleBean implements Serializable {
+    /** default serialVersionUID */
+    private static final long serialVersionUID = 1L;
+
     long oid;
     
     int version;

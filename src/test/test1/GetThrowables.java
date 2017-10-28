@@ -1,9 +1,15 @@
 package test1;
 
 class GetThrow1 extends Exception {
+
+    /** default serialVersionUID */
+    private static final long serialVersionUID = 1L;
 }
 
 class GetThrow2 extends Exception {
+
+    /** default serialVersionUID */
+    private static final long serialVersionUID = 1L;
 }
 
 public class GetThrowables {

@@ -23,6 +23,8 @@ import javassist.compiler.CompileError;
  * The right subtree must be an ASTList object or null.
  */
 public class ASTList extends ASTree {
+    /** default serialVersionUID */
+    private static final long serialVersionUID = 1L;
     private ASTree left;
     private ASTList right;
 

@@ -79,6 +79,9 @@ public class StackMapTable extends AttributeInfo {
      * in <code>StackMapTable</code>.
      */
     public static class RuntimeCopyException extends RuntimeException {
+        /** default serialVersionUID */
+        private static final long serialVersionUID = 1L;
+
         /**
          * Constructs an exception.
          */

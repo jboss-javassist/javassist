@@ -8,12 +8,17 @@ import java.io.ByteArrayOutputStream;
 import java.lang.reflect.Method;
 
 class Hand implements java.io.Serializable {
+    /** default serialVersionUID */
+    private static final long serialVersionUID = 1L;
     public int setHandler(int i) { return i; }
     int getHandler() { return 3; }
 }
 
 public class Tester extends TestCase {
     static class MHandler implements MethodHandler, java.io.Serializable {
+        /** default serialVersionUID */
+        private static final long serialVersionUID = 1L;
+
         public Object invoke(Object self, Method m, Method proceed,
                              Object[] args) throws Throwable {
             System.out.println("Name: " + m.getName());

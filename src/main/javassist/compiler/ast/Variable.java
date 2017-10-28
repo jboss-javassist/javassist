@@ -22,6 +22,8 @@ import javassist.compiler.CompileError;
  * Variable.
  */
 public class Variable extends Symbol {
+    /** default serialVersionUID */
+    private static final long serialVersionUID = 1L;
     protected Declarator declarator;
 
     public Variable(String sym, Declarator d) {
