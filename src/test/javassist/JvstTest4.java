@@ -603,6 +603,7 @@ public class JvstTest4 extends JvstTestRoot {
         });
     }
 
+    @SuppressWarnings("deprecation")
     public void testMakePackage() throws Exception {
         if (ClassFile.MAJOR_VERSION >= ClassFile.JAVA_9) {
             ClassPool pool = ClassPool.getDefault();
@@ -614,6 +615,7 @@ public class JvstTest4 extends JvstTestRoot {
         }
     }
 
+    @SuppressWarnings("deprecation")
     public void testPackage() throws Throwable {    // JASSIST-147
         String packageName = "test4.pack";
         ClassPool pool = ClassPool.getDefault();
