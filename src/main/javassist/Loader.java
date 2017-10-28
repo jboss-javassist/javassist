@@ -362,7 +362,7 @@ public class Loader extends ClassLoader {
         int i = name.lastIndexOf('.');
         if (i != -1) {
             String pname = name.substring(0, i);
-            if (getPackage(pname) == null)
+            if (getDefinedPackage(pname) == null)
                 try {
                     definePackage(
                         pname, null, null, null, null, null, null, null);
