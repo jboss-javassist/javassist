@@ -298,7 +298,7 @@ public class ClassPool {
      * @see #importPackage(String)
      * @since 3.1
      */
-    public Iterator getImportedPackages() {
+    public Iterator<String> getImportedPackages() {
         return importedPackages.iterator();
     }
 
