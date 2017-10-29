@@ -1,6 +1,6 @@
 package javassist.tools.reflect;
 
-import junit.framework.*;
+import org.junit.Assert;
 
 public class SubClass extends SuperClass {
     public String f() { return "f2"; }	// override
