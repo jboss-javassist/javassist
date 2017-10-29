@@ -81,7 +81,7 @@ public interface ScopedClassPoolRepository {
      * 
      * @return the registered classloaders.
      */
-    Map getRegisteredCLs();
+    Map<ClassLoader,ScopedClassPool> getRegisteredCLs();
 
     /**
      * This method will check to see if a register classloader has been

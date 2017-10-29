@@ -16,9 +16,9 @@
 
 package javassist.scopedpool;
 
+import java.lang.ref.Reference;
 import java.lang.ref.WeakReference;
 import java.security.ProtectionDomain;
-import java.util.Iterator;
 import java.util.Map;
 import javassist.CannotCompileException;
 import javassist.ClassPool;
@@ -37,11 +37,11 @@ import javassist.NotFoundException;
 public class ScopedClassPool extends ClassPool {
     protected ScopedClassPoolRepository repository;
 
-    protected WeakReference classLoader;
+    protected Reference<ClassLoader> classLoader;
 
     protected LoaderClassPath classPath;
 
-    protected SoftValueHashMap softcache = new SoftValueHashMap();
+    protected Map<String,CtClass> softcache = new SoftValueHashMap<String,CtClass>();
     
     boolean isBootstrapCl = true;
 
@@ -59,10 +59,10 @@ public class ScopedClassPool extends ClassPool {
      *            the original class pool
      * @param repository
      *            the repository
-     *@deprecated
      */
     protected ScopedClassPool(ClassLoader cl, ClassPool src,
-            ScopedClassPoolRepository repository) {
+            ScopedClassPoolRepository repository)
+    {
        this(cl, src, repository, false);
     }
     
@@ -78,11 +78,12 @@ public class ScopedClassPool extends ClassPool {
      * @param isTemp
      *            Whether this is a temporary pool used to resolve references
      */
-    protected ScopedClassPool(ClassLoader cl, ClassPool src, ScopedClassPoolRepository repository, boolean isTemp)
+    protected ScopedClassPool(ClassLoader cl, ClassPool src,
+            ScopedClassPoolRepository repository, boolean isTemp)
     {
        super(src);
        this.repository = repository;
-       this.classLoader = new WeakReference(cl);
+       this.classLoader = new WeakReference<ClassLoader>(cl);
        if (cl != null) {
            classPath = new LoaderClassPath(cl);
            this.insertClassPath(classPath);
@@ -110,7 +111,7 @@ public class ScopedClassPool extends ClassPool {
     }
 
     protected ClassLoader getClassLoader0() {
-       return (ClassLoader)classLoader.get();
+       return classLoader.get();
     }
 
     /**
@@ -163,6 +164,7 @@ public class ScopedClassPool extends ClassPool {
      *            the class name
      * @return the class
      */
+    @Override
     protected CtClass getCached(String classname) {
         CtClass clazz = getCachedLocally(classname);
         if (clazz == null) {
@@ -186,11 +188,9 @@ public class ScopedClassPool extends ClassPool {
             }
 
             if (!isLocal) {
-                Map registeredCLs = repository.getRegisteredCLs();
+                Map<ClassLoader,ScopedClassPool> registeredCLs = repository.getRegisteredCLs();
                 synchronized (registeredCLs) {
-                    Iterator it = registeredCLs.values().iterator();
-                    while (it.hasNext()) {
-                        ScopedClassPool pool = (ScopedClassPool)it.next();
+                    for (ScopedClassPool pool:registeredCLs.values()) {
                         if (pool.isUnloadedClassLoader()) {
                             repository.unregisterClassLoader(pool
                                     .getClassLoader());
@@ -289,7 +289,7 @@ public class ScopedClassPool extends ClassPool {
      * @throws CannotCompileException
      *             for any error
      */
-    public Class toClass(CtClass ct, ClassLoader loader, ProtectionDomain domain)
+    public Class<?> toClass(CtClass ct, ClassLoader loader, ProtectionDomain domain)
             throws CannotCompileException {
         // We need to pass up the classloader stored in this pool, as the
         // default implementation uses the Thread context cl.

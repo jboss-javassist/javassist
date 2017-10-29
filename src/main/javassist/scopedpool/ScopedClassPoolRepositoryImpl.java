@@ -18,7 +18,7 @@ package javassist.scopedpool;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.WeakHashMap;
 
@@ -43,8 +43,8 @@ public class ScopedClassPoolRepositoryImpl implements ScopedClassPoolRepository 
     boolean pruneWhenCached;
 
     /** The registered classloaders */
-    protected Map registeredCLs = Collections
-            .synchronizedMap(new WeakHashMap());
+    protected Map<ClassLoader,ScopedClassPool> registeredCLs = Collections
+            .synchronizedMap(new WeakHashMap<ClassLoader,ScopedClassPool>());
 
     /** The default class pool */
     protected ClassPool classpool;
@@ -76,6 +76,7 @@ public class ScopedClassPoolRepositoryImpl implements ScopedClassPoolRepository 
      * 
      * @return the prune.
      */
+    @Override
     public boolean isPrune() {
         return prune;
     }
@@ -85,6 +86,7 @@ public class ScopedClassPoolRepositoryImpl implements ScopedClassPoolRepository 
      * 
      * @param prune     a new value.
      */
+    @Override
     public void setPrune(boolean prune) {
         this.prune = prune;
     }
@@ -96,10 +98,12 @@ public class ScopedClassPoolRepositoryImpl implements ScopedClassPoolRepository 
      * @param src   the original classpool.
      * @return the classpool
      */
+    @Override
     public ScopedClassPool createScopedClassPool(ClassLoader cl, ClassPool src) {
         return factory.create(cl, src, this);
     }
 
+    @Override
     public ClassPool findClassPool(ClassLoader cl) {
         if (cl == null)
             return registerClassLoader(ClassLoader.getSystemClassLoader());
@@ -113,6 +117,7 @@ public class ScopedClassPoolRepositoryImpl implements ScopedClassPoolRepository 
      * @param ucl       the classloader.
      * @return the classpool
      */
+    @Override
     public ClassPool registerClassLoader(ClassLoader ucl) {
         synchronized (registeredCLs) {
             // FIXME: Probably want to take this method out later
@@ -121,7 +126,7 @@ public class ScopedClassPoolRepositoryImpl implements ScopedClassPoolRepository 
             // a
             // ClassPool.classpath
             if (registeredCLs.containsKey(ucl)) {
-                return (ClassPool)registeredCLs.get(ucl);
+                return registeredCLs.get(ucl);
             }
             ScopedClassPool pool = createScopedClassPool(ucl, classpool);
             registeredCLs.put(ucl, pool);
@@ -132,7 +137,8 @@ public class ScopedClassPoolRepositoryImpl implements ScopedClassPoolRepository 
     /**
      * Get the registered classloaders.
      */
-    public Map getRegisteredCLs() {
+    @Override
+    public Map<ClassLoader,ScopedClassPool> getRegisteredCLs() {
         clearUnregisteredClassLoaders();
         return registeredCLs;
     }
@@ -141,34 +147,31 @@ public class ScopedClassPoolRepositoryImpl implements ScopedClassPoolRepository 
      * This method will check to see if a register classloader has been
      * undeployed (as in JBoss)
      */
+    @Override
     public void clearUnregisteredClassLoaders() {
-        ArrayList toUnregister = null;
+        List<ClassLoader> toUnregister = null;
         synchronized (registeredCLs) {
-            Iterator it = registeredCLs.values().iterator();
-            while (it.hasNext()) {
-                ScopedClassPool pool = (ScopedClassPool)it.next();
-                if (pool.isUnloadedClassLoader()) {
-                    it.remove();
-                    ClassLoader cl = pool.getClassLoader();
+            for (Map.Entry<ClassLoader,ScopedClassPool> reg:registeredCLs.entrySet()) {
+                if (reg.getValue().isUnloadedClassLoader()) {
+                    ClassLoader cl = reg.getValue().getClassLoader();
                     if (cl != null) {
-                        if (toUnregister == null) {
-                            toUnregister = new ArrayList();
-                        }
+                        if (toUnregister == null)
+                            toUnregister = new ArrayList<ClassLoader>();
                         toUnregister.add(cl);
                     }
+                    registeredCLs.remove(reg.getKey());
                 }
             }
-            if (toUnregister != null) {
-                for (int i = 0; i < toUnregister.size(); i++) {
-                    unregisterClassLoader((ClassLoader)toUnregister.get(i));
-                }
-            }
+            if (toUnregister != null)
+                for (ClassLoader cl:toUnregister)
+                    unregisterClassLoader(cl);
         }
     }
 
+    @Override
     public void unregisterClassLoader(ClassLoader cl) {
         synchronized (registeredCLs) {
-            ScopedClassPool pool = (ScopedClassPool)registeredCLs.remove(cl);
+            ScopedClassPool pool = registeredCLs.remove(cl);
             if (pool != null)
                 pool.close();
         }
@@ -178,10 +181,12 @@ public class ScopedClassPoolRepositoryImpl implements ScopedClassPoolRepository 
         // Noop - this is the end
     }
 
+    @Override
     public void setClassPoolFactory(ScopedClassPoolFactory factory) {
         this.factory = factory;
     }
 
+    @Override
     public ScopedClassPoolFactory getClassPoolFactory() {
         return factory;
     }
