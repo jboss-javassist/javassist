@@ -3,13 +3,15 @@ package testproxy;
 import java.lang.reflect.Method;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Modifier;
+
+import org.junit.Assert;
+
 import java.lang.reflect.InvocationTargetException;
 import javassist.util.proxy.ProxyFactory;
 import javassist.util.proxy.MethodFilter;
 import javassist.util.proxy.MethodHandler;
 import javassist.util.proxy.ProxyObject;
 import javassist.util.proxy.Proxy;
-import junit.framework.Assert;
 import junit.framework.TestCase;
 import java.io.*;
 
