@@ -331,6 +331,12 @@ public class Annotation {
         }
     }
 
+    @Override
+    public int hashCode() {
+        return getTypeName().hashCode() + 
+                (members == null ? 0 : members.hashCode());
+    }
+
     /**
      * Returns true if the given object represents the same annotation
      * as this object.  The equality test checks the member values.
