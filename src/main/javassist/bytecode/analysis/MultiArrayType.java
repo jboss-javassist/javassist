@@ -115,6 +115,12 @@ public class MultiArrayType extends Type {
         return component.isAssignableTo(typeRoot);
     }
 
+    
+    @Override
+    public int hashCode() {
+        return component.hashCode() + dims;
+    }
+
     public boolean equals(Object o) {
         if (! (o instanceof MultiArrayType))
             return false;
