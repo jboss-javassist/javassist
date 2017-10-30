@@ -11,6 +11,7 @@ import java.lang.reflect.Method;
 /**
  * <a href="mailto:struberg@yahoo.de">Mark Struberg</a>
  */
+@SuppressWarnings({"rawtypes","unchecked","unused"})
 public class ProxyFactoryTest extends TestCase {
     public void testMethodHandlers() throws Exception {
         ProxyFactory fact = new ProxyFactory();

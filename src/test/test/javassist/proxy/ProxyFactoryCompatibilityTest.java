@@ -16,6 +16,7 @@ import java.lang.reflect.Method;
  * automatically disabled if this legacy api is used. it also exercises the new style
  * api, ensuring that caching works correctly with this model.
  */
+@SuppressWarnings({"rawtypes","unchecked","unused"})
 public class ProxyFactoryCompatibilityTest extends TestCase
 {
     private ClassPool basePool;

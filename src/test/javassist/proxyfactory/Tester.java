@@ -14,6 +14,7 @@ class Hand implements java.io.Serializable {
     int getHandler() { return 3; }
 }
 
+@SuppressWarnings({"rawtypes","unchecked","resource"})
 public class Tester extends TestCase {
     static class MHandler implements MethodHandler, java.io.Serializable {
         /** default serialVersionUID */

@@ -12,6 +12,7 @@ import javassist.bytecode.InnerClassesAttribute;
 import javassist.expr.ExprEditor;
 import javassist.expr.MethodCall;
 
+@SuppressWarnings({"rawtypes","unchecked","unused"})
 public class JvstTest5 extends JvstTestRoot {
     public JvstTest5(String name) {
         super(name);

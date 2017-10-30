@@ -7,6 +7,7 @@ import javassist.*;
 import javassist.bytecode.annotation.*;
 import javassist.bytecode.SignatureAttribute.*;
 
+@SuppressWarnings("unused")
 public class BytecodeTest extends TestCase {
     public static final String PATH = JvstTest.PATH;
     private ClassPool loader, dloader;

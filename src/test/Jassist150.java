@@ -6,6 +6,7 @@ import javassist.NotFoundException;
 import javassist.expr.ExprEditor;
 import javassist.expr.MethodCall;
 
+@SuppressWarnings("unused")
 public class Jassist150 {
     public static final String BASE_PATH = "./";
     public static final String JAVASSIST_JAR = BASE_PATH + "javassist.jar";

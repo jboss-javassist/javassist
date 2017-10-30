@@ -8,6 +8,7 @@ import javassist.util.proxy.ProxyObject;
 import javassist.util.proxy.Proxy;
 import junit.framework.TestCase;
 
+@SuppressWarnings({"rawtypes","unchecked"})
 public class JBPAPP9257Test extends TestCase {
     public void testGetHandler() throws Exception {
         ProxyFactory f = new ProxyFactory();

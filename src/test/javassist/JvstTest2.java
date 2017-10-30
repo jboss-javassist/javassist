@@ -10,6 +10,7 @@ import java.lang.reflect.Method;
 
 import javassist.expr.*;
 
+@SuppressWarnings({"rawtypes","unused"})
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class JvstTest2 extends JvstTestRoot {
     public JvstTest2(String name) {

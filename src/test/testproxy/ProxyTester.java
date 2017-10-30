@@ -15,6 +15,7 @@ import javassist.util.proxy.Proxy;
 import junit.framework.TestCase;
 import java.io.*;
 
+@SuppressWarnings({"unchecked", "rawtypes","unused"})
 public class ProxyTester extends TestCase {
     public ProxyTester(String s) {
         super(s);

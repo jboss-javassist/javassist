@@ -2,6 +2,7 @@ package javassist.bytecode;
 
 import javassist.*;
 
+@SuppressWarnings("unused")
 final class Gap0Example {
     public static int counter = 1;
 
@@ -70,6 +71,7 @@ final class Gap0Example {
     }
 }
 
+@SuppressWarnings("unused")
 final class Gap0Example2 {
     public static int counter = 1;
 
@@ -155,6 +157,7 @@ final class Gap0Example2 {
     }
 }
 
+@SuppressWarnings({"rawtypes","unchecked","unused"})
 public final class InsertGap0 extends JvstTestRoot {
     public InsertGap0(String name) {
         super(name);

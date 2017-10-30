@@ -5,6 +5,7 @@ import java.util.Enumeration;
 import java.util.List;
 import java.io.*;
 
+@SuppressWarnings({"rawtypes","resource"})
 public class CodeAnalyzerTest {
     public static void main(String[] args) throws Exception {
         ZipFile zfile = new ZipFile(args[0]);

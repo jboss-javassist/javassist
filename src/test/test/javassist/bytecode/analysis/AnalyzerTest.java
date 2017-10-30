@@ -363,6 +363,7 @@ public class AnalyzerTest extends TestCase {
         }
 
 
+        @SuppressWarnings("rawtypes")
         public void reusedLocalMerge() {
              ArrayList list = new ArrayList();
              try {

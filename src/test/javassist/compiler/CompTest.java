@@ -125,6 +125,7 @@ class Print{
     public static int k;
 }
 
+@SuppressWarnings({"rawtypes","unchecked"})
 class HelloAspect{
   List list;
   

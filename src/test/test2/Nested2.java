@@ -1,5 +1,6 @@
 package test2;
 
+@SuppressWarnings("unused")
 public class Nested2 {
     private int i = 3;
     private double d = 3.0;

@@ -22,6 +22,7 @@ public class InsertLocal {
         return k + s.length();
     }
 
+    @SuppressWarnings("unused")
     public int run3() {
         int i = 0;
         int j = field;

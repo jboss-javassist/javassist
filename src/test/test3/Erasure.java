@@ -9,6 +9,7 @@ public class Erasure<T> {
     public Erasure(T t) { value = t; }
     public Erasure() { value = null; }
     public int run() {
+        @SuppressWarnings("unchecked")
         ErasureGet<String> obj = (ErasureGet<String>)new Erasure<String>("1234");
         return obj.get().length();
     }

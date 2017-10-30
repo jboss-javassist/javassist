@@ -7,6 +7,7 @@ import javassist.bytecode.*;
 import javassist.expr.*;
 import javassist.runtime.*;
 
+@SuppressWarnings({"rawtypes","unused", "resource"})
 public class JvstTest extends JvstTestRoot {
     public static boolean java9;
 

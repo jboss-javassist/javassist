@@ -13,6 +13,7 @@ import javassist.bytecode.*;
 import javassist.bytecode.annotation.Annotation;
 import javassist.expr.*;
 
+@SuppressWarnings({"rawtypes","unchecked","unused"})
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class JvstTest4 extends JvstTestRoot {
     public JvstTest4(String name) {

@@ -6,6 +6,7 @@ public class ReplaceNew {
     int i = 0;
     public int run() {
         i = 3;
+        @SuppressWarnings("unused")
         ReplaceNew s = new ReplaceNew();
         new ReplaceNew();
         return i;

@@ -5,6 +5,7 @@ class NewOp2 {
 }
 
 public class NewOp {
+    @SuppressWarnings("rawtypes")
     java.util.Vector listenerList;
     static int i = 0;
     static String s;
