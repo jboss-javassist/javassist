@@ -45,5 +45,6 @@ public class CallExpr extends Expr {
         return new CallExpr(target, new ASTList(args));
     }
 
+    @Override
     public void accept(Visitor v) throws CompileError { v.atCallExpr(this); }
 }

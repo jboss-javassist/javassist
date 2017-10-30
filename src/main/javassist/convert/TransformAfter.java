@@ -28,6 +28,7 @@ public class TransformAfter extends TransformBefore {
         super(next, origMethod, afterMethod);
     }
 
+    @Override
     protected int match2(int pos, CodeIterator iterator) throws BadBytecode {
         iterator.move(pos);
         iterator.insert(saveCode);

@@ -43,6 +43,7 @@ public abstract class ASTree implements Serializable {
      */
     public abstract void accept(Visitor v) throws CompileError;
 
+    @Override
     public String toString() {
         StringBuffer sbuf = new StringBuffer();
         sbuf.append('<');

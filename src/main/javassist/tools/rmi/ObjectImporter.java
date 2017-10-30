@@ -185,12 +185,12 @@ public class ObjectImporter implements java.io.Serializable {
         throw new ObjectNotFoundException(name);
     }
 
-    private static final Class[] proxyConstructorParamTypes
+    private static final Class<?>[] proxyConstructorParamTypes
         = new Class[] { ObjectImporter.class, int.class };
 
     private Object createProxy(int oid, String classname) throws Exception {
-        Class c = Class.forName(classname);
-        Constructor cons = c.getConstructor(proxyConstructorParamTypes);
+        Class<?> c = Class.forName(classname);
+        Constructor<?> cons = c.getConstructor(proxyConstructorParamTypes);
         return cons.newInstance(new Object[] { this, Integer.valueOf(oid) });
     }
 
@@ -269,8 +269,7 @@ public class ObjectImporter implements java.io.Serializable {
 
         if (result)
             return rvalue;
-        else
-            throw new RemoteException(errmsg);
+        throw new RemoteException(errmsg);
     }
 
     private void skipHeader(InputStream in) throws IOException {

@@ -88,16 +88,17 @@ public class Declarator extends ASTList implements TokenId {
         ASTList t = tail();
         if (t != null)
             return t.head();
-        else
-            return null;
+        return null;
     }
 
     public void setLocalVar(int n) { localVar = n; }
 
     public int getLocalVar() { return localVar; }
 
+    @Override
     public String getTag() { return "decl"; }
 
+    @Override
     public void accept(Visitor v) throws CompileError {
         v.atDeclarator(this);
     }

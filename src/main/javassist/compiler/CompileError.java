@@ -45,10 +45,12 @@ public class CompileError extends Exception {
 
     public Lex getLex() { return lex; }
 
+    @Override
     public String getMessage() {
         return reason;
     }
 
+    @Override
     public String toString() {
         return "compile error: " + reason;
     }

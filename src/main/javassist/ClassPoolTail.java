@@ -45,6 +45,7 @@ final class DirClassPath implements ClassPath {
         directory = dirName;
     }
 
+    @Override
     public InputStream openClassfile(String classname) {
         try {
             char sep = File.separatorChar;
@@ -57,6 +58,7 @@ final class DirClassPath implements ClassPath {
         return null;
     }
 
+    @Override
     public URL find(String classname) {
         char sep = File.separatorChar;
         String filename = directory + sep
@@ -72,8 +74,10 @@ final class DirClassPath implements ClassPath {
         return null;
     }
 
+    @Override
     public void close() {}
 
+    @Override
     public String toString() {
         return directory;
     }
@@ -84,6 +88,7 @@ final class JarDirClassPath implements ClassPath {
 
     JarDirClassPath(String dirName) throws NotFoundException {
         File[] files = new File(dirName).listFiles(new FilenameFilter() {
+            @Override
             public boolean accept(File dir, String name) {
                 name = name.toLowerCase();
                 return name.endsWith(".jar") || name.endsWith(".zip");
@@ -97,6 +102,7 @@ final class JarDirClassPath implements ClassPath {
         }
     }
 
+    @Override
     public InputStream openClassfile(String classname) throws NotFoundException {
         if (jars != null)
             for (int i = 0; i < jars.length; i++) {
@@ -108,6 +114,7 @@ final class JarDirClassPath implements ClassPath {
         return null;    // not found
     }
 
+    @Override
     public URL find(String classname) {
         if (jars != null)
             for (int i = 0; i < jars.length; i++) {
@@ -119,6 +126,7 @@ final class JarDirClassPath implements ClassPath {
         return null;    // not found
     }
 
+    @Override
     public void close() {
         if (jars != null)
             for (int i = 0; i < jars.length; i++)
@@ -141,6 +149,7 @@ final class JarClassPath implements ClassPath {
         throw new NotFoundException(pathname);
     }
 
+    @Override
     public InputStream openClassfile(String classname)
         throws NotFoundException
     {
@@ -149,14 +158,14 @@ final class JarClassPath implements ClassPath {
             JarEntry je = jarfile.getJarEntry(jarname);
             if (je != null)
                 return jarfile.getInputStream(je);
-            else
-                return null;    // not found
+            return null;    // not found
         }
         catch (IOException e) {}
         throw new NotFoundException("broken jar file?: "
                                     + jarfile.getName());
     }
 
+    @Override
     public URL find(String classname) {
         String jarname = classname.replace('.', '/') + ".class";
         JarEntry je = jarfile.getJarEntry(jarname);
@@ -169,6 +178,7 @@ final class JarClassPath implements ClassPath {
         return null;            // not found
     }
 
+    @Override
     public void close() {
         try {
             jarfile.close();
@@ -177,6 +187,7 @@ final class JarClassPath implements ClassPath {
         catch (IOException e) {}
     }
 
+    @Override
     public String toString() {
         return jarfile == null ? "<null>" : jarfile.toString();
     }
@@ -189,6 +200,7 @@ final class ClassPoolTail {
         pathList = null;
     }
 
+    @Override
     public String toString() {
         StringBuffer buf = new StringBuffer();
         buf.append("[class path: ");
@@ -242,10 +254,8 @@ final class ClassPoolTail {
     public ClassPath appendSystemPath() {
         if (javassist.bytecode.ClassFile.MAJOR_VERSION < javassist.bytecode.ClassFile.JAVA_9)
             return appendClassPath(new ClassClassPath());
-        else {
-            ClassLoader cl = Thread.currentThread().getContextClassLoader();
-            return appendClassPath(new LoaderClassPath(cl));
-        }
+        ClassLoader cl = Thread.currentThread().getContextClassLoader();
+        return appendClassPath(new LoaderClassPath(cl));
     }
 
     public ClassPath insertClassPath(String pathname)
@@ -346,8 +356,7 @@ final class ClassPoolTail {
 
         if (error != null)
             throw error;
-        else
-            return null;    // not found
+        return null;    // not found
     }
 
     /**

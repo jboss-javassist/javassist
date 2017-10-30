@@ -59,11 +59,13 @@ public class ShortMemberValue extends MemberValue {
         setValue((short)0);
     }
 
+    @Override
     Object getValue(ClassLoader cl, ClassPool cp, Method m) {
         return Short.valueOf(getValue());
     }
 
-    Class getType(ClassLoader cl) {
+    @Override
+    Class<?> getType(ClassLoader cl) {
         return short.class;
     }
 
@@ -84,6 +86,7 @@ public class ShortMemberValue extends MemberValue {
     /**
      * Obtains the string representation of this object.
      */
+    @Override
     public String toString() {
         return Short.toString(getValue());
     }
@@ -91,6 +94,7 @@ public class ShortMemberValue extends MemberValue {
     /**
      * Writes the value.
      */
+    @Override
     public void write(AnnotationsWriter writer) throws IOException {
         writer.constValueIndex(getValue());
     }
@@ -98,6 +102,7 @@ public class ShortMemberValue extends MemberValue {
     /**
      * Accepts a visitor.
      */
+    @Override
     public void accept(MemberValueVisitor visitor) {
         visitor.visitShortMemberValue(this);
     }

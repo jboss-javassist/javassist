@@ -17,9 +17,11 @@
 package javassist.compiler;
 
 import java.util.Hashtable;
+import java.lang.ref.Reference;
 import java.lang.ref.WeakReference;
 import java.util.WeakHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Iterator;
 
 import javassist.*;
@@ -77,8 +79,7 @@ public class MemberResolver implements TokenId {
                     Method r = new Method(clazz, current, res);
                     if (res == YES)
                         return r;
-                    else
-                        maybe = r;
+                    maybe = r;
                 }
             }
 
@@ -86,8 +87,7 @@ public class MemberResolver implements TokenId {
                                 argClassNames, maybe != null);
         if (m != null)
             return m;
-        else
-            return maybe;
+        return maybe;
     }
 
     private Method lookupMethod(CtClass clazz, String methodName,
@@ -100,10 +100,8 @@ public class MemberResolver implements TokenId {
         // If the class is an array type, the class file is null.
         // If so, search the super class java.lang.Object for clone() etc.
         if (cf != null) {
-            List list = cf.getMethods();
-            int n = list.size();
-            for (int i = 0; i < n; ++i) {
-                MethodInfo minfo = (MethodInfo)list.get(i);
+            List<MethodInfo> list = cf.getMethods();
+            for (MethodInfo minfo:list) {
                 if (minfo.getName().equals(methodName)
                     && (minfo.getAccessFlags() & AccessFlag.BRIDGE) == 0) {
                     int res = compareSignature(minfo.getDescriptor(),
@@ -143,9 +141,8 @@ public class MemberResolver implements TokenId {
 
         try {
             CtClass[] ifs = clazz.getInterfaces();
-            int size = ifs.length;
-            for (int i = 0; i < size; ++i) {
-                Method r = lookupMethod(ifs[i], methodName,
+            for (CtClass intf:ifs) {
+                Method r = lookupMethod(intf, methodName,
                         argTypes, argDims, argClassNames,
                         onlyExact);
                 if (r != null)
@@ -396,13 +393,13 @@ public class MemberResolver implements TokenId {
     public CtClass lookupClass(String name, boolean notCheckInner)
         throws CompileError
     {
-        Hashtable cache = getInvalidNames();
-        Object found = cache.get(name);
+        Map<String,String> cache = getInvalidNames();
+        String found = cache.get(name);
         if (found == INVALID)
             throw new CompileError("no such class: " + name);
         else if (found != null)
             try {
-                return classPool.get((String)found);
+                return classPool.get(found);
             }
             catch (NotFoundException e) {}
 
@@ -419,23 +416,24 @@ public class MemberResolver implements TokenId {
     }
 
     private static final String INVALID = "<invalid>";
-    private static WeakHashMap invalidNamesMap = new WeakHashMap();
-    private Hashtable invalidNames = null;
+    private static Map<ClassPool, Reference<Map<String,String>>> invalidNamesMap =
+            new WeakHashMap<ClassPool, Reference<Map<String,String>>>();
+    private Map<String,String> invalidNames = null;
 
     // for unit tests
     public static int getInvalidMapSize() { return invalidNamesMap.size(); }
 
-    private Hashtable getInvalidNames() {
-        Hashtable ht = invalidNames;
+    private Map<String,String> getInvalidNames() {
+        Map<String,String> ht = invalidNames;
         if (ht == null) {
             synchronized (MemberResolver.class) {
-                WeakReference ref = (WeakReference)invalidNamesMap.get(classPool);
+                Reference<Map<String,String>> ref = invalidNamesMap.get(classPool);
                 if (ref != null)
-                    ht = (Hashtable)ref.get();
+                    ht = ref.get();
 
                 if (ht == null) {
-                    ht = new Hashtable();
-                    invalidNamesMap.put(classPool, new WeakReference(ht));
+                    ht = new Hashtable<String,String>();
+                    invalidNamesMap.put(classPool, new WeakReference<Map<String,String>>(ht));
                 }
             }
 
@@ -449,10 +447,10 @@ public class MemberResolver implements TokenId {
         throws CompileError
     {
         if (orgName.indexOf('.') < 0) {
-            Iterator it = classPool.getImportedPackages();
+            Iterator<String> it = classPool.getImportedPackages();
             while (it.hasNext()) {
-                String pac = (String)it.next();
-                String fqName = pac + '.' + orgName;
+                String pac = it.next();
+                String fqName = pac.replaceAll("\\.$","") + "." + orgName;
                 try {
                     return classPool.get(fqName);
                 }
@@ -482,11 +480,9 @@ public class MemberResolver implements TokenId {
                 int i = classname.lastIndexOf('.');
                 if (notCheckInner || i < 0)
                     throw e;
-                else {
-                    StringBuffer sbuf = new StringBuffer(classname);
-                    sbuf.setCharAt(i, '$');
-                    classname = sbuf.toString();
-                }
+                StringBuffer sbuf = new StringBuffer(classname);
+                sbuf.setCharAt(i, '$');
+                classname = sbuf.toString();
             }
         } while (cc == null);
         return cc;
@@ -500,8 +496,7 @@ public class MemberResolver implements TokenId {
     public String resolveClassName(ASTList name) throws CompileError {
         if (name == null)
             return null;
-        else
-            return javaToJvmName(lookupClassByName(name).getName());
+        return javaToJvmName(lookupClassByName(name).getName());
     }
 
     /* Expands a simple class name to java.lang.*.
@@ -510,8 +505,7 @@ public class MemberResolver implements TokenId {
     public String resolveJvmClassName(String jvmName) throws CompileError {
         if (jvmName == null)
             return null;
-        else
-            return javaToJvmName(lookupClassByJvmName(jvmName).getName());
+        return javaToJvmName(lookupClassByJvmName(jvmName).getName());
     }
 
     public static CtClass getSuperclass(CtClass c) throws CompileError {

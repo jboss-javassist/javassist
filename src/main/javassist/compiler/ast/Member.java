@@ -38,5 +38,6 @@ public class Member extends Symbol {
 
     public CtField getField() { return field; }
 
+    @Override
     public void accept(Visitor v) throws CompileError { v.atMember(this); }
 }

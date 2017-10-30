@@ -34,20 +34,19 @@ public class Desc {
      */
     public static boolean useContextClassLoader = false;
 
-    private static Class getClassObject(String name)
+    private static Class<?> getClassObject(String name)
         throws ClassNotFoundException
     {
         if (useContextClassLoader)
             return Class.forName(name, true, Thread.currentThread().getContextClassLoader());
-        else
-            return Class.forName(name);
+        return Class.forName(name);
     }
 
     /**
      * Interprets the given class name.
      * It is used for implementing <code>$class</code>.
      */
-    public static Class getClazz(String name) {
+    public static Class<?> getClazz(String name) {
         try {
             return getClassObject(name);
         }
@@ -63,7 +62,7 @@ public class Desc {
      * Interprets the given type descriptor representing a method
      * signature.  It is used for implementing <code>$sig</code>.
      */
-    public static Class[] getParams(String desc) {
+    public static Class<?>[] getParams(String desc) {
         if (desc.charAt(0) != '(')
             throw new RuntimeException("$sig: internal error");
 
@@ -74,17 +73,17 @@ public class Desc {
      * Interprets the given type descriptor.
      * It is used for implementing <code>$type</code>.
      */
-    public static Class getType(String desc) {
-        Class[] result = getType(desc, desc.length(), 0, 0);
+    public static Class<?> getType(String desc) {
+        Class<?>[] result = getType(desc, desc.length(), 0, 0);
         if (result == null || result.length != 1)
             throw new RuntimeException("$type: internal error");
 
         return result[0];
     }
 
-    private static Class[] getType(String desc, int descLen,
+    private static Class<?>[] getType(String desc, int descLen,
                                    int start, int num) {
-        Class clazz;
+        Class<?> clazz;
         if (start >= descLen)
             return new Class[num];
 
@@ -124,12 +123,12 @@ public class Desc {
             return new Class[num];
         }
 
-        Class[] result = getType(desc, descLen, start + 1, num + 1);
+        Class<?>[] result = getType(desc, descLen, start + 1, num + 1);
         result[num] = clazz;
         return result;
     }
 
-    private static Class[] getClassType(String desc, int descLen,
+    private static Class<?>[] getClassType(String desc, int descLen,
                                         int start, int num) {
         int end = start;
         while (desc.charAt(end) == '[')
@@ -147,7 +146,7 @@ public class Desc {
         else
             cname = desc.substring(start, end + 1);
 
-        Class[] result = getType(desc, descLen, end + 1, num + 1);
+        Class<?>[] result = getType(desc, descLen, end + 1, num + 1);
         try {
             result[num] = getClassObject(cname.replace('/', '.'));
         }

@@ -278,8 +278,7 @@ public class Webserver {
                 len = fin.read(filebuffer);
                 if (len <= 0)
                     break;
-                else
-                    out.write(filebuffer, 0, len);
+                out.write(filebuffer, 0, len);
             }
 
             fin.close();
@@ -299,8 +298,7 @@ public class Webserver {
                     len = fin.read(filebuffer);
                     if (len <= 0)
                         break;
-                    else
-                        barray.write(filebuffer, 0, len);
+                    barray.write(filebuffer, 0, len);
                 }
 
                 byte[] classfile = barray.toByteArray();
@@ -398,6 +396,7 @@ class ServiceThread extends Thread {
         sock = s;
     }
 
+    @Override
     public void run() {
         try {
             web.process(sock);

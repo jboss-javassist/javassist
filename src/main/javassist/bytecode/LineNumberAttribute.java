@@ -156,7 +156,8 @@ public class LineNumberAttribute extends AttributeInfo {
      * @param newCp     the constant pool table used by the new copy.
      * @param classnames        should be null.
      */
-    public AttributeInfo copy(ConstPool newCp, Map classnames) {
+    @Override
+    public AttributeInfo copy(ConstPool newCp, Map<String,String> classnames) {
         byte[] src = info;
         int num = src.length;
         byte[] dest = new byte[num];

@@ -15,10 +15,8 @@
  */
 package javassist.bytecode.analysis;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.IdentityHashMap;
-import java.util.Iterator;
 import java.util.Map;
 
 import javassist.ClassPool;
@@ -44,7 +42,7 @@ public class Type {
     private final CtClass clazz;
     private final boolean special;
 
-    private static final Map prims = new IdentityHashMap();
+    private static final Map<CtClass,Type> prims = new IdentityHashMap<CtClass,Type>();
     /** Represents the double primitive type */
     public static final Type DOUBLE = new Type(CtClass.doubleType);
     /** Represents the boolean primitive type */
@@ -451,7 +449,7 @@ public class Type {
 
         // If its Object, then try and find a common interface(s)
         if (superClass.getSuperclass() == null) {
-            Map interfaces = findCommonInterfaces(type);
+            Map<String,CtClass> interfaces = findCommonInterfaces(type);
             if (interfaces.size() == 1)
                 return new Type((CtClass) interfaces.values().iterator().next());
             if (interfaces.size() > 1)
@@ -462,7 +460,7 @@ public class Type {
         }
 
         // Check for a common interface that is not on the found supertype
-        Map commonDeclared = findExclusiveDeclaredInterfaces(type, superClass);
+        Map<String,CtClass> commonDeclared = findExclusiveDeclaredInterfaces(type, superClass);
         if (commonDeclared.size() > 0) {
             return new MultiType(commonDeclared, new Type(superClass));
         }
@@ -470,21 +468,19 @@ public class Type {
         return new Type(superClass);
     }
 
-    private Map findCommonInterfaces(Type type) {
-        Map typeMap = getAllInterfaces(type.clazz, null);
-        Map thisMap = getAllInterfaces(this.clazz, null);
+    private Map<String,CtClass> findCommonInterfaces(Type type) {
+        Map<String,CtClass> typeMap = getAllInterfaces(type.clazz, null);
+        Map<String,CtClass> thisMap = getAllInterfaces(this.clazz, null);
 
         return findCommonInterfaces(typeMap, thisMap);
     }
 
-    private Map findExclusiveDeclaredInterfaces(Type type, CtClass exclude) {
-        Map typeMap = getDeclaredInterfaces(type.clazz, null);
-        Map thisMap = getDeclaredInterfaces(this.clazz, null);
-        Map excludeMap = getAllInterfaces(exclude, null);
+    private Map<String,CtClass> findExclusiveDeclaredInterfaces(Type type, CtClass exclude) {
+        Map<String,CtClass> typeMap = getDeclaredInterfaces(type.clazz, null);
+        Map<String,CtClass> thisMap = getDeclaredInterfaces(this.clazz, null);
+        Map<String,CtClass> excludeMap = getAllInterfaces(exclude, null);
 
-        Iterator i = excludeMap.keySet().iterator();
-        while (i.hasNext()) {
-            Object intf = i.next();
+        for (String intf:excludeMap.keySet()) {
             typeMap.remove(intf);
             thisMap.remove(intf);
         }
@@ -493,19 +489,21 @@ public class Type {
     }
 
 
-    Map findCommonInterfaces(Map typeMap, Map alterMap) {
-        Iterator i = alterMap.keySet().iterator();
-        while (i.hasNext()) {
-            if (! typeMap.containsKey(i.next()))
-                i.remove();
-        }
+    Map<String,CtClass> findCommonInterfaces(Map<String,CtClass> typeMap, Map<String,CtClass> alterMap) {
+        if (alterMap == null)
+            alterMap = new HashMap<String,CtClass>();
+
+        if (typeMap == null||typeMap.isEmpty())
+            alterMap.clear();
+
+        for (String name:alterMap.keySet())
+            if (!typeMap.containsKey(name))
+                alterMap.remove(name);
 
         // Reduce to subinterfaces
         // This does not need to be recursive since we make a copy,
         // and that copy contains all super types for the whole hierarchy
-        i = new ArrayList(alterMap.values()).iterator();
-        while (i.hasNext()) {
-            CtClass intf = (CtClass) i.next();
+        for (CtClass intf:alterMap.values()) {
             CtClass[] interfaces;
             try {
                 interfaces = intf.getInterfaces();
@@ -513,24 +511,23 @@ public class Type {
                 throw new RuntimeException(e);
             }
 
-            for (int c = 0; c < interfaces.length; c++)
-                alterMap.remove(interfaces[c].getName());
+            for (CtClass c:interfaces)
+                alterMap.remove(c.getName());
         }
 
         return alterMap;
     }
 
-    Map getAllInterfaces(CtClass clazz, Map map) {
+    Map<String,CtClass> getAllInterfaces(CtClass clazz, Map<String,CtClass> map) {
         if (map == null)
-            map = new HashMap();
+            map = new HashMap<String,CtClass>();
 
         if (clazz.isInterface())
             map.put(clazz.getName(), clazz);
         do {
             try {
                 CtClass[] interfaces = clazz.getInterfaces();
-                for (int i = 0; i < interfaces.length; i++) {
-                    CtClass intf = interfaces[i];
+                for (CtClass intf:interfaces) {
                     map.put(intf.getName(), intf);
                     getAllInterfaces(intf, map);
                 }
@@ -544,9 +541,9 @@ public class Type {
         return map;
     }
 
-    Map getDeclaredInterfaces(CtClass clazz, Map map) {
+    Map<String,CtClass> getDeclaredInterfaces(CtClass clazz, Map<String,CtClass> map) {
         if (map == null)
-            map = new HashMap();
+            map = new HashMap<String,CtClass>();
 
         if (clazz.isInterface())
             map.put(clazz.getName(), clazz);
@@ -558,8 +555,7 @@ public class Type {
             throw new RuntimeException(e);
         }
 
-        for (int i = 0; i < interfaces.length; i++) {
-            CtClass intf = interfaces[i];
+        for (CtClass intf:interfaces) {
             map.put(intf.getName(), intf);
             getDeclaredInterfaces(intf, map);
         }
@@ -572,6 +568,7 @@ public class Type {
         return getClass().hashCode() + clazz.hashCode();
     }
 
+    @Override
     public boolean equals(Object o) {
         if (! (o instanceof Type))
             return false;
@@ -583,6 +580,7 @@ public class Type {
         return one == two || (one != null && two != null && one.getName().equals(two.getName()));
     }
 
+    @Override
     public String toString() {
         if (this == BOGUS)
             return "BOGUS";

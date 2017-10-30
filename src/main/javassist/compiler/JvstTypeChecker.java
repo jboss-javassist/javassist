@@ -44,6 +44,7 @@ public class JvstTypeChecker extends TypeChecker {
     /* To support $args, $sig, and $type.
      * $args is an array of parameter list.
      */
+    @Override
     public void atMember(Member mem) throws CompileError {
         String name = mem.get();
         if (name.equals(codeGen.paramArrayName)) {
@@ -66,6 +67,7 @@ public class JvstTypeChecker extends TypeChecker {
             super.atMember(mem);
     }
 
+    @Override
     protected void atFieldAssign(Expr expr, int op, ASTree left, ASTree right)
         throws CompileError
     {
@@ -84,6 +86,7 @@ public class JvstTypeChecker extends TypeChecker {
             super.atFieldAssign(expr, op, left, right);
     }
 
+    @Override
     public void atCastExpr(CastExpr expr) throws CompileError {
         ASTList classname = expr.getClassName();
         if (classname != null && expr.getArrayDim() == 0) {
@@ -138,6 +141,7 @@ public class JvstTypeChecker extends TypeChecker {
     /* Delegates to a ProcHandler object if the method call is
      * $proceed().  It may process $cflow().
      */
+    @Override
     public void atCallExpr(CallExpr expr) throws CompileError {
         ASTree method = expr.oprand1();
         if (method instanceof Member) {
@@ -175,10 +179,10 @@ public class JvstTypeChecker extends TypeChecker {
             return (left instanceof Member
                     && ((Member)left).get().equals(codeGen.paramListName));
         }
-        else
-            return false;
+        return false;
     }
 
+    @Override
     public int getMethodArgsLength(ASTList args) {
         String pname = codeGen.paramListName;
         int n = 0;
@@ -197,6 +201,7 @@ public class JvstTypeChecker extends TypeChecker {
         return n;
     }
 
+    @Override
     public void atMethodArgs(ASTList args, int[] types, int[] dims,
                                 String[] cnames) throws CompileError {
         CtClass[] params = codeGen.paramTypeList;

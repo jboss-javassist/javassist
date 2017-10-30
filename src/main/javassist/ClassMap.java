@@ -16,6 +16,8 @@
 
 package javassist;
 
+import java.util.HashMap;
+
 import javassist.bytecode.Descriptor;
 
 /**
@@ -47,7 +49,7 @@ import javassist.bytecode.Descriptor;
  * @see CtClass#replaceClassName(ClassMap)
  * @see CtNewMethod#copy(CtMethod,String,CtClass,ClassMap)
  */
-public class ClassMap extends java.util.HashMap {
+public class ClassMap extends HashMap<String,String> {
     /** default serialVersionUID */
     private static final long serialVersionUID = 1L;
     private ClassMap parent;
@@ -76,7 +78,7 @@ public class ClassMap extends java.util.HashMap {
     /**
      * Maps a class name to another name in this hashtable.
      * If the hashtable contains another mapping from the same
-     * class name, the old mapping is replaced. 
+     * class name, the old mapping is replaced.
      * This method translates the given class names into the
      * internal form used in the JVM before putting it in
      * the hashtable.
@@ -91,21 +93,23 @@ public class ClassMap extends java.util.HashMap {
      * @param newname   the substituted class name.
      * @see #fix(String)
      */
-    public void put(String oldname, String newname) {
+    @Override
+    public String put(String oldname, String newname) {
         if (oldname == newname)
-            return;
+            return oldname;
 
         String oldname2 = toJvmName(oldname);
-        String s = (String)get(oldname2);
+        String s = get(oldname2);
         if (s == null || !s.equals(oldname2))
-            super.put(oldname2, toJvmName(newname));
+            return super.put(oldname2, toJvmName(newname));
+        return s;
     }
 
     /**
      * Is equivalent to <code>put()</code> except that
      * the given mapping is not recorded into the hashtable
      * if another mapping from <code>oldname</code> is
-     * already included. 
+     * already included.
      *
      * @param oldname       the original class name.
      * @param newname       the substituted class name.
@@ -115,13 +119,13 @@ public class ClassMap extends java.util.HashMap {
             return;
 
         String oldname2 = toJvmName(oldname);
-        String s = (String)get(oldname2);
+        String s = get(oldname2);
         if (s == null)
             super.put(oldname2, toJvmName(newname));
     }
 
-    protected final void put0(Object oldname, Object newname) {
-        super.put(oldname, newname);
+    protected final String put0(String oldname, String newname) {
+        return super.put(oldname, newname);
     }
 
     /**
@@ -134,14 +138,13 @@ public class ClassMap extends java.util.HashMap {
      * @see #toJvmName(String)
      * @see #toJavaName(String)
      */
-    public Object get(Object jvmClassName) {
-        Object found = super.get(jvmClassName);
+    @Override
+    public String get(Object jvmClassName) {
+        String found = super.get(jvmClassName);
         if (found == null && parent != null)
             return parent.get(jvmClassName);
-        else
-            return found;
+        return found;
     }
-
     /**
      * Prevents a mapping from the specified class name to another name.
      */

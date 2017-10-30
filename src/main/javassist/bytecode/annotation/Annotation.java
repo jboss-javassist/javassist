@@ -25,8 +25,8 @@ import javassist.NotFoundException;
 
 import java.io.IOException;
 import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Set;
-import java.util.Iterator;
 
 /**
  * The <code>annotation</code> structure.
@@ -53,7 +53,7 @@ public class Annotation {
 
     ConstPool pool;
     int typeIndex;
-    LinkedHashMap members;    // this sould be LinkedHashMap
+    Map<String,Pair> members;    // this sould be LinkedHashMap
                         // but it is not supported by JDK 1.3.
 
     /**
@@ -106,17 +106,13 @@ public class Annotation {
             throw new RuntimeException(
                 "Only interfaces are allowed for Annotation creation.");
 
-        CtMethod methods[] = clazz.getDeclaredMethods();
-        if (methods.length > 0) {
-            members = new LinkedHashMap();
-        }
+        CtMethod[] methods = clazz.getDeclaredMethods();
+        if (methods.length > 0)
+            members = new LinkedHashMap<String,Pair>();
 
-        for (int i = 0; i < methods.length; i++) {
-            CtClass returnType = methods[i].getReturnType();
-            addMemberValue(methods[i].getName(),
-                           createMemberValue(cp, returnType));
-            
-        }
+        for (CtMethod m:methods)
+            addMemberValue(m.getName(),
+                           createMemberValue(cp, m.getReturnType()));
     }
 
     /**
@@ -196,7 +192,7 @@ public class Annotation {
         p.name = pool.addUtf8Info(name);
         p.value = value;
         if (members == null)
-            members = new LinkedHashMap();
+            members = new LinkedHashMap<String,Pair>();
 
         members.put(name, p);
     }
@@ -204,7 +200,7 @@ public class Annotation {
     private void addMemberValue(Pair pair) {
         String name = pool.getUtf8Info(pair.name);
         if (members == null)
-            members = new LinkedHashMap();
+            members = new LinkedHashMap<String,Pair>();
 
         members.put(name, pair);
     }
@@ -212,18 +208,18 @@ public class Annotation {
     /**
      * Returns a string representation of the annotation.
      */
+    @Override
     public String toString() {
         StringBuffer buf = new StringBuffer("@");
         buf.append(getTypeName());
         if (members != null) {
             buf.append("(");
-            Iterator mit = members.keySet().iterator();
-            while (mit.hasNext()) {
-                String name = (String)mit.next();
-                buf.append(name).append("=").append(getMemberValue(name));
-                if (mit.hasNext())
-                    buf.append(", ");
+            for (String name:members.keySet()) {
+                buf.append(name).append("=")
+                   .append(getMemberValue(name))
+                   .append(", ");
             }
+            buf.setLength(buf.length()-2);
             buf.append(")");
         }
 
@@ -244,11 +240,10 @@ public class Annotation {
      *
      * @return null if no members are defined.
      */
-    public Set getMemberNames() {
+    public Set<String> getMemberNames() {
         if (members == null)
             return null;
-        else
-            return members.keySet();
+        return members.keySet();
     }
 
     /**
@@ -267,15 +262,9 @@ public class Annotation {
      * @see javassist.bytecode.AnnotationDefaultAttribute
      */
     public MemberValue getMemberValue(String name) {
-        if (members == null)
+        if (members == null||members.get(name) == null)
             return null;
-        else {
-            Pair p = (Pair)members.get(name);
-            if (p == null)
-                return null;
-            else
-                return p.value;
-        }
+        return members.get(name).value;
     }
 
     /**
@@ -292,9 +281,9 @@ public class Annotation {
     public Object toAnnotationType(ClassLoader cl, ClassPool cp)
         throws ClassNotFoundException, NoSuchClassError
     {
-        Class clazz = MemberValue.loadClass(cl, getTypeName()); 
+        Class<?> clazz = MemberValue.loadClass(cl, getTypeName());
         try {
-            return AnnotationImpl.make(cl, clazz, cp, this);                   
+            return AnnotationImpl.make(cl, clazz, cp, this);
         }
         catch (IllegalArgumentException e) {
             /* AnnotationImpl.make() may throw this exception
@@ -323,9 +312,7 @@ public class Annotation {
         }
 
         writer.annotation(typeName, members.size());
-        Iterator it = members.values().iterator();
-        while (it.hasNext()) {
-            Pair pair = (Pair)it.next();
+        for (Pair pair:members.values()) {
             writer.memberValuePair(pair.name);
             pair.value.write(writer);
         }
@@ -333,7 +320,7 @@ public class Annotation {
 
     @Override
     public int hashCode() {
-        return getTypeName().hashCode() + 
+        return getTypeName().hashCode() +
                 (members == null ? 0 : members.hashCode());
     }
 
@@ -341,18 +328,19 @@ public class Annotation {
      * Returns true if the given object represents the same annotation
      * as this object.  The equality test checks the member values.
      */
+    @Override
     public boolean equals(Object obj) {
         if (obj == this)
             return true;
         if (obj == null || obj instanceof Annotation == false)
             return false;
-        
+
         Annotation other = (Annotation) obj;
 
         if (getTypeName().equals(other.getTypeName()) == false)
             return false;
 
-        LinkedHashMap otherMembers = other.members;
+        Map<String,Pair> otherMembers = other.members;
         if (members == otherMembers)
             return true;
         else if (members == null)

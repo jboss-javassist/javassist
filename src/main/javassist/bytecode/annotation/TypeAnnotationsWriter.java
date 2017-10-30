@@ -28,6 +28,7 @@ public class TypeAnnotationsWriter extends AnnotationsWriter {
      * {@code Runtime(In)VisibleTypeAnnotations_attribute}.
      * It must be followed by {@code num} instances of {@code type_annotation}.
      */
+    @Override
     public void numAnnotations(int num) throws IOException {
         super.numAnnotations(num);
     }

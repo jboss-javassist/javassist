@@ -32,6 +32,7 @@ final public class TransformNew extends Transformer {
         this.trapMethod = trapMethod;
     }
 
+    @Override
     public void initialize(ConstPool cp, CodeAttribute attr) {
         nested = 0;
     }
@@ -48,6 +49,7 @@ final public class TransformNew extends Transformer {
      *    ...
      *    INVOKESTATIC trapMethod in trapClass
      */
+    @Override
     public int transform(CtClass clazz, int pos, CodeIterator iterator,
                          ConstPool cp) throws CannotCompileException
     {

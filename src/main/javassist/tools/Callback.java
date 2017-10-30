@@ -20,6 +20,7 @@ import javassist.CannotCompileException;
 import javassist.CtBehavior;
 
 import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -49,7 +50,7 @@ import java.util.UUID;
  */
 public abstract class Callback {
 
-    public static HashMap callbacks = new HashMap();
+    public static Map<String,Callback> callbacks = new HashMap<String,Callback>();
 
     private final String sourceCode;
 
@@ -73,6 +74,7 @@ public abstract class Callback {
      */
     public abstract void result(Object[] objects);
 
+    @Override
     public String toString(){
         return sourceCode();
     }

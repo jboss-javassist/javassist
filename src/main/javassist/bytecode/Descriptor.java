@@ -59,8 +59,7 @@ public class Descriptor {
     public static String toJvmName(CtClass clazz) {
         if (clazz.isArray())
             return of(clazz);
-        else
-            return toJvmName(clazz.getName());
+        return toJvmName(clazz.getName());
     }
 
     /**
@@ -109,14 +108,12 @@ public class Descriptor {
 
         if (arrayDim == 0)
             return name;
-        else {
-            StringBuffer sbuf = new StringBuffer(name);
-            do {
-                sbuf.append("[]");
-            } while (--arrayDim > 0);
+        StringBuffer sbuf = new StringBuffer(name);
+        do {
+            sbuf.append("[]");
+        } while (--arrayDim > 0);
 
-            return sbuf.toString();
-        }
+        return sbuf.toString();
     }
 
     /**
@@ -183,13 +180,11 @@ public class Descriptor {
 
         if (head == 0)
             return desc;
-        else {
-            int len = desc.length();
-            if (head < len)
-                newdesc.append(desc.substring(head, len));
+        int len = desc.length();
+        if (head < len)
+            newdesc.append(desc.substring(head, len));
 
-            return newdesc.toString();
-        }
+        return newdesc.toString();
     }
 
     /**
@@ -200,7 +195,7 @@ public class Descriptor {
      *            JVM class names.
      * @see Descriptor#toJvmName(String)
      */
-    public static String rename(String desc, Map map) {
+    public static String rename(String desc, Map<String,String> map) {
         if (map == null)
             return desc;
 
@@ -218,7 +213,7 @@ public class Descriptor {
 
             i = k + 1;
             String name = desc.substring(j + 1, k);
-            String name2 = (String)map.get(name);
+            String name2 = map.get(name);
             if (name2 != null) {
                 newdesc.append(desc.substring(head, j));
                 newdesc.append('L');
@@ -230,13 +225,11 @@ public class Descriptor {
 
         if (head == 0)
             return desc;
-        else {
-            int len = desc.length();
-            if (head < len)
-                newdesc.append(desc.substring(head, len));
+        int len = desc.length();
+        if (head < len)
+            newdesc.append(desc.substring(head, len));
 
-            return newdesc.toString();
-        }
+        return newdesc.toString();
     }
 
     /**
@@ -329,15 +322,13 @@ public class Descriptor {
         int i = desc.indexOf(')');
         if (i < 0)
             return desc;
-        else {
-            StringBuffer newdesc = new StringBuffer();
-            newdesc.append(desc.substring(0, i));
-            newdesc.append('L');
-            newdesc.append(classname.replace('.', '/'));
-            newdesc.append(';');
-            newdesc.append(desc.substring(i));
-            return newdesc.toString();
-        }
+        StringBuffer newdesc = new StringBuffer();
+        newdesc.append(desc.substring(0, i));
+        newdesc.append('L');
+        newdesc.append(classname.replace('.', '/'));
+        newdesc.append(';');
+        newdesc.append(desc.substring(i));
+        return newdesc.toString();
     }
 
     /**
@@ -353,9 +344,8 @@ public class Descriptor {
     public static String insertParameter(String classname, String desc) {
         if (desc.charAt(0) != '(')
             return desc;
-        else
-            return "(L" + classname.replace('.', '/') + ';'
-                   + desc.substring(1);
+        return "(L" + classname.replace('.', '/') + ';'
+               + desc.substring(1);
     }
 
     /**
@@ -370,13 +360,11 @@ public class Descriptor {
         int i = descriptor.indexOf(')');
         if (i < 0)
             return descriptor;
-        else {
-            StringBuffer newdesc = new StringBuffer();
-            newdesc.append(descriptor.substring(0, i));
-            toDescriptor(newdesc, type);
-            newdesc.append(descriptor.substring(i));
-            return newdesc.toString();
-        }
+        StringBuffer newdesc = new StringBuffer();
+        newdesc.append(descriptor.substring(0, i));
+        toDescriptor(newdesc, type);
+        newdesc.append(descriptor.substring(i));
+        return newdesc.toString();
     }
 
     /**
@@ -391,8 +379,7 @@ public class Descriptor {
                                          String descriptor) {
         if (descriptor.charAt(0) != '(')
             return descriptor;
-        else
-            return "(" + of(type) + descriptor.substring(1);
+        return "(" + of(type) + descriptor.substring(1);
     }
 
     /**
@@ -407,14 +394,12 @@ public class Descriptor {
         int i = desc.indexOf(')');
         if (i < 0)
             return desc;
-        else {
-            StringBuffer newdesc = new StringBuffer();
-            newdesc.append(desc.substring(0, i + 1));
-            newdesc.append('L');
-            newdesc.append(classname.replace('.', '/'));
-            newdesc.append(';');
-            return newdesc.toString();
-        }
+        StringBuffer newdesc = new StringBuffer();
+        newdesc.append(desc.substring(0, i + 1));
+        newdesc.append('L');
+        newdesc.append(classname.replace('.', '/'));
+        newdesc.append(';');
+        return newdesc.toString();
     }
 
     /**
@@ -430,16 +415,14 @@ public class Descriptor {
     {
         if (desc.charAt(0) != '(')
             return null;
-        else {
-            int num = numOfParameters(desc);
-            CtClass[] args = new CtClass[num];
-            int n = 0;
-            int i = 1;
-            do {
-                i = toCtClass(cp, desc, i, args, n++);
-            } while (i > 0);
-            return args;
-        }
+        int num = numOfParameters(desc);
+        CtClass[] args = new CtClass[num];
+        int n = 0;
+        int i = 1;
+        do {
+            i = toCtClass(cp, desc, i, args, n++);
+        } while (i > 0);
+        return args;
     }
 
     /**
@@ -484,11 +467,9 @@ public class Descriptor {
         int i = desc.indexOf(')');
         if (i < 0)
             return null;
-        else {
-            CtClass[] type = new CtClass[1];
-            toCtClass(cp, desc, i + 1, type, 0);
-            return type[0];
-        }
+        CtClass[] type = new CtClass[1];
+        toCtClass(cp, desc, i + 1, type, 0);
+        return type[0];
     }
 
     /**
@@ -542,11 +523,9 @@ public class Descriptor {
         int res = toCtClass(cp, desc, 0, clazz, 0);
         if (res >= 0)
             return clazz[0];
-        else {
-            // maybe, you forgot to surround the class name with
-            // L and ;.  It violates the protocol, but I'm tolerant...
-            return cp.get(desc.replace('/', '.'));
-        }
+        // maybe, you forgot to surround the class name with
+        // L and ;.  It violates the protocol, but I'm tolerant...
+        return cp.get(desc.replace('/', '.'));
     }
 
     private static int toCtClass(ClassPool cp, String desc, int i,
@@ -577,8 +556,7 @@ public class Descriptor {
                 args[n] = type;
                 return i2; // neither an array type or a class type
             }
-            else
-                name = type.getName();
+            name = type.getName();
         }
 
         if (arrayDim > 0) {

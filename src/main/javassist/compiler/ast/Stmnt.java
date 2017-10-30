@@ -49,14 +49,15 @@ public class Stmnt extends ASTList implements TokenId {
         return new Stmnt(op, op1, new ASTList(op2, new ASTList(op3)));
     }
 
+    @Override
     public void accept(Visitor v) throws CompileError { v.atStmnt(this); }
 
     public int getOperator() { return operatorId; }
 
+    @Override
     protected String getTag() {
         if (operatorId < 128)
             return "stmnt:" + (char)operatorId;
-        else
-            return "stmnt:" + operatorId;
+        return "stmnt:" + operatorId;
     }
 }

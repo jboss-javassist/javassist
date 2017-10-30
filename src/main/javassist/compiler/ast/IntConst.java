@@ -38,8 +38,10 @@ public class IntConst extends ASTree {
      */
     public int getType() { return type; }
 
+    @Override
     public String toString() { return Long.toString(value); }
 
+    @Override
     public void accept(Visitor v) throws CompileError {
         v.atIntConst(this);
     }
@@ -113,7 +115,7 @@ public class IntConst extends ASTree {
     }
 
     private DoubleConst compute0(int op, DoubleConst right) {
-        double value1 = (double)this.value;
+        double value1 = this.value;
         double value2 = right.value;
         double newValue;
         switch (op) {

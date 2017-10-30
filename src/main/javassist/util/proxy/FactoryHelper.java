@@ -39,11 +39,9 @@ public class FactoryHelper {
      *
      * @throws RuntimeException     if a given type is not a primitive type.
      */
-    public static final int typeIndex(Class type) {
-        Class[] list = primitiveTypes;
-        int n = list.length;
-        for (int i = 0; i < n; i++)
-            if (list[i] == type)
+    public static final int typeIndex(Class<?> type) {
+        for (int i = 0; i < primitiveTypes.length; i++)
+            if (primitiveTypes[i] == type)
                 return i;
 
         throw new RuntimeException("bad type:" + type.getName());
@@ -52,7 +50,7 @@ public class FactoryHelper {
     /**
      * <code>Class</code> objects representing primitive types.
      */
-    public static final Class[] primitiveTypes = {
+    public static final Class<?>[] primitiveTypes = {
         Boolean.TYPE, Byte.TYPE, Character.TYPE, Short.TYPE, Integer.TYPE,
         Long.TYPE, Float.TYPE, Double.TYPE, Void.TYPE
     };
@@ -108,7 +106,7 @@ public class FactoryHelper {
      *
      * @see #toClass(ClassFile,ClassLoader,ProtectionDomain)
      */
-    public static Class toClass(ClassFile cf, ClassLoader loader)
+    public static Class<?> toClass(ClassFile cf, ClassLoader loader)
         throws CannotCompileException
     {
         return toClass(cf, loader, null);
@@ -120,15 +118,14 @@ public class FactoryHelper {
      * @param domain        if it is null, a default domain is used.
      * @since 3.3
      */
-    public static Class toClass(ClassFile cf, ClassLoader loader, ProtectionDomain domain)
+    public static Class<?> toClass(ClassFile cf, ClassLoader loader, ProtectionDomain domain)
         throws CannotCompileException
     {
         try {
             byte[] b = toBytecode(cf);
             if (ProxyFactory.onlyPublicMethods)
                 return DefineClassHelper.toPublicClass(cf.getName(), b);
-            else
-                return DefineClassHelper.toClass(cf.getName(), loader, domain, b);
+            return DefineClassHelper.toClass(cf.getName(), loader, domain, b);
         }
         catch (IOException e) {
             throw new CannotCompileException(e);

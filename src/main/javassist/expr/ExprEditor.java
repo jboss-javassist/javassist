@@ -246,8 +246,7 @@ public class ExprEditor {
                 context.updateMax(expr.locals(), expr.stack());
                 return true;
             }
-            else
-                return false;
+            return false;
         }
         catch (BadBytecode e) {
             throw new CannotCompileException(e);

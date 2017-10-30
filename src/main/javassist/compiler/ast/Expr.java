@@ -67,6 +67,7 @@ public class Expr extends ASTList implements TokenId {
         getRight().setLeft(expr);
     }
 
+    @Override
     public void accept(Visitor v) throws CompileError { v.atExpr(this); }
 
     public String getName() {
@@ -81,6 +82,7 @@ public class Expr extends ASTList implements TokenId {
             return String.valueOf(id);
     }
 
+    @Override
     protected String getTag() {
         return "op:" + getName();
     }

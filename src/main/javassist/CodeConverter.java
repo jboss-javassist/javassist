@@ -666,6 +666,7 @@ public class CodeConverter {
         * Returns "arrayReadByteOrBoolean" as the name of the static method with the signature
         * (Ljava/lang/Object;I)B to replace reading from a byte[].
         */
+        @Override
        public String byteOrBooleanRead()
        {
           return "arrayReadByteOrBoolean";
@@ -675,6 +676,7 @@ public class CodeConverter {
         * Returns "arrayWriteByteOrBoolean" as the name of the static method with the signature
         * (Ljava/lang/Object;IB)V  to replace writing to a byte[].
         */
+        @Override
        public String byteOrBooleanWrite()
        {
           return "arrayWriteByteOrBoolean";
@@ -684,6 +686,7 @@ public class CodeConverter {
         * Returns "arrayReadChar" as the name of the static method with the signature
         * (Ljava/lang/Object;I)C  to replace reading from a char[].
         */
+        @Override
        public String charRead()
        {
           return "arrayReadChar";
@@ -693,6 +696,7 @@ public class CodeConverter {
         * Returns "arrayWriteChar" as the name of the static method with the signature
         * (Ljava/lang/Object;IC)V to replace writing to a byte[].
         */
+        @Override
        public String charWrite()
        {
           return "arrayWriteChar";
@@ -702,6 +706,7 @@ public class CodeConverter {
         * Returns "arrayReadDouble" as the name of the static method with the signature
         * (Ljava/lang/Object;I)D to replace reading from a double[].
         */
+        @Override
        public String doubleRead()
        {
           return "arrayReadDouble";
@@ -711,6 +716,7 @@ public class CodeConverter {
         * Returns "arrayWriteDouble" as the name of the static method with the signature
         * (Ljava/lang/Object;ID)V to replace writing to a double[].
         */
+        @Override
        public String doubleWrite()
        {
           return "arrayWriteDouble";
@@ -720,6 +726,7 @@ public class CodeConverter {
         * Returns "arrayReadFloat" as the name of the static method with the signature
         * (Ljava/lang/Object;I)F  to replace reading from a float[].
         */
+        @Override
        public String floatRead()
        {
           return "arrayReadFloat";
@@ -729,6 +736,7 @@ public class CodeConverter {
         * Returns "arrayWriteFloat" as the name of the static method with the signature
         * (Ljava/lang/Object;IF)V  to replace writing to a float[].
         */
+        @Override
        public String floatWrite()
        {
           return "arrayWriteFloat";
@@ -738,6 +746,7 @@ public class CodeConverter {
         * Returns "arrayReadInt" as the name of the static method with the signature
         * (Ljava/lang/Object;I)I to replace reading from a int[].
         */
+        @Override
        public String intRead()
        {
           return "arrayReadInt";
@@ -747,6 +756,7 @@ public class CodeConverter {
         * Returns "arrayWriteInt" as the name of the static method with the signature
         * (Ljava/lang/Object;II)V to replace writing to a int[].
         */
+        @Override
        public String intWrite()
        {
           return "arrayWriteInt";
@@ -756,6 +766,7 @@ public class CodeConverter {
         * Returns "arrayReadLong" as the name of the static method with the signature
         * (Ljava/lang/Object;I)J to replace reading from a long[].
         */
+        @Override
        public String longRead()
        {
           return "arrayReadLong";
@@ -765,6 +776,7 @@ public class CodeConverter {
         * Returns "arrayWriteLong" as the name of the static method with the signature
         * (Ljava/lang/Object;IJ)V to replace writing to a long[].
         */
+        @Override
        public String longWrite()
        {
           return "arrayWriteLong";
@@ -774,6 +786,7 @@ public class CodeConverter {
         * Returns "arrayReadObject" as the name of the static method with the signature
         * (Ljava/lang/Object;I)Ljava/lang/Object;  to replace reading from a Object[] (or any subclass of object).
         */
+        @Override
        public String objectRead()
        {
           return "arrayReadObject";
@@ -783,6 +796,7 @@ public class CodeConverter {
         * Returns "arrayWriteObject" as the name of the static method with the signature
         * (Ljava/lang/Object;ILjava/lang/Object;)V  to replace writing to a Object[] (or any subclass of object).
         */
+        @Override
        public String objectWrite()
        {
           return "arrayWriteObject";
@@ -792,6 +806,7 @@ public class CodeConverter {
         * Returns "arrayReadShort" as the name of the static method with the signature
         * (Ljava/lang/Object;I)S to replace reading from a short[].
         */
+        @Override
        public String shortRead()
        {
           return "arrayReadShort";
@@ -801,6 +816,7 @@ public class CodeConverter {
         * Returns "arrayWriteShort" as the name of the static method with the signature
         * (Ljava/lang/Object;IS)V to replace writing to a short[].
         */
+        @Override
        public String shortWrite()
        {
           return "arrayWriteShort";

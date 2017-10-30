@@ -58,11 +58,13 @@ public class ByteMemberValue extends MemberValue {
         setValue((byte)0);
     }
 
+    @Override
     Object getValue(ClassLoader cl, ClassPool cp, Method m) {
         return Byte.valueOf(getValue());
     }
 
-    Class getType(ClassLoader cl) {
+    @Override
+    Class<?> getType(ClassLoader cl) {
         return byte.class;
     }
 
@@ -83,6 +85,7 @@ public class ByteMemberValue extends MemberValue {
     /**
      * Obtains the string representation of this object.
      */
+    @Override
     public String toString() {
         return Byte.toString(getValue());
     }
@@ -90,6 +93,7 @@ public class ByteMemberValue extends MemberValue {
     /**
      * Writes the value.
      */
+    @Override
     public void write(AnnotationsWriter writer) throws IOException {
         writer.constValueIndex(getValue());
     }
@@ -97,6 +101,7 @@ public class ByteMemberValue extends MemberValue {
     /**
      * Accepts a visitor.
      */
+    @Override
     public void accept(MemberValueVisitor visitor) {
         visitor.visitByteMemberValue(this);
     }

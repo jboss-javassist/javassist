@@ -37,9 +37,6 @@ public class ClassFilePrinter {
      * Prints the contents of a class file.
      */
     public static void print(ClassFile cf, PrintWriter out) {
-        List list;
-        int n;
-
         /* 0x0020 (SYNCHRONIZED) means ACC_SUPER if the modifiers
          * are of a class.
          */
@@ -62,10 +59,8 @@ public class ClassFilePrinter {
         }
 
         out.println();
-        list = cf.getFields();
-        n = list.size();
-        for (int i = 0; i < n; ++i) {
-            FieldInfo finfo = (FieldInfo)list.get(i);
+        List<FieldInfo> fields = cf.getFields();
+        for (FieldInfo finfo:fields) {
             int acc = finfo.getAccessFlags();
             out.println(Modifier.toString(AccessFlag.toModifier(acc))
                         + " " + finfo.getName() + "\t"
@@ -74,10 +69,8 @@ public class ClassFilePrinter {
         }
 
         out.println();
-        list = cf.getMethods();
-        n = list.size();
-        for (int i = 0; i < n; ++i) {
-            MethodInfo minfo = (MethodInfo)list.get(i);
+        List<MethodInfo> methods = cf.getMethods();
+        for (MethodInfo minfo:methods) {
             int acc = minfo.getAccessFlags();
             out.println(Modifier.toString(AccessFlag.toModifier(acc))
                         + " " + minfo.getName() + "\t"
@@ -90,13 +83,11 @@ public class ClassFilePrinter {
         printAttributes(cf.getAttributes(), out, 'c');
     }
 
-    static void printAttributes(List list, PrintWriter out, char kind) {
+    static void printAttributes(List<AttributeInfo> list, PrintWriter out, char kind) {
         if (list == null)
             return;
 
-        int n = list.size();
-        for (int i = 0; i < n; ++i) {
-            AttributeInfo ai = (AttributeInfo)list.get(i);
+        for (AttributeInfo ai:list) {
             if (ai instanceof CodeAttribute) {
                 CodeAttribute ca = (CodeAttribute)ai;
                 out.println("attribute: " + ai.getName() + ": "

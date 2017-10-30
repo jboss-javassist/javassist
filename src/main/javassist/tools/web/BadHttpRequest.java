@@ -28,10 +28,10 @@ public class BadHttpRequest extends Exception {
 
     public BadHttpRequest(Exception _e) { e = _e; }
 
+    @Override
     public String toString() {
         if (e == null)
             return super.toString();
-        else
-            return e.toString();
+        return e.toString();
     }
 }

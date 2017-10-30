@@ -59,11 +59,13 @@ public class LongMemberValue extends MemberValue {
         setValue(0L);
     }
 
+    @Override
     Object getValue(ClassLoader cl, ClassPool cp, Method m) {
         return Long.valueOf(getValue());
     }
 
-    Class getType(ClassLoader cl) {
+    @Override
+    Class<?> getType(ClassLoader cl) {
         return long.class;
     }
 
@@ -84,6 +86,7 @@ public class LongMemberValue extends MemberValue {
     /**
      * Obtains the string representation of this object.
      */
+    @Override
     public String toString() {
         return Long.toString(getValue());
     }
@@ -91,6 +94,7 @@ public class LongMemberValue extends MemberValue {
     /**
      * Writes the value.
      */
+    @Override
     public void write(AnnotationsWriter writer) throws IOException {
         writer.constValueIndex(getValue());
     }
@@ -98,6 +102,7 @@ public class LongMemberValue extends MemberValue {
     /**
      * Accepts a visitor.
      */
+    @Override
     public void accept(MemberValueVisitor visitor) {
         visitor.visitLongMemberValue(this);
     }

@@ -160,7 +160,8 @@ public class AnnotationsAttribute extends AttributeInfo {
     /**
      * Copies this attribute and returns a new copy.
      */
-    public AttributeInfo copy(ConstPool newCp, Map classnames) {
+    @Override
+    public AttributeInfo copy(ConstPool newCp, Map<String,String> classnames) {
         Copier copier = new Copier(info, constPool, newCp, classnames);
         try {
             copier.annotationArray();
@@ -297,13 +298,15 @@ public class AnnotationsAttribute extends AttributeInfo {
      * @param oldname       a JVM class name.
      * @param newname       a JVM class name.
      */
+    @Override
     void renameClass(String oldname, String newname) {
-        HashMap map = new HashMap();
+        Map<String,String> map = new HashMap<String,String>();
         map.put(oldname, newname);
         renameClass(map);
     }
 
-    void renameClass(Map classnames) {
+    @Override
+    void renameClass(Map<String,String> classnames) {
         Renamer renamer = new Renamer(info, getConstPool(), classnames);
         try {
             renamer.annotationArray();
@@ -312,11 +315,13 @@ public class AnnotationsAttribute extends AttributeInfo {
         }
     }
 
-    void getRefClasses(Map classnames) { renameClass(classnames); }
+    @Override
+    void getRefClasses(Map<String,String> classnames) { renameClass(classnames); }
 
     /**
      * Returns a string representation of this object.
      */
+    @Override
     public String toString() {
         Annotation[] a = getAnnotations();
         StringBuilder sbuf = new StringBuilder();
@@ -458,7 +463,7 @@ public class AnnotationsAttribute extends AttributeInfo {
 
     static class Renamer extends Walker {
         ConstPool cpool;
-        Map classnames;
+        Map<String,String> classnames;
 
         /**
          * Constructs a renamer.  It renames some class names
@@ -469,17 +474,19 @@ public class AnnotationsAttribute extends AttributeInfo {
          * @param map       pairs of replaced and substituted class names.
          *                  It can be null.
          */
-        Renamer(byte[] info, ConstPool cp, Map map) {
+        Renamer(byte[] info, ConstPool cp, Map<String,String> map) {
             super(info);
             cpool = cp;
             classnames = map;
         }
 
+        @Override
         int annotation(int pos, int type, int numPairs) throws Exception {
             renameType(pos - 4, type);
             return super.annotation(pos, type, numPairs);
         }
 
+        @Override
         void enumMemberValue(int pos, int typeNameIndex, int constNameIndex)
             throws Exception
         {
@@ -487,6 +494,7 @@ public class AnnotationsAttribute extends AttributeInfo {
             super.enumMemberValue(pos, typeNameIndex, constNameIndex);
         }
 
+        @Override
         void classMemberValue(int pos, int index) throws Exception {
             renameType(pos + 1, index);
             super.classMemberValue(pos, index);
@@ -506,7 +514,7 @@ public class AnnotationsAttribute extends AttributeInfo {
         ByteArrayOutputStream output;
         AnnotationsWriter writer;
         ConstPool srcPool, destPool;
-        Map classnames;
+        Map<String,String> classnames;
 
         /**
          * Constructs a copier.  This copier renames some class names
@@ -519,11 +527,11 @@ public class AnnotationsAttribute extends AttributeInfo {
          * @param map       pairs of replaced and substituted class names.
          *                  It can be null.
          */
-        Copier(byte[] info, ConstPool src, ConstPool dest, Map map) {
+        Copier(byte[] info, ConstPool src, ConstPool dest, Map<String,String> map) {
             this(info, src, dest, map, true); 
         }
 
-        Copier(byte[] info, ConstPool src, ConstPool dest, Map map, boolean makeWriter) {
+        Copier(byte[] info, ConstPool src, ConstPool dest, Map<String,String> map, boolean makeWriter) {
             super(info);
             output = new ByteArrayOutputStream();
             if (makeWriter)
@@ -539,31 +547,37 @@ public class AnnotationsAttribute extends AttributeInfo {
             return output.toByteArray();
         }
 
+        @Override
         void parameters(int numParam, int pos) throws Exception {
             writer.numParameters(numParam);
             super.parameters(numParam, pos);
         }
 
+        @Override
         int annotationArray(int pos, int num) throws Exception {
             writer.numAnnotations(num);
             return super.annotationArray(pos, num);
         }
 
+        @Override
         int annotation(int pos, int type, int numPairs) throws Exception {
             writer.annotation(copyType(type), numPairs);
             return super.annotation(pos, type, numPairs);
         }
 
+        @Override
         int memberValuePair(int pos, int nameIndex) throws Exception {
             writer.memberValuePair(copy(nameIndex));
             return super.memberValuePair(pos, nameIndex);
         }
 
+        @Override
         void constValueMember(int tag, int index) throws Exception {
             writer.constValueIndex(tag, copy(index));
             super.constValueMember(tag, index);
         }
 
+        @Override
         void enumMemberValue(int pos, int typeNameIndex, int constNameIndex)
             throws Exception
         {
@@ -571,16 +585,19 @@ public class AnnotationsAttribute extends AttributeInfo {
             super.enumMemberValue(pos, typeNameIndex, constNameIndex);
         }
 
+        @Override
         void classMemberValue(int pos, int index) throws Exception {
             writer.classInfoIndex(copyType(index));
             super.classMemberValue(pos, index);
         }
 
+        @Override
         int annotationMemberValue(int pos) throws Exception {
             writer.annotationValue();
             return super.annotationMemberValue(pos);
         }
 
+        @Override
         int arrayMemberValue(int pos, int num) throws Exception {
             writer.arrayValue(num);
             return super.arrayMemberValue(pos, num);
@@ -650,6 +667,7 @@ public class AnnotationsAttribute extends AttributeInfo {
             return currentMember;
         }
 
+        @Override
         void parameters(int numParam, int pos) throws Exception {
             Annotation[][] params = new Annotation[numParam][];
             for (int i = 0; i < numParam; ++i) {
@@ -660,6 +678,7 @@ public class AnnotationsAttribute extends AttributeInfo {
             allParams = params;
         }
 
+        @Override
         int annotationArray(int pos, int num) throws Exception {
             Annotation[] array = new Annotation[num];
             for (int i = 0; i < num; ++i) {
@@ -671,17 +690,20 @@ public class AnnotationsAttribute extends AttributeInfo {
             return pos;
         }
 
+        @Override
         int annotation(int pos, int type, int numPairs) throws Exception {
             currentAnno = new Annotation(type, pool);
             return super.annotation(pos, type, numPairs);
         }
 
+        @Override
         int memberValuePair(int pos, int nameIndex) throws Exception {
             pos = super.memberValuePair(pos, nameIndex);
             currentAnno.addMemberValue(nameIndex, currentMember);
             return pos;
         }
 
+        @Override
         void constValueMember(int tag, int index) throws Exception {
             MemberValue m;
             ConstPool cp = pool;
@@ -721,6 +743,7 @@ public class AnnotationsAttribute extends AttributeInfo {
             super.constValueMember(tag, index);
         }
 
+        @Override
         void enumMemberValue(int pos, int typeNameIndex, int constNameIndex)
             throws Exception
         {
@@ -729,11 +752,13 @@ public class AnnotationsAttribute extends AttributeInfo {
             super.enumMemberValue(pos, typeNameIndex, constNameIndex);
         }
 
+        @Override
         void classMemberValue(int pos, int index) throws Exception {
             currentMember = new ClassMemberValue(index, pool);
             super.classMemberValue(pos, index);
         }
 
+        @Override
         int annotationMemberValue(int pos) throws Exception {
             Annotation anno = currentAnno;
             pos = super.annotationMemberValue(pos);
@@ -742,6 +767,7 @@ public class AnnotationsAttribute extends AttributeInfo {
             return pos;
         }
 
+        @Override
         int arrayMemberValue(int pos, int num) throws Exception {
             ArrayMemberValue amv = new ArrayMemberValue(pool);
             MemberValue[] elements = new MemberValue[num];

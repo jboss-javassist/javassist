@@ -37,6 +37,7 @@ public class FieldAccess extends Expr {
      * Returns the method or constructor containing the field-access
      * expression represented by this object.
      */
+    @Override
     public CtBehavior where() { return super.where(); }
 
     /**
@@ -45,6 +46,7 @@ public class FieldAccess extends Expr {
      *
      * @return -1       if this information is not available.
      */
+    @Override
     public int getLineNumber() {
         return super.getLineNumber();
     }
@@ -54,6 +56,7 @@ public class FieldAccess extends Expr {
      *
      * @return null     if this information is not available.
      */
+    @Override
     public String getFileName() {
         return super.getFileName();
     }
@@ -122,6 +125,7 @@ public class FieldAccess extends Expr {
      * including the expression can catch and the exceptions that
      * the throws declaration allows the method to throw.
      */
+    @Override
     public CtClass[] mayThrow() {
         return super.mayThrow();
     }
@@ -149,6 +153,7 @@ public class FieldAccess extends Expr {
      *
      * @param statement         a Java statement except try-catch.
      */
+    @Override
     public void replace(String statement) throws CannotCompileException {
         thisClass.getClassFile();   // to call checkModify().
         ConstPool constPool = getConstPool();
@@ -236,6 +241,7 @@ public class FieldAccess extends Expr {
             index = i;
         }
 
+        @Override
         public void doit(JvstCodeGen gen, Bytecode bytecode, ASTList args)
             throws CompileError
         {
@@ -262,6 +268,7 @@ public class FieldAccess extends Expr {
             gen.setType(fieldType);
         }
 
+        @Override
         public void setReturnType(JvstTypeChecker c, ASTList args)
             throws CompileError
         {
@@ -284,6 +291,7 @@ public class FieldAccess extends Expr {
             index = i;
         }
 
+        @Override
         public void doit(JvstCodeGen gen, Bytecode bytecode, ASTList args)
             throws CompileError
         {
@@ -314,6 +322,7 @@ public class FieldAccess extends Expr {
             gen.addNullIfVoid();
         }
 
+        @Override
         public void setReturnType(JvstTypeChecker c, ASTList args)
             throws CompileError
         {

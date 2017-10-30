@@ -41,7 +41,9 @@ public class CondExpr extends ASTList {
 
     public void setElse(ASTree t) { tail().tail().setHead(t); } 
 
+    @Override
     public String getTag() { return "?:"; }
 
+    @Override
     public void accept(Visitor v) throws CompileError { v.atCondExpr(this); }
 }

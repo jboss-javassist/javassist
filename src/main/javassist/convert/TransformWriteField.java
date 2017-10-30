@@ -27,6 +27,7 @@ final public class TransformWriteField extends TransformReadField {
         super(next, field, methodClassname, methodName);
     }
 
+    @Override
     public int transform(CtClass tclazz, int pos, CodeIterator iterator,
                          ConstPool cp) throws BadBytecode
     {

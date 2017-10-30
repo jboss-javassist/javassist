@@ -68,12 +68,13 @@ public class NewExpr extends ASTList implements TokenId {
         ASTree t = getRight().getRight();
         if (t == null)
             return null;
-        else
-            return (ArrayInit)t.getLeft();
+        return (ArrayInit)t.getLeft();
     }
 
+    @Override
     public void accept(Visitor v) throws CompileError { v.atNewExpr(this); }
 
+    @Override
     protected String getTag() {
         return newArray ? "new[]" : "new";
     }

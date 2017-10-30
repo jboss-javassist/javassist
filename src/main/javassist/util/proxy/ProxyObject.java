@@ -31,6 +31,7 @@ public interface ProxyObject extends Proxy {
      * Sets a handler.  It can be used for changing handlers
      * during runtime.
      */
+    @Override
     void setHandler(MethodHandler mi);
 
     /**

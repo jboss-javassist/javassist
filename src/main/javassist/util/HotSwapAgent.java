@@ -106,10 +106,10 @@ public class HotSwapAgent {
     /**
      * Redefines a class.
      */
-    public static void redefine(Class oldClass, CtClass newClass)
+    public static void redefine(Class<?> oldClass, CtClass newClass)
         throws NotFoundException, IOException, CannotCompileException
     {
-        Class[] old = { oldClass };
+        Class<?>[] old = { oldClass };
         CtClass[] newClasses = { newClass };
         redefine(old, newClasses);
     }
@@ -117,7 +117,7 @@ public class HotSwapAgent {
     /**
      * Redefines classes.
      */
-    public static void redefine(Class[] oldClasses, CtClass[] newClasses)
+    public static void redefine(Class<?>[] oldClasses, CtClass[] newClasses)
         throws NotFoundException, IOException, CannotCompileException
     {
         startAgent();

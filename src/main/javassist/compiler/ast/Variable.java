@@ -33,9 +33,11 @@ public class Variable extends Symbol {
 
     public Declarator getDeclarator() { return declarator; }
 
+    @Override
     public String toString() {
         return identifier + ":" + declarator.getType();
     }
 
+    @Override
     public void accept(Visitor v) throws CompileError { v.atVariable(this); }
 }

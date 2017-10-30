@@ -45,17 +45,18 @@ public class AnnotationMemberValue extends MemberValue {
         value = a;
     }
 
+    @Override
     Object getValue(ClassLoader cl, ClassPool cp, Method m)
         throws ClassNotFoundException
     {
         return AnnotationImpl.make(cl, getType(cl), cp, value);
     }
 
-    Class getType(ClassLoader cl) throws ClassNotFoundException {
+    @Override
+    Class<?> getType(ClassLoader cl) throws ClassNotFoundException {
         if (value == null)
             throw new ClassNotFoundException("no type specified");
-        else
-            return loadClass(cl, value.getTypeName());
+        return loadClass(cl, value.getTypeName());
     }
 
     /**
@@ -75,6 +76,7 @@ public class AnnotationMemberValue extends MemberValue {
     /**
      * Obtains the string representation of this object.
      */
+    @Override
     public String toString() {
         return value.toString();
     }
@@ -82,6 +84,7 @@ public class AnnotationMemberValue extends MemberValue {
     /**
      * Writes the value.
      */
+    @Override
     public void write(AnnotationsWriter writer) throws IOException {
         writer.annotationValue();
         value.write(writer);
@@ -90,6 +93,7 @@ public class AnnotationMemberValue extends MemberValue {
     /**
      * Accepts a visitor.
      */
+    @Override
     public void accept(MemberValueVisitor visitor) {
         visitor.visitAnnotationMemberValue(this);
     }

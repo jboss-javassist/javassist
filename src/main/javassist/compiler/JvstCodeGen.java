@@ -36,6 +36,7 @@ public class JvstCodeGen extends MemberCodeGen {
     private CtClass dollarType = null;
     CtClass returnType = null;
     String returnCastName = null;
+    @SuppressWarnings("unused")
     private String returnVarName = null;        // null if $_ is not used.
     public static final String wrapperCastName = "$w";
     String proceedName = null;
@@ -78,6 +79,7 @@ public class JvstCodeGen extends MemberCodeGen {
     /* To support $args, $sig, and $type.
      * $args is an array of parameter list.
      */
+    @Override
     public void atMember(Member mem) throws CompileError {
         String name = mem.get();
         if (name.equals(paramArrayName)) {
@@ -120,6 +122,7 @@ public class JvstCodeGen extends MemberCodeGen {
         className = "java/lang/Class";
     }
 
+    @Override
     protected void atFieldAssign(Expr expr, int op, ASTree left,
                         ASTree right, boolean doDup) throws CompileError
     {
@@ -158,6 +161,7 @@ public class JvstCodeGen extends MemberCodeGen {
         }
     }
 
+    @Override
     public void atCastExpr(CastExpr expr) throws CompileError {
         ASTList classname = expr.getClassName();
         if (classname != null && expr.getArrayDim() == 0) {
@@ -227,6 +231,7 @@ public class JvstCodeGen extends MemberCodeGen {
     /* Delegates to a ProcHandler object if the method call is
      * $proceed().  It may process $cflow().
      */
+    @Override
     public void atCallExpr(CallExpr expr) throws CompileError {
         ASTree method = expr.oprand1();
         if (method instanceof Member) {
@@ -301,8 +306,7 @@ public class JvstCodeGen extends MemberCodeGen {
             return (left instanceof Member
                     && ((Member)left).get().equals(paramListName));
         }
-        else
-            return false;
+        return false;
     }
 
     /*
@@ -314,6 +318,7 @@ public class JvstCodeGen extends MemberCodeGen {
     }
     */
 
+    @Override
     public int getMethodArgsLength(ASTList args) {
         String pname = paramListName;
         int n = 0;
@@ -332,6 +337,7 @@ public class JvstCodeGen extends MemberCodeGen {
         return n;
     }
 
+    @Override
     public void atMethodArgs(ASTList args, int[] types, int[] dims,
                                 String[] cnames) throws CompileError {
         CtClass[] params = paramTypeList;
@@ -409,6 +415,7 @@ public class JvstCodeGen extends MemberCodeGen {
     /*
      * Makes it valid to write "return <expr>;" for a void method.
      */
+    @Override
     protected void atReturnStmnt(Stmnt st) throws CompileError {
         ASTree result = st.getLeft();
         if (result != null && returnType == CtClass.voidType) {
@@ -442,12 +449,10 @@ public class JvstCodeGen extends MemberCodeGen {
         returnVarName = resultName;
         if (resultName == null)
             return -1;
-        else {
-            int varNo = getMaxLocals();
-            int locals = varNo + recordVar(type, resultName, varNo, tbl);
-            setMaxLocals(locals);
-            return varNo;
-        }
+        int varNo = getMaxLocals();
+        int locals = varNo + recordVar(type, resultName, varNo, tbl);
+        setMaxLocals(locals);
+        return varNo;
     }
 
     /**
@@ -537,12 +542,10 @@ public class JvstCodeGen extends MemberCodeGen {
     {
         if (varName == null)
             return -1;
-        else {
-            int varNo = getMaxLocals();
-            int locals = varNo + recordVar(type, varName, varNo, tbl);
-            setMaxLocals(locals);
-            return varNo;
-        }
+        int varNo = getMaxLocals();
+        int locals = varNo + recordVar(type, varName, varNo, tbl);
+        setMaxLocals(locals);
+        return varNo;
     }
 
     private int recordVar(CtClass cc, String varName, int varNo,
@@ -608,36 +611,34 @@ public class JvstCodeGen extends MemberCodeGen {
             code.addAnewarray(javaLangObject);          // anewarray Object
             return 1;
         }
-        else {
-            CtClass[] args = new CtClass[1];
-            int n = params.length;
-            code.addIconst(n);                          // iconst_<n>
-            code.addAnewarray(javaLangObject);          // anewarray Object
-            for (int i = 0; i < n; ++i) {
-                code.addOpcode(Bytecode.DUP);           // dup
-                code.addIconst(i);                      // iconst_<i>
-                if (params[i].isPrimitive()) {
-                    CtPrimitiveType pt = (CtPrimitiveType)params[i];
-                    String wrapper = pt.getWrapperName();
-                    code.addNew(wrapper);               // new <wrapper>
-                    code.addOpcode(Bytecode.DUP);       // dup
-                    int s = code.addLoad(regno, pt);    // ?load <regno>
-                    regno += s;
-                    args[0] = pt;
-                    code.addInvokespecial(wrapper, "<init>",
-                                Descriptor.ofMethod(CtClass.voidType, args));
-                                                        // invokespecial
-                }
-                else {
-                    code.addAload(regno);               // aload <regno>
-                    ++regno;
-                }
-
-                code.addOpcode(Bytecode.AASTORE);       // aastore
+        CtClass[] args = new CtClass[1];
+        int n = params.length;
+        code.addIconst(n);                          // iconst_<n>
+        code.addAnewarray(javaLangObject);          // anewarray Object
+        for (int i = 0; i < n; ++i) {
+            code.addOpcode(Bytecode.DUP);           // dup
+            code.addIconst(i);                      // iconst_<i>
+            if (params[i].isPrimitive()) {
+                CtPrimitiveType pt = (CtPrimitiveType)params[i];
+                String wrapper = pt.getWrapperName();
+                code.addNew(wrapper);               // new <wrapper>
+                code.addOpcode(Bytecode.DUP);       // dup
+                int s = code.addLoad(regno, pt);    // ?load <regno>
+                regno += s;
+                args[0] = pt;
+                code.addInvokespecial(wrapper, "<init>",
+                            Descriptor.ofMethod(CtClass.voidType, args));
+                                                    // invokespecial
+            }
+            else {
+                code.addAload(regno);               // aload <regno>
+                ++regno;
             }
 
-            return 8;
+            code.addOpcode(Bytecode.AASTORE);       // aastore
         }
+
+        return 8;
     }
 
     protected void compileUnwrapValue(CtClass type, Bytecode code)

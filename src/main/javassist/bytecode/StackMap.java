@@ -22,9 +22,6 @@ import java.io.IOException;
 import java.util.Map;
 
 import javassist.CannotCompileException;
-import javassist.bytecode.StackMapTable.InsertLocal;
-import javassist.bytecode.StackMapTable.NewRemover;
-import javassist.bytecode.StackMapTable.Shifter;
 
 /**
  * Another <code>stack_map</code> attribute defined in CLDC 1.1 for J2ME.
@@ -116,7 +113,8 @@ public class StackMap extends AttributeInfo {
     /**
      * Makes a copy.
      */
-    public AttributeInfo copy(ConstPool newCp, Map classnames) {
+    @Override
+    public AttributeInfo copy(ConstPool newCp, Map<String,String> classnames) {
         Copier copier = new Copier(this, newCp, classnames);
         copier.visit();
         return copier.getStackMap();
@@ -224,42 +222,47 @@ public class StackMap extends AttributeInfo {
     static class Copier extends Walker {
         byte[] dest;
         ConstPool srcCp, destCp;
-        Map classnames;
+        Map<String,String> classnames;
 
-        Copier(StackMap map, ConstPool newCp, Map classnames) {
+        Copier(StackMap map, ConstPool newCp, Map<String,String> classnames) {
             super(map);
             srcCp = map.getConstPool();
             dest = new byte[info.length];
             destCp = newCp;
             this.classnames = classnames;
         }
-        
+        @Override
         public void visit() {
             int num = ByteArray.readU16bit(info, 0);
             ByteArray.write16bit(num, dest, 0);
             super.visit();
         }
 
+        @Override
         public int locals(int pos, int offset, int num) {
             ByteArray.write16bit(offset, dest, pos - 4);
             return super.locals(pos, offset, num);
         }
 
+        @Override
         public int typeInfoArray(int pos, int offset, int num, boolean isLocals) {
             ByteArray.write16bit(num, dest, pos - 2);
             return super.typeInfoArray(pos, offset, num, isLocals);
         }
 
+        @Override
         public void typeInfo(int pos, byte tag) {
             dest[pos] = tag;
         }
 
+        @Override
         public void objectVariable(int pos, int clazz) {
             dest[pos] = OBJECT;
             int newClazz = srcCp.copy(clazz, destCp, classnames);
             ByteArray.write16bit(newClazz, dest, pos + 1);
         }
 
+        @Override
         public void uninitialized(int pos, int offset) {
             dest[pos] = UNINIT;
             ByteArray.write16bit(offset, dest, pos + 1);
@@ -305,30 +308,36 @@ public class StackMap extends AttributeInfo {
             return writer.toByteArray();
         }
 
+        @Override
         public void visit() {
             int num = ByteArray.readU16bit(info, 0);
             writer.write16bit(num);
             super.visit();
         }
 
+        @Override
         public int locals(int pos, int offset, int num) {
             writer.write16bit(offset);
             return super.locals(pos, offset, num);
         }
 
+        @Override
         public int typeInfoArray(int pos, int offset, int num, boolean isLocals) {
             writer.write16bit(num);
             return super.typeInfoArray(pos, offset, num, isLocals);
         }
 
+        @Override
         public void typeInfo(int pos, byte tag) {
             writer.writeVerifyTypeInfo(tag, 0);
         }
 
+        @Override
         public void objectVariable(int pos, int clazz) {
             writer.writeVerifyTypeInfo(OBJECT, clazz);
         }
 
+        @Override
         public void uninitialized(int pos, int offset) {
             writer.writeVerifyTypeInfo(UNINIT, offset);
         }
@@ -345,6 +354,7 @@ public class StackMap extends AttributeInfo {
             this.varData = varData;
         }
 
+        @Override
         public int typeInfoArray(int pos, int offset, int num, boolean isLocals) {
             if (!isLocals || num < varIndex)
                 return super.typeInfoArray(pos, offset, num, isLocals);
@@ -390,6 +400,7 @@ public class StackMap extends AttributeInfo {
             this.exclusive = exclusive;
         }
 
+        @Override
         public int locals(int pos, int offset, int num) {
             if (exclusive ? where <= offset : where < offset)
                 ByteArray.write16bit(offset + gap, info, pos - 4);
@@ -397,6 +408,7 @@ public class StackMap extends AttributeInfo {
             return super.locals(pos, offset, num);
         }
 
+        @Override
         public void uninitialized(int pos, int offset) {
             if (where <= offset)
                 ByteArray.write16bit(offset + gap, info, pos + 1);
@@ -419,6 +431,7 @@ public class StackMap extends AttributeInfo {
             this.gap = gap;
         }
 
+        @Override
         public int locals(int pos, int offset, int num) {
             if (where == pos + offset)
                 ByteArray.write16bit(offset - gap, info, pos - 4);
@@ -451,6 +464,7 @@ public class StackMap extends AttributeInfo {
             posOfNew = where;
         }
 
+        @Override
         public int stack(int pos, int offset, int num) {
             return stackTypeInfoArray(pos, offset, num);
         }
@@ -519,6 +533,7 @@ public class StackMap extends AttributeInfo {
             visit();
         }
 
+        @Override
         public int locals(int pos, int offset, int num) {
             writer.println("  * offset " + offset);
             return super.locals(pos, offset, num);

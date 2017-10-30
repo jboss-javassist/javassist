@@ -36,8 +36,8 @@ import javassist.bytecode.MethodInfo;
 import javassist.bytecode.Opcode;
 import javassist.compiler.Javac;
 
-import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 
 /**
  * Expression.
@@ -132,7 +132,7 @@ public abstract class Expr implements Opcode {
     public CtClass[] mayThrow() {
         ClassPool pool = thisClass.getClassPool();
         ConstPool cp = thisMethod.getConstPool();
-        LinkedList list = new LinkedList();
+        List<CtClass> list = new LinkedList<CtClass>();
         try {
             CodeAttribute ca = thisMethod.getCodeAttribute();
             ExceptionTable et = ca.getExceptionTable();
@@ -166,14 +166,12 @@ public abstract class Expr implements Opcode {
             }
         }
 
-        return (CtClass[])list.toArray(new CtClass[list.size()]);
+        return list.toArray(new CtClass[list.size()]);
     }
 
-    private static void addClass(LinkedList list, CtClass c) {
-        Iterator it = list.iterator();
-        while (it.hasNext())
-            if (it.next() == c)
-                return;
+    private static void addClass(List<CtClass> list, CtClass c) {
+        if (list.contains(c))
+            return;
 
         list.add(c);
     }
@@ -189,7 +187,7 @@ public abstract class Expr implements Opcode {
 
     /**
      * Returns the line number of the source line containing the expression.
-     * 
+     *
      * @return -1 if this information is not available.
      */
     public int getLineNumber() {
@@ -205,8 +203,7 @@ public abstract class Expr implements Opcode {
         ClassFile cf = thisClass.getClassFile2();
         if (cf == null)
             return null;
-        else
-            return cf.getSourceFile();
+        return cf.getSourceFile();
     }
 
     static final boolean checkResultValue(CtClass retType, String prog)
@@ -243,17 +240,15 @@ public abstract class Expr implements Opcode {
             Bytecode bytecode) {
         if (i >= n)
             return;
-        else {
-            CtClass c = params[i];
-            int size;
-            if (c instanceof CtPrimitiveType)
-                size = ((CtPrimitiveType)c).getDataSize();
-            else
-                size = 1;
+        CtClass c = params[i];
+        int size;
+        if (c instanceof CtPrimitiveType)
+            size = ((CtPrimitiveType)c).getDataSize();
+        else
+            size = 1;
 
-            storeStack0(i + 1, n, params, regno + size, bytecode);
-            bytecode.addStore(regno, c);
-        }
+        storeStack0(i + 1, n, params, regno + size, bytecode);
+        bytecode.addStore(regno, c);
     }
 
     // The implementation of replace() should call thisClass.checkModify()

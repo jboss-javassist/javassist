@@ -17,8 +17,9 @@
 package javassist.bytecode.stackmap;
 
 import java.util.ArrayList;
+import java.util.List;
+
 import javassist.ClassPool;
-import javassist.CtClass;
 import javassist.NotFoundException;
 import javassist.bytecode.*;
 
@@ -379,7 +380,7 @@ public class MapMaker extends Tracer {
      * their types are also fixed when they are found. 
      */
     private void fixTypes(byte[] code, TypedBlock[] blocks) throws NotFoundException, BadBytecode {
-        ArrayList preOrder = new ArrayList();
+        List<TypeData> preOrder = new ArrayList<TypeData>();
         int len = blocks.length;
         int index = 0;
         for (int i = 0; i < len; i++) {
@@ -522,8 +523,7 @@ public class MapMaker extends Tracer {
                 return diffSize(newTd, len, newTdLen);
             else
                 return -diffSize(oldTd, len, oldTdLen);
-        else
-            return -100;
+        return -100;
     }
 
     private static boolean stackMapEq(TypeData[] oldTd, TypeData[] newTd, int len) {

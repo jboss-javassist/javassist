@@ -29,7 +29,9 @@ public class ArrayInit extends ASTList {
         super(firstElement);
     }
 
+    @Override
     public void accept(Visitor v) throws CompileError { v.atArrayInit(this); }
 
+    @Override
     public String getTag() { return "array"; }
 }

@@ -54,6 +54,7 @@ public class TypedBlock extends BasicBlock {
         localsTypes = null;
     }
 
+    @Override
     protected void toString2(StringBuffer sbuf) {
         super.toString2(sbuf);
         sbuf.append(",\n stack={");
@@ -110,10 +111,12 @@ public class TypedBlock extends BasicBlock {
     }
 
     public static class Maker extends BasicBlock.Maker {
+        @Override
         protected BasicBlock makeBlock(int pos) {
             return new TypedBlock(pos);
         }
 
+        @Override
         protected BasicBlock[] makeArray(int size) {
             return new TypedBlock[size];
         }

@@ -35,8 +35,8 @@ import javassist.bytecode.Opcode;
 public class SubroutineScanner implements Opcode {
 
     private Subroutine[] subroutines;
-    Map subTable = new HashMap();
-    Set done = new HashSet();
+    Map<Integer,Subroutine> subTable = new HashMap<Integer,Subroutine>();
+    Set<Integer> done = new HashSet<Integer>();
 
 
     public Subroutine[] scan(MethodInfo method) throws BadBytecode {
@@ -62,10 +62,10 @@ public class SubroutineScanner implements Opcode {
 
     private void scan(int pos, CodeIterator iter, Subroutine sub) throws BadBytecode {
         // Skip already processed blocks
-        if (done.contains(Integer.valueOf(pos)))
+        if (done.contains(pos))
             return;
 
-        done.add(Integer.valueOf(pos));
+        done.add(pos);
 
         int old = iter.lookAhead();
         iter.move(pos);
@@ -103,10 +103,10 @@ public class SubroutineScanner implements Opcode {
         if (Util.isJumpInstruction(opcode)) {
             int target = Util.getJumpTarget(pos, iter);
             if (opcode == JSR || opcode == JSR_W) {
-                Subroutine s = (Subroutine) subTable.get(Integer.valueOf(target));
+                Subroutine s = subTable.get(target);
                 if (s == null) {
                     s = new Subroutine(target, pos);
-                    subTable.put(Integer.valueOf(target), s);
+                    subTable.put(target, s);
                     scan(target, iter, s);
                 } else {
                     s.addCaller(pos);

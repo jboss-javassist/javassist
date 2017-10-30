@@ -32,7 +32,9 @@ public class Symbol extends ASTree {
 
     public String get() { return identifier; }
 
+    @Override
     public String toString() { return identifier; }
 
+    @Override
     public void accept(Visitor v) throws CompileError { v.atSymbol(this); }
 }

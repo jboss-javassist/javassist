@@ -18,7 +18,8 @@ package javassist;
 
 import javassist.bytecode.*;
 import javassist.compiler.JvstCodeGen;
-import java.util.Hashtable;
+import java.util.Map;
+
 import javassist.CtMethod.ConstParameter;
 
 class CtNewWrappedMethod {
@@ -139,8 +140,8 @@ class CtNewWrappedMethod {
                                         CtMethod src)
         throws BadBytecode, CannotCompileException
     {
-        Hashtable bodies = clazz.getHiddenMethods();
-        String bodyname = (String)bodies.get(src);
+        Map<CtMethod,String> bodies = clazz.getHiddenMethods();
+        String bodyname = bodies.get(src);
         if (bodyname == null) {
             do {
                 bodyname = addedWrappedMethod + clazz.getUniqueNumber();
