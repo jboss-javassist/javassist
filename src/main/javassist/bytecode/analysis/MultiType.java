@@ -281,6 +281,14 @@ public class MultiType extends Type {
 
         return resolved;
     }
+    
+    @Override
+    public int hashCode() {
+        if (resolved != null)
+            return resolved.hashCode();
+        
+        return interfaces.keySet().hashCode();
+    }
 
     public boolean equals(Object o) {
         if (! (o instanceof MultiType))
