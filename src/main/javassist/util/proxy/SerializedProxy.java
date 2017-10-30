@@ -16,11 +16,11 @@
 
 package javassist.util.proxy;
 
-import java.io.Serializable;
-import java.lang.reflect.InvocationTargetException;
 import java.io.InvalidClassException;
 import java.io.InvalidObjectException;
 import java.io.ObjectStreamException;
+import java.io.Serializable;
+import java.lang.reflect.InvocationTargetException;
 import java.security.AccessController;
 import java.security.PrivilegedActionException;
 import java.security.PrivilegedExceptionAction;

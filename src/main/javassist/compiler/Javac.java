@@ -16,23 +16,31 @@
 
 package javassist.compiler;
 
-import javassist.CtClass;
-import javassist.CtPrimitiveType;
-import javassist.CtMember;
-import javassist.CtField;
-import javassist.CtBehavior;
-import javassist.CtMethod;
-import javassist.CtConstructor;
 import javassist.CannotCompileException;
+import javassist.CtBehavior;
+import javassist.CtClass;
+import javassist.CtConstructor;
+import javassist.CtField;
+import javassist.CtMember;
+import javassist.CtMethod;
+import javassist.CtPrimitiveType;
 import javassist.Modifier;
+import javassist.NotFoundException;
+import javassist.bytecode.BadBytecode;
 import javassist.bytecode.Bytecode;
 import javassist.bytecode.CodeAttribute;
 import javassist.bytecode.LocalVariableAttribute;
-import javassist.bytecode.BadBytecode;
 import javassist.bytecode.Opcode;
-import javassist.NotFoundException;
-
-import javassist.compiler.ast.*;
+import javassist.compiler.ast.ASTList;
+import javassist.compiler.ast.ASTree;
+import javassist.compiler.ast.CallExpr;
+import javassist.compiler.ast.Declarator;
+import javassist.compiler.ast.Expr;
+import javassist.compiler.ast.FieldDecl;
+import javassist.compiler.ast.Member;
+import javassist.compiler.ast.MethodDecl;
+import javassist.compiler.ast.Stmnt;
+import javassist.compiler.ast.Symbol;
 
 public class Javac {
     JvstCodeGen gen;

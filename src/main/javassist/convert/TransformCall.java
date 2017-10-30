@@ -16,12 +16,15 @@
 
 package javassist.convert;
 
+import javassist.ClassPool;
 import javassist.CtClass;
 import javassist.CtMethod;
-import javassist.ClassPool;
 import javassist.Modifier;
 import javassist.NotFoundException;
-import javassist.bytecode.*;
+import javassist.bytecode.BadBytecode;
+import javassist.bytecode.CodeAttribute;
+import javassist.bytecode.CodeIterator;
+import javassist.bytecode.ConstPool;
 
 public class TransformCall extends Transformer {
     protected String classname, methodname, methodDescriptor;

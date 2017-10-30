@@ -17,9 +17,9 @@
 package javassist;
 
 import java.io.InputStream;
-import java.net.URL;
 import java.lang.ref.Reference;
 import java.lang.ref.WeakReference;
+import java.net.URL;
 
 /**
  * A class search-path representing a class loader.

@@ -16,8 +16,21 @@
 
 package javassist;
 
-import javassist.bytecode.*;
-import javassist.convert.*;
+import javassist.bytecode.BadBytecode;
+import javassist.bytecode.CodeAttribute;
+import javassist.bytecode.CodeIterator;
+import javassist.bytecode.ConstPool;
+import javassist.bytecode.MethodInfo;
+import javassist.convert.TransformAccessArrayField;
+import javassist.convert.TransformAfter;
+import javassist.convert.TransformBefore;
+import javassist.convert.TransformCall;
+import javassist.convert.TransformFieldAccess;
+import javassist.convert.TransformNew;
+import javassist.convert.TransformNewClass;
+import javassist.convert.TransformReadField;
+import javassist.convert.TransformWriteField;
+import javassist.convert.Transformer;
 
 /**
  * Simple translator of method bodies

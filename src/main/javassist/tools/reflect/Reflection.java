@@ -16,10 +16,19 @@
 
 package javassist.tools.reflect;
 
-import javassist.*;
+import javassist.CannotCompileException;
+import javassist.ClassPool;
+import javassist.CodeConverter;
+import javassist.CtClass;
+import javassist.CtField;
+import javassist.CtMethod;
 import javassist.CtMethod.ConstParameter;
-import javassist.bytecode.ClassFile;
+import javassist.CtNewMethod;
+import javassist.Modifier;
+import javassist.NotFoundException;
+import javassist.Translator;
 import javassist.bytecode.BadBytecode;
+import javassist.bytecode.ClassFile;
 import javassist.bytecode.MethodInfo;
 
 /**

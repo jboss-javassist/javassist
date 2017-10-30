@@ -16,8 +16,8 @@
 
 package javassist.compiler.ast;
 
-import javassist.compiler.TokenId;
 import javassist.compiler.CompileError;
+import javassist.compiler.TokenId;
 
 /**
  * New Expression.

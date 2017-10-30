@@ -16,11 +16,16 @@
 
 package javassist;
 
-import javassist.bytecode.*;
-import javassist.compiler.JvstCodeGen;
 import java.util.Map;
 
 import javassist.CtMethod.ConstParameter;
+import javassist.bytecode.AccessFlag;
+import javassist.bytecode.BadBytecode;
+import javassist.bytecode.Bytecode;
+import javassist.bytecode.ClassFile;
+import javassist.bytecode.MethodInfo;
+import javassist.bytecode.SyntheticAttribute;
+import javassist.compiler.JvstCodeGen;
 
 class CtNewWrappedMethod {
 

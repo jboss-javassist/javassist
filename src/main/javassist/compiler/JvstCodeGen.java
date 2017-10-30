@@ -16,9 +16,21 @@
 
 package javassist.compiler;
 
-import javassist.*;
-import javassist.bytecode.*;
-import javassist.compiler.ast.*;
+import javassist.ClassPool;
+import javassist.CtClass;
+import javassist.CtPrimitiveType;
+import javassist.NotFoundException;
+import javassist.bytecode.Bytecode;
+import javassist.bytecode.Descriptor;
+import javassist.compiler.ast.ASTList;
+import javassist.compiler.ast.ASTree;
+import javassist.compiler.ast.CallExpr;
+import javassist.compiler.ast.CastExpr;
+import javassist.compiler.ast.Declarator;
+import javassist.compiler.ast.Expr;
+import javassist.compiler.ast.Member;
+import javassist.compiler.ast.Stmnt;
+import javassist.compiler.ast.Symbol;
 
 /* Code generator accepting extended Java syntax for Javassist.
  */

@@ -17,8 +17,8 @@
 package javassist.bytecode;
 
 import java.io.DataInputStream;
-import java.util.Map;
 import java.io.IOException;
+import java.util.Map;
 
 /**
  * <code>InnerClasses_attribute</code>.

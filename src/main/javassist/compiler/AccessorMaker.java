@@ -16,10 +16,22 @@
 
 package javassist.compiler;
 
-import javassist.*;
-import javassist.bytecode.*;
 import java.util.HashMap;
 import java.util.Map;
+
+import javassist.CannotCompileException;
+import javassist.ClassPool;
+import javassist.CtClass;
+import javassist.NotFoundException;
+import javassist.bytecode.AccessFlag;
+import javassist.bytecode.Bytecode;
+import javassist.bytecode.ClassFile;
+import javassist.bytecode.ConstPool;
+import javassist.bytecode.Descriptor;
+import javassist.bytecode.ExceptionsAttribute;
+import javassist.bytecode.FieldInfo;
+import javassist.bytecode.MethodInfo;
+import javassist.bytecode.SyntheticAttribute;
 
 /**
  * AccessorMaker maintains accessors to private members of an enclosing

@@ -18,13 +18,21 @@ package javassist;
 
 import java.util.List;
 
-import javassist.bytecode.*;
+import javassist.bytecode.AccessFlag;
+import javassist.bytecode.AnnotationsAttribute;
+import javassist.bytecode.AttributeInfo;
+import javassist.bytecode.Bytecode;
+import javassist.bytecode.ClassFile;
+import javassist.bytecode.ConstPool;
+import javassist.bytecode.Descriptor;
+import javassist.bytecode.FieldInfo;
+import javassist.bytecode.SignatureAttribute;
+import javassist.compiler.CompileError;
 import javassist.compiler.Javac;
 import javassist.compiler.SymbolTable;
-import javassist.compiler.CompileError;
 import javassist.compiler.ast.ASTree;
-import javassist.compiler.ast.IntConst;
 import javassist.compiler.ast.DoubleConst;
+import javassist.compiler.ast.IntConst;
 import javassist.compiler.ast.StringL;
 
 /**

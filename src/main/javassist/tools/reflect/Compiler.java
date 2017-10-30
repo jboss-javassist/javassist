@@ -16,9 +16,10 @@
 
 package javassist.tools.reflect;
 
-import javassist.CtClass;
-import javassist.ClassPool;
 import java.io.PrintStream;
+
+import javassist.ClassPool;
+import javassist.CtClass;
 
 class CompiledClass {
     public String classname;

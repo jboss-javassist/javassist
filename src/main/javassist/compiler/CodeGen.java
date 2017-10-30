@@ -20,8 +20,32 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import javassist.compiler.ast.*;
-import javassist.bytecode.*;
+import javassist.bytecode.Bytecode;
+import javassist.bytecode.Opcode;
+import javassist.compiler.ast.ASTList;
+import javassist.compiler.ast.ASTree;
+import javassist.compiler.ast.ArrayInit;
+import javassist.compiler.ast.AssignExpr;
+import javassist.compiler.ast.BinExpr;
+import javassist.compiler.ast.CallExpr;
+import javassist.compiler.ast.CastExpr;
+import javassist.compiler.ast.CondExpr;
+import javassist.compiler.ast.Declarator;
+import javassist.compiler.ast.DoubleConst;
+import javassist.compiler.ast.Expr;
+import javassist.compiler.ast.FieldDecl;
+import javassist.compiler.ast.InstanceOfExpr;
+import javassist.compiler.ast.IntConst;
+import javassist.compiler.ast.Keyword;
+import javassist.compiler.ast.Member;
+import javassist.compiler.ast.MethodDecl;
+import javassist.compiler.ast.NewExpr;
+import javassist.compiler.ast.Pair;
+import javassist.compiler.ast.Stmnt;
+import javassist.compiler.ast.StringL;
+import javassist.compiler.ast.Symbol;
+import javassist.compiler.ast.Variable;
+import javassist.compiler.ast.Visitor;
 
 /* The code generator is implemented by three files:
  * CodeGen.java, MemberCodeGen.java, and JvstCodeGen.

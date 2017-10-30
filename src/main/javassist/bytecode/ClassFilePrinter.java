@@ -17,8 +17,9 @@
 package javassist.bytecode;
 
 import java.io.PrintWriter;
-import javassist.Modifier;
 import java.util.List;
+
+import javassist.Modifier;
 
 /**
  * A utility class for priting the contents of a class file.

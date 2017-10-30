@@ -16,8 +16,10 @@
 
 package javassist.tools.web;
 
-import java.io.*;
-import java.net.*;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.net.URLConnection;
 
 /**
  * A sample applet viewer.

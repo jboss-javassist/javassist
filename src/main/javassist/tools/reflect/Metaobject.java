@@ -16,11 +16,11 @@
 
 package javassist.tools.reflect;
 
-import java.lang.reflect.Method;
-import java.io.Serializable;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.Serializable;
+import java.lang.reflect.Method;
 
 /**
  * A runtime metaobject.

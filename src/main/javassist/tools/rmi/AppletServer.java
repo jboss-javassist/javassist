@@ -16,17 +16,25 @@
 
 package javassist.tools.rmi;
 
-import java.io.*;
-
-import javassist.tools.web.*;
-import javassist.CannotCompileException;
-import javassist.NotFoundException;
-import javassist.ClassPool;
+import java.io.DataInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InvalidClassException;
+import java.io.NotSerializableException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.OutputStream;
 import java.lang.reflect.Method;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.Vector;
+
+import javassist.CannotCompileException;
+import javassist.ClassPool;
+import javassist.NotFoundException;
+import javassist.tools.web.BadHttpRequest;
+import javassist.tools.web.Webserver;
 
 /**
  * An AppletServer object is a web server that an ObjectImporter

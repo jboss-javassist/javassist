@@ -18,7 +18,10 @@ package javassist.convert;
 
 import javassist.CtClass;
 import javassist.CtField;
-import javassist.bytecode.*;
+import javassist.bytecode.BadBytecode;
+import javassist.bytecode.CodeAttribute;
+import javassist.bytecode.CodeIterator;
+import javassist.bytecode.ConstPool;
 
 final public class TransformWriteField extends TransformReadField {
     public TransformWriteField(Transformer next, CtField field,

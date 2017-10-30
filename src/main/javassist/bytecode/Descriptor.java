@@ -16,11 +16,12 @@
 
 package javassist.bytecode;
 
+import java.util.Map;
+
 import javassist.ClassPool;
 import javassist.CtClass;
 import javassist.CtPrimitiveType;
 import javassist.NotFoundException;
-import java.util.Map;
 
 /**
  * A support class for dealing with descriptors.

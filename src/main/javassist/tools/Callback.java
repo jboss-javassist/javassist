@@ -16,12 +16,12 @@
 
 package javassist.tools;
 
-import javassist.CannotCompileException;
-import javassist.CtBehavior;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+
+import javassist.CannotCompileException;
+import javassist.CtBehavior;
 
 /**
  * Creates bytecode that when executed calls back to the instance's result method.

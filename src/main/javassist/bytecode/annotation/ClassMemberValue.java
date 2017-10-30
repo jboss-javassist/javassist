@@ -16,14 +16,14 @@
 
 package javassist.bytecode.annotation;
 
+import java.io.IOException;
+import java.lang.reflect.Method;
+
 import javassist.ClassPool;
 import javassist.bytecode.BadBytecode;
 import javassist.bytecode.ConstPool;
 import javassist.bytecode.Descriptor;
 import javassist.bytecode.SignatureAttribute;
-
-import java.io.IOException;
-import java.lang.reflect.Method;
 
 /**
  * Class value.

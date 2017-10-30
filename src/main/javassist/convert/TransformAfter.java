@@ -18,7 +18,8 @@ package javassist.convert;
 
 import javassist.CtMethod;
 import javassist.NotFoundException;
-import javassist.bytecode.*;
+import javassist.bytecode.BadBytecode;
+import javassist.bytecode.CodeIterator;
 
 public class TransformAfter extends TransformBefore {
     public TransformAfter(Transformer next,

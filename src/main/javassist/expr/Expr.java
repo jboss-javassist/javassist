@@ -16,6 +16,9 @@
 
 package javassist.expr;
 
+import java.util.LinkedList;
+import java.util.List;
+
 import javassist.CannotCompileException;
 import javassist.ClassPool;
 import javassist.CtBehavior;
@@ -35,9 +38,6 @@ import javassist.bytecode.ExceptionsAttribute;
 import javassist.bytecode.MethodInfo;
 import javassist.bytecode.Opcode;
 import javassist.compiler.Javac;
-
-import java.util.LinkedList;
-import java.util.List;
 
 /**
  * Expression.

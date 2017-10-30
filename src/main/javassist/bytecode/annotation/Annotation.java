@@ -16,17 +16,17 @@
 
 package javassist.bytecode.annotation;
 
-import javassist.bytecode.ConstPool;
-import javassist.bytecode.Descriptor;
-import javassist.ClassPool;
-import javassist.CtClass;
-import javassist.CtMethod;
-import javassist.NotFoundException;
-
 import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
+
+import javassist.ClassPool;
+import javassist.CtClass;
+import javassist.CtMethod;
+import javassist.NotFoundException;
+import javassist.bytecode.ConstPool;
+import javassist.bytecode.Descriptor;
 
 /**
  * The <code>annotation</code> structure.

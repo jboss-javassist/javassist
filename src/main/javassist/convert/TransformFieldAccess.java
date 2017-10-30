@@ -16,10 +16,12 @@
 
 package javassist.convert;
 
-import javassist.bytecode.*;
 import javassist.CtClass;
 import javassist.CtField;
 import javassist.Modifier;
+import javassist.bytecode.CodeAttribute;
+import javassist.bytecode.CodeIterator;
+import javassist.bytecode.ConstPool;
 
 final public class TransformFieldAccess extends Transformer {
     private String newClassname, newFieldname;

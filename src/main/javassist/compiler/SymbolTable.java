@@ -17,6 +17,7 @@
 package javassist.compiler;
 
 import java.util.HashMap;
+
 import javassist.compiler.ast.Declarator;
 
 public final class SymbolTable extends HashMap<String,Declarator> {

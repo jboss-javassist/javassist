@@ -16,14 +16,14 @@
 
 package javassist.bytecode;
 
-import javassist.CtClass;
-import javassist.bytecode.annotation.AnnotationsWriter;
-import javassist.bytecode.annotation.MemberValue;
-
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.util.Map;
+
+import javassist.CtClass;
+import javassist.bytecode.annotation.AnnotationsWriter;
+import javassist.bytecode.annotation.MemberValue;
 
 /**
  * A class representing <code>AnnotationDefault_attribute</code>.

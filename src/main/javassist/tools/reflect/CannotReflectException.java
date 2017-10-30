@@ -17,6 +17,7 @@
 package javassist.tools.reflect;
 
 import javassist.CannotCompileException;
+import javassist.CtClass;
 
 /**
  * Thrown by <code>makeReflective()</code> in <code>Reflection</code>

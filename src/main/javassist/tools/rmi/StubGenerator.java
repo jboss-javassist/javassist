@@ -16,12 +16,22 @@
 
 package javassist.tools.rmi;
 
-import javassist.*;
 import java.lang.reflect.Method;
 import java.util.Hashtable;
 import java.util.Map;
 
+import javassist.CannotCompileException;
+import javassist.ClassPool;
+import javassist.CtClass;
+import javassist.CtConstructor;
+import javassist.CtField;
+import javassist.CtMethod;
 import javassist.CtMethod.ConstParameter;
+import javassist.CtNewConstructor;
+import javassist.CtNewMethod;
+import javassist.Modifier;
+import javassist.NotFoundException;
+import javassist.Translator;
 
 /**
  * A stub-code generator.  It is used for producing a proxy class.

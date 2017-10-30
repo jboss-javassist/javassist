@@ -17,8 +17,8 @@
 package javassist.compiler.ast;
 
 import javassist.compiler.CompileError;
-import javassist.compiler.TokenId;
 import javassist.compiler.MemberResolver;
+import javassist.compiler.TokenId;
 
 /**
  * Method call expression.

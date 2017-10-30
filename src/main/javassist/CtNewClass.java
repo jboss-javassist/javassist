@@ -18,6 +18,7 @@ package javassist;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
+
 import javassist.bytecode.ClassFile;
 
 class CtNewClass extends CtClassType {

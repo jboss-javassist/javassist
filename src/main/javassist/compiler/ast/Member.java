@@ -16,8 +16,8 @@
 
 package javassist.compiler.ast;
 
-import javassist.compiler.CompileError;
 import javassist.CtField;
+import javassist.compiler.CompileError;
 
 /**
  * Member name.

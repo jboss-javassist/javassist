@@ -16,10 +16,11 @@
 
 package javassist;
 
-import javassist.bytecode.*;
-import javassist.compiler.Javac;
-import javassist.compiler.CompileError;
 import javassist.CtMethod.ConstParameter;
+import javassist.bytecode.Bytecode;
+import javassist.bytecode.ConstPool;
+import javassist.compiler.CompileError;
+import javassist.compiler.Javac;
 
 /**
  * A collection of static methods for creating a <code>CtConstructor</code>.

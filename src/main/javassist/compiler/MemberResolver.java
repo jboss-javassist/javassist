@@ -16,17 +16,28 @@
 
 package javassist.compiler;
 
-import java.util.Hashtable;
 import java.lang.ref.Reference;
 import java.lang.ref.WeakReference;
-import java.util.WeakHashMap;
+import java.util.Hashtable;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Iterator;
+import java.util.WeakHashMap;
 
-import javassist.*;
-import javassist.bytecode.*;
-import javassist.compiler.ast.*;
+import javassist.ClassPool;
+import javassist.CtClass;
+import javassist.CtField;
+import javassist.Modifier;
+import javassist.NotFoundException;
+import javassist.bytecode.AccessFlag;
+import javassist.bytecode.ClassFile;
+import javassist.bytecode.Descriptor;
+import javassist.bytecode.MethodInfo;
+import javassist.compiler.ast.ASTList;
+import javassist.compiler.ast.ASTree;
+import javassist.compiler.ast.Declarator;
+import javassist.compiler.ast.Keyword;
+import javassist.compiler.ast.Symbol;
 
 /* Code generator methods depending on javassist.* classes.
  */

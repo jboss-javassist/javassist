@@ -17,6 +17,7 @@
 package javassist.compiler.ast;
 
 import java.io.Serializable;
+
 import javassist.compiler.CompileError;
 
 /**

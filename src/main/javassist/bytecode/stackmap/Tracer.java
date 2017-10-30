@@ -16,12 +16,12 @@
 
 package javassist.bytecode.stackmap;
 
+import javassist.ClassPool;
+import javassist.bytecode.BadBytecode;
 import javassist.bytecode.ByteArray;
-import javassist.bytecode.Opcode;
 import javassist.bytecode.ConstPool;
 import javassist.bytecode.Descriptor;
-import javassist.bytecode.BadBytecode;
-import javassist.ClassPool;
+import javassist.bytecode.Opcode;
 
 /*
  * A class for performing abstract interpretation.

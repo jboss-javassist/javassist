@@ -16,12 +16,14 @@
 
 package javassist.convert;
 
-import javassist.bytecode.*;
 import javassist.ClassPool;
 import javassist.CtClass;
 import javassist.CtField;
-import javassist.NotFoundException;
 import javassist.Modifier;
+import javassist.NotFoundException;
+import javassist.bytecode.BadBytecode;
+import javassist.bytecode.CodeIterator;
+import javassist.bytecode.ConstPool;
 
 public class TransformReadField extends Transformer {
     protected String fieldname;

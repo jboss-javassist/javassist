@@ -21,7 +21,14 @@ import java.util.List;
 
 import javassist.ClassPool;
 import javassist.NotFoundException;
-import javassist.bytecode.*;
+import javassist.bytecode.BadBytecode;
+import javassist.bytecode.ByteArray;
+import javassist.bytecode.Bytecode;
+import javassist.bytecode.CodeAttribute;
+import javassist.bytecode.ConstPool;
+import javassist.bytecode.MethodInfo;
+import javassist.bytecode.StackMap;
+import javassist.bytecode.StackMapTable;
 
 /**
  * Stack map maker.

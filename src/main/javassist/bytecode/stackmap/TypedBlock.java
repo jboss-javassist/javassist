@@ -16,7 +16,11 @@
 
 package javassist.bytecode.stackmap;
 
-import javassist.bytecode.*;
+import javassist.bytecode.AccessFlag;
+import javassist.bytecode.BadBytecode;
+import javassist.bytecode.CodeAttribute;
+import javassist.bytecode.ConstPool;
+import javassist.bytecode.MethodInfo;
 
 public class TypedBlock extends BasicBlock {
     public int stackTop, numLocals;

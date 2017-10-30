@@ -16,9 +16,17 @@
 
 package javassist;
 
-import javassist.bytecode.*;
-import javassist.compiler.Javac;
+import javassist.bytecode.BadBytecode;
+import javassist.bytecode.Bytecode;
+import javassist.bytecode.ClassFile;
+import javassist.bytecode.CodeAttribute;
+import javassist.bytecode.CodeIterator;
+import javassist.bytecode.ConstPool;
+import javassist.bytecode.Descriptor;
+import javassist.bytecode.MethodInfo;
+import javassist.bytecode.Opcode;
 import javassist.compiler.CompileError;
+import javassist.compiler.Javac;
 
 /**
  * An instance of CtConstructor represents a constructor.
