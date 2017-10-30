@@ -567,6 +567,11 @@ public class Type {
         return map;
     }
 
+    @Override
+    public int hashCode() {
+        return getClass().hashCode() + clazz.hashCode();
+    }
+
     public boolean equals(Object o) {
         if (! (o instanceof Type))
             return false;
