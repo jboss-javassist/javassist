@@ -103,6 +103,10 @@ public class JvstTest extends JvstTestRoot {
         cc.addField(f2);
         CtField f3 = CtField.make("public int f3;", cc);
         cc.addField(f3);
+        CtField f4 = CtField.make("public int f4 = this.f2 + 3;", cc);
+        cc.addField(f4);
+        CtField fi = CtField.make("public test1.FieldInit.FI fi = new test1.FieldInit.FI(this);", cc);
+        cc.addField(fi);
         testFieldInitHash = f1.hashCode();
         cc.writeFile();
         Object obj = make(cc.getName());
@@ -112,6 +116,10 @@ public class JvstTest extends JvstTestRoot {
         assertEquals(3, value2);
         int value3 = obj.getClass().getField("f3").getInt(obj);
         assertEquals(0, value3);
+        int value4 = obj.getClass().getField("f4").getInt(obj);
+        assertEquals(6, value4);
+        Object obfi = obj.getClass().getField("fi").get(obj);
+        assertTrue(obfi.getClass().getField("fi").get(obfi) == obj);
     }
 
     /* test CodeIterator.insertExGap().
