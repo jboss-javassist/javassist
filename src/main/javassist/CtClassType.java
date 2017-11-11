@@ -446,9 +446,19 @@ class CtClassType extends CtClass {
         int acc = cf.getAccessFlags();
         acc = AccessFlag.clear(acc, AccessFlag.SUPER);
         int inner = cf.getInnerAccessFlags();
-        if (inner != -1 && (inner & AccessFlag.STATIC) != 0)
-            acc |= AccessFlag.STATIC;
-
+        if (inner != -1) {
+            if ((inner & AccessFlag.STATIC) != 0)
+                acc |= AccessFlag.STATIC;
+            if ((inner & AccessFlag.PUBLIC) != 0)
+                acc |= AccessFlag.PUBLIC;
+            else {
+                acc &= ~AccessFlag.PUBLIC; //clear PUBLIC
+                if ((inner & AccessFlag.PROTECTED) != 0)
+                    acc |= AccessFlag.PROTECTED;
+                else if ((inner & AccessFlag.PRIVATE) != 0)
+                    acc |= AccessFlag.PRIVATE;
+            }
+        }
         return AccessFlag.toModifier(acc);
     }
 

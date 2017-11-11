@@ -344,6 +344,52 @@ public class JvstTest5 extends JvstTestRoot {
         assertEquals(Modifier.PUBLIC, ica4.accessFlags(i5));
     }
 
+    public void testInnerClassModifiers2() throws Exception {
+        CtClass cc = sloader.get("test5.InnerModifier2$Protected");
+        Class<?> ccc = Class.forName("test5.InnerModifier2$Protected");
+        assertEquals(cc.getModifiers(), ccc.getModifiers());
+        assertTrue(Modifier.isProtected(cc.getModifiers()));
+
+        cc = sloader.get("test5.InnerModifier2$Public");
+        ccc = Class.forName("test5.InnerModifier2$Public");
+        assertEquals(cc.getModifiers(), ccc.getModifiers());
+        assertTrue(Modifier.isPublic(cc.getModifiers()));
+
+        cc = sloader.get("test5.InnerModifier2$Private");
+        ccc = Class.forName("test5.InnerModifier2$Private");
+        assertEquals(cc.getModifiers(), ccc.getModifiers());
+        assertTrue(Modifier.isPrivate(cc.getModifiers()));
+
+        cc = sloader.get("test5.InnerModifier2$Package");
+        ccc = Class.forName("test5.InnerModifier2$Package");
+        assertEquals(cc.getModifiers(), ccc.getModifiers());
+        assertTrue(Modifier.isPackage(cc.getModifiers()));
+
+        cc = sloader.get("test5.InnerModifier2$ProtectedStatic");
+        ccc = Class.forName("test5.InnerModifier2$ProtectedStatic");
+        assertEquals(cc.getModifiers(), ccc.getModifiers());
+        assertTrue(Modifier.isProtected(cc.getModifiers()));
+        assertTrue(Modifier.isStatic(cc.getModifiers()));
+
+        cc = sloader.get("test5.InnerModifier2$PublicStatic");
+        ccc = Class.forName("test5.InnerModifier2$PublicStatic");
+        assertEquals(cc.getModifiers(), ccc.getModifiers());
+        assertTrue(Modifier.isPublic(cc.getModifiers()));
+        assertTrue(Modifier.isStatic(cc.getModifiers()));
+
+        cc = sloader.get("test5.InnerModifier2$PrivateStatic");
+        ccc = Class.forName("test5.InnerModifier2$PrivateStatic");
+        assertEquals(cc.getModifiers(), ccc.getModifiers());
+        assertTrue(Modifier.isPrivate(cc.getModifiers()));
+        assertTrue(Modifier.isStatic(cc.getModifiers()));
+
+        cc = sloader.get("test5.InnerModifier2$PackageStatic");
+        ccc = Class.forName("test5.InnerModifier2$PackageStatic");
+        assertEquals(cc.getModifiers(), ccc.getModifiers());
+        assertTrue(Modifier.isPackage(cc.getModifiers()));
+        assertTrue(Modifier.isStatic(cc.getModifiers()));
+    }
+
     private InnerClassesAttribute getInnerClassAttr(CtClass cc) {
         return (InnerClassesAttribute)cc.getClassFile2().getAttribute(InnerClassesAttribute.tag);
     }
