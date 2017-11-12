@@ -18,6 +18,7 @@ public class NewExprTryCatch {
         // the error is somehow related to the string concatenation and local variables,
         // when the code below is replaced with something else, the error does not occur.
         String s1 = "a";
+        @SuppressWarnings("unused")
         String s2 = s1 + "b";
     }
 

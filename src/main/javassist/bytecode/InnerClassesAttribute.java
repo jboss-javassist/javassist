@@ -17,8 +17,8 @@
 package javassist.bytecode;
 
 import java.io.DataInputStream;
-import java.util.Map;
 import java.io.IOException;
+import java.util.Map;
 
 /**
  * <code>InnerClasses_attribute</code>.
@@ -73,8 +73,7 @@ public class InnerClassesAttribute extends AttributeInfo {
         int i = innerClassIndex(nth);
         if (i == 0)
             return null;
-        else
-            return constPool.getClassInfo(i);
+        return constPool.getClassInfo(i);
     }
 
     /**
@@ -102,8 +101,7 @@ public class InnerClassesAttribute extends AttributeInfo {
         int i = outerClassIndex(nth);
         if (i == 0)
             return null;
-        else
-            return constPool.getClassInfo(i);
+        return constPool.getClassInfo(i);
     }
 
     /**
@@ -131,8 +129,7 @@ public class InnerClassesAttribute extends AttributeInfo {
         int i = innerNameIndex(nth);
         if (i == 0)
             return null;
-        else
-            return constPool.getUtf8Info(i);
+        return constPool.getUtf8Info(i);
     }
 
     /**
@@ -257,7 +254,8 @@ public class InnerClassesAttribute extends AttributeInfo {
      * @param classnames        pairs of replaced and substituted
      *                          class names.
      */
-    public AttributeInfo copy(ConstPool newCp, Map classnames) {
+    @Override
+    public AttributeInfo copy(ConstPool newCp, Map<String,String> classnames) {
         byte[] src = get();
         byte[] dest = new byte[src.length];
         ConstPool cp = getConstPool();

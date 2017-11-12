@@ -19,6 +19,8 @@ package javassist.compiler;
 import javassist.compiler.ast.ASTree;
 
 public class NoFieldException extends CompileError {
+    /** default serialVersionUID */
+    private static final long serialVersionUID = 1L;
     private String fieldName;
     private ASTree expr;
 

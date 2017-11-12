@@ -20,8 +20,6 @@ import java.io.DataInputStream;
 import java.io.IOException;
 import java.util.Map;
 
-import javassist.CtConstructor;
-
 /**
  * <code>EnclosingMethod_attribute</code>.
  */
@@ -108,10 +106,8 @@ public class EnclosingMethodAttribute extends AttributeInfo {
         int mi = methodIndex();
         if (mi == 0)
             return MethodInfo.nameClinit;
-        else {
-            int ni = cp.getNameAndTypeName(mi);
-            return cp.getUtf8Info(ni);
-        }
+        int ni = cp.getNameAndTypeName(mi);
+        return cp.getUtf8Info(ni);
     }
 
     /**
@@ -132,11 +128,11 @@ public class EnclosingMethodAttribute extends AttributeInfo {
      * @param classnames        pairs of replaced and substituted
      *                          class names.
      */
-    public AttributeInfo copy(ConstPool newCp, Map classnames) {
-        if (methodIndex() == 0) 
+    @Override
+    public AttributeInfo copy(ConstPool newCp, Map<String,String> classnames) {
+        if (methodIndex() == 0)
             return new EnclosingMethodAttribute(newCp, className());
-        else
-            return new EnclosingMethodAttribute(newCp, className(),
-                                            methodName(), methodDescriptor());
+        return new EnclosingMethodAttribute(newCp, className(),
+                                        methodName(), methodDescriptor());
     }
 }

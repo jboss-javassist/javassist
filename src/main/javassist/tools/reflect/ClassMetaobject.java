@@ -16,12 +16,14 @@
 
 package javassist.tools.reflect;
 
-import java.lang.reflect.*;
-import java.util.Arrays;
-import java.io.Serializable;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.Serializable;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.Arrays;
 
 /**
  * A runtime class metaobject.
@@ -40,6 +42,8 @@ import java.io.ObjectOutputStream;
  * @see javassist.tools.reflect.Metalevel
  */
 public class ClassMetaobject implements Serializable {
+    /** default serialVersionUID */
+    private static final long serialVersionUID = 1L;
     /**
      * The base-level methods controlled by a metaobject
      * are renamed so that they begin with
@@ -48,8 +52,8 @@ public class ClassMetaobject implements Serializable {
     static final String methodPrefix = "_m_";
     static final int methodPrefixLen = 3;
 
-    private Class javaClass;
-    private Constructor[] constructors;
+    private Class<?> javaClass;
+    private Constructor<?>[] constructors;
     private Method[] methods;
 
     /**
@@ -95,18 +99,17 @@ public class ClassMetaobject implements Serializable {
         methods = null;
     }
 
-    private Class getClassObject(String name) throws ClassNotFoundException {
+    private Class<?> getClassObject(String name) throws ClassNotFoundException {
         if (useContextClassLoader)
             return Thread.currentThread().getContextClassLoader()
                    .loadClass(name);
-        else
-            return Class.forName(name);
+        return Class.forName(name);
     }
 
     /**
      * Obtains the <code>java.lang.Class</code> representing this class.
      */
-    public final Class getJavaClass() {
+    public final Class<?> getJavaClass() {
         return javaClass;
     }
 
@@ -162,7 +165,7 @@ public class ClassMetaobject implements Serializable {
      * <p>Every subclass of this class should redefine this method.
      */
     public Object trapFieldRead(String name) {
-        Class jc = getJavaClass();
+        Class<?> jc = getJavaClass();
         try {
             return jc.getField(name).get(null);
         }
@@ -182,7 +185,7 @@ public class ClassMetaobject implements Serializable {
      * <p>Every subclass of this class should redefine this method.
      */
     public void trapFieldWrite(String name, Object value) {
-        Class jc = getJavaClass();
+        Class<?> jc = getJavaClass();
         try {
             jc.getField(name).set(null, value);
         }
@@ -251,7 +254,7 @@ public class ClassMetaobject implements Serializable {
         if (methods != null)
             return methods;
 
-        Class baseclass = getJavaClass();
+        Class<?> baseclass = getJavaClass();
         Method[] allmethods = baseclass.getDeclaredMethods();
         int n = allmethods.length;
         int[] index = new int[n];
@@ -320,7 +323,7 @@ public class ClassMetaobject implements Serializable {
      * formal parameter types of the method specified
      * by <code>identifier</code>.
      */
-    public final Class[] getParameterTypes(int identifier) {
+    public final Class<?>[] getParameterTypes(int identifier) {
         return getReflectiveMethods()[identifier].getParameterTypes();
     }
 
@@ -328,7 +331,7 @@ public class ClassMetaobject implements Serializable {
      * Returns a <code>Class</code> objects representing the
      * return type of the method specified by <code>identifier</code>.
      */
-    public final Class getReturnType(int identifier) {
+    public final Class<?> getReturnType(int identifier) {
         return getReflectiveMethods()[identifier].getReturnType();
     }
 
@@ -350,7 +353,7 @@ public class ClassMetaobject implements Serializable {
      * 
      * @see ClassMetaobject#getMethod(int)
      */
-    public final int getMethodIndex(String originalName, Class[] argTypes)
+    public final int getMethodIndex(String originalName, Class<?>[] argTypes)
         throws NoSuchMethodException
     {
         Method[] mthds = getReflectiveMethods();

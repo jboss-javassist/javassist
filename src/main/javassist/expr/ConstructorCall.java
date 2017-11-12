@@ -40,6 +40,7 @@ public class ConstructorCall extends MethodCall {
     /**
      * Returns <code>"super"</code> or "<code>"this"</code>.
      */
+    @Override
     public String getMethodName() {
         return isSuper() ? "super" : "this";
     }
@@ -49,6 +50,7 @@ public class ConstructorCall extends MethodCall {
      *
      * @see #getConstructor()
      */
+    @Override
     public CtMethod getMethod() throws NotFoundException {
         throw new NotFoundException("this is a constructor call.  Call getConstructor().");
     }
@@ -64,6 +66,7 @@ public class ConstructorCall extends MethodCall {
      * Returns true if the called constructor is not <code>this()</code>
      * but <code>super()</code> (a constructor declared in the super class).
      */
+    @Override
     public boolean isSuper() {
         return super.isSuper();
     }

@@ -6,6 +6,7 @@ class RenameClass2 {
     String name;
 }
 
+@SuppressWarnings({"rawtypes","unchecked", "unused"})
 public class RenameClass {
     private Hashtable table;
     public RenameClass() {

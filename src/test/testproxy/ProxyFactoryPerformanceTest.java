@@ -17,6 +17,7 @@ import junit.framework.TestCase;
 import junit.framework.TestSuite;
 import junit.textui.TestRunner;
 
+@SuppressWarnings({"rawtypes","unchecked", "unused"})
 public class ProxyFactoryPerformanceTest extends TestCase {
 
 	public static final int COUNT = 100; 
@@ -84,6 +85,7 @@ public class ProxyFactoryPerformanceTest extends TestCase {
 	}
 }
 
+@SuppressWarnings({"rawtypes","unused"})
 class ProxyMaker extends Thread implements MethodHandler {
 	private static final MethodFilter FINALIZE_FILTER = new MethodFilter() {
 		public boolean isHandled(Method m) {
@@ -163,6 +165,9 @@ class EnhancerUser extends Thread implements InvocationHandler {
 */
 
 class SampleBean implements Serializable {
+    /** default serialVersionUID */
+    private static final long serialVersionUID = 1L;
+
     long oid;
     
     int version;

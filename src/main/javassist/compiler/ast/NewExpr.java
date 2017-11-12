@@ -16,13 +16,15 @@
 
 package javassist.compiler.ast;
 
-import javassist.compiler.TokenId;
 import javassist.compiler.CompileError;
+import javassist.compiler.TokenId;
 
 /**
  * New Expression.
  */
 public class NewExpr extends ASTList implements TokenId {
+    /** default serialVersionUID */
+    private static final long serialVersionUID = 1L;
     protected boolean newArray;
     protected int arrayType;
 
@@ -66,12 +68,13 @@ public class NewExpr extends ASTList implements TokenId {
         ASTree t = getRight().getRight();
         if (t == null)
             return null;
-        else
-            return (ArrayInit)t.getLeft();
+        return (ArrayInit)t.getLeft();
     }
 
+    @Override
     public void accept(Visitor v) throws CompileError { v.atNewExpr(this); }
 
+    @Override
     protected String getTag() {
         return newArray ? "new[]" : "new";
     }

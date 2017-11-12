@@ -13,6 +13,7 @@ import java.lang.reflect.Method;
  * {@link javassist.util.proxy.ProxyObjectOutputStream} and  @link javassist.util.proxy.ProxyObjectInputStream}
  * reuses classes located in the proxy cache. This tests the fixes provided for JASSIST-42 and JASSIST-97.
  */
+@SuppressWarnings({"rawtypes","unchecked","unused","resource"})
 public class ProxySerializationTest extends TestCase
 {
     public void testSerialization()
@@ -80,6 +81,9 @@ public class ProxySerializationTest extends TestCase
 
     public static class TestFilter implements MethodFilter, Serializable
     {
+        /** default serialVersionUID */
+        private static final long serialVersionUID = 1L;
+
         public boolean isHandled(Method m) {
             if (m.getName().equals("getName")) {
                 return true;
@@ -105,6 +109,9 @@ public class ProxySerializationTest extends TestCase
 
     public static class TestHandler implements MethodHandler, Serializable
     {
+        /** default serialVersionUID */
+        private static final long serialVersionUID = 1L;
+
         public Object invoke(Object self, Method thisMethod, Method proceed, Object[] args) throws Throwable
         {
             return proceed.invoke(self, args);
@@ -127,6 +134,8 @@ public class ProxySerializationTest extends TestCase
 
     public static class TestClass implements Serializable
     {
+        /** default serialVersionUID */
+        private static final long serialVersionUID = 1L;
         public String name;
 
         public TestClass()

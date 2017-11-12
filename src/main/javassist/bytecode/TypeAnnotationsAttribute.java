@@ -4,6 +4,7 @@ import java.io.DataInputStream;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+
 import javassist.bytecode.annotation.TypeAnnotationsWriter;
 
 /**
@@ -57,7 +58,8 @@ public class TypeAnnotationsAttribute extends AttributeInfo {
     /**
      * Copies this attribute and returns a new copy.
      */
-    public AttributeInfo copy(ConstPool newCp, Map classnames) {
+    @Override
+    public AttributeInfo copy(ConstPool newCp, Map<String,String> classnames) {
         Copier copier = new Copier(info, constPool, newCp, classnames);
         try {
             copier.annotationArray();
@@ -72,13 +74,15 @@ public class TypeAnnotationsAttribute extends AttributeInfo {
      * @param oldname       a JVM class name.
      * @param newname       a JVM class name.
      */
+    @Override
     void renameClass(String oldname, String newname) {
-        HashMap map = new HashMap();
+        Map<String,String> map = new HashMap<String,String>();
         map.put(oldname, newname);
         renameClass(map);
     }
 
-    void renameClass(Map classnames) {
+    @Override
+    void renameClass(Map<String,String> classnames) {
         Renamer renamer = new Renamer(info, getConstPool(), classnames);
         try {
             renamer.annotationArray();
@@ -87,7 +91,8 @@ public class TypeAnnotationsAttribute extends AttributeInfo {
         }
     }
 
-    void getRefClasses(Map classnames) { renameClass(classnames); }
+    @Override
+    void getRefClasses(Map<String,String> classnames) { renameClass(classnames); }
 
     /**
      * To visit each elements of the type annotation attribute,
@@ -103,6 +108,7 @@ public class TypeAnnotationsAttribute extends AttributeInfo {
             subWalker = new SubWalker(attrInfo);
         }
 
+        @Override
         int annotationArray(int pos, int num) throws Exception {
             for (int i = 0; i < num; i++) {
                 int targetType = info[pos] & 0xff;
@@ -130,7 +136,7 @@ public class TypeAnnotationsAttribute extends AttributeInfo {
                 typeParameterTarget(pos, type, index);
                 return pos + 1; }
             case 0x10: {
-                int index = ByteArray.readU16bit(info, pos); 
+                int index = ByteArray.readU16bit(info, pos);
                 supertypeTarget(pos, index);
                 return pos + 2; }
             case 0x11:
@@ -149,22 +155,22 @@ public class TypeAnnotationsAttribute extends AttributeInfo {
                 formalParameterTarget(pos, index);
                 return pos + 1; }
             case 0x17: {
-                int index = ByteArray.readU16bit(info, pos); 
+                int index = ByteArray.readU16bit(info, pos);
                 throwsTarget(pos, index);
                 return pos + 2; }
             case 0x40:
             case 0x41: {
-                int len = ByteArray.readU16bit(info, pos); 
+                int len = ByteArray.readU16bit(info, pos);
                 return localvarTarget(pos + 2, type, len); }
             case 0x42: {
-                int index = ByteArray.readU16bit(info, pos); 
+                int index = ByteArray.readU16bit(info, pos);
                 catchTarget(pos, index);
                 return pos + 2; }
             case 0x43:
             case 0x44:
             case 0x45:
             case 0x46: {
-                int offset = ByteArray.readU16bit(info, pos); 
+                int offset = ByteArray.readU16bit(info, pos);
                 offsetTarget(pos, type, offset);
                 return pos + 2; }
             case 0x47:
@@ -239,11 +245,12 @@ public class TypeAnnotationsAttribute extends AttributeInfo {
     static class Renamer extends AnnotationsAttribute.Renamer {
         SubWalker sub;
 
-        Renamer(byte[] attrInfo, ConstPool cp, Map map) {
+        Renamer(byte[] attrInfo, ConstPool cp, Map<String,String> map) {
             super(attrInfo, cp, map);
             sub = new SubWalker(attrInfo);
         }
 
+        @Override
         int annotationArray(int pos, int num) throws Exception {
             for (int i = 0; i < num; i++) {
                 int targetType = info[pos] & 0xff;
@@ -259,13 +266,14 @@ public class TypeAnnotationsAttribute extends AttributeInfo {
     static class Copier extends AnnotationsAttribute.Copier {
         SubCopier sub;
 
-        Copier(byte[] attrInfo, ConstPool src, ConstPool dest, Map map) {
+        Copier(byte[] attrInfo, ConstPool src, ConstPool dest, Map<String,String> map) {
             super(attrInfo, src, dest, map, false);
             TypeAnnotationsWriter w = new TypeAnnotationsWriter(output, dest);
             writer = w;
             sub = new SubCopier(attrInfo, src, dest, map, w);
         }
 
+        @Override
         int annotationArray(int pos, int num) throws Exception {
             writer.numAnnotations(num);
             for (int i = 0; i < num; i++) {
@@ -281,11 +289,11 @@ public class TypeAnnotationsAttribute extends AttributeInfo {
 
     static class SubCopier extends SubWalker {
         ConstPool srcPool, destPool;
-        Map classnames;
+        Map<String,String> classnames;
         TypeAnnotationsWriter writer;
 
-        SubCopier(byte[] attrInfo, ConstPool src, ConstPool dest, Map map,
-                TypeAnnotationsWriter w)
+        SubCopier(byte[] attrInfo, ConstPool src, ConstPool dest,
+                Map<String,String> map, TypeAnnotationsWriter w)
         {
             super(attrInfo);
             srcPool = src;
@@ -294,16 +302,19 @@ public class TypeAnnotationsAttribute extends AttributeInfo {
             writer = w;
         }
 
+        @Override
         void typeParameterTarget(int pos, int targetType, int typeParameterIndex)
             throws Exception
         {
-            writer.typeParameterTarget(targetType, typeParameterIndex);            
+            writer.typeParameterTarget(targetType, typeParameterIndex);
         }
 
+        @Override
         void supertypeTarget(int pos, int superTypeIndex) throws Exception {
             writer.supertypeTarget(superTypeIndex);
         }
 
+        @Override
         void typeParameterBoundTarget(int pos, int targetType, int typeParameterIndex,
                                       int boundIndex)
             throws Exception
@@ -311,48 +322,58 @@ public class TypeAnnotationsAttribute extends AttributeInfo {
             writer.typeParameterBoundTarget(targetType, typeParameterIndex, boundIndex);
         }
 
+        @Override
         void emptyTarget(int pos, int targetType) throws Exception {
             writer.emptyTarget(targetType);
         }
 
+        @Override
         void formalParameterTarget(int pos, int formalParameterIndex) throws Exception {
             writer.formalParameterTarget(formalParameterIndex);
         }
 
+        @Override
         void throwsTarget(int pos, int throwsTypeIndex) throws Exception {
             writer.throwsTarget(throwsTypeIndex);
         }
 
+        @Override
         int localvarTarget(int pos, int targetType, int tableLength) throws Exception {
             writer.localVarTarget(targetType, tableLength);
             return super.localvarTarget(pos, targetType, tableLength);
         }
 
+        @Override
         void localvarTarget(int pos, int targetType, int startPc, int length, int index)
             throws Exception
         {
             writer.localVarTargetTable(startPc, length, index);
         }
 
+        @Override
         void catchTarget(int pos, int exceptionTableIndex) throws Exception {
             writer.catchTarget(exceptionTableIndex);
         }
 
+        @Override
         void offsetTarget(int pos, int targetType, int offset) throws Exception {
             writer.offsetTarget(targetType, offset);
         }
 
+        @Override
         void typeArgumentTarget(int pos, int targetType, int offset, int typeArgumentIndex)
             throws Exception
         {
             writer.typeArgumentTarget(targetType, offset, typeArgumentIndex);
         }
 
+        @Override
         int typePath(int pos, int pathLength) throws Exception {
             writer.typePath(pathLength);
             return super.typePath(pos, pathLength);
         }
 
+        @Override
         void typePath(int pos, int typePathKind, int typeArgumentIndex) throws Exception {
             writer.typePathPath(typePathKind, typeArgumentIndex);
         }

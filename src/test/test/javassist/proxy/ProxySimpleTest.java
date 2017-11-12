@@ -14,6 +14,7 @@ import javassist.util.proxy.MethodHandler;
 import javassist.util.proxy.Proxy;
 import javassist.util.proxy.ProxyFactory;
 
+@SuppressWarnings({"rawtypes","unchecked"})
 public class ProxySimpleTest extends TestCase {
 
     String testResult;
@@ -84,6 +85,9 @@ public class ProxySimpleTest extends TestCase {
     }
 
     public static class ReadWriteData implements Serializable {
+        /** default serialVersionUID */
+        private static final long serialVersionUID = 1L;
+
         public int foo() { return 4; }
     }
 
@@ -102,10 +106,16 @@ public class ProxySimpleTest extends TestCase {
     }
 
     public static class WriteReplace implements Serializable {
+        /** default serialVersionUID */
+        private static final long serialVersionUID = 1L;
+
         public Object writeReplace() { return this; }
     }
 
     public static class WriteReplace2 implements Serializable {
+        /** default serialVersionUID */
+        private static final long serialVersionUID = 1L;
+
         public Object writeReplace(int i) { return Integer.valueOf(i); }
     }
 

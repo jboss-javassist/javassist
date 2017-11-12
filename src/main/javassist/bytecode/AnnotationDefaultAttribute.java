@@ -16,14 +16,14 @@
 
 package javassist.bytecode;
 
-import javassist.CtClass;
-import javassist.bytecode.annotation.AnnotationsWriter;
-import javassist.bytecode.annotation.MemberValue;
-
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.util.Map;
+
+import javassist.CtClass;
+import javassist.bytecode.annotation.AnnotationsWriter;
+import javassist.bytecode.annotation.MemberValue;
 
 /**
  * A class representing <code>AnnotationDefault_attribute</code>.
@@ -104,7 +104,8 @@ public class AnnotationDefaultAttribute extends AttributeInfo {
     /**
      * Copies this attribute and returns a new copy.
      */
-    public AttributeInfo copy(ConstPool newCp, Map classnames) {
+    @Override
+    public AttributeInfo copy(ConstPool newCp, Map<String,String> classnames) {
         AnnotationsAttribute.Copier copier
             = new AnnotationsAttribute.Copier(info, constPool, newCp, classnames);
         try {
@@ -154,6 +155,7 @@ public class AnnotationDefaultAttribute extends AttributeInfo {
     /**
      * Returns a string representation of this object.
      */
+    @Override
     public String toString() {
         return getDefaultValue().toString();
     }

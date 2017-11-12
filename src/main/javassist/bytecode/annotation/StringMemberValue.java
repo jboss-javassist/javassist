@@ -16,10 +16,11 @@
 
 package javassist.bytecode.annotation;
 
-import javassist.ClassPool;
-import javassist.bytecode.ConstPool;
 import java.io.IOException;
 import java.lang.reflect.Method;
+
+import javassist.ClassPool;
+import javassist.bytecode.ConstPool;
 
 /**
  * String constant value.
@@ -59,11 +60,13 @@ public class StringMemberValue extends MemberValue {
         setValue("");
     }
 
+    @Override
     Object getValue(ClassLoader cl, ClassPool cp, Method m) {
         return getValue();
     }
 
-    Class getType(ClassLoader cl) {
+    @Override
+    Class<?> getType(ClassLoader cl) {
         return String.class;
     }
 
@@ -84,6 +87,7 @@ public class StringMemberValue extends MemberValue {
     /**
      * Obtains the string representation of this object.
      */
+    @Override
     public String toString() {
         return "\"" + getValue() + "\"";
     }
@@ -91,6 +95,7 @@ public class StringMemberValue extends MemberValue {
     /**
      * Writes the value.
      */
+    @Override
     public void write(AnnotationsWriter writer) throws IOException {
         writer.constValueIndex(getValue());
     }
@@ -98,6 +103,7 @@ public class StringMemberValue extends MemberValue {
     /**
      * Accepts a visitor.
      */
+    @Override
     public void accept(MemberValueVisitor visitor) {
         visitor.visitStringMemberValue(this);
     }

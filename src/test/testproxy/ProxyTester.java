@@ -3,16 +3,19 @@ package testproxy;
 import java.lang.reflect.Method;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Modifier;
+
+import org.junit.Assert;
+
 import java.lang.reflect.InvocationTargetException;
 import javassist.util.proxy.ProxyFactory;
 import javassist.util.proxy.MethodFilter;
 import javassist.util.proxy.MethodHandler;
 import javassist.util.proxy.ProxyObject;
 import javassist.util.proxy.Proxy;
-import junit.framework.Assert;
 import junit.framework.TestCase;
 import java.io.*;
 
+@SuppressWarnings({"unchecked", "rawtypes","unused"})
 public class ProxyTester extends TestCase {
     public ProxyTester(String s) {
         super(s);
@@ -398,6 +401,9 @@ public class ProxyTester extends TestCase {
     }
 
     public static class ReadWriteData implements Serializable {
+        /** default serialVersionUID */
+        private static final long serialVersionUID = 1L;
+
         public int foo() { return 4; }
     }
 
@@ -416,10 +422,16 @@ public class ProxyTester extends TestCase {
     }
 
     public static class WriteReplace implements Serializable {
+        /** default serialVersionUID */
+        private static final long serialVersionUID = 1L;
+
         public Object writeReplace() { return this; }
     }
 
     public static class WriteReplace2 implements Serializable {
+        /** default serialVersionUID */
+        private static final long serialVersionUID = 1L;
+
         public Object writeReplace(int i) { return Integer.valueOf(i); }
     }
 

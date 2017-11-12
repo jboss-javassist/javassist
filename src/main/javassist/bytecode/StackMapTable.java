@@ -16,12 +16,13 @@
 
 package javassist.bytecode;
 
+import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.PrintWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.Map;
+
 import javassist.CannotCompileException;
 
 /**
@@ -62,7 +63,8 @@ public class StackMapTable extends AttributeInfo {
      *                          <code>RuntimeCopyException</code>.
      *
      */
-    public AttributeInfo copy(ConstPool newCp, Map classnames)
+    @Override
+    public AttributeInfo copy(ConstPool newCp, Map<String,String> classnames)
         throws RuntimeCopyException
     {
         try {
@@ -79,6 +81,9 @@ public class StackMapTable extends AttributeInfo {
      * in <code>StackMapTable</code>.
      */
     public static class RuntimeCopyException extends RuntimeException {
+        /** default serialVersionUID */
+        private static final long serialVersionUID = 1L;
+
         /**
          * Constructs an exception.
          */
@@ -87,6 +92,7 @@ public class StackMapTable extends AttributeInfo {
         }
     }
 
+    @Override
     void write(DataOutputStream out) throws IOException {
         super.write(out);
     }
@@ -338,8 +344,8 @@ public class StackMapTable extends AttributeInfo {
          * @param stackData         <code>stack[i].cpool_index</code>
          *                          or <code>stack[i].offset</code>
          */
-        public void fullFrame(int pos, int offsetDelta, int[] localTags, int[] localData,
-                              int[] stackTags, int[] stackData)
+        public void fullFrame(int pos, int offsetDelta, int[] localTags,
+                int[] localData, int[] stackTags, int[] stackData)
             throws BadBytecode {}
 
         private int verifyTypeInfo(int pos, int n, int[] tags, int[] data) {
@@ -380,22 +386,27 @@ public class StackMapTable extends AttributeInfo {
             return writer.toByteArray();
         }
 
+        @Override
         public void sameFrame(int pos, int offsetDelta) {
             writer.sameFrame(offsetDelta);
         }
 
+        @Override
         public void sameLocals(int pos, int offsetDelta, int stackTag, int stackData) {
             writer.sameLocals(offsetDelta, stackTag, copyData(stackTag, stackData));
         }
 
+        @Override
         public void chopFrame(int pos, int offsetDelta, int k) {
             writer.chopFrame(offsetDelta, k);
         }
 
+        @Override
         public void appendFrame(int pos, int offsetDelta, int[] tags, int[] data) {
             writer.appendFrame(offsetDelta, tags, copyData(tags, data));
         }
 
+        @Override
         public void fullFrame(int pos, int offsetDelta, int[] localTags, int[] localData,
                               int[] stackTags, int[] stackData) {
             writer.fullFrame(offsetDelta, localTags, copyData(localTags, localData),
@@ -413,22 +424,23 @@ public class StackMapTable extends AttributeInfo {
 
     static class Copier extends SimpleCopy {
         private ConstPool srcPool, destPool;
-        private Map classnames;
+        private Map<String,String> classnames;
 
-        public Copier(ConstPool src, byte[] data, ConstPool dest, Map names) {
+        public Copier(ConstPool src, byte[] data, ConstPool dest, Map<String,String> names) {
             super(data);
             srcPool = src;
             destPool = dest;
             classnames = names;
         }
 
+        @Override
         protected int copyData(int tag, int data) {
             if (tag == OBJECT)
-                return srcPool.copy(data, destPool, classnames); 
-            else
-                return data;
+                return srcPool.copy(data, destPool, classnames);
+            return data;
         }
 
+        @Override
         protected int[] copyData(int[] tags, int[] data) {
             int[] newData = new int[data.length];
             for (int i = 0; i < data.length; i++)
@@ -504,6 +516,7 @@ public class StackMapTable extends AttributeInfo {
             this.varData = varData;
         }
 
+        @Override
         public void fullFrame(int pos, int offsetDelta, int[] localTags, int[] localData,
                               int[] stackTags, int[] stackData) {
             int len = localTags.length;
@@ -728,22 +741,26 @@ public class StackMapTable extends AttributeInfo {
             offset = -1;
         }
 
+        @Override
         public void sameFrame(int pos, int offsetDelta) {
             offset += offsetDelta + 1;
             writer.println(offset + " same frame: " + offsetDelta);
         }
 
+        @Override
         public void sameLocals(int pos, int offsetDelta, int stackTag, int stackData) {
             offset += offsetDelta + 1;
             writer.println(offset + " same locals: " + offsetDelta);
             printTypeInfo(stackTag, stackData);
         }
 
+        @Override
         public void chopFrame(int pos, int offsetDelta, int k) {
             offset += offsetDelta + 1;
             writer.println(offset + " chop frame: " + offsetDelta + ",    " + k + " last locals");
         }
 
+        @Override
         public void appendFrame(int pos, int offsetDelta, int[] tags, int[] data) {
             offset += offsetDelta + 1;
             writer.println(offset + " append frame: " + offsetDelta);
@@ -751,6 +768,7 @@ public class StackMapTable extends AttributeInfo {
                 printTypeInfo(tags[i], data[i]);
         }
 
+        @Override
         public void fullFrame(int pos, int offsetDelta, int[] localTags, int[] localData,
                               int[] stackTags, int[] stackData) {
             offset += offsetDelta + 1;
@@ -817,7 +835,8 @@ public class StackMapTable extends AttributeInfo {
     		this.gap = gap;
     	}
 
-    	public void objectOrUninitialized(int tag, int data, int pos) {
+    	@Override
+        public void objectOrUninitialized(int tag, int data, int pos) {
     		if (tag == UNINIT)
     			if (where <= data)
     				ByteArray.write16bit(data + gap, info, pos);
@@ -847,10 +866,12 @@ public class StackMapTable extends AttributeInfo {
                 stackMap.set(updatedInfo);
         }
 
+        @Override
         public void sameFrame(int pos, int offsetDelta) {
             update(pos, offsetDelta, 0, 251);
         }
 
+        @Override
         public void sameLocals(int pos, int offsetDelta, int stackTag, int stackData) {
             update(pos, offsetDelta, 64, 247);
         }
@@ -889,14 +910,17 @@ public class StackMapTable extends AttributeInfo {
             return newinfo;
         }
 
+        @Override
         public void chopFrame(int pos, int offsetDelta, int k) {
             update(pos, offsetDelta);
         }
 
+        @Override
         public void appendFrame(int pos, int offsetDelta, int[] tags, int[] data) {
             update(pos, offsetDelta);
         }
 
+        @Override
         public void fullFrame(int pos, int offsetDelta, int[] localTags, int[] localData,
                               int[] stackTags, int[] stackData) {
             update(pos, offsetDelta);
@@ -931,6 +955,7 @@ public class StackMapTable extends AttributeInfo {
             super(smt, where, gap, false);
         }
 
+        @Override
         void update(int pos, int offsetDelta, int base, int entry) {
             int oldPos = position;
             position = oldPos + offsetDelta + (oldPos == 0 ? 0 : 1);
@@ -971,6 +996,7 @@ public class StackMapTable extends AttributeInfo {
             return newinfo;
         }
 
+        @Override
         void update(int pos, int offsetDelta) {
             int oldPos = position;
             position = oldPos + offsetDelta + (oldPos == 0 ? 0 : 1);
@@ -1013,6 +1039,7 @@ public class StackMapTable extends AttributeInfo {
             posOfNew = pos;
         }
 
+        @Override
         public void sameLocals(int pos, int offsetDelta, int stackTag, int stackData) {
             if (stackTag == UNINIT && stackData == posOfNew)
                 super.sameFrame(pos, offsetDelta);
@@ -1020,6 +1047,7 @@ public class StackMapTable extends AttributeInfo {
                 super.sameLocals(pos, offsetDelta, stackTag, stackData);
         }
 
+        @Override
         public void fullFrame(int pos, int offsetDelta, int[] localTags, int[] localData,
                               int[] stackTags, int[] stackData) {
             int n = stackTags.length - 1;

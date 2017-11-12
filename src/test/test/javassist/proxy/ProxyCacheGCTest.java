@@ -11,6 +11,7 @@ import junit.framework.TestCase;
  * test which checks that proxy classes are not retained after their classloader is released.
  * this is a before and after test which validates JASSIST-104
  */
+@SuppressWarnings({"rawtypes","unchecked"})
 public class ProxyCacheGCTest extends TestCase
 {
     /**

@@ -17,8 +17,8 @@
 package javassist.bytecode;
 
 import java.io.DataInputStream;
-import java.util.Map;
 import java.io.IOException;
+import java.util.Map;
 
 /**
  * <code>ConstantValue_attribute</code>.
@@ -65,7 +65,8 @@ public class ConstantAttribute extends AttributeInfo {
      * @param classnames        pairs of replaced and substituted
      *                          class names.
      */
-    public AttributeInfo copy(ConstPool newCp, Map classnames) {
+    @Override
+    public AttributeInfo copy(ConstPool newCp, Map<String,String> classnames) {
         int index = getConstPool().copy(getConstantValue(), newCp,
                                         classnames);
         return new ConstantAttribute(newCp, index);

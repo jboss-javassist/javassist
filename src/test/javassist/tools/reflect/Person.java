@@ -3,7 +3,7 @@ package javassist.tools.reflect;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 
-import junit.framework.Assert;
+import org.junit.Assert;
 
 /**
  * Work with ClassMetaobjectTest.java

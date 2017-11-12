@@ -5,6 +5,7 @@ import javassist.bytecode.annotation.*;
 import javassist.expr.*;
 import test3.*;
 
+@SuppressWarnings({"rawtypes","unchecked","unused"})
 public class JvstTest3 extends JvstTestRoot {
     public JvstTest3(String name) {
          super(name);

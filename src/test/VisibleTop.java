@@ -1,3 +1,4 @@
+@SuppressWarnings("unused")
 public class VisibleTop {
     public int pub;
     protected int pro;

@@ -18,6 +18,7 @@ package javassist;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
+
 import javassist.bytecode.ClassFile;
 
 class CtNewClass extends CtClassType {
@@ -43,6 +44,7 @@ class CtNewClass extends CtClassType {
         hasConstructor = isInterface;
     }
 
+    @Override
     protected void extendToString(StringBuffer buffer) {
         if (hasConstructor)
             buffer.append("hasConstructor ");
@@ -50,6 +52,7 @@ class CtNewClass extends CtClassType {
         super.extendToString(buffer);
     }
 
+    @Override
     public void addConstructor(CtConstructor c)
         throws CannotCompileException
     {
@@ -57,6 +60,7 @@ class CtNewClass extends CtClassType {
         super.addConstructor(c);
     }
 
+    @Override
     public void toBytecode(DataOutputStream out)
         throws CannotCompileException, IOException
     {
@@ -117,8 +121,7 @@ class CtNewClass extends CtClassType {
             String pname2 = superclazz.getPackageName();
             if (pname == null)
                 return pname2 == null;
-            else
-                return pname.equals(pname2);
+            return pname.equals(pname2);
         }
 
         return true;

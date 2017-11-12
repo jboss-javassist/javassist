@@ -17,9 +17,12 @@
 package javassist.compiler;
 
 import java.util.HashMap;
+
 import javassist.compiler.ast.Declarator;
 
-public final class SymbolTable extends HashMap {
+public final class SymbolTable extends HashMap<String,Declarator> {
+    /** default serialVersionUID */
+    private static final long serialVersionUID = 1L;
     private SymbolTable parent;
 
     public SymbolTable() { this(null); }
@@ -32,11 +35,10 @@ public final class SymbolTable extends HashMap {
     public SymbolTable getParent() { return parent; }
 
     public Declarator lookup(String name) {
-        Declarator found = (Declarator)get(name);
+        Declarator found = get(name);
         if (found == null && parent != null)
             return parent.lookup(name);
-        else
-            return found;
+        return found;
     }
 
     public void append(String name, Declarator value) {

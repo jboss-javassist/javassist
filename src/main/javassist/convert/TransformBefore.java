@@ -19,7 +19,12 @@ package javassist.convert;
 import javassist.CtClass;
 import javassist.CtMethod;
 import javassist.NotFoundException;
-import javassist.bytecode.*;
+import javassist.bytecode.BadBytecode;
+import javassist.bytecode.Bytecode;
+import javassist.bytecode.CodeAttribute;
+import javassist.bytecode.CodeIterator;
+import javassist.bytecode.ConstPool;
+import javassist.bytecode.Descriptor;
 
 public class TransformBefore extends TransformCall {
     protected CtClass[] parameterTypes;
@@ -42,6 +47,7 @@ public class TransformBefore extends TransformCall {
         saveCode = loadCode = null;
     }
 
+    @Override
     public void initialize(ConstPool cp, CodeAttribute attr) {
         super.initialize(cp, attr);
         locals = 0;
@@ -49,6 +55,7 @@ public class TransformBefore extends TransformCall {
         saveCode = loadCode = null;
     }
 
+    @Override
     protected int match(int c, int pos, CodeIterator iterator,
                         int typedesc, ConstPool cp) throws BadBytecode
     {
@@ -78,6 +85,7 @@ public class TransformBefore extends TransformCall {
         return iterator.next();
     }
 
+    @Override
     public int extraLocals() { return locals; }
 
     protected void makeCode(CtClass[] paramTypes, ConstPool cp) {

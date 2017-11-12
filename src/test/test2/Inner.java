@@ -1,5 +1,6 @@
 package test2;
 
+@SuppressWarnings("unused")
 public class Inner {
     public void sample() throws Exception {
         java.util.Properties props = new java.util.Properties();

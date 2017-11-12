@@ -15,8 +15,6 @@
  */
 package javassist.bytecode.analysis;
 
-import java.util.Iterator;
-
 import javassist.ClassPool;
 import javassist.CtClass;
 import javassist.CtMethod;
@@ -363,9 +361,7 @@ public class Analyzer implements Opcode {
         if (subroutine == null)
             throw new BadBytecode("Ret on no subroutine! [pos = " + pos + "]");
 
-        Iterator callerIter = subroutine.callers().iterator();
-        while (callerIter.hasNext()) {
-            int caller = ((Integer) callerIter.next()).intValue();
+        for (int caller:subroutine.callers()) {
             int returnLoc = getNext(iter, caller, pos);
             boolean changed = false;
 
@@ -377,8 +373,7 @@ public class Analyzer implements Opcode {
                 changed = old.mergeStack(frame);
             }
 
-            for (Iterator i = subroutine.accessed().iterator(); i.hasNext(); ) {
-                int index = ((Integer)i.next()).intValue();
+            for (int index:subroutine.accessed()) {
                 Type oldType = old.getLocal(index);
                 Type newType = frame.getLocal(index);
                 if (oldType != newType) {

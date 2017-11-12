@@ -19,11 +19,10 @@ package javassist.bytecode;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.util.Map;
 import java.util.ArrayList;
-import java.util.ListIterator;
+import java.util.Arrays;
 import java.util.List;
-import java.util.Iterator;
+import java.util.Map;
 
 // Note: if you define a new subclass of AttributeInfo, then
 //       update AttributeInfo.read(), .copy(), and (maybe) write().
@@ -79,65 +78,58 @@ public class AttributeInfo {
         int name = in.readUnsignedShort();
         String nameStr = cp.getUtf8Info(name);
         char first = nameStr.charAt(0);
-        if (first < 'M') {
-            if (first < 'E') {
-                if (nameStr.equals(AnnotationDefaultAttribute.tag))
-                    return new AnnotationDefaultAttribute(cp, name, in);
-                else if (nameStr.equals(BootstrapMethodsAttribute.tag))
-                    return new BootstrapMethodsAttribute(cp, name, in);
-                else if (nameStr.equals(CodeAttribute.tag))
-                    return new CodeAttribute(cp, name, in);
-                else if (nameStr.equals(ConstantAttribute.tag))
-                    return new ConstantAttribute(cp, name, in);
-                else if (nameStr.equals(DeprecatedAttribute.tag))
-                    return new DeprecatedAttribute(cp, name, in);
-            }
-            else {
-                if (nameStr.equals(EnclosingMethodAttribute.tag))
-                    return new EnclosingMethodAttribute(cp, name, in);
-                else if (nameStr.equals(ExceptionsAttribute.tag))
-                    return new ExceptionsAttribute(cp, name, in);
-                else if (nameStr.equals(InnerClassesAttribute.tag))
-                    return new InnerClassesAttribute(cp, name, in);
-                else if (nameStr.equals(LineNumberAttribute.tag))
-                    return new LineNumberAttribute(cp, name, in);
-                else if (nameStr.equals(LocalVariableAttribute.tag))
-                    return new LocalVariableAttribute(cp, name, in);
-                else if (nameStr.equals(LocalVariableTypeAttribute.tag))
-                    return new LocalVariableTypeAttribute(cp, name, in);
-            }
-        }
-        else {
-            if (first < 'S') {
-                /* Note that the names of Annotations attributes begin with 'R'. 
-                 */
-                if (nameStr.equals(MethodParametersAttribute.tag))
-                    return new MethodParametersAttribute(cp, name, in);
-                else if (nameStr.equals(AnnotationsAttribute.visibleTag)
-                         || nameStr.equals(AnnotationsAttribute.invisibleTag)) {
-                    // RuntimeVisibleAnnotations or RuntimeInvisibleAnnotations
-                    return new AnnotationsAttribute(cp, name, in);
-                }
-                else if (nameStr.equals(ParameterAnnotationsAttribute.visibleTag)
-                         || nameStr.equals(ParameterAnnotationsAttribute.invisibleTag))
-                    return new ParameterAnnotationsAttribute(cp, name, in);
-                else if (nameStr.equals(TypeAnnotationsAttribute.visibleTag)
-                         || nameStr.equals(TypeAnnotationsAttribute.invisibleTag))
-                    return new TypeAnnotationsAttribute(cp, name, in);
-            }
-            else {
-                if (nameStr.equals(SignatureAttribute.tag))
-                    return new SignatureAttribute(cp, name, in);
-                else if (nameStr.equals(SourceFileAttribute.tag))
-                    return new SourceFileAttribute(cp, name, in);
-                else if (nameStr.equals(SyntheticAttribute.tag))
-                    return new SyntheticAttribute(cp, name, in);
-                else if (nameStr.equals(StackMap.tag))
-                    return new StackMap(cp, name, in);
-                else if (nameStr.equals(StackMapTable.tag))
-                    return new StackMapTable(cp, name, in);
-            }
-        }
+        if (first < 'E')
+            if (nameStr.equals(AnnotationDefaultAttribute.tag))
+                return new AnnotationDefaultAttribute(cp, name, in);
+            else if (nameStr.equals(BootstrapMethodsAttribute.tag))
+                return new BootstrapMethodsAttribute(cp, name, in);
+            else if (nameStr.equals(CodeAttribute.tag))
+                return new CodeAttribute(cp, name, in);
+            else if (nameStr.equals(ConstantAttribute.tag))
+                return new ConstantAttribute(cp, name, in);
+            else if (nameStr.equals(DeprecatedAttribute.tag))
+                return new DeprecatedAttribute(cp, name, in);
+
+        if (first < 'M')
+            if (nameStr.equals(EnclosingMethodAttribute.tag))
+                return new EnclosingMethodAttribute(cp, name, in);
+            else if (nameStr.equals(ExceptionsAttribute.tag))
+                return new ExceptionsAttribute(cp, name, in);
+            else if (nameStr.equals(InnerClassesAttribute.tag))
+                return new InnerClassesAttribute(cp, name, in);
+            else if (nameStr.equals(LineNumberAttribute.tag))
+                return new LineNumberAttribute(cp, name, in);
+            else if (nameStr.equals(LocalVariableAttribute.tag))
+                return new LocalVariableAttribute(cp, name, in);
+            else if (nameStr.equals(LocalVariableTypeAttribute.tag))
+                return new LocalVariableTypeAttribute(cp, name, in);
+
+        if (first < 'S')
+            /* Note that the names of Annotations attributes begin with 'R'. */
+            if (nameStr.equals(MethodParametersAttribute.tag))
+                return new MethodParametersAttribute(cp, name, in);
+            else if (nameStr.equals(AnnotationsAttribute.visibleTag)
+                     || nameStr.equals(AnnotationsAttribute.invisibleTag))
+                // RuntimeVisibleAnnotations or RuntimeInvisibleAnnotations
+                return new AnnotationsAttribute(cp, name, in);
+            else if (nameStr.equals(ParameterAnnotationsAttribute.visibleTag)
+                     || nameStr.equals(ParameterAnnotationsAttribute.invisibleTag))
+                return new ParameterAnnotationsAttribute(cp, name, in);
+            else if (nameStr.equals(TypeAnnotationsAttribute.visibleTag)
+                     || nameStr.equals(TypeAnnotationsAttribute.invisibleTag))
+                return new TypeAnnotationsAttribute(cp, name, in);
+
+        if (first >= 'S')
+            if (nameStr.equals(SignatureAttribute.tag))
+                return new SignatureAttribute(cp, name, in);
+            else if (nameStr.equals(SourceFileAttribute.tag))
+                return new SourceFileAttribute(cp, name, in);
+            else if (nameStr.equals(SyntheticAttribute.tag))
+                return new SyntheticAttribute(cp, name, in);
+            else if (nameStr.equals(StackMap.tag))
+                return new StackMap(cp, name, in);
+            else if (nameStr.equals(StackMapTable.tag))
+                return new StackMapTable(cp, name, in);
 
         return new AttributeInfo(cp, name, in);
     }
@@ -189,88 +181,68 @@ public class AttributeInfo {
      * @param classnames        pairs of replaced and substituted
      *                          class names.
      */
-    public AttributeInfo copy(ConstPool newCp, Map classnames) {
-        int s = info.length;
-        byte[] srcInfo = info;
-        byte[] newInfo = new byte[s];
-        for (int i = 0; i < s; ++i)
-            newInfo[i] = srcInfo[i];
-
-        return new AttributeInfo(newCp, getName(), newInfo);
+    public AttributeInfo copy(ConstPool newCp, Map<String,String> classnames)
+    {
+        return new AttributeInfo(newCp, getName(), Arrays.copyOf(info, info.length));
     }
 
-    void write(DataOutputStream out) throws IOException {
+    void write(DataOutputStream out) throws IOException
+    {
         out.writeShort(name);
         out.writeInt(info.length);
         if (info.length > 0)
             out.write(info);
     }
 
-    static int getLength(ArrayList list) {
+    static int getLength(List<AttributeInfo> attributes) {
         int size = 0;
-        int n = list.size();
-        for (int i = 0; i < n; ++i) {
-            AttributeInfo attr = (AttributeInfo)list.get(i);
+
+        for (AttributeInfo attr:attributes)
             size += attr.length();
-        }
 
         return size;
     }
 
-    static AttributeInfo lookup(ArrayList list, String name) {
-        if (list == null)
+    static AttributeInfo lookup(List<AttributeInfo> attributes, String name) {
+        if (attributes == null)
             return null;
 
-        ListIterator iterator = list.listIterator();
-        while (iterator.hasNext()) {
-            AttributeInfo ai = (AttributeInfo)iterator.next();
+        for (AttributeInfo ai:attributes)
             if (ai.getName().equals(name))
                 return ai;
-        }
 
         return null;            // no such attribute
     }
 
-    static synchronized AttributeInfo remove(ArrayList list, String name) {
-        if (list == null)
+    static synchronized AttributeInfo remove(List<AttributeInfo> attributes, String name) {
+        if (attributes == null)
             return null;
 
-        AttributeInfo removed = null;
-        ListIterator iterator = list.listIterator();
-        while (iterator.hasNext()) {
-            AttributeInfo ai = (AttributeInfo)iterator.next();
-            if (ai.getName().equals(name)) {
-                iterator.remove();
-                removed = ai;
-            }
-        }
+        for (AttributeInfo ai:attributes)
+            if (ai.getName().equals(name))
+                if (attributes.remove(ai))
+                    return ai;
 
-        return removed;
+        return null;
     }
 
-    static void writeAll(ArrayList list, DataOutputStream out)
+    static void writeAll(List<AttributeInfo> attributes, DataOutputStream out)
         throws IOException
     {
-        if (list == null)
+        if (attributes == null)
             return;
 
-        int n = list.size();
-        for (int i = 0; i < n; ++i) {
-            AttributeInfo attr = (AttributeInfo)list.get(i);
+        for (AttributeInfo attr:attributes)
             attr.write(out);
-        }
     }
 
-    static ArrayList copyAll(ArrayList list, ConstPool cp) {
-        if (list == null)
+    static List<AttributeInfo> copyAll(List<AttributeInfo> attributes, ConstPool cp) {
+        if (attributes == null)
             return null;
 
-        ArrayList newList = new ArrayList();
-        int n = list.size();
-        for (int i = 0; i < n; ++i) {
-            AttributeInfo attr = (AttributeInfo)list.get(i);
+        List<AttributeInfo> newList = new ArrayList<AttributeInfo>();
+        for (AttributeInfo attr:attributes)
             newList.add(attr.copy(cp, null));
-        }
 
         return newList;
     }
@@ -282,31 +254,31 @@ public class AttributeInfo {
      * override these methods.
      */
     void renameClass(String oldname, String newname) {}
-    void renameClass(Map classnames) {}
+    void renameClass(Map<String,String> classnames) {}
 
-    static void renameClass(List attributes, String oldname, String newname) {
-        Iterator iterator = attributes.iterator();
-        while (iterator.hasNext()) {
-            AttributeInfo ai = (AttributeInfo)iterator.next();
+    static void renameClass(List<AttributeInfo> attributes, String oldname, String newname) {
+        if (attributes == null)
+            return;
+
+        for (AttributeInfo ai:attributes)
             ai.renameClass(oldname, newname);
-        }
     }
 
-    static void renameClass(List attributes, Map classnames) {
-        Iterator iterator = attributes.iterator();
-        while (iterator.hasNext()) {
-            AttributeInfo ai = (AttributeInfo)iterator.next();
+    static void renameClass(List<AttributeInfo> attributes, Map<String,String> classnames) {
+        if (attributes == null)
+            return;
+
+        for (AttributeInfo ai:attributes)
             ai.renameClass(classnames);
-        }
     }
 
-    void getRefClasses(Map classnames) {}
+    void getRefClasses(Map<String,String> classnames) {}
 
-    static void getRefClasses(List attributes, Map classnames) {
-        Iterator iterator = attributes.iterator();
-        while (iterator.hasNext()) {
-            AttributeInfo ai = (AttributeInfo)iterator.next();
+    static void getRefClasses(List<AttributeInfo> attributes, Map<String,String> classnames) {
+        if (attributes == null)
+            return;
+
+        for (AttributeInfo ai:attributes)
             ai.getRefClasses(classnames);
-        }
     }
 }

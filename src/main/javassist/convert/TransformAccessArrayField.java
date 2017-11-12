@@ -16,10 +16,9 @@
 package javassist.convert;
 
 import javassist.CannotCompileException;
-import javassist.ClassPool;
+import javassist.CodeConverter.ArrayAccessReplacementMethodNames;
 import javassist.CtClass;
 import javassist.NotFoundException;
-import javassist.CodeConverter.ArrayAccessReplacementMethodNames;
 import javassist.bytecode.BadBytecode;
 import javassist.bytecode.CodeIterator;
 import javassist.bytecode.ConstPool;
@@ -49,6 +48,7 @@ public final class TransformAccessArrayField extends Transformer {
 
     }
 
+    @Override
     public void initialize(ConstPool cp, CtClass clazz, MethodInfo minfo) throws CannotCompileException {
         /*
          * This transformer must be isolated from other transformers, since some
@@ -85,11 +85,13 @@ public final class TransformAccessArrayField extends Transformer {
         }
     }
 
+    @Override
     public void clean() {
         frames = null;
         offset = -1;
     }
 
+    @Override
     public int transform(CtClass tclazz, int pos, CodeIterator iterator,
             ConstPool cp) throws BadBytecode {
         // Do nothing, see above comment

@@ -16,10 +16,12 @@
 
 package javassist;
 
-import java.io.*;
+import java.io.InputStream;
+import java.lang.reflect.InvocationTargetException;
+import java.security.ProtectionDomain;
+import java.util.Arrays;
 import java.util.Hashtable;
 import java.util.Vector;
-import java.security.ProtectionDomain;
 
 /**
  * The class loader for Javassist.
@@ -134,8 +136,8 @@ import java.security.ProtectionDomain;
  * @see javassist.Translator
  */
 public class Loader extends ClassLoader {
-    private Hashtable notDefinedHere; // must be atomic.
-    private Vector notDefinedPackages; // must be atomic.
+    private Hashtable<String,ClassLoader> notDefinedHere; // must be atomic.
+    private Vector<String> notDefinedPackages; // must be atomic.
     private ClassPool source;
     private Translator translator;
     private ProtectionDomain domain; 
@@ -182,8 +184,8 @@ public class Loader extends ClassLoader {
     }
 
     private void init(ClassPool cp) {
-        notDefinedHere = new Hashtable();
-        notDefinedPackages = new Vector();
+        notDefinedHere = new Hashtable<String,ClassLoader>();
+        notDefinedPackages = new Vector<String>();
         source = cp;
         translator = null;
         domain = null;
@@ -266,14 +268,8 @@ public class Loader extends ClassLoader {
      *                      to the target {@code main()}.
      */
     public void run(String[] args) throws Throwable {
-        int n = args.length - 1;
-        if (n >= 0) {
-            String[] args2 = new String[n];
-            for (int i = 0; i < n; ++i)
-                args2[i] = args[i + 1];
-
-            run(args[0], args2);
-        }
+        if (args.length >= 1)
+            run(args[0], Arrays.copyOfRange(args, 1, args.length));
     }
 
     /**
@@ -283,13 +279,13 @@ public class Loader extends ClassLoader {
      * @param args              parameters passed to <code>main()</code>.
      */
     public void run(String classname, String[] args) throws Throwable {
-        Class c = loadClass(classname);
+        Class<?> c = loadClass(classname);
         try {
-            c.getDeclaredMethod("main", new Class[] { String[].class }).invoke(
+            c.getDeclaredMethod("main", new Class<?>[] { String[].class }).invoke(
                 null,
                 new Object[] { args });
         }
-        catch (java.lang.reflect.InvocationTargetException e) {
+        catch (InvocationTargetException e) {
             throw e.getTargetException();
         }
     }
@@ -297,11 +293,12 @@ public class Loader extends ClassLoader {
     /**
      * Requests the class loader to load a class.
      */
-    protected Class loadClass(String name, boolean resolve)
+    @Override
+    protected Class<?> loadClass(String name, boolean resolve)
         throws ClassFormatError, ClassNotFoundException {
         name = name.intern();
         synchronized (name) {
-            Class c = findLoadedClass(name);
+            Class<?> c = findLoadedClass(name);
             if (c == null)
                 c = loadClassByDelegation(name);
 
@@ -330,7 +327,8 @@ public class Loader extends ClassLoader {
      * @throws ClassNotFoundException   if an exception is thrown while
      *                                  obtaining a class file.
      */
-    protected Class findClass(String name) throws ClassNotFoundException {
+    @Override
+    protected Class<?> findClass(String name) throws ClassNotFoundException {
         byte[] classfile;
         try {
             if (source != null) {
@@ -362,7 +360,7 @@ public class Loader extends ClassLoader {
         int i = name.lastIndexOf('.');
         if (i != -1) {
             String pname = name.substring(0, i);
-            if (getPackage(pname) == null)
+            if (getDefinedPackage(pname) == null)
                 try {
                     definePackage(
                         pname, null, null, null, null, null, null, null);
@@ -375,11 +373,10 @@ public class Loader extends ClassLoader {
 
         if (domain == null)
             return defineClass(name, classfile, 0, classfile.length);
-        else
-            return defineClass(name, classfile, 0, classfile.length, domain);
+        return defineClass(name, classfile, 0, classfile.length, domain);
     }
 
-    protected Class loadClassByDelegation(String name)
+    protected Class<?> loadClassByDelegation(String name)
         throws ClassNotFoundException
     {
         /* The swing components must be loaded by a system
@@ -392,7 +389,7 @@ public class Loader extends ClassLoader {
          * by this class loader.
          */
 
-        Class c = null;
+        Class<?> c = null;
         if (doDelegation)
             if (name.startsWith("java.")
                 || name.startsWith("javax.")
@@ -407,24 +404,22 @@ public class Loader extends ClassLoader {
     }
 
     private boolean notDelegated(String name) {
-        if (notDefinedHere.get(name) != null)
+        if (notDefinedHere.containsKey(name))
             return true;
 
-        int n = notDefinedPackages.size();
-        for (int i = 0; i < n; ++i)
-            if (name.startsWith((String)notDefinedPackages.elementAt(i)))
+        for (String pack : notDefinedPackages)
+            if (name.startsWith(pack))
                 return true;
 
         return false;
     }
 
-    protected Class delegateToParent(String classname)
+    protected Class<?> delegateToParent(String classname)
         throws ClassNotFoundException
     {
         ClassLoader cl = getParent();
         if (cl != null)
             return cl.loadClass(classname);
-        else
-            return findSystemClass(classname);
+        return findSystemClass(classname);
     }
 }

@@ -2,6 +2,7 @@ import java.util.ArrayList;
 import java.util.List;
 import javassist.*;
 
+@SuppressWarnings("unused")
 class InvalidStackMapFrame {
 
 	public void bytecodeVerifyError1() {

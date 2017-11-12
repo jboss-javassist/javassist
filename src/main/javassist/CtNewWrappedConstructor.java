@@ -16,8 +16,10 @@
 
 package javassist;
 
-import javassist.bytecode.*;
 import javassist.CtMethod.ConstParameter;
+import javassist.bytecode.Bytecode;
+import javassist.bytecode.ClassFile;
+import javassist.bytecode.Descriptor;
 
 class CtNewWrappedConstructor extends CtNewWrappedMethod {
     private static final int PASS_NONE = CtNewConstructor.PASS_NONE;

@@ -24,6 +24,7 @@ public class ClassPoolBench {
            cc.detach();
     }
 
+    @SuppressWarnings("rawtypes")
     public static void accessAll(String filename) throws Exception {
         ZipFile zip = new ZipFile(filename);
         Enumeration files = zip.entries();

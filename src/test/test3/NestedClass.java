@@ -17,6 +17,7 @@ public class NestedClass {
 
     public Object bar() {
         class Local {
+            @SuppressWarnings("unused")
             int j;
         }
         return new Local();

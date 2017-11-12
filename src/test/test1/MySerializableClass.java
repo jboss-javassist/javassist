@@ -7,6 +7,8 @@ import java.io.*;
  * @author Bob Lee
  */
 public class MySerializableClass implements Serializable, Cloneable {
+    /** default serialVersionUID */
+    private static final long serialVersionUID = 1L;
     String fieldA;
     String fieldB;
 

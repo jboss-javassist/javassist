@@ -16,16 +16,17 @@
 
 package javassist.bytecode;
 
+import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import java.io.IOException;
-import java.io.DataInputStream;
-import java.io.ByteArrayOutputStream;
 
 import javassist.bytecode.AnnotationsAttribute.Copier;
 import javassist.bytecode.AnnotationsAttribute.Parser;
 import javassist.bytecode.AnnotationsAttribute.Renamer;
-import javassist.bytecode.annotation.*;
+import javassist.bytecode.annotation.Annotation;
+import javassist.bytecode.annotation.AnnotationsWriter;
 
 /**
  * A class representing <code>RuntimeVisibleAnnotations_attribute</code> and
@@ -104,7 +105,8 @@ public class ParameterAnnotationsAttribute extends AttributeInfo {
     /**
      * Copies this attribute and returns a new copy.
      */
-    public AttributeInfo copy(ConstPool newCp, Map classnames) {
+    @Override
+    public AttributeInfo copy(ConstPool newCp, Map<String,String> classnames) {
         Copier copier = new Copier(info, constPool, newCp, classnames);
         try {
             copier.parameters();
@@ -150,10 +152,8 @@ public class ParameterAnnotationsAttribute extends AttributeInfo {
         ByteArrayOutputStream output = new ByteArrayOutputStream();
         AnnotationsWriter writer = new AnnotationsWriter(output, constPool);
         try {
-            int n = params.length;
-            writer.numParameters(n);
-            for (int i = 0; i < n; ++i) {
-                Annotation[] anno = params[i];
+            writer.numParameters(params.length);
+            for (Annotation[] anno:params) {
                 writer.numAnnotations(anno.length);
                 for (int j = 0; j < anno.length; ++j)
                     anno[j].write(writer);
@@ -172,13 +172,15 @@ public class ParameterAnnotationsAttribute extends AttributeInfo {
      * @param oldname       a JVM class name.
      * @param newname       a JVM class name.
      */
+    @Override
     void renameClass(String oldname, String newname) {
-        HashMap map = new HashMap();
+        Map<String,String> map = new HashMap<String,String>();
         map.put(oldname, newname);
         renameClass(map);
     }
 
-    void renameClass(Map classnames) {
+    @Override
+    void renameClass(Map<String,String> classnames) {
         Renamer renamer = new Renamer(info, getConstPool(), classnames);
         try {
             renamer.parameters();
@@ -187,29 +189,23 @@ public class ParameterAnnotationsAttribute extends AttributeInfo {
         }
     }
 
-    void getRefClasses(Map classnames) { renameClass(classnames); }
+    @Override
+    void getRefClasses(Map<String,String> classnames) { renameClass(classnames); }
 
     /**
      * Returns a string representation of this object.
      */
+    @Override
     public String toString() {
         Annotation[][] aa = getAnnotations();
         StringBuilder sbuf = new StringBuilder();
-        int k = 0;
-        while (k < aa.length) {
-            Annotation[] a = aa[k++]; 
-            int i = 0;
-            while (i < a.length) {
-                sbuf.append(a[i++].toString());
-                if (i != a.length)
-                    sbuf.append(" ");
-            }
+        for (Annotation[] a : aa) {
+            for (Annotation i : a)
+                sbuf.append(i.toString()).append(" ");
 
-            if (k != aa.length)
-                sbuf.append(", ");
+            sbuf.append(", ");
         }
 
-        return sbuf.toString();
-
+        return sbuf.toString().replaceAll(" (?=,)|, $","");
     }
 }

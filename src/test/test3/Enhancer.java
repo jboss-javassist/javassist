@@ -11,6 +11,7 @@ class EnhanceTest {
     public void foo(String s) { System.out.println(s); }
 }
 
+@SuppressWarnings({"rawtypes","unchecked","unused"})
 public class Enhancer {
     private ClassPool pool;
     private CtClass superClass;

@@ -15,6 +15,7 @@ public class NewExprTry {
     }
 
     public static void main(String[] args) {
+        @SuppressWarnings("unused")
         NewExprTry obj = new NewExprTry(3);
     }
 }

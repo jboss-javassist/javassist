@@ -319,13 +319,17 @@ public class AnalyzerTest extends TestCase {
 
 
         public static class A {};
-        public static class B1 extends A implements Serializable {};
-        public static class B2 extends A implements Serializable {};
-        public static class A2 implements Serializable, Cloneable {};
-        public static class A3 implements Serializable, Cloneable {};
-
+        public static class B1 extends A implements Serializable {
+            private static final long serialVersionUID = 1L;};
+        public static class B2 extends A implements Serializable {
+            private static final long serialVersionUID = 1L;};
+        public static class A2 implements Serializable, Cloneable {
+            private static final long serialVersionUID = 1L;};
+        public static class A3 implements Serializable, Cloneable {
+            private static final long serialVersionUID = 1L;};
         public static class B3 extends A {};
-        public static class C31 extends B3 implements Serializable {};
+        public static class C31 extends B3 implements Serializable {
+            private static final long serialVersionUID = 1L;};
 
 
         public void dummy(Serializable s) {}
@@ -359,6 +363,7 @@ public class AnalyzerTest extends TestCase {
         }
 
 
+        @SuppressWarnings("rawtypes")
         public void reusedLocalMerge() {
              ArrayList list = new ArrayList();
              try {

@@ -16,13 +16,12 @@
 
 package javassist.bytecode.annotation;
 
+import java.io.IOException;
+import java.lang.reflect.Method;
+
 import javassist.ClassPool;
 import javassist.bytecode.ConstPool;
 import javassist.bytecode.Descriptor;
-
-import java.io.IOException;
-import java.lang.reflect.Array;
-import java.lang.reflect.Method;
 
 /**
  * The value of a member declared in an annotation.
@@ -47,9 +46,9 @@ public abstract class MemberValue {
     abstract Object getValue(ClassLoader cl, ClassPool cp, Method m)
         throws ClassNotFoundException;
 
-    abstract Class getType(ClassLoader cl) throws ClassNotFoundException;
+    abstract Class<?> getType(ClassLoader cl) throws ClassNotFoundException;
 
-    static Class loadClass(ClassLoader cl, String classname)
+    static Class<?> loadClass(ClassLoader cl, String classname)
         throws ClassNotFoundException, NoSuchClassError
     {
         try {
@@ -59,10 +58,10 @@ public abstract class MemberValue {
             throw new NoSuchClassError(classname, e);
         }
     }
-    
+
     private static String convertFromArray(String classname)
     {
-        int index = classname.indexOf("[]"); 
+        int index = classname.indexOf("[]");
         if (index != -1) {
             String rawType = classname.substring(0, index);
             StringBuffer sb = new StringBuffer(Descriptor.of(rawType));

@@ -147,6 +147,7 @@ public class ArrayAccessReplaceTest extends TestCase {
         }
     }
 
+    @SuppressWarnings({"rawtypes","unchecked"})
     public static class Echo {
         public static Map byteMap = new HashMap();
         public static Map charMap = new HashMap();

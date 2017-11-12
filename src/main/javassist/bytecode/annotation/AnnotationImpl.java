@@ -38,24 +38,24 @@ import javassist.bytecode.MethodInfo;
 public class AnnotationImpl implements InvocationHandler {
     private static final String JDK_ANNOTATION_CLASS_NAME = "java.lang.annotation.Annotation";
     private static Method JDK_ANNOTATION_TYPE_METHOD = null;
-   
+
     private Annotation annotation;
     private ClassPool pool;
     private ClassLoader classLoader;
-    private transient Class annotationType;
+    private transient Class<?> annotationType;
     private transient int cachedHashCode = Integer.MIN_VALUE;
 
     static {
         // Try to resolve the JDK annotation type method
         try {
-            Class clazz = Class.forName(JDK_ANNOTATION_CLASS_NAME);
+            Class<?> clazz = Class.forName(JDK_ANNOTATION_CLASS_NAME);
             JDK_ANNOTATION_TYPE_METHOD = clazz.getMethod("annotationType", (Class[])null);
         }
         catch (Exception ignored) {
             // Probably not JDK5+
         }
     }
-    
+
     /**
      * Constructs an annotation object.
      *
@@ -66,14 +66,14 @@ public class AnnotationImpl implements InvocationHandler {
      * @param anon      the annotation.
      * @return the annotation
      */
-    public static Object make(ClassLoader cl, Class clazz, ClassPool cp,
+    public static Object make(ClassLoader cl, Class<?> clazz, ClassPool cp,
                               Annotation anon)
         throws IllegalArgumentException
     {
         AnnotationImpl handler = new AnnotationImpl(anon, cp, cl);
         return Proxy.newProxyInstance(cl, new Class[] { clazz }, handler);
     }
-    
+
     private AnnotationImpl(Annotation a, ClassPool cp, ClassLoader loader) {
         annotation = a;
         pool = cp;
@@ -95,7 +95,7 @@ public class AnnotationImpl implements InvocationHandler {
      * @return the annotation class
      * @throws NoClassDefFoundError when the class could not loaded
      */
-    private Class getAnnotationType() {
+    private Class<?> getAnnotationType() {
         if (annotationType == null) {
             String typeName = annotation.getTypeName();
             try {
@@ -109,7 +109,7 @@ public class AnnotationImpl implements InvocationHandler {
         }
         return annotationType;
     }
-    
+
     /**
      * Obtains the internal data structure representing the annotation.
      * 
@@ -126,6 +126,7 @@ public class AnnotationImpl implements InvocationHandler {
      * <code>AnnotationImpl</code>.  The <code>annotationType()</code> method
      * is also available on the proxy instance.
      */
+    @Override
     public Object invoke(Object proxy, Method method, Object[] args)
         throws Throwable
     {
@@ -147,10 +148,9 @@ public class AnnotationImpl implements InvocationHandler {
         MemberValue mv = annotation.getMemberValue(name);
         if (mv == null)
             return getDefault(name, method);
-        else
-            return mv.getValue(classLoader, pool, method);
+        return mv.getValue(classLoader, pool, method);
     }
-    
+
     private Object getDefault(String name, Method method)
         throws ClassNotFoundException, RuntimeException
     {
@@ -183,6 +183,7 @@ public class AnnotationImpl implements InvocationHandler {
     /**
      * Returns a hash code value for this object.
      */
+    @Override
     public int hashCode() {
         if (cachedHashCode == Integer.MIN_VALUE) {
             int hashCode = 0;
@@ -217,15 +218,15 @@ public class AnnotationImpl implements InvocationHandler {
                         valueHashCode = arrayHashCode(value);
                     else
                         valueHashCode = value.hashCode();
-                } 
+                }
                 hashCode += 127 * name.hashCode() ^ valueHashCode;
             }
-          
+
             cachedHashCode = hashCode;
         }
         return cachedHashCode;
     }
-    
+
     /**
      * Check that another annotation equals ourselves.
      * 
@@ -246,10 +247,10 @@ public class AnnotationImpl implements InvocationHandler {
             }
         }
 
-        Class otherAnnotationType = (Class) JDK_ANNOTATION_TYPE_METHOD.invoke(obj, (Object[])null);
+        Class<?> otherAnnotationType = (Class<?>) JDK_ANNOTATION_TYPE_METHOD.invoke(obj);
         if (getAnnotationType().equals(otherAnnotationType) == false)
            return false;
-        
+
         Method[] methods = annotationType.getDeclaredMethods();
         for (int i = 0; i < methods.length; ++ i) {
             String name = methods[i].getName();
@@ -263,7 +264,7 @@ public class AnnotationImpl implements InvocationHandler {
                    value = mv.getValue(classLoader, pool, methods[i]);
                if (value == null)
                    value = getDefault(name, methods[i]);
-               otherValue = methods[i].invoke(obj, (Object[])null);
+               otherValue = methods[i].invoke(obj);
             }
             catch (RuntimeException e) {
                 throw e;
@@ -277,7 +278,7 @@ public class AnnotationImpl implements InvocationHandler {
             if (value != null && value.equals(otherValue) == false)
                 return false;
         }
-        
+
         return true;
     }
 
@@ -294,7 +295,7 @@ public class AnnotationImpl implements InvocationHandler {
           return 0;
 
        int result = 1;
-       
+
        Object[] array = (Object[]) object;
        for (int i = 0; i < array.length; ++i) {
            int elementHashCode = 0;

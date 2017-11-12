@@ -5,10 +5,10 @@ import java.lang.reflect.Method;
 
 public class JvstTestRoot extends TestCase {
     // the directory where all compiled class files are found.
-    public static final String PATH = "../target/test-classes/";
+    public static final String PATH = "../../target/test-classes/";
 
     // the directory where javassist.jar is found.
-    public static final String JAR_PATH = "../";
+    public static final String JAR_PATH = "../../";
 
     ClassPool sloader, dloader;
     Loader cloader;

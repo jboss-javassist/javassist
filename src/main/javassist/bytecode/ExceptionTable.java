@@ -20,6 +20,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 class ExceptionTableEntry {
@@ -41,7 +42,7 @@ class ExceptionTableEntry {
  */
 public class ExceptionTable implements Cloneable {
     private ConstPool constPool;
-    private ArrayList entries;
+    private List<ExceptionTableEntry> entries;
 
     /**
      * Constructs an <code>exception_table[]</code>.
@@ -50,13 +51,13 @@ public class ExceptionTable implements Cloneable {
      */
     public ExceptionTable(ConstPool cp) {
         constPool = cp;
-        entries = new ArrayList();
+        entries = new ArrayList<ExceptionTableEntry>();
     }
 
     ExceptionTable(ConstPool cp, DataInputStream in) throws IOException {
         constPool = cp;
         int length = in.readUnsignedShort();
-        ArrayList list = new ArrayList(length);
+        List<ExceptionTableEntry> list = new ArrayList<ExceptionTableEntry>(length);
         for (int i = 0; i < length; ++i) {
             int start = in.readUnsignedShort();
             int end = in.readUnsignedShort();
@@ -73,9 +74,10 @@ public class ExceptionTable implements Cloneable {
      * The constant pool object is shared between this object
      * and the cloned object.
      */
+    @Override
     public Object clone() throws CloneNotSupportedException {
         ExceptionTable r = (ExceptionTable)super.clone();
-        r.entries = new ArrayList(entries);
+        r.entries = new ArrayList<ExceptionTableEntry>(entries);
         return r;
     }
 
@@ -93,8 +95,7 @@ public class ExceptionTable implements Cloneable {
      * @param nth               the <i>n</i>-th (&gt;= 0).
      */
     public int startPc(int nth) {
-        ExceptionTableEntry e = (ExceptionTableEntry)entries.get(nth);
-        return e.startPc;
+        return entries.get(nth).startPc;
     }
 
     /**
@@ -104,8 +105,7 @@ public class ExceptionTable implements Cloneable {
      * @param value             new value.
      */
     public void setStartPc(int nth, int value) {
-        ExceptionTableEntry e = (ExceptionTableEntry)entries.get(nth);
-        e.startPc = value;
+        entries.get(nth).startPc = value;
     }
 
     /**
@@ -114,8 +114,7 @@ public class ExceptionTable implements Cloneable {
      * @param nth               the <i>n</i>-th (&gt;= 0).
      */
     public int endPc(int nth) {
-        ExceptionTableEntry e = (ExceptionTableEntry)entries.get(nth);
-        return e.endPc;
+        return entries.get(nth).endPc;
     }
 
     /**
@@ -125,8 +124,7 @@ public class ExceptionTable implements Cloneable {
      * @param value             new value.
      */
     public void setEndPc(int nth, int value) {
-        ExceptionTableEntry e = (ExceptionTableEntry)entries.get(nth);
-        e.endPc = value;
+        entries.get(nth).endPc = value;
     }
 
     /**
@@ -135,8 +133,7 @@ public class ExceptionTable implements Cloneable {
      * @param nth               the <i>n</i>-th (&gt;= 0).
      */
     public int handlerPc(int nth) {
-        ExceptionTableEntry e = (ExceptionTableEntry)entries.get(nth);
-        return e.handlerPc;
+        return entries.get(nth).handlerPc;
     }
 
     /**
@@ -146,8 +143,7 @@ public class ExceptionTable implements Cloneable {
      * @param value             new value.
      */
     public void setHandlerPc(int nth, int value) {
-        ExceptionTableEntry e = (ExceptionTableEntry)entries.get(nth);
-        e.handlerPc = value;
+        entries.get(nth).handlerPc = value;
     }
 
     /**
@@ -158,8 +154,7 @@ public class ExceptionTable implements Cloneable {
      *          or zero if this exception handler is for all exceptions.
      */
     public int catchType(int nth) {
-        ExceptionTableEntry e = (ExceptionTableEntry)entries.get(nth);
-        return e.catchType;
+        return entries.get(nth).catchType;
     }
 
     /**
@@ -169,8 +164,7 @@ public class ExceptionTable implements Cloneable {
      * @param value             new value.
      */
     public void setCatchType(int nth, int value) {
-        ExceptionTableEntry e = (ExceptionTableEntry)entries.get(nth);
-        e.catchType = value;
+        entries.get(nth).catchType = value;
     }
 
     /**
@@ -183,8 +177,7 @@ public class ExceptionTable implements Cloneable {
     public void add(int index, ExceptionTable table, int offset) {
         int len = table.size();
         while (--len >= 0) {
-            ExceptionTableEntry e
-                = (ExceptionTableEntry)table.entries.get(len);
+            ExceptionTableEntry e = table.entries.get(len);
             add(index, e.startPc + offset, e.endPc + offset,
                 e.handlerPc + offset, e.catchType);
         }
@@ -236,12 +229,10 @@ public class ExceptionTable implements Cloneable {
      * @param classnames        pairs of replaced and substituted
      *                          class names.
      */
-    public ExceptionTable copy(ConstPool newCp, Map classnames) {
+    public ExceptionTable copy(ConstPool newCp, Map<String,String> classnames) {
         ExceptionTable et = new ExceptionTable(newCp);
         ConstPool srcCp = constPool;
-        int len = size();
-        for (int i = 0; i < len; ++i) {
-            ExceptionTableEntry e = (ExceptionTableEntry)entries.get(i);
+        for (ExceptionTableEntry e:entries) {
             int type = srcCp.copy(e.catchType, newCp, classnames);
             et.add(e.startPc, e.endPc, e.handlerPc, type);
         }
@@ -250,9 +241,7 @@ public class ExceptionTable implements Cloneable {
     }
 
     void shiftPc(int where, int gapLength, boolean exclusive) {
-        int len = size();
-        for (int i = 0; i < len; ++i) {
-            ExceptionTableEntry e = (ExceptionTableEntry)entries.get(i);
+        for (ExceptionTableEntry e:entries) {
             e.startPc = shiftPc(e.startPc, where, gapLength, exclusive);
             e.endPc = shiftPc(e.endPc, where, gapLength, exclusive);
             e.handlerPc = shiftPc(e.handlerPc, where, gapLength, exclusive);
@@ -268,10 +257,8 @@ public class ExceptionTable implements Cloneable {
     }
 
     void write(DataOutputStream out) throws IOException {
-        int len = size();
-        out.writeShort(len);            // exception_table_length
-        for (int i = 0; i < len; ++i) {
-            ExceptionTableEntry e = (ExceptionTableEntry)entries.get(i);
+        out.writeShort(size());            // exception_table_length
+        for (ExceptionTableEntry e:entries) {
             out.writeShort(e.startPc);
             out.writeShort(e.endPc);
             out.writeShort(e.handlerPc);

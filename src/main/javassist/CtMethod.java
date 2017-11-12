@@ -16,7 +16,15 @@
 
 package javassist;
 
-import javassist.bytecode.*;
+import javassist.bytecode.AccessFlag;
+import javassist.bytecode.BadBytecode;
+import javassist.bytecode.Bytecode;
+import javassist.bytecode.CodeAttribute;
+import javassist.bytecode.CodeIterator;
+import javassist.bytecode.ConstPool;
+import javassist.bytecode.Descriptor;
+import javassist.bytecode.MethodInfo;
+import javassist.bytecode.Opcode;
 
 /**
  * An instance of <code>CtMethod</code> represents a method.
@@ -155,6 +163,7 @@ public final class CtMethod extends CtBehavior {
      * If two methods have the same name and signature, then
      * the hash codes for the two methods are equal.
      */
+    @Override
     public int hashCode() {
         return getStringRep().hashCode();
     }
@@ -163,6 +172,7 @@ public final class CtMethod extends CtBehavior {
      * This method is invoked when setName() or replaceClassName()
      * in CtClass is called.
      */
+    @Override
     void nameReplaced() {
         cachedStringRep = null;
     }
@@ -181,6 +191,7 @@ public final class CtMethod extends CtBehavior {
      * Indicates whether <code>obj</code> has the same name and the
      * same signature as this method.
      */
+    @Override
     public boolean equals(Object obj) {
         return obj != null && obj instanceof CtMethod
                && ((CtMethod)obj).getStringRep().equals(getStringRep());
@@ -192,6 +203,7 @@ public final class CtMethod extends CtBehavior {
      *
      * @since 3.5
      */
+    @Override
     public String getLongName() {
         return getDeclaringClass().getName() + "."
                + getName() + Descriptor.toString(getSignature());
@@ -200,6 +212,7 @@ public final class CtMethod extends CtBehavior {
     /**
      * Obtains the name of this method.
      */
+    @Override
     public String getName() {
         return methodInfo.getName();
     }
@@ -223,6 +236,7 @@ public final class CtMethod extends CtBehavior {
      * Returns true if the method body is empty, that is, <code>{}</code>.
      * It also returns true if the method is an abstract method.
      */
+    @Override
     public boolean isEmpty() {
         CodeAttribute ca = getMethodInfo2().getCodeAttribute();
         if (ca == null)         // abstract or native
@@ -380,15 +394,18 @@ public final class CtMethod extends CtBehavior {
             param = i;
         }
 
+        @Override
         int compile(Bytecode code) throws CannotCompileException {
             code.addIconst(param);
             return 1;
         }
 
+        @Override
         String descriptor() {
             return "([Ljava/lang/Object;I)Ljava/lang/Object;";
         }
 
+        @Override
         String constDescriptor() {
             return "([Ljava/lang/Object;I)V";
         }
@@ -401,15 +418,18 @@ public final class CtMethod extends CtBehavior {
             param = l;
         }
 
+        @Override
         int compile(Bytecode code) throws CannotCompileException {
             code.addLconst(param);
             return 2;
         }
 
+        @Override
         String descriptor() {
             return "([Ljava/lang/Object;J)Ljava/lang/Object;";
         }
 
+        @Override
         String constDescriptor() {
             return "([Ljava/lang/Object;J)V";
         }
@@ -422,15 +442,18 @@ public final class CtMethod extends CtBehavior {
             param = s;
         }
 
+        @Override
         int compile(Bytecode code) throws CannotCompileException {
             code.addLdc(param);
             return 1;
         }
 
+        @Override
         String descriptor() {
             return "([Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/Object;";
         }
 
+        @Override
         String constDescriptor() {
             return "([Ljava/lang/Object;Ljava/lang/String;)V";
         }
