@@ -16,10 +16,11 @@
 
 package javassist.bytecode.annotation;
 
-import javassist.ClassPool;
-import javassist.bytecode.ConstPool;
 import java.io.IOException;
 import java.lang.reflect.Method;
+
+import javassist.ClassPool;
+import javassist.bytecode.ConstPool;
 
 /**
  * Floating-point number constant value.
@@ -60,11 +61,13 @@ public class FloatMemberValue extends MemberValue {
         setValue(0.0F);
     }
 
+    @Override
     Object getValue(ClassLoader cl, ClassPool cp, Method m) {
         return Float.valueOf(getValue());
     }
 
-    Class getType(ClassLoader cl) {
+    @Override
+    Class<?> getType(ClassLoader cl) {
         return float.class;
     }
 
@@ -85,6 +88,7 @@ public class FloatMemberValue extends MemberValue {
     /**
      * Obtains the string representation of this object.
      */
+    @Override
     public String toString() {
         return Float.toString(getValue());
     }
@@ -92,6 +96,7 @@ public class FloatMemberValue extends MemberValue {
     /**
      * Writes the value.
      */
+    @Override
     public void write(AnnotationsWriter writer) throws IOException {
         writer.constValueIndex(getValue());
     }
@@ -99,6 +104,7 @@ public class FloatMemberValue extends MemberValue {
     /**
      * Accepts a visitor.
      */
+    @Override
     public void accept(MemberValueVisitor visitor) {
         visitor.visitFloatMemberValue(this);
     }

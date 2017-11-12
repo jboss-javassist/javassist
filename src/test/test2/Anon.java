@@ -1,5 +1,6 @@
 package test2;
 
+@SuppressWarnings("unused")
 public class Anon {
     public Object make() {
         return new Object() { int k; };

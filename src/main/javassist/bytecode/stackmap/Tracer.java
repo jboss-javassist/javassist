@@ -16,12 +16,12 @@
 
 package javassist.bytecode.stackmap;
 
+import javassist.ClassPool;
+import javassist.bytecode.BadBytecode;
 import javassist.bytecode.ByteArray;
-import javassist.bytecode.Opcode;
 import javassist.bytecode.ConstPool;
 import javassist.bytecode.Descriptor;
-import javassist.bytecode.BadBytecode;
-import javassist.ClassPool;
+import javassist.bytecode.Opcode;
 
 /*
  * A class for performing abstract interpretation.
@@ -69,16 +69,13 @@ public abstract class Tracer implements TypeTag {
     protected int doOpcode(int pos, byte[] code) throws BadBytecode {
         try {
             int op = code[pos] & 0xff;
+            if (op < 54)
+                return doOpcode0_53(pos, code, op);
             if (op < 96)
-                if (op < 54)
-                    return doOpcode0_53(pos, code, op);
-                else
-                    return doOpcode54_95(pos, code, op);
-            else
-                if (op < 148)
-                    return doOpcode96_147(pos, code, op);
-                else
-                    return doOpcode148_201(pos, code, op);
+                return doOpcode54_95(pos, code, op);
+            if (op < 148)
+                return doOpcode96_147(pos, code, op);
+            return doOpcode148_201(pos, code, op);
         }
         catch (ArrayIndexOutOfBoundsException e) {
             throw new BadBytecode("inconsistent stack height " + e.getMessage(), e);

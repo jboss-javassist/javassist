@@ -16,9 +16,25 @@
 
 package javassist.expr;
 
-import javassist.*;
-import javassist.bytecode.*;
-import javassist.compiler.*;
+import javassist.CannotCompileException;
+import javassist.ClassPool;
+import javassist.CtBehavior;
+import javassist.CtClass;
+import javassist.CtConstructor;
+import javassist.NotFoundException;
+import javassist.bytecode.BadBytecode;
+import javassist.bytecode.Bytecode;
+import javassist.bytecode.CodeAttribute;
+import javassist.bytecode.CodeIterator;
+import javassist.bytecode.ConstPool;
+import javassist.bytecode.Descriptor;
+import javassist.bytecode.MethodInfo;
+import javassist.bytecode.Opcode;
+import javassist.compiler.CompileError;
+import javassist.compiler.Javac;
+import javassist.compiler.JvstCodeGen;
+import javassist.compiler.JvstTypeChecker;
+import javassist.compiler.ProceedHandler;
 import javassist.compiler.ast.ASTList;
 
 /**
@@ -56,6 +72,7 @@ public class NewExpr extends Expr {
      * Returns the method or constructor containing the <tt>new</tt>
      * expression represented by this object.
      */
+    @Override
     public CtBehavior where() { return super.where(); }
 
     /**
@@ -64,6 +81,7 @@ public class NewExpr extends Expr {
      *
      * @return -1       if this information is not available.
      */
+    @Override
     public int getLineNumber() {
         return super.getLineNumber();
     }
@@ -73,6 +91,7 @@ public class NewExpr extends Expr {
      *
      * @return null     if this information is not available.
      */
+    @Override
     public String getFileName() {
         return super.getFileName();
     }
@@ -123,6 +142,7 @@ public class NewExpr extends Expr {
      * including the expression can catch and the exceptions that
      * the throws declaration allows the method to throw.
      */
+    @Override
     public CtClass[] mayThrow() {
         return super.mayThrow();
     }
@@ -160,6 +180,7 @@ public class NewExpr extends Expr {
      *
      * @param statement         a Java statement except try-catch.
      */
+    @Override
     public void replace(String statement) throws CannotCompileException {
         thisClass.getClassFile();   // to call checkModify().
 
@@ -228,6 +249,7 @@ public class NewExpr extends Expr {
             methodIndex = mi;
         }
 
+        @Override
         public void doit(JvstCodeGen gen, Bytecode bytecode, ASTList args)
             throws CompileError
         {
@@ -239,6 +261,7 @@ public class NewExpr extends Expr {
             gen.setType(newType);
         }
 
+        @Override
         public void setReturnType(JvstTypeChecker c, ASTList args)
             throws CompileError
         {

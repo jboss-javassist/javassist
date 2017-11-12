@@ -16,9 +16,22 @@
 
 package javassist.compiler;
 
-import javassist.*;
-import javassist.bytecode.*;
 import java.util.HashMap;
+import java.util.Map;
+
+import javassist.CannotCompileException;
+import javassist.ClassPool;
+import javassist.CtClass;
+import javassist.NotFoundException;
+import javassist.bytecode.AccessFlag;
+import javassist.bytecode.Bytecode;
+import javassist.bytecode.ClassFile;
+import javassist.bytecode.ConstPool;
+import javassist.bytecode.Descriptor;
+import javassist.bytecode.ExceptionsAttribute;
+import javassist.bytecode.FieldInfo;
+import javassist.bytecode.MethodInfo;
+import javassist.bytecode.SyntheticAttribute;
 
 /**
  * AccessorMaker maintains accessors to private members of an enclosing
@@ -27,14 +40,14 @@ import java.util.HashMap;
 public class AccessorMaker {
     private CtClass clazz;
     private int uniqueNumber;
-    private HashMap accessors;
+    private Map<String,Object> accessors;
 
     static final String lastParamType = "javassist.runtime.Inner";
 
     public AccessorMaker(CtClass c) {
         clazz = c;
         uniqueNumber = 1;
-        accessors = new HashMap();
+        accessors = new HashMap<String,Object>();
     }
 
     public String getConstructor(CtClass c, String desc, MethodInfo orig)

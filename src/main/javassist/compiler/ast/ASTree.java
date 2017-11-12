@@ -17,6 +17,7 @@
 package javassist.compiler.ast;
 
 import java.io.Serializable;
+
 import javassist.compiler.CompileError;
 
 /**
@@ -25,6 +26,9 @@ import javassist.compiler.CompileError;
  * and <code>getRight()</code> returns null.
  */
 public abstract class ASTree implements Serializable {
+    /** default serialVersionUID */
+    private static final long serialVersionUID = 1L;
+
     public ASTree getLeft() { return null; }
 
     public ASTree getRight() { return null; }
@@ -40,6 +44,7 @@ public abstract class ASTree implements Serializable {
      */
     public abstract void accept(Visitor v) throws CompileError;
 
+    @Override
     public String toString() {
         StringBuffer sbuf = new StringBuffer();
         sbuf.append('<');

@@ -16,10 +16,12 @@
 
 package javassist.convert;
 
-import javassist.bytecode.*;
 import javassist.CtClass;
 import javassist.CtField;
 import javassist.Modifier;
+import javassist.bytecode.CodeAttribute;
+import javassist.bytecode.CodeIterator;
+import javassist.bytecode.ConstPool;
 
 final public class TransformFieldAccess extends Transformer {
     private String newClassname, newFieldname;
@@ -43,6 +45,7 @@ final public class TransformFieldAccess extends Transformer {
         this.constPool = null;
     }
 
+    @Override
     public void initialize(ConstPool cp, CodeAttribute attr) {
         if (constPool != cp)
             newIndex = 0;
@@ -54,6 +57,7 @@ final public class TransformFieldAccess extends Transformer {
      * in a superclass of the class in which the original field is
      * declared.
      */
+    @Override
     public int transform(CtClass clazz, int pos,
                          CodeIterator iterator, ConstPool cp)
     {

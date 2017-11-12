@@ -20,6 +20,8 @@ import javassist.CannotCompileException;
 import javassist.NotFoundException;
 
 public class CompileError extends Exception {
+    /** default serialVersionUID */
+    private static final long serialVersionUID = 1L;
     private Lex lex;
     private String reason;
 
@@ -43,10 +45,12 @@ public class CompileError extends Exception {
 
     public Lex getLex() { return lex; }
 
+    @Override
     public String getMessage() {
         return reason;
     }
 
+    @Override
     public String toString() {
         return "compile error: " + reason;
     }

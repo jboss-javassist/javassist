@@ -11,6 +11,7 @@ import junit.framework.TestCase;
 /**
  * @author brandall
  */
+@SuppressWarnings({"rawtypes","unused"})
 public class LoaderTestByRandall extends TestCase {
 
     ClassPool cp;

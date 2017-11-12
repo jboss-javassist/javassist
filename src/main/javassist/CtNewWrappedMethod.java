@@ -16,10 +16,16 @@
 
 package javassist;
 
-import javassist.bytecode.*;
-import javassist.compiler.JvstCodeGen;
-import java.util.Hashtable;
+import java.util.Map;
+
 import javassist.CtMethod.ConstParameter;
+import javassist.bytecode.AccessFlag;
+import javassist.bytecode.BadBytecode;
+import javassist.bytecode.Bytecode;
+import javassist.bytecode.ClassFile;
+import javassist.bytecode.MethodInfo;
+import javassist.bytecode.SyntheticAttribute;
+import javassist.compiler.JvstCodeGen;
 
 class CtNewWrappedMethod {
 
@@ -139,8 +145,8 @@ class CtNewWrappedMethod {
                                         CtMethod src)
         throws BadBytecode, CannotCompileException
     {
-        Hashtable bodies = clazz.getHiddenMethods();
-        String bodyname = (String)bodies.get(src);
+        Map<CtMethod,String> bodies = clazz.getHiddenMethods();
+        String bodyname = bodies.get(src);
         if (bodyname == null) {
             do {
                 bodyname = addedWrappedMethod + clazz.getUniqueNumber();

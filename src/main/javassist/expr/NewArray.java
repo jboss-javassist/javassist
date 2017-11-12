@@ -16,9 +16,24 @@
 
 package javassist.expr;
 
-import javassist.*;
-import javassist.bytecode.*;
-import javassist.compiler.*;
+import javassist.CannotCompileException;
+import javassist.CtBehavior;
+import javassist.CtClass;
+import javassist.CtPrimitiveType;
+import javassist.NotFoundException;
+import javassist.bytecode.BadBytecode;
+import javassist.bytecode.Bytecode;
+import javassist.bytecode.CodeAttribute;
+import javassist.bytecode.CodeIterator;
+import javassist.bytecode.ConstPool;
+import javassist.bytecode.Descriptor;
+import javassist.bytecode.MethodInfo;
+import javassist.bytecode.Opcode;
+import javassist.compiler.CompileError;
+import javassist.compiler.Javac;
+import javassist.compiler.JvstCodeGen;
+import javassist.compiler.JvstTypeChecker;
+import javassist.compiler.ProceedHandler;
 import javassist.compiler.ast.ASTList;
 
 /**
@@ -40,6 +55,7 @@ public class NewArray extends Expr {
      * Returns the method or constructor containing the array creation
      * represented by this object.
      */
+    @Override
     public CtBehavior where() { return super.where(); }
 
     /**
@@ -48,6 +64,7 @@ public class NewArray extends Expr {
      *
      * @return -1       if this information is not available.
      */
+    @Override
     public int getLineNumber() {
         return super.getLineNumber();
     }
@@ -57,6 +74,7 @@ public class NewArray extends Expr {
      *
      * @return null     if this information is not available.
      */
+    @Override
     public String getFileName() {
         return super.getFileName();
     }
@@ -67,6 +85,7 @@ public class NewArray extends Expr {
      * including the expression can catch and the exceptions that
      * the throws declaration allows the method to throw.
      */
+    @Override
     public CtClass[] mayThrow() {
         return super.mayThrow();
     }
@@ -142,8 +161,7 @@ public class NewArray extends Expr {
     public int getCreatedDimensions() {
         if (opcode == Opcode.MULTIANEWARRAY)
             return iterator.byteAt(currentPos + 3);
-        else
-            return 1;
+        return 1;
     }
 
     /**
@@ -156,6 +174,7 @@ public class NewArray extends Expr {
      *
      * @param statement         a Java statement except try-catch.
      */
+    @Override
     public void replace(String statement) throws CannotCompileException {
         try {
             replace2(statement);
@@ -250,10 +269,11 @@ public class NewArray extends Expr {
             dimension = dim;
         }
 
+        @Override
         public void doit(JvstCodeGen gen, Bytecode bytecode, ASTList args)
             throws CompileError
         {
-            int num = gen.getMethodArgsLength(args); 
+            int num = gen.getMethodArgsLength(args);
             if (num != dimension)
                 throw new CompileError(Javac.proceedName
                         + "() with a wrong number of parameters");
@@ -274,6 +294,7 @@ public class NewArray extends Expr {
             gen.setType(arrayType);
         }
 
+        @Override
         public void setReturnType(JvstTypeChecker c, ASTList args)
             throws CompileError
         {

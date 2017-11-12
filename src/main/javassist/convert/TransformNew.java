@@ -16,9 +16,14 @@
 
 package javassist.convert;
 
-import javassist.bytecode.*;
-import javassist.CtClass;
 import javassist.CannotCompileException;
+import javassist.CtClass;
+import javassist.bytecode.CodeAttribute;
+import javassist.bytecode.CodeIterator;
+import javassist.bytecode.ConstPool;
+import javassist.bytecode.Descriptor;
+import javassist.bytecode.StackMap;
+import javassist.bytecode.StackMapTable;
 
 final public class TransformNew extends Transformer {
     private int nested;
@@ -32,6 +37,7 @@ final public class TransformNew extends Transformer {
         this.trapMethod = trapMethod;
     }
 
+    @Override
     public void initialize(ConstPool cp, CodeAttribute attr) {
         nested = 0;
     }
@@ -48,6 +54,7 @@ final public class TransformNew extends Transformer {
      *    ...
      *    INVOKESTATIC trapMethod in trapClass
      */
+    @Override
     public int transform(CtClass clazz, int pos, CodeIterator iterator,
                          ConstPool cp) throws CannotCompileException
     {

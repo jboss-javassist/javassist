@@ -3,6 +3,9 @@ package test4;
 import java.util.ArrayList;
 
 public class JIRA181<T extends Number> extends ArrayList<T> {
+    /** default serialVersionUID */
+    private static final long serialVersionUID = 1L;
+
     public @interface Condition {
     	Class<? extends ICondition> condition();
     }

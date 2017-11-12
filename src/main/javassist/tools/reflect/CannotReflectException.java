@@ -17,6 +17,7 @@
 package javassist.tools.reflect;
 
 import javassist.CannotCompileException;
+import javassist.CtClass;
 
 /**
  * Thrown by <code>makeReflective()</code> in <code>Reflection</code>
@@ -29,6 +30,9 @@ import javassist.CannotCompileException;
  * @see javassist.CannotCompileException
  */
 public class CannotReflectException extends CannotCompileException {
+    /** default serialVersionUID */
+    private static final long serialVersionUID = 1L;
+
     public CannotReflectException(String msg) {
         super(msg);
     }

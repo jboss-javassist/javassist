@@ -6,10 +6,15 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.util.HashSet;
 
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
+
 import javassist.bytecode.*;
 import javassist.bytecode.annotation.Annotation;
 import javassist.expr.*;
 
+@SuppressWarnings({"rawtypes","unchecked","unused"})
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class JvstTest4 extends JvstTestRoot {
     public JvstTest4(String name) {
         super(name);
@@ -599,6 +604,7 @@ public class JvstTest4 extends JvstTestRoot {
         });
     }
 
+    @SuppressWarnings("deprecation")
     public void testMakePackage() throws Exception {
         if (ClassFile.MAJOR_VERSION >= ClassFile.JAVA_9) {
             ClassPool pool = ClassPool.getDefault();
@@ -610,6 +616,7 @@ public class JvstTest4 extends JvstTestRoot {
         }
     }
 
+    @SuppressWarnings("deprecation")
     public void testPackage() throws Throwable {    // JASSIST-147
         String packageName = "test4.pack";
         ClassPool pool = ClassPool.getDefault();
@@ -628,7 +635,7 @@ public class JvstTest4 extends JvstTestRoot {
         assertEquals(packageName, obj.getClass().getPackage().getName());
     }
 
-    public static final String BASE_PATH = "../";
+    public static final String BASE_PATH = "../../";
     public static final String JAVASSIST_JAR = BASE_PATH + "javassist.jar";
     public static final String CLASSES_FOLDER = BASE_PATH + "build/classes";
     public static final String TEST_CLASSES_FOLDER = BASE_PATH + "build/test-classes";

@@ -16,9 +16,10 @@
 
 package javassist;
 
-import java.io.*;
-import java.net.URL;
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.net.MalformedURLException;
+import java.net.URL;
 
 /**
  * A <code>ByteArrayClassPath</code> contains bytes that is served as
@@ -37,7 +38,7 @@ import java.net.MalformedURLException;
  *
  * <p>The <code>ClassPool</code> object <code>cp</code> uses the created
  * <code>ByteArrayClassPath</code> object as the source of the class file.
- * 
+ *
  * <p>A <code>ByteArrayClassPath</code> must be instantiated for every
  * class.  It contains only a single class file.
  *
@@ -62,6 +63,7 @@ public class ByteArrayClassPath implements ClassPath {
         this.classfile = classfile;
     }
 
+    @Override
     public String toString() {
         return "byte[]:" + classname;
     }
@@ -69,16 +71,17 @@ public class ByteArrayClassPath implements ClassPath {
     /**
      * Opens the class file.
      */
+    @Override
     public InputStream openClassfile(String classname) {
         if(this.classname.equals(classname))
             return new ByteArrayInputStream(classfile);
-        else
-            return null;
+        return null;
     }
 
     /**
      * Obtains the URL.
      */
+    @Override
     public URL find(String classname) {
         if(this.classname.equals(classname)) {
             String cname = classname.replace('.', '/') + ".class";

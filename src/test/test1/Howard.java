@@ -21,6 +21,7 @@ class Howard2 {
 }
 
 public class Howard extends Howard2 {
+    @SuppressWarnings("unused")
     private Object _remote;
 
     public int run() {

@@ -22,13 +22,16 @@ import javassist.compiler.CompileError;
  * Thrown when bytecode transformation has failed.
  */
 public class CannotCompileException extends Exception {
+    /** default serialVersionUID */
+    private static final long serialVersionUID = 1L;
     private Throwable myCause;
 
     /**
      * Gets the cause of this throwable.
      * It is for JDK 1.3 compatibility.
      */
-    public Throwable getCause() {
+    @Override
+    public synchronized Throwable getCause() {
         return (myCause == this ? null : myCause);
     }
 
@@ -36,6 +39,7 @@ public class CannotCompileException extends Exception {
      * Initializes the cause of this throwable.
      * It is for JDK 1.3 compatibility.
      */
+    @Override
     public synchronized Throwable initCause(Throwable cause) {
         myCause = cause;
         return this;
@@ -49,8 +53,7 @@ public class CannotCompileException extends Exception {
     public String getReason() {
         if (message != null)
             return message;
-        else
-            return this.toString();
+        return this.toString();
     }
 
     /**

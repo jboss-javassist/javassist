@@ -22,6 +22,8 @@ import javassist.compiler.CompileError;
  * String literal.
  */
 public class StringL extends ASTree {
+    /** default serialVersionUID */
+    private static final long serialVersionUID = 1L;
     protected String text;
 
     public StringL(String t) {
@@ -30,7 +32,9 @@ public class StringL extends ASTree {
 
     public String get() { return text; }
 
+    @Override
     public String toString() { return "\"" + text + "\""; }
 
+    @Override
     public void accept(Visitor v) throws CompileError { v.atStringL(this); }
 }

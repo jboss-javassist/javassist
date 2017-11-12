@@ -20,6 +20,9 @@ public class GetAllRefInnerTest<T> {
     }
     public Object foo() {
         return new java.util.HashSet<String>() {
+            /** default serialVersionUID */
+            private static final long serialVersionUID = 1L;
+
             public String toString() { return this.getClass().toString(); } 
         };
     }

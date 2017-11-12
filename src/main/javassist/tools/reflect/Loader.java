@@ -17,8 +17,8 @@
 package javassist.tools.reflect;
 
 import javassist.CannotCompileException;
-import javassist.NotFoundException;
 import javassist.ClassPool;
+import javassist.NotFoundException;
 
 /**
  * A class loader for reflection.

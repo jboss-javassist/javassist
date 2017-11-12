@@ -16,9 +16,17 @@
 
 package javassist;
 
-import javassist.bytecode.*;
-import javassist.compiler.Javac;
+import javassist.bytecode.BadBytecode;
+import javassist.bytecode.Bytecode;
+import javassist.bytecode.ClassFile;
+import javassist.bytecode.CodeAttribute;
+import javassist.bytecode.CodeIterator;
+import javassist.bytecode.ConstPool;
+import javassist.bytecode.Descriptor;
+import javassist.bytecode.MethodInfo;
+import javassist.bytecode.Opcode;
 import javassist.compiler.CompileError;
+import javassist.compiler.Javac;
 
 /**
  * An instance of CtConstructor represents a constructor.
@@ -122,6 +130,7 @@ public final class CtConstructor extends CtBehavior {
      *
      * @since 3.5
      */
+    @Override
     public String getLongName() {
         return getDeclaringClass().getName()
                + (isConstructor() ? Descriptor.toString(getSignature())
@@ -134,11 +143,11 @@ public final class CtConstructor extends CtBehavior {
      * constructor.  If this object represents a class initializer,
      * then this method returns <code>"&lt;clinit&gt;"</code>.
      */
+    @Override
     public String getName() {
         if (methodInfo.isStaticInitializer())
             return MethodInfo.nameClinit;
-        else
-            return declaringClass.getSimpleName();
+        return declaringClass.getSimpleName();
     }
 
     /**
@@ -148,6 +157,7 @@ public final class CtConstructor extends CtBehavior {
      * calling <code>super()</code> (the no-argument constructor of
      * the super class).
      */
+    @Override
     public boolean isEmpty() {
         CodeAttribute ca = getMethodInfo2().getCodeAttribute();
         if (ca == null)
@@ -207,6 +217,7 @@ public final class CtConstructor extends CtBehavior {
      *                  constructor body does nothing except calling
      *                  <code>super()</code>.
      */
+    @Override
     public void setBody(String src) throws CannotCompileException {
         if (src == null)
             if (isClassInitializer())
@@ -280,6 +291,7 @@ public final class CtConstructor extends CtBehavior {
     /* This method is called by addCatch() in CtBehavior.
      * super() and this() must not be in a try statement.
      */
+    @Override
     int getStartPosOfBody(CodeAttribute ca) throws CannotCompileException {
         CodeIterator ci = ca.iterator();
         try {

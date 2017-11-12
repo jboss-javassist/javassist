@@ -16,8 +16,10 @@
 
 package javassist.tools.web;
 
-import java.io.*;
-import java.net.*;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.net.URLConnection;
 
 /**
  * A sample applet viewer.
@@ -97,7 +99,7 @@ public class Viewer extends ClassLoader {
     public void run(String classname, String[] args)
         throws Throwable
     {
-        Class c = loadClass(classname);
+        Class<?> c = loadClass(classname);
         try {
             c.getDeclaredMethod("main", new Class[] { String[].class })
                 .invoke(null, new Object[] { args });
@@ -110,10 +112,11 @@ public class Viewer extends ClassLoader {
     /**
      * Requests the class loader to load a class.
      */
-    protected synchronized Class loadClass(String name, boolean resolve)
+    @Override
+    protected synchronized Class<?> loadClass(String name, boolean resolve)
         throws ClassNotFoundException
     {
-        Class c = findLoadedClass(name);
+        Class<?> c = findLoadedClass(name);
         if (c == null)
             c = findClass(name);
 
@@ -136,8 +139,9 @@ public class Viewer extends ClassLoader {
      * <p>This method can be overridden by a subclass of
      * <code>Viewer</code>.
      */
-    protected Class findClass(String name) throws ClassNotFoundException {
-        Class c = null;
+    @Override
+    protected Class<?> findClass(String name) throws ClassNotFoundException {
+        Class<?> c = null;
         if (name.startsWith("java.") || name.startsWith("javax.")
             || name.equals("javassist.tools.web.Viewer"))
             c = findSystemClass(name);

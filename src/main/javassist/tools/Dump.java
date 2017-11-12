@@ -16,7 +16,10 @@
 
 package javassist.tools;
 
-import java.io.*;
+import java.io.DataInputStream;
+import java.io.FileInputStream;
+import java.io.PrintWriter;
+
 import javassist.bytecode.ClassFile;
 import javassist.bytecode.ClassFilePrinter;
 

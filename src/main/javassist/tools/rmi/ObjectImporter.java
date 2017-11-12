@@ -16,10 +16,16 @@
 
 package javassist.tools.rmi;
 
-import java.io.*;
-import java.net.*;
-import java.applet.Applet;
-import java.lang.reflect.*;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.OutputStream;
+import java.lang.reflect.Constructor;
+import java.net.Socket;
+import java.net.URL;
 
 /**
  * The object importer enables applets to call a method on a remote
@@ -73,6 +79,8 @@ import java.lang.reflect.*;
  * @see javassist.tools.web.Viewer
  */
 public class ObjectImporter implements java.io.Serializable {
+    /** default serialVersionUID */
+    private static final long serialVersionUID = 1L;
     private final byte[] endofline = { 0x0d, 0x0a };
     private String servername, orgServername;
     private int port, orgPort;
@@ -88,7 +96,8 @@ public class ObjectImporter implements java.io.Serializable {
      *
      * @param applet    the applet loaded from the <code>Webserver</code>.
      */
-    public ObjectImporter(Applet applet) {
+    public ObjectImporter(@SuppressWarnings("deprecation") java.applet.Applet applet) {
+        @SuppressWarnings("deprecation")
         URL codebase = applet.getCodeBase();
         orgServername = servername = codebase.getHost();
         orgPort = port = codebase.getPort();
@@ -183,12 +192,12 @@ public class ObjectImporter implements java.io.Serializable {
         throw new ObjectNotFoundException(name);
     }
 
-    private static final Class[] proxyConstructorParamTypes
+    private static final Class<?>[] proxyConstructorParamTypes
         = new Class[] { ObjectImporter.class, int.class };
 
     private Object createProxy(int oid, String classname) throws Exception {
-        Class c = Class.forName(classname);
-        Constructor cons = c.getConstructor(proxyConstructorParamTypes);
+        Class<?> c = Class.forName(classname);
+        Constructor<?> cons = c.getConstructor(proxyConstructorParamTypes);
         return cons.newInstance(new Object[] { this, Integer.valueOf(oid) });
     }
 
@@ -267,8 +276,7 @@ public class ObjectImporter implements java.io.Serializable {
 
         if (result)
             return rvalue;
-        else
-            throw new RemoteException(errmsg);
+        throw new RemoteException(errmsg);
     }
 
     private void skipHeader(InputStream in) throws IOException {

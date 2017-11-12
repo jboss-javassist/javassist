@@ -26,6 +26,9 @@ public class AssignExpr extends Expr {
      * =, %=, &=, *=, +=, -=, /=, ^=, |=, <<=, >>=, >>>=
      */
 
+    /** default serialVersionUID */
+    private static final long serialVersionUID = 1L;
+
     private AssignExpr(int op, ASTree _head, ASTList _tail) {
         super(op, _head, _tail);
     }
@@ -35,6 +38,7 @@ public class AssignExpr extends Expr {
         return new AssignExpr(op, oprand1, new ASTList(oprand2));
     }
 
+    @Override
     public void accept(Visitor v) throws CompileError {
         v.atAssignExpr(this);
     }

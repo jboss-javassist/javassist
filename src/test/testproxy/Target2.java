@@ -2,6 +2,7 @@ package testproxy;
 
 import java.io.IOException;
 
+@SuppressWarnings("unused")
 public class Target2 {
     private int value;
     public Target2(int i) { value = 1; }

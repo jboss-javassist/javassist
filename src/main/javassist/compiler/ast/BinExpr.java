@@ -30,6 +30,9 @@ public class BinExpr extends Expr {
      * <<, >>, >>>, +, -, *, /, %
      */
 
+    /** default serialVersionUID */
+    private static final long serialVersionUID = 1L;
+
     private BinExpr(int op, ASTree _head, ASTList _tail) {
         super(op, _head, _tail);
     }
@@ -38,5 +41,6 @@ public class BinExpr extends Expr {
         return new BinExpr(op, oprand1, new ASTList(oprand2));
     }
 
+    @Override
     public void accept(Visitor v) throws CompileError { v.atBinExpr(this); }
 }

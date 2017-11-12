@@ -1,5 +1,6 @@
 package test1;
 
+@SuppressWarnings("unused")
 public class Proceed {
     public int p(int i, int j) { return i + j; }
 

@@ -108,7 +108,8 @@ public class BootstrapMethodsAttribute extends AttributeInfo {
      * @param classnames        pairs of replaced and substituted
      *                          class names.
      */
-    public AttributeInfo copy(ConstPool newCp, Map classnames) {
+    @Override
+    public AttributeInfo copy(ConstPool newCp, Map<String,String> classnames) {
         BootstrapMethod[] methods = getMethods();
         ConstPool thisCp = getConstPool();
         for (int i = 0; i < methods.length; i++) {

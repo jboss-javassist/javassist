@@ -5,6 +5,7 @@ interface MethodRedirectIntf {
 }
 
 public class MethodRedirect implements MethodRedirectIntf {
+    @SuppressWarnings("unused")
     private int foo() { return 0; }
     public static int poi() { return 1; } 
     public int bar() { return 2; }

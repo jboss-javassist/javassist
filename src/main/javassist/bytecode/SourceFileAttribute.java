@@ -65,7 +65,8 @@ public class SourceFileAttribute extends AttributeInfo {
      * @param classnames        pairs of replaced and substituted
      *                          class names.
      */
-    public AttributeInfo copy(ConstPool newCp, Map classnames) {
+    @Override
+    public AttributeInfo copy(ConstPool newCp, Map<String,String> classnames) {
         return new SourceFileAttribute(newCp, getFileName());
     }
 }

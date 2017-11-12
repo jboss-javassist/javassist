@@ -19,8 +19,6 @@ package javassist;
 import java.io.InputStream;
 import java.net.URL;
 
-import javassist.bytecode.ClassFile;
-
 /**
  * A search-path for obtaining a class file
  * by <code>getResourceAsStream()</code> in <code>java.lang.Class</code>.
@@ -43,13 +41,13 @@ import javassist.bytecode.ClassFile;
  * <p>Class files in a named module are private to that module.
  * This method cannot obtain class files in named modules.
  * </p>
- * 
+ *
  * @see ClassPool#insertClassPath(ClassPath)
  * @see ClassPool#appendClassPath(ClassPath)
  * @see LoaderClassPath
  */
 public class ClassClassPath implements ClassPath {
-    private Class thisClass;
+    private Class<?> thisClass;
 
     /** Creates a search path.
      *
@@ -57,7 +55,7 @@ public class ClassClassPath implements ClassPath {
      *              file.  <code>getResourceAsStream()</code> is called on
      *              this object.
      */
-    public ClassClassPath(Class c) {
+    public ClassClassPath(Class<?> c) {
         thisClass = c;
     }
 
@@ -76,6 +74,7 @@ public class ClassClassPath implements ClassPath {
     /**
      * Obtains a class file by <code>getResourceAsStream()</code>.
      */
+    @Override
     public InputStream openClassfile(String classname) throws NotFoundException {
         String filename = '/' + classname.replace('.', '/') + ".class";
         return thisClass.getResourceAsStream(filename);
@@ -84,13 +83,15 @@ public class ClassClassPath implements ClassPath {
     /**
      * Obtains the URL of the specified class file.
      *
-     * @return null if the class file could not be found. 
+     * @return null if the class file could not be found.
      */
+    @Override
     public URL find(String classname) {
         String filename = '/' + classname.replace('.', '/') + ".class";
         return thisClass.getResource(filename);
     }
 
+    @Override
     public String toString() {
         return thisClass.getName() + ".class";
     }

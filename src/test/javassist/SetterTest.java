@@ -3,6 +3,7 @@ import java.lang.reflect.Method;
 
 import junit.framework.TestCase;
 
+@SuppressWarnings({"rawtypes","unchecked"})
 public class SetterTest extends TestCase {
 
     ClassPool pool;

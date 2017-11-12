@@ -16,10 +16,9 @@
 
 package javassist.bytecode;
 
-import java.io.OutputStream;
 import java.io.DataOutputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 
 /**
  * A quick class-file writer.  This is useful when a generated

@@ -7,6 +7,8 @@ import java.io.Serializable;
  */
 public class MyCls implements Serializable {
 
+    /** default serialVersionUID */
+    private static final long serialVersionUID = 1L;
     private int i,j;
 
     public int getI() {

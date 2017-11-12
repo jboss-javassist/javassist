@@ -1,5 +1,6 @@
 package test2;
 
+@SuppressWarnings("unused")
 public class NewArray {
     public int run() {
         return foo(1);

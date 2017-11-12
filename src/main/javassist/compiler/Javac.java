@@ -16,23 +16,31 @@
 
 package javassist.compiler;
 
-import javassist.CtClass;
-import javassist.CtPrimitiveType;
-import javassist.CtMember;
-import javassist.CtField;
-import javassist.CtBehavior;
-import javassist.CtMethod;
-import javassist.CtConstructor;
 import javassist.CannotCompileException;
+import javassist.CtBehavior;
+import javassist.CtClass;
+import javassist.CtConstructor;
+import javassist.CtField;
+import javassist.CtMember;
+import javassist.CtMethod;
+import javassist.CtPrimitiveType;
 import javassist.Modifier;
+import javassist.NotFoundException;
+import javassist.bytecode.BadBytecode;
 import javassist.bytecode.Bytecode;
 import javassist.bytecode.CodeAttribute;
 import javassist.bytecode.LocalVariableAttribute;
-import javassist.bytecode.BadBytecode;
 import javassist.bytecode.Opcode;
-import javassist.NotFoundException;
-
-import javassist.compiler.ast.*;
+import javassist.compiler.ast.ASTList;
+import javassist.compiler.ast.ASTree;
+import javassist.compiler.ast.CallExpr;
+import javassist.compiler.ast.Declarator;
+import javassist.compiler.ast.Expr;
+import javassist.compiler.ast.FieldDecl;
+import javassist.compiler.ast.Member;
+import javassist.compiler.ast.MethodDecl;
+import javassist.compiler.ast.Stmnt;
+import javassist.compiler.ast.Symbol;
 
 public class Javac {
     JvstCodeGen gen;
@@ -91,14 +99,12 @@ public class Javac {
         try {
             if (mem instanceof FieldDecl)
                 return compileField((FieldDecl)mem);
-            else {
-                CtBehavior cb = compileMethod(p, (MethodDecl)mem);
-                CtClass decl = cb.getDeclaringClass();
-                cb.getMethodInfo2()
-                  .rebuildStackMapIf6(decl.getClassPool(),
-                                      decl.getClassFile2());
-                return cb;
-            }
+            CtBehavior cb = compileMethod(p, (MethodDecl)mem);
+            CtClass decl = cb.getDeclaringClass();
+            cb.getMethodInfo2()
+              .rebuildStackMapIf6(decl.getClassPool(),
+                                  decl.getClassFile2());
+            return cb;
         }
         catch (BadBytecode bb) {
             throw new CompileError(bb.getMessage());
@@ -120,6 +126,7 @@ public class Javac {
 
         protected void setInit(ASTree i) { init = i; }
 
+        @Override
         protected ASTree getInitAST() {
             return init;
         }
@@ -158,24 +165,22 @@ public class Javac {
                 cons.setExceptionTypes(tlist);
                 return cons;
             }
-            else {
-                Declarator r = md.getReturn();
-                CtClass rtype = gen.resolver.lookupClass(r);
-                recordReturnType(rtype, false);
-                CtMethod method = new CtMethod(rtype, r.getVariable().get(),
-                                           plist, gen.getThisClass());
-                method.setModifiers(mod);
-                gen.setThisMethod(method);
-                md.accept(gen);
-                if (md.getBody() != null)
-                    method.getMethodInfo().setCodeAttribute(
-                                        bytecode.toCodeAttribute());
-                else
-                    method.setModifiers(mod | Modifier.ABSTRACT);
+            Declarator r = md.getReturn();
+            CtClass rtype = gen.resolver.lookupClass(r);
+            recordReturnType(rtype, false);
+            CtMethod method = new CtMethod(rtype, r.getVariable().get(),
+                                       plist, gen.getThisClass());
+            method.setModifiers(mod);
+            gen.setThisMethod(method);
+            md.accept(gen);
+            if (md.getBody() != null)
+                method.getMethodInfo().setCodeAttribute(
+                                    bytecode.toCodeAttribute());
+            else
+                method.setModifiers(mod | Modifier.ABSTRACT);
 
-                method.setExceptionTypes(tlist);
-                return method;
-            }
+            method.setExceptionTypes(tlist);
+            return method;
         }
         catch (NotFoundException e) {
             throw new CompileError(e.toString());
@@ -437,6 +442,7 @@ public class Javac {
         final String m = method;
 
         ProceedHandler h = new ProceedHandler() {
+                @Override
                 public void doit(JvstCodeGen gen, Bytecode b, ASTList args)
                     throws CompileError
                 {
@@ -449,6 +455,7 @@ public class Javac {
                     gen.addNullIfVoid();
                 }
 
+                @Override
                 public void setReturnType(JvstTypeChecker check, ASTList args)
                     throws CompileError
                 {
@@ -481,6 +488,7 @@ public class Javac {
         final String m = method;
 
         ProceedHandler h = new ProceedHandler() {
+                @Override
                 public void doit(JvstCodeGen gen, Bytecode b, ASTList args)
                     throws CompileError
                 {
@@ -491,6 +499,7 @@ public class Javac {
                     gen.addNullIfVoid();
                 }
 
+                @Override
                 public void setReturnType(JvstTypeChecker check, ASTList args)
                     throws CompileError
                 {
@@ -525,12 +534,14 @@ public class Javac {
         final ASTree texpr = p.parseExpression(stable);
 
         ProceedHandler h = new ProceedHandler() {
+                @Override
                 public void doit(JvstCodeGen gen, Bytecode b, ASTList args)
                     throws CompileError
                 {
                     gen.compileInvokeSpecial(texpr, methodIndex, descriptor, args);
                 }
 
+                @Override
                 public void setReturnType(JvstTypeChecker c, ASTList args)
                     throws CompileError
                 {

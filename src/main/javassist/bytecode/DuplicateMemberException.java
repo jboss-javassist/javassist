@@ -25,6 +25,9 @@ import javassist.CannotCompileException;
  * @see ClassFile#addField(FieldInfo)
  */
 public class DuplicateMemberException extends CannotCompileException {
+    /** default serialVersionUID */
+    private static final long serialVersionUID = 1L;
+
     public DuplicateMemberException(String msg) {
         super(msg);
     }

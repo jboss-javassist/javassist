@@ -16,14 +16,14 @@
 
 package javassist.bytecode.annotation;
 
+import java.io.IOException;
+import java.lang.reflect.Method;
+
 import javassist.ClassPool;
 import javassist.bytecode.BadBytecode;
 import javassist.bytecode.ConstPool;
 import javassist.bytecode.Descriptor;
 import javassist.bytecode.SignatureAttribute;
-
-import java.io.IOException;
-import java.lang.reflect.Method;
 
 /**
  * Class value.
@@ -64,6 +64,7 @@ public class ClassMemberValue extends MemberValue {
         setValue("java.lang.Class");
     }
 
+    @Override
     Object getValue(ClassLoader cl, ClassPool cp, Method m)
             throws ClassNotFoundException {
         final String classname = getValue();
@@ -89,7 +90,8 @@ public class ClassMemberValue extends MemberValue {
             return loadClass(cl, classname);
     }
 
-    Class getType(ClassLoader cl) throws ClassNotFoundException {
+    @Override
+    Class<?> getType(ClassLoader cl) throws ClassNotFoundException {
         return loadClass(cl, "java.lang.Class");
     }
 
@@ -120,6 +122,7 @@ public class ClassMemberValue extends MemberValue {
     /**
      * Obtains the string representation of this object.
      */
+    @Override
     public String toString() {
         return getValue().replace('$', '.') + ".class";
     }
@@ -127,6 +130,7 @@ public class ClassMemberValue extends MemberValue {
     /**
      * Writes the value.
      */
+    @Override
     public void write(AnnotationsWriter writer) throws IOException {
         writer.classInfoIndex(cp.getUtf8Info(valueIndex));
     }
@@ -134,6 +138,7 @@ public class ClassMemberValue extends MemberValue {
     /**
      * Accepts a visitor.
      */
+    @Override
     public void accept(MemberValueVisitor visitor) {
         visitor.visitClassMemberValue(this);
     }

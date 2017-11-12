@@ -16,10 +16,23 @@
 
 package javassist.tools.web;
 
-import java.net.*;
-import java.io.*;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.util.Date;
-import javassist.*;
+
+import javassist.CannotCompileException;
+import javassist.ClassPool;
+import javassist.CtClass;
+import javassist.NotFoundException;
+import javassist.Translator;
 
 /**
  * A web server for running sample programs.
@@ -278,8 +291,7 @@ public class Webserver {
                 len = fin.read(filebuffer);
                 if (len <= 0)
                     break;
-                else
-                    out.write(filebuffer, 0, len);
+                out.write(filebuffer, 0, len);
             }
 
             fin.close();
@@ -299,8 +311,7 @@ public class Webserver {
                     len = fin.read(filebuffer);
                     if (len <= 0)
                         break;
-                    else
-                        barray.write(filebuffer, 0, len);
+                    barray.write(filebuffer, 0, len);
                 }
 
                 byte[] classfile = barray.toByteArray();
@@ -398,6 +409,7 @@ class ServiceThread extends Thread {
         sock = s;
     }
 
+    @Override
     public void run() {
         try {
             web.process(sock);

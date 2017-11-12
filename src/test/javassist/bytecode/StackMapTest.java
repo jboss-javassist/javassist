@@ -21,6 +21,7 @@ import javassist.bytecode.stackmap.MapMaker;
 import javassist.bytecode.stackmap.TypeData;
 import junit.framework.TestCase;
 
+@SuppressWarnings({"rawtypes","unused"})
 public class StackMapTest extends TestCase {
     public static final String PATH = JvstTest.PATH;
     private ClassPool loader, dloader;

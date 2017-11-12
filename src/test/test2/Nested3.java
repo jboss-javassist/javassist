@@ -1,5 +1,6 @@
 package test2;
 
+@SuppressWarnings("unused")
 public class Nested3 {
     private int i = 0;
     private int geti() { return i; }

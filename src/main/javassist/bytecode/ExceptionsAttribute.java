@@ -42,7 +42,7 @@ public class ExceptionsAttribute extends AttributeInfo {
      * @param src               source attribute.
      */
     private ExceptionsAttribute(ConstPool cp, ExceptionsAttribute src,
-                                Map classnames) {
+                                Map<String,String> classnames) {
         super(cp, tag);
         copyFrom(src, classnames);
     }
@@ -67,7 +67,8 @@ public class ExceptionsAttribute extends AttributeInfo {
      * @param classnames        pairs of replaced and substituted
      *                          class names.  It can be <code>null</code>.
      */
-    public AttributeInfo copy(ConstPool newCp, Map classnames) {
+    @Override
+    public AttributeInfo copy(ConstPool newCp, Map<String,String> classnames) {
         return new ExceptionsAttribute(newCp, this, classnames);
     }
 
@@ -79,7 +80,7 @@ public class ExceptionsAttribute extends AttributeInfo {
      * @param classnames        pairs of replaced and substituted
      *                          class names.
      */
-    private void copyFrom(ExceptionsAttribute srcAttr, Map classnames) {
+    private void copyFrom(ExceptionsAttribute srcAttr, Map<String,String> classnames) {
         ConstPool srcCp = srcAttr.constPool;
         ConstPool destCp = this.constPool;
         byte[] src = srcAttr.info;

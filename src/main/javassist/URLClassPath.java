@@ -16,8 +16,11 @@
 
 package javassist;
 
-import java.io.*;
-import java.net.*;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLConnection;
 
 /**
  * A class search-path specified with URL (http).
@@ -65,6 +68,7 @@ public class URLClassPath implements ClassPath {
         this.packageName = packageName;
     }
 
+    @Override
     public String toString() {
         return hostname + ":" + port + directory;
     }
@@ -74,6 +78,7 @@ public class URLClassPath implements ClassPath {
      *
      * @return null if the class file could not be found. 
      */
+    @Override
     public InputStream openClassfile(String classname) {
         try {
             URLConnection con = openClassfile0(classname);
@@ -90,8 +95,7 @@ public class URLClassPath implements ClassPath {
                     = directory + classname.replace('.', '/') + ".class";
             return fetchClass0(hostname, port, jarname);
         }
-        else
-            return null;    // not found
+        return null;    // not found
     }
 
     /**
@@ -99,6 +103,7 @@ public class URLClassPath implements ClassPath {
      *
      * @return null if the class file could not be obtained. 
      */
+    @Override
     public URL find(String classname) {
         try {
             URLConnection con = openClassfile0(classname);

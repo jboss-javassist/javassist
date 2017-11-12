@@ -63,13 +63,14 @@ public class ProxyObjectInputStream extends ObjectInputStream
         }
     }
 
+    @Override
     protected ObjectStreamClass readClassDescriptor() throws IOException, ClassNotFoundException {
         boolean isProxy = readBoolean();
         if (isProxy) {
             String name = (String)readObject();
-            Class superClass = loader.loadClass(name);
+            Class<?> superClass = loader.loadClass(name);
             int length = readInt();
-            Class[] interfaces = new Class[length];
+            Class<?>[] interfaces = new Class[length];
             for (int i = 0; i < length; i++) {
                 name = (String)readObject();
                 interfaces[i] = loader.loadClass(name);
@@ -84,11 +85,10 @@ public class ProxyObjectInputStream extends ObjectInputStream
             factory.setUseWriteReplace(false);
             factory.setSuperclass(superClass);
             factory.setInterfaces(interfaces);
-            Class proxyClass = factory.createClass(signature);
+            Class<?> proxyClass = factory.createClass(signature);
             return ObjectStreamClass.lookup(proxyClass);
-        } else {
-            return super.readClassDescriptor();
         }
+        return super.readClassDescriptor();
     }
 
     /**

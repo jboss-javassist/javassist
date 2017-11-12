@@ -16,9 +16,11 @@
 
 package javassist.convert;
 
-import javassist.bytecode.*;
-import javassist.CtClass;
 import javassist.CannotCompileException;
+import javassist.CtClass;
+import javassist.bytecode.CodeAttribute;
+import javassist.bytecode.CodeIterator;
+import javassist.bytecode.ConstPool;
 
 final public class TransformNewClass extends Transformer {
     private int nested;
@@ -32,6 +34,7 @@ final public class TransformNewClass extends Transformer {
         this.newClassName = newClassName;
     }
 
+    @Override
     public void initialize(ConstPool cp, CodeAttribute attr) {
         nested = 0;
         newClassIndex = newMethodNTIndex = newMethodIndex = 0;
@@ -44,6 +47,7 @@ final public class TransformNewClass extends Transformer {
      *    ...
      *    INVOKESPECIAL classname:method
      */
+    @Override
     public int transform(CtClass clazz, int pos, CodeIterator iterator,
                          ConstPool cp) throws CannotCompileException
     {

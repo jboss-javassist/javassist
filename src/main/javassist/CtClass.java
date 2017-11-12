@@ -198,6 +198,7 @@ public abstract class CtClass {
     /**
      * Converts the object to a string.
      */
+    @Override
     public String toString() {
         StringBuffer buf = new StringBuffer(getClass().getName());
         buf.append("@");
@@ -361,8 +362,7 @@ public abstract class CtClass {
         int index = qname.lastIndexOf('.');
         if (index < 0)
             return qname;
-        else
-            return qname.substring(index + 1);
+        return qname.substring(index + 1);
     }
 
     /**
@@ -373,8 +373,7 @@ public abstract class CtClass {
         int index = qname.lastIndexOf('.');
         if (index < 0)
             return null;
-        else
-            return qname.substring(0, index);
+        return qname.substring(0, index);
     }
 
     /**
@@ -517,27 +516,30 @@ public abstract class CtClass {
      *
      * @return a <code>Collection&lt;String&gt;</code> object.
      */
-    public synchronized Collection getRefClasses() {
+    public synchronized Collection<String> getRefClasses() {
         ClassFile cf = getClassFile2();
         if (cf != null) {
             ClassMap cm = new ClassMap() {
-                public void put(String oldname, String newname) {
-                    put0(oldname, newname);
+                /** default serialVersionUID */
+                private static final long serialVersionUID = 1L;
+                @Override
+                public String put(String oldname, String newname) {
+                    return put0(oldname, newname);
                 }
-
-                public Object get(Object jvmClassName) {
+                @Override
+                public String get(Object jvmClassName) {
                     String n = toJavaName((String)jvmClassName);
                     put0(n, n);
                     return null;
                 }
 
+                @Override
                 public void fix(String name) {}
             };
             cf.getRefClasses(cm);
             return cm.values();
         }
-        else
-            return null;
+        return null;
     }
 
     /**
@@ -588,7 +590,7 @@ public abstract class CtClass {
      * @return <code>true</code> if the annotation is found, otherwise <code>false</code>.
      * @since 3.11
      */
-    public boolean hasAnnotation(Class annotationType) {
+    public boolean hasAnnotation(Class<?> annotationType) {
         return hasAnnotation(annotationType.getName());
     }
 
@@ -614,7 +616,7 @@ public abstract class CtClass {
      * @return the annotation if found, otherwise <code>null</code>.
      * @since 3.11
      */
-    public Object getAnnotation(Class clz) throws ClassNotFoundException {
+    public Object getAnnotation(Class<?> clz) throws ClassNotFoundException {
         return null;
     }
 
@@ -782,6 +784,7 @@ public abstract class CtClass {
      *             Use {@link #getEnclosingBehavior()}.
      * @see #getEnclosingBehavior()
      */
+    @Deprecated
     public final CtMethod getEnclosingMethod() throws NotFoundException {
         CtBehavior b = getEnclosingBehavior();
         if (b == null)
@@ -1271,7 +1274,7 @@ public abstract class CtClass {
      * @see #toClass(java.lang.ClassLoader,ProtectionDomain)
      * @see ClassPool#toClass(CtClass)
      */
-    public Class toClass() throws CannotCompileException {
+    public Class<?> toClass() throws CannotCompileException {
         return getClassPool().toClass(this);
     }
 
@@ -1306,7 +1309,7 @@ public abstract class CtClass {
      * @see ClassPool#toClass(CtClass,java.lang.ClassLoader)
      * @since 3.3
      */
-    public Class toClass(ClassLoader loader, ProtectionDomain domain)
+    public Class<?> toClass(ClassLoader loader, ProtectionDomain domain)
         throws CannotCompileException
     {
         ClassPool cp = getClassPool();
@@ -1325,7 +1328,8 @@ public abstract class CtClass {
      *
      * @deprecated      Replaced by {@link #toClass(ClassLoader,ProtectionDomain)}
      */
-    public final Class toClass(ClassLoader loader)
+    @Deprecated
+    public final Class<?> toClass(ClassLoader loader)
         throws CannotCompileException
     {
         return getClassPool().toClass(this, loader);
@@ -1544,27 +1548,32 @@ public abstract class CtClass {
                 file = new FileOutputStream(filename);
         }
 
+        @Override
         public void write(int b) throws IOException {
             init();
             file.write(b);
         }
 
+        @Override
         public void write(byte[] b) throws IOException {
             init();
             file.write(b);
         }
 
+        @Override
         public void write(byte[] b, int off, int len) throws IOException {
             init();
             file.write(b, off, len);
 
         }
 
+        @Override
         public void flush() throws IOException {
             init();
             file.flush();
         }
 
+        @Override
         public void close() throws IOException {
             init();
             file.close();

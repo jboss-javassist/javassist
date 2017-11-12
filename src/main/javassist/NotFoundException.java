@@ -20,6 +20,9 @@ package javassist;
  * Signals that something could not be found.
  */
 public class NotFoundException extends Exception {
+    /** default serialVersionUID */
+    private static final long serialVersionUID = 1L;
+
     public NotFoundException(String msg) {
         super(msg);
     }

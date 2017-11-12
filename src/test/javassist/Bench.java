@@ -153,11 +153,6 @@ public class Bench extends JvstTestRoot {
         System.out.println("println: " + (t5 * 10) + " usec");
     }
 
-    public static void main(String[] args) {
-        // junit.textui.TestRunner.run(suite());
-        junit.swingui.TestRunner.main(new String[] { "javassist.Bench" });
-    }
-
     public static Test suite() {
         TestSuite suite = new TestSuite("Benchmark Tests");
         suite.addTestSuite(Bench.class);
