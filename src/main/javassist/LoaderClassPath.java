@@ -94,11 +94,4 @@ public class LoaderClassPath implements ClassPath {
             return url;
         }
     }
-
-    /**
-     * Closes this class path.
-     */
-    public void close() {
-        clref = null;
-    }
 }

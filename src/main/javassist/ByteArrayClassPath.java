@@ -62,11 +62,6 @@ public class ByteArrayClassPath implements ClassPath {
         this.classfile = classfile;
     }
 
-    /**
-     * Closes this class path.
-     */
-    public void close() {}
-
     public String toString() {
         return "byte[]:" + classname;
     }

@@ -1,6 +1,7 @@
 package javassist;
 
 import junit.framework.*;
+import java.io.File;
 import java.io.FileInputStream;
 import java.lang.reflect.Method;
 import javassist.bytecode.*;
@@ -61,6 +62,27 @@ public class JvstTest extends JvstTestRoot {
         print(pool.toString());
         pool.removeClassPath(cp1);
         assertTrue("[class path: ]".equals(pool.toString()));
+    }
+
+    public void testReleaseJarClassPathFileHandle() throws Exception {
+        String jarFileName = "./empty.jar";
+        ClassLoader classLoader = getClass().getClassLoader();
+        File jarFile = new File(classLoader.getResource(jarFileName).getFile());
+        assertTrue(jarFile.exists());
+
+        // Prepare class pool and force it to open the Jar file
+        ClassPool pool = ClassPool.getDefault();
+        ClassPath cp = pool.appendClassPath(jarFile.getAbsolutePath());
+        assertNull(cp.openClassfile("nothere.Dummy"));
+
+        // Assert that it is possible to delete the jar file.
+        // On Windows deleting an open file will fail, while on on Mac/Linux this is always possible.
+        // This check will thus only fail on Windos if the file is still open.
+        assertTrue(jarFile.delete());
+    }
+
+    public void testJarClassPath() throws Exception {
+        // TODO: Verify that classes can be loaded from a JarClassPath
     }
 
     public void testSubtype() throws Exception {

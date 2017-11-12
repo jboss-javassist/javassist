@@ -137,6 +137,11 @@
   <build>
     <sourceDirectory>src/main/</sourceDirectory>
     <testSourceDirectory>src/test/</testSourceDirectory>
+    <testResources>
+      <testResource>
+        <directory>src/test/resources</directory>
+      </testResource>
+    </testResources>
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -158,7 +163,10 @@
           <includes>
             <include>javassist/JvstTest.java</include>
           </includes>
-	  <forkMode>once</forkMode>
+          <additionalClasspathElements>
+            <additionalClasspathElement>resources</additionalClasspathElement>
+          </additionalClasspathElements>
+	      <forkMode>once</forkMode>
           <workingDirectory>runtest</workingDirectory>
         </configuration>
       </plugin>
