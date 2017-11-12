@@ -166,11 +166,11 @@
           <includes>
             <include>javassist/JvstTest.java</include>
           </includes>
+          <forkMode>once</forkMode>
           <additionalClasspathElements>
             <additionalClasspathElement>resources</additionalClasspathElement>
           </additionalClasspathElements>
-	      <forkMode>once</forkMode>
-      <workingDirectory>${project.build.directory}/runtest</workingDirectory>
+          <workingDirectory>${project.build.directory}/runtest</workingDirectory>
         </configuration>
       </plugin>
       <plugin>

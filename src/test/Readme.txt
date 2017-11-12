@@ -16,4 +16,3 @@ Maven
 
     > mvn test
     > mvn surefire:test
-
