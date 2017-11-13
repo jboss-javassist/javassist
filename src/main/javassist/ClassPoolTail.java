@@ -180,7 +180,6 @@ final class JarClassPath implements ClassPath {
     }
 
     @Override
-    @Override
     public String toString() {
         return jarfileURL == null ? "<null>" : jarfileURL.toString();
     }
