@@ -14,4 +14,11 @@ public class FieldInit {
 	    --loop;
 	} while (loop > 0);
     }
+
+    public static class FI {
+        public FieldInit fi;
+        public FI(FieldInit fi) {
+            this.fi = fi;
+        }
+    }
 }
