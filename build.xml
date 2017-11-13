@@ -17,7 +17,7 @@
   <property name="build.classes.dir" value="${build.dir}/classes"/>
   <property name="test.src.dir" value="${basedir}/src/test"/>
   <property name="test.build.dir" value="${build.dir}/test-classes"/>
-  <property name="test.run.dir" value="${basedir}/runtest"/>
+  <property name="test.run.dir" value="${build.dir}/runtest"/>
   <property name="test.reports.dir" value = "${build.dir}/test-output"/>
 
   <property name="run.dir" value="${build.classes.dir}"/>
@@ -219,7 +219,6 @@ Copyright (C) 1999- Shigeru Chiba. All Rights Reserved.</i>]]></bottom>
 
   <target name="clean">
     <delete dir="html"/>
-    <delete dir="${test.run.dir}" />
     <delete dir="${build.dir}"/>
     <delete file="${target.jar}"/>
     <delete file="${dist-version}.zip"/>
