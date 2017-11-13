@@ -3,6 +3,7 @@ package javassist;
 import junit.framework.*;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.InputStream;
 import java.lang.reflect.Method;
 import javassist.bytecode.*;
 import javassist.expr.*;
@@ -83,7 +84,16 @@ public class JvstTest extends JvstTestRoot {
     }
 
     public void testJarClassPath() throws Exception {
-        // TODO: Verify that classes can be loaded from a JarClassPath
+        String jarFileName = "./simple.jar";
+        ClassLoader classLoader = getClass().getClassLoader();
+        File jarFile = new File(classLoader.getResource(jarFileName).getFile());
+        assertTrue(jarFile.exists());
+
+        ClassPool pool = ClassPool.getDefault();
+        ClassPath cp = pool.appendClassPath(jarFile.getAbsolutePath());
+        InputStream is = cp.openClassfile("com.test.Test");
+        assertNotNull(is);
+        is.close();
     }
 
     public void testSubtype() throws Exception {

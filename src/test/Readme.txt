@@ -10,7 +10,7 @@ Maven
     > mv ./target/javassist*-GA.jar ./javaassist.jar
 
 2) Check that ./src/test/javassist/JvstTestRoot.PATH and .JAR_PATH point to the compiled jar file.
-   The default is "../".
+   The default is "../../".
 
 3) Run Tests
 
