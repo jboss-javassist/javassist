@@ -656,6 +656,68 @@ public final class ConstPool
         return getUtf8Info(si.string);
     }
 
+     /**
+     * Change <code>CONSTANT_String_info</code> String at the given index.
+     *
+     * @param index int position of CONSTANT_String_info
+     * @param newConstant String new CONSTANT_String_info
+     *
+     */
+    public void setStringInfo(int index, String newConstant) {
+
+        Object obj = getItem(index);
+        if (obj instanceof StringInfo) {
+            StringInfo si = (StringInfo) obj;
+            setItem(si.string, ((Utf8Info) getItem(si.string)), new Utf8Info(newConstant, si.string));
+        }
+    }
+
+    /**
+     * Obtains the index of <code>CONSTANT_String_info</code> of the given
+     * String.
+     *
+     * @param strConstant String with the <code>CONSTANT_String_info</code>
+     * @return int Index of the String in the ConstPool Table
+     */
+    public int getIndexStringInfo(String strConstant) {
+
+        Object obj;
+        StringInfo si;
+        Utf8Info utf;
+        for (int i = 0; i < items.size(); i++) {
+            obj = getItem(i);
+            if (obj instanceof StringInfo) {
+                si = (StringInfo) obj;
+                utf = ((Utf8Info) getItem(si.string));
+                if (utf.string.equalsIgnoreCase(strConstant)) {
+                    return si.index;
+                }
+            }
+        }
+        return -1;
+    }
+
+    /**
+     * Change <code>CONSTANT_String_info</code> String for a given String.
+     *
+     * @param oldConstant String to change.
+     * <code> old CONSTANT_String_info</code>
+     * @param newConstant String <code> new CONSTANT_String_info </code>
+     */
+    public void setStringInfo(String oldConstant, String newConstant) {
+
+        Object obj = getItem(getIndexStringInfo(oldConstant));
+        StringInfo si;
+        Utf8Info utf;
+        if (obj instanceof StringInfo) {
+            si = (StringInfo) obj;
+            utf = ((Utf8Info) getItem(si.string));
+            if (utf.string.equalsIgnoreCase(oldConstant)) {
+                setItem(si.string, utf, new Utf8Info(newConstant, si.string));
+            }
+        }
+    }
+    
     /**
      * Reads <code>CONSTANT_utf8_info</code> structure
      * at the given index.
@@ -880,6 +942,19 @@ public final class ConstPool
         return numOfItems++;
     }
 
+    private void setItem(int index, ConstInfo info, ConstInfo newInfo) {
+        if (itemsCache == null) {
+            itemsCache = makeItemsCache(items);
+        }
+
+        ConstInfo found = (ConstInfo) itemsCache.get(info);
+        if (found != null) {
+            items.setElement(index, newInfo);
+            itemsCache.remove(info);
+            itemsCache.put(newInfo, newInfo);
+        }
+    }
+    
     /**
      * Copies the n-th item in this ConstPool object into the destination
      * ConstPool object.

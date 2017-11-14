@@ -59,6 +59,12 @@ final class LongVector {
             objects[nth] = new ConstInfo[ASIZE];
 
         objects[nth][offset] = value;
-        elements++;
+        elements++;                
     }
+    
+    public void setElement(int i, ConstInfo value){        
+        if (i >= 0 && elements > i){
+            objects[i >> ABITS][i & (ASIZE - 1)] = value;
+        }
+    }    
 }
