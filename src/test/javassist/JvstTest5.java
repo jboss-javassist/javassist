@@ -10,6 +10,7 @@ import javassist.bytecode.ClassFile;
 import javassist.bytecode.ConstPool;
 import javassist.bytecode.InnerClassesAttribute;
 import javassist.expr.ExprEditor;
+import javassist.expr.Handler;
 import javassist.expr.MethodCall;
 
 @SuppressWarnings({"rawtypes","unchecked","unused"})
@@ -398,5 +399,21 @@ public class JvstTest5 extends JvstTestRoot {
         CtClass cc = sloader.get("test5.VarArgsMethod");
         assertTrue(Modifier.isVarArgs(cc.getDeclaredMethod("foo").getModifiers()));
         assertFalse(Modifier.isVarArgs(cc.getDeclaredMethod("bar").getModifiers()));
+    }
+
+    public void testIssue155() throws Exception {
+        CtClass cc = sloader.get("test5.Issue155");
+        CtMethod testMethod = cc.getDeclaredMethod("foo");
+        testMethod.instrument(
+                new ExprEditor() {
+                    public void edit(Handler m)
+                            throws CannotCompileException {
+                        m.insertBefore("throw $1;");
+                    }
+                });
+
+        cc.writeFile();
+        Object obj = make(cc.getName());
+        assertEquals(1, invoke(obj, "test"));
     }
 }

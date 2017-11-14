@@ -430,7 +430,6 @@ public class MapMaker extends Tracer {
                 // dead code.
                 writer.sameFrame(offsetDelta);
                 offsetDelta = bb.length - 1;
-                prev = bb;
             }
             else
                 offsetDelta += bb.length;
