@@ -393,4 +393,10 @@ public class JvstTest5 extends JvstTestRoot {
     private InnerClassesAttribute getInnerClassAttr(CtClass cc) {
         return (InnerClassesAttribute)cc.getClassFile2().getAttribute(InnerClassesAttribute.tag);
     }
+
+    public void testVarArgsModifier() throws Exception {
+        CtClass cc = sloader.get("test5.VarArgsMethod");
+        assertTrue(Modifier.isVarArgs(cc.getDeclaredMethod("foo").getModifiers()));
+        assertFalse(Modifier.isVarArgs(cc.getDeclaredMethod("bar").getModifiers()));
+    }
 }

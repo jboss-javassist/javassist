@@ -170,6 +170,14 @@ public class Modifier {
     }
 
     /**
+     * Returns true if the modifiers include the <tt>varargs</tt>
+     * (variable number of arguments) modifier.
+     */
+    public static boolean isVarArgs(int mod)  {
+        return (mod & VARARGS) != 0;
+    }
+
+    /**
      * Truns the public bit on.  The protected and private bits are
      * cleared.
      */
