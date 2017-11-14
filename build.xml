@@ -32,6 +32,7 @@
   <path id="test.compile.classpath">
     <pathelement location="${build.classes.dir}"/>
     <pathelement location="${lib.dir}/junit.jar"/>
+    <pathelement location="${lib.dir}/hamcrest.jar"/>
   </path>
 
   <property name="test.compile.classpath" refid="test.compile.classpath"/>
@@ -39,7 +40,8 @@
   <path id="test.classpath">
     <pathelement location="${test.build.dir}"/>
     <pathelement location="${lib.dir}/junit.jar"/>
-  	<pathelement location="${build.classes.dir}"/>
+    <pathelement location="${lib.dir}/hamcrest.jar"/>
+    <pathelement location="${build.classes.dir}"/>
   </path>
 
   <property name="test.classpath" refid="test.classpath"/>

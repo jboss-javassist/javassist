@@ -23,6 +23,8 @@ import java.util.Arrays;
 import java.util.Hashtable;
 import java.util.Vector;
 
+import javassist.bytecode.ClassFile;
+
 /**
  * The class loader for Javassist.
  *
@@ -360,7 +362,7 @@ public class Loader extends ClassLoader {
         int i = name.lastIndexOf('.');
         if (i != -1) {
             String pname = name.substring(0, i);
-            if (getDefinedPackage(pname) == null)
+            if (isDefinedPackage(pname))
                 try {
                     definePackage(
                         pname, null, null, null, null, null, null, null);
@@ -374,6 +376,13 @@ public class Loader extends ClassLoader {
         if (domain == null)
             return defineClass(name, classfile, 0, classfile.length);
         return defineClass(name, classfile, 0, classfile.length, domain);
+    }
+
+    private boolean isDefinedPackage(String name) {
+        if (ClassFile.MAJOR_VERSION >= ClassFile.JAVA_9)
+            return getDefinedPackage(name) == null;
+        else
+            return getPackage(name) == null;
     }
 
     protected Class<?> loadClassByDelegation(String name)
