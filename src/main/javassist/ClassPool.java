@@ -21,19 +21,16 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.lang.reflect.Method;
 import java.net.URL;
-import java.security.AccessController;
-import java.security.PrivilegedActionException;
-import java.security.PrivilegedExceptionAction;
 import java.security.ProtectionDomain;
-import java.util.Hashtable;
-import java.util.Iterator;
 import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.Hashtable;
+import java.util.Iterator;
 
 import javassist.bytecode.ClassFile;
 import javassist.bytecode.Descriptor;
+import javassist.util.proxy.DefinePackageHelper;
 
 /**
  * A container of <code>CtClass</code> objects.
@@ -69,28 +66,8 @@ import javassist.bytecode.Descriptor;
  * @see javassist.CtClass
  * @see javassist.ClassPath
  */
+@SuppressWarnings({"unchecked", "rawtypes"})
 public class ClassPool {
-    private static java.lang.reflect.Method definePackage = null;
-
-    static {
-        if (ClassFile.MAJOR_VERSION < ClassFile.JAVA_9)
-            try {
-                AccessController.doPrivileged(new PrivilegedExceptionAction(){
-                    public Object run() throws Exception{
-                        Class cl = Class.forName("java.lang.ClassLoader");
-                        definePackage = cl.getDeclaredMethod("definePackage",
-                                new Class[] { String.class, String.class, String.class,
-                                        String.class, String.class, String.class,
-                                        String.class, java.net.URL.class });
-                        return null;
-                    }
-                });
-            }
-            catch (PrivilegedActionException pae) {
-                throw new RuntimeException("cannot initialize ClassPool",
-                                           pae.getException());
-            }
-    }
 
     /**
      * Determines the search order.
@@ -321,7 +298,7 @@ public class ClassPool {
      * @see #importPackage(String)
      * @since 3.1
      */
-    public Iterator getImportedPackages() {
+    public Iterator<String> getImportedPackages() {
         return importedPackages.iterator();
     }
 
@@ -1175,43 +1152,7 @@ public class ClassPool {
     public void makePackage(ClassLoader loader, String name)
         throws CannotCompileException
     {
-        if (definePackage == null)
-            throw new CannotCompileException("give the JVM --add-opens");
-
-        Object[] args = new Object[] {
-                name, null, null, null, null, null, null, null };
-        Throwable t;
-        try {
-            makePackage2(definePackage, loader, args);
-            return;
-        }
-        catch (java.lang.reflect.InvocationTargetException e) {
-            t = e.getTargetException();
-            if (t == null)
-                t = e;
-            else if (t instanceof IllegalArgumentException) {
-                // if the package is already defined, an IllegalArgumentException
-                // is thrown.
-                return;
-            }
-        }
-        catch (Exception e) {
-            t = e;
-        }
-
-        throw new CannotCompileException(t);
+        DefinePackageHelper.definePackage(name, loader);
     }
 
-    private static synchronized Object makePackage2(Method method,
-            ClassLoader loader, Object[] args)
-        throws Exception
-    {
-        method.setAccessible(true);
-        try {
-            return method.invoke(loader, args);
-        }
-        finally {
-            method.setAccessible(false);
-        }
-    }
 }
