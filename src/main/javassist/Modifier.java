@@ -186,7 +186,7 @@ public class Modifier {
     }
 
     /**
-     * Truns the protected bit on.  The protected and public bits are
+     * Truns the protected bit on.  The private and public bits are
      * cleared.
      */
     public static int setProtected(int mod) {
@@ -194,7 +194,7 @@ public class Modifier {
     }
 
     /**
-     * Truns the private bit on.  The protected and private bits are
+     * Truns the private bit on.  The protected and public bits are
      * cleared.
      */
     public static int setPrivate(int mod) {

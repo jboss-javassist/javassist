@@ -55,7 +55,7 @@ public class AccessFlag {
     }
 
     /**
-     * Turns the protected bit on.  The protected and public bits are
+     * Turns the protected bit on.  The private and public bits are
      * cleared.
      */
     public static int setProtected(int accflags) {
@@ -63,7 +63,7 @@ public class AccessFlag {
     }
 
     /**
-     * Truns the private bit on.  The protected and private bits are
+     * Truns the private bit on.  The protected and public bits are
      * cleared.
      */
     public static int setPrivate(int accflags) {
