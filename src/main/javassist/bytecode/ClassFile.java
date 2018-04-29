@@ -20,6 +20,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
@@ -124,6 +125,18 @@ public final class ClassFile {
     public static final int JAVA_9 = 53;
 
     /**
+     * The major version number of class files
+     * for JDK 10.
+     */
+    public static final int JAVA_10 = 54;
+
+    /**
+     * The major version number of class files
+     * for JDK 11.
+     */
+    public static final int JAVA_11 = 55;
+
+    /**
      * The major version number of class files created
      * from scratch.  The default value is 47 (JDK 1.3).
      * It is 49 (JDK 1.5)
@@ -136,6 +149,10 @@ public final class ClassFile {
      * if the JVM supports <code>java.util.function.Function</code>.
      * It is 53 (JDK 1.9)
      * if the JVM supports <code>java.lang.reflect.Module</code>.
+     * It is 54 (JDK 10)
+     * if the JVM supports <code>java.util.List.copyOf(Collection)</code>.
+     * It is 55 (JDK 11)
+     * if the JVM supports <code>java.util.Optional.isEmpty()</code>.
      */
     public static final int MAJOR_VERSION;
 
@@ -152,6 +169,10 @@ public final class ClassFile {
             ver = JAVA_8;
             Class.forName("java.lang.Module");
             ver = JAVA_9;
+            List.class.getMethod("copyOf", Collection.class);
+            ver = JAVA_10;
+            Class.forName("java.util.Optional").getMethod("isEmpty");
+            ver = JAVA_11;
         }
         catch (Throwable t) {}
         MAJOR_VERSION = ver;

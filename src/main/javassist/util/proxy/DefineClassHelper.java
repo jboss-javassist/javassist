@@ -21,6 +21,7 @@ import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodHandles.Lookup;
 import java.lang.reflect.Method;
 import java.security.ProtectionDomain;
+import java.util.List;
 
 import javassist.CannotCompileException;
 import javassist.bytecode.ClassFile;
@@ -73,8 +74,12 @@ public class DefineClassHelper
                     throw new IllegalAccessError("Access denied for caller.");
                 try {
                     SecurityActions.TheUnsafe usf = SecurityActions.getSunMiscUnsafeAnonymously();
+                    List<Method> defineClassMethod = usf.methods.get("defineClass");
+                    // On Java 11+ the defineClass method does not exist anymore
+                    if (null == defineClassMethod)
+                        return null;
                     MethodHandle meth = MethodHandles.lookup()
-                            .unreflect(usf.methods.get("defineClass").get(0));
+                            .unreflect(defineClassMethod.get(0));
                     return new ReferencedUnsafe(usf, meth);
                 } catch (Throwable e) {
                     throw new RuntimeException("cannot initialize", e);
@@ -171,11 +176,15 @@ public class DefineClassHelper
                 ClassLoader loader, ProtectionDomain protectionDomain) throws ClassFormatError;
     }
 
-    private static final SecuredPrivileged privileged = ClassFile.MAJOR_VERSION >= ClassFile.JAVA_9
-            ? SecuredPrivileged.JAVA_9
-            : ClassFile.MAJOR_VERSION >= ClassFile.JAVA_7
-                    ? SecuredPrivileged.JAVA_7
-                    : SecuredPrivileged.JAVA_OTHER;
+    // Java 11+ removed sun.misc.Unsafe.defineClass, so we fallback to invoking defineClass on
+    // ClassLoader until we have an implementation that uses MethodHandles.Lookup.defineClass
+    private static final SecuredPrivileged privileged = ClassFile.MAJOR_VERSION > ClassFile.JAVA_10
+            ? SecuredPrivileged.JAVA_OTHER
+            : ClassFile.MAJOR_VERSION >= ClassFile.JAVA_9
+                ? SecuredPrivileged.JAVA_9
+                : ClassFile.MAJOR_VERSION >= ClassFile.JAVA_7
+                        ? SecuredPrivileged.JAVA_7
+                        : SecuredPrivileged.JAVA_OTHER;
 
     /**
      * Loads a class file by a given class loader.
