@@ -119,7 +119,6 @@ public class ScopedClassPool extends ClassPool {
      */
     public void close() {
         this.removeClassPath(classPath);
-        classPath.close();
         classes.clear();
         softcache.clear();
     }

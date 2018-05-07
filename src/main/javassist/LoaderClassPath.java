@@ -90,12 +90,4 @@ public class LoaderClassPath implements ClassPath {
         URL url = cl.getResource(cname);
         return url;
     }
-
-    /**
-     * Closes this class path.
-     */
-    @Override
-    public void close() {
-        clref = null;
-    }
 }

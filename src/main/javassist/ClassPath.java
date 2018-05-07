@@ -58,11 +58,4 @@ public interface ClassPath {
      * @return null if the specified class file could not be found.
      */
     URL find(String classname);
-
-    /**
-     * This method is invoked when the <code>ClassPath</code> object is
-     * detached from the search path.  It will be an empty method in most of
-     * classes.
-     */
-    void close();
 }

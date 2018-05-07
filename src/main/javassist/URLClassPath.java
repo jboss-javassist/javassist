@@ -118,12 +118,6 @@ public class URLClassPath implements ClassPath {
     }
 
     /**
-     * Closes this class path.
-     */
-    @Override
-    public void close() {}
-
-    /**
      * Reads a class file on an http server.
      *
      * @param host              host name

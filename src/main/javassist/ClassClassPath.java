@@ -91,13 +91,6 @@ public class ClassClassPath implements ClassPath {
         return thisClass.getResource(filename);
     }
 
-    /**
-     * Does nothing.
-     */
-    @Override
-    public void close() {
-    }
-
     @Override
     public String toString() {
         return thisClass.getName() + ".class";
