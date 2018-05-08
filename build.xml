@@ -16,6 +16,7 @@
   <property name="build.dir" value="${basedir}/target"/>
   <property name="build.classes.dir" value="${build.dir}/classes"/>
   <property name="test.src.dir" value="${basedir}/src/test"/>
+  <property name="test.lib.dir" value="${test.src.dir}/resources"/>
   <property name="test.build.dir" value="${build.dir}/test-classes"/>
   <property name="test.run.dir" value="${build.dir}/runtest"/>
   <property name="test.reports.dir" value = "${build.dir}/test-output"/>
@@ -39,6 +40,7 @@
 
   <path id="test.classpath">
     <pathelement location="${test.build.dir}"/>
+    <pathelement location="${test.lib.dir}"/>
     <pathelement location="${lib.dir}/junit.jar"/>
     <pathelement location="${lib.dir}/hamcrest.jar"/>
     <pathelement location="${build.classes.dir}"/>
@@ -100,15 +102,23 @@
   </target>
 
   <target name="runtest" depends="jar,test-compile">
+    <copy file="${test.lib.dir}/empty.jar"
+          tofile="${test.lib.dir}/emptyorig.jar"
+          preservelastmodified="true" />
     <junit fork="true" printsummary="true" dir="${test.run.dir}">
       <jvmarg value="-XX:-FailOverToOldVerifier"/>
       <classpath refid="test.classpath"/>
       <formatter type="xml" extension=".xml"/>
       <test name="javassist.JvstTest" outfile="TestLog" />
     </junit>
+    <move file="${test.lib.dir}/emptyorig.jar"
+          tofile="${test.lib.dir}/empty.jar" />
   </target>
 
   <target name="runtest9" depends="jar,test-compile">
+    <copy file="${test.lib.dir}/empty.jar"
+          tofile="${test.lib.dir}/emptyorig.jar"
+          preservelastmodified="true" />
     <junit fork="true" printsummary="true" dir="${test.run.dir}">
       <jvmarg line="--add-opens java.base/java.lang=ALL-UNNAMED" />
       <jvmarg value="-XX:-FailOverToOldVerifier"/>
@@ -116,6 +126,8 @@
       <formatter type="xml" extension=".xml"/>
       <test name="javassist.JvstTest" outfile="TestLog" />
     </junit>
+    <move file="${test.lib.dir}/emptyorig.jar"
+          tofile="${test.lib.dir}/empty.jar" />
   </target>
 
   <target name="sample" depends="compile">

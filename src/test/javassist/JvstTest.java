@@ -79,7 +79,7 @@ public class JvstTest extends JvstTestRoot {
 
         // Assert that it is possible to delete the jar file.
         // On Windows deleting an open file will fail, while on on Mac/Linux this is always possible.
-        // This check will thus only fail on Windos if the file is still open.
+        // This check will thus only fail on Windows if the file is still open.
         assertTrue(jarFile.delete());
     }
 
