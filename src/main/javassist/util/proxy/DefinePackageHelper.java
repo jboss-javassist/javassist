@@ -154,10 +154,10 @@ public class DefinePackageHelper
      *
      * @param loader        the class loader passed to <code>toClass()</code> or
      *                      the default one obtained by <code>getClassLoader()</code>.
-     * @param name          the package name.
-     * @see #getClassLoader()
-     * @see #toClass(CtClass)
-     * @see CtClass#toClass() */
+     * @param className     the package name.
+     * @see Class#getClassLoader()
+     * @see CtClass#toClass()
+     */
     public static void definePackage(String className, ClassLoader loader)
         throws CannotCompileException
     {
