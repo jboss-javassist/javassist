@@ -51,8 +51,12 @@ public class DefineClassHelper
                 Class<?> defineClass(String name, byte[] b, int off, int len,
                         ClassLoader loader, ProtectionDomain protectionDomain)
                                 throws ClassFormatError {
-                    if (stack.getCallerClass() != SecuredPrivileged.JAVA_9.getClass())
-                        throw new IllegalAccessError("Access denied for caller.");
+                    try {
+                        if (getCallerClass.invoke(stack) != SecuredPrivileged.JAVA_9.getClass())
+                            throw new IllegalAccessError("Access denied for caller.");
+                    } catch (Exception e) {
+                        throw new RuntimeException("cannot initialize", e);
+                    }
                     try {
                         return (Class<?>) defineClass.invokeWithArguments(
                                 sunMiscUnsafeTheUnsafe.theUnsafe,
@@ -64,14 +68,40 @@ public class DefineClassHelper
                     }
                 }
             }
-            private final StackWalker stack = StackWalker
-                    .getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE);
+            private final Object stack;
+            private final Method getCallerClass;
+            {
+                Class<?> stackWalkerClass = null;
+                try {
+                    stackWalkerClass = Class.forName("java.lang.StackWalker");
+                } catch (ClassNotFoundException e) {
+                    // Skip initialization when the class doesn't exist i.e. we are on JDK < 9
+                }
+                if (stackWalkerClass != null) {
+                    try {
+                        Class<?> optionClass = Class.forName("java.lang.StackWalker$Option");
+                        stack = stackWalkerClass.getMethod("getInstance", optionClass)
+                                // The first one is RETAIN_CLASS_REFERENCE
+                                .invoke(null, optionClass.getEnumConstants()[0]);
+                        getCallerClass = stackWalkerClass.getMethod("getCallerClass");
+                    } catch (Throwable e) {
+                        throw new RuntimeException("cannot initialize", e);
+                    }
+                } else {
+                    stack = null;
+                    getCallerClass = null;
+                }
+            }
             private final ReferencedUnsafe sunMiscUnsafe = getReferencedUnsafe();
             private final ReferencedUnsafe getReferencedUnsafe()
             {
-                if (null != SecuredPrivileged.JAVA_9
-                        && stack.getCallerClass() != this.getClass())
-                    throw new IllegalAccessError("Access denied for caller.");
+                try {
+                    if (null != SecuredPrivileged.JAVA_9
+                            && getCallerClass.invoke(stack) != this.getClass())
+                        throw new IllegalAccessError("Access denied for caller.");
+                } catch (Exception e) {
+                    throw new RuntimeException("cannot initialize", e);
+                }
                 try {
                     SecurityActions.TheUnsafe usf = SecurityActions.getSunMiscUnsafeAnonymously();
                     List<Method> defineClassMethod = usf.methods.get("defineClass");
@@ -91,8 +121,12 @@ public class DefineClassHelper
                     ClassLoader loader, ProtectionDomain protectionDomain)
                             throws ClassFormatError
             {
-                if (stack.getCallerClass() != DefineClassHelper.class)
-                    throw new IllegalAccessError("Access denied for caller.");
+                try {
+                    if (getCallerClass.invoke(stack) != DefineClassHelper.class)
+                        throw new IllegalAccessError("Access denied for caller.");
+                } catch (Exception e) {
+                    throw new RuntimeException("cannot initialize", e);
+                }
                 return sunMiscUnsafe.defineClass(name, b, off, len, loader,
                         protectionDomain);
             }
