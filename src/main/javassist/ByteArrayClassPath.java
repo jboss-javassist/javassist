@@ -17,9 +17,12 @@
 package javassist;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLConnection;
+import java.net.URLStreamHandler;
 
 /**
  * A <code>ByteArrayClassPath</code> contains bytes that is served as
@@ -86,12 +89,34 @@ public class ByteArrayClassPath implements ClassPath {
         if(this.classname.equals(classname)) {
             String cname = classname.replace('.', '/') + ".class";
             try {
-                // return new File(cname).toURL();
-                return new URL("file:/ByteArrayClassPath/" + cname);
+                return new URL(null, "file:/ByteArrayClassPath/" + cname, new BytecodeURLStreamHandler());
             }
             catch (MalformedURLException e) {}
         }
 
         return null;
+    }
+
+    private class BytecodeURLStreamHandler extends URLStreamHandler {
+        protected URLConnection openConnection(final URL u) {
+            return new BytecodeURLConnection(u);
+        }
+    }
+
+    private class BytecodeURLConnection extends URLConnection {
+        protected BytecodeURLConnection(URL url) {
+            super(url);
+        }
+
+        public void connect() throws IOException {
+        }
+
+        public InputStream getInputStream() throws IOException {
+            return new ByteArrayInputStream(classfile);
+        }
+
+        public int getContentLength() {
+            return classfile.length;
+        }
     }
 }
