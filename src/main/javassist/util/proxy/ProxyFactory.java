@@ -1190,7 +1190,7 @@ public class ProxyFactory {
                 // ignore a bridge method with the same signature that the overridden one has.
                 if (null != oldMethod && isBridge(m)
                     && !Modifier.isPublic(oldMethod.getDeclaringClass().getModifiers())
-                    && !Modifier.isAbstract(oldMethod.getModifiers()) && !isOverloaded(i, methods))
+                    && !Modifier.isAbstract(oldMethod.getModifiers()) && !isDuplicated(i, methods))
                     hash.put(key, oldMethod);
 
                 // check if visibility has been reduced 
@@ -1203,16 +1203,35 @@ public class ProxyFactory {
             }
     }
 
-    private static boolean isOverloaded(int index, Method[] methods) {
+    private static boolean isDuplicated(int index, Method[] methods) {
         String name = methods[index].getName();
         for (int i = 0; i < methods.length; i++)
             if (i != index)
-                if (name.equals(methods[i].getName()))
+                if (name.equals(methods[i].getName()) && areParametersSame(methods[index], methods[i]))
                     return true;
 
         return false;
     }
+    
+    private static boolean areParametersSame(Method method, Method targetMethod) {
+        Class<?>[] methodTypes = method.getParameterTypes();
+        Class<?>[] targetMethodTypes = targetMethod.getParameterTypes();
+        int i = -1;
+        if (methodTypes.length == targetMethodTypes.length) {
+            for (Class<?> clz : methodTypes) {
+                i++;
 
+                if (clz.equals(targetMethodTypes[i].getClass())) {
+                    continue;
+                } else {
+                    return false;
+                }
+            }
+            return true;
+        }
+        return false;
+    }
+    
     private static final String HANDLER_GETTER_KEY
     	= HANDLER_GETTER + ":()";
 
