@@ -1216,12 +1216,9 @@ public class ProxyFactory {
     private static boolean areParametersSame(Method method, Method targetMethod) {
         Class<?>[] methodTypes = method.getParameterTypes();
         Class<?>[] targetMethodTypes = targetMethod.getParameterTypes();
-        int i = -1;
         if (methodTypes.length == targetMethodTypes.length) {
-            for (Class<?> clz : methodTypes) {
-                i++;
-
-                if (clz.equals(targetMethodTypes[i].getClass())) {
+            for (int i = 0; i< methodTypes.length; i++) {
+                if (methodTypes[i].getName().equals(targetMethodTypes[i].getName())) {
                     continue;
                 } else {
                     return false;
