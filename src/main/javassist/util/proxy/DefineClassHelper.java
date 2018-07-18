@@ -246,7 +246,8 @@ public class DefineClassHelper
             throw e;
         }
         catch (ClassFormatError e) {
-            throw new CannotCompileException(e.getCause());
+            Throwable t = e.getCause();
+            throw new CannotCompileException(t == null ? e : t);
         }
         catch (Exception e) {
             throw new CannotCompileException(e);
