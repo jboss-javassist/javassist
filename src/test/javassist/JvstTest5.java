@@ -9,6 +9,8 @@ import javassist.bytecode.AttributeInfo;
 import javassist.bytecode.ClassFile;
 import javassist.bytecode.ConstPool;
 import javassist.bytecode.InnerClassesAttribute;
+import javassist.bytecode.NestHostAttribute;
+import javassist.bytecode.NestMembersAttribute;
 import javassist.expr.ExprEditor;
 import javassist.expr.Handler;
 import javassist.expr.MethodCall;
@@ -415,5 +417,27 @@ public class JvstTest5 extends JvstTestRoot {
         cc.writeFile();
         Object obj = make(cc.getName());
         assertEquals(1, invoke(obj, "test"));
+    }
+
+    public void testNestHostAttribute() throws Exception {
+        CtClass cc = sloader.get("test5.NestHost$Foo");
+        ClassFile cf = cc.getClassFile();
+        NestHostAttribute attr = (NestHostAttribute)cf.getAttribute(NestHostAttribute.tag);
+        assertEquals(test5.NestHost.class.getName(),
+                     cf.getConstPool().getClassInfo(attr.hostClassIndex()));
+    }
+
+    public void testNestMembersAttribute() throws Exception {
+        CtClass cc = sloader.get("test5.NestHost");
+        ClassFile cf = cc.getClassFile();
+        NestMembersAttribute attr = (NestMembersAttribute)cf.getAttribute(NestMembersAttribute.tag);
+        assertEquals(2, attr.numberOfClasses());
+        String[] names = new String[2];
+        for (int i = 0; i < 2; i++)
+            names[i] = cf.getConstPool().getClassInfo(attr.memberClass(i));
+        
+        assertFalse(names[0].equals(names[1]));
+        assertTrue(names[0].equals("test5.NestHost$Foo") || names[0].equals("test5.NestHost$Bar"));
+        assertTrue(names[1].equals("test5.NestHost$Foo") || names[1].equals("test5.NestHost$Bar"));
     }
 }
