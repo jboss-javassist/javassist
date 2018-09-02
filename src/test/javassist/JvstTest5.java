@@ -440,4 +440,17 @@ public class JvstTest5 extends JvstTestRoot {
         assertTrue(names[0].equals("test5.NestHost$Foo") || names[0].equals("test5.NestHost$Bar"));
         assertTrue(names[1].equals("test5.NestHost$Foo") || names[1].equals("test5.NestHost$Bar"));
     }
+
+    public void testNestMembersAttributeCopy() throws Exception {
+        CtClass cc = sloader.get("test5.NestHost2");
+        cc.getClassFile().compact();
+        cc.writeFile();
+        make(cc.getName());
+    }
+
+    public void testNestHostAttributeCopy() throws Exception {
+        CtClass cc = sloader.get("test5.NestHost2$Foo");
+        cc.getClassFile().compact();
+        cc.toClass();
+    }
 }
