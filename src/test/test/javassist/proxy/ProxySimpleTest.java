@@ -330,5 +330,36 @@ public class ProxySimpleTest extends TestCase {
     public static class Extended267 extends Base267 {     	
         public String base(Integer i) { return "extended" + i + i; }
     }
+
+    String value267b;
     
+    public void testJIRA267b() throws Exception {
+        Extended267b extended267 = new Extended267b();
+        ProxyFactory factory = new ProxyFactory();
+        factory.setSuperclass(Extended267b.class);
+        Extended267b e = (Extended267b)factory.create(null, null, new MethodHandler() {
+            @Override
+            public Object invoke(Object self, Method thisMethod,
+                    Method proceed, Object[] args) throws Throwable {
+                value267b += thisMethod.getDeclaringClass().getName();
+                value267b += ";" + thisMethod.getReturnType().getName();
+                return proceed.invoke(self, args);
+            }
+        });
+
+        value267b = "";
+        assertEquals("extended", e.base());
+        System.out.println(value267b);
+        assertEquals(Extended267b.class.getName() + ";" + String.class.getName(), value267b);
+    }
+
+    public static class Base267b {
+        public Object base() { return "base"; }
+    }
+
+    // Extended267b has a bridge method for base():Object,
+    // since Extended267b#base() is covariant.
+    public static class Extended267b extends Base267b {
+        public String base() { return "extended"; }
+    }
 }

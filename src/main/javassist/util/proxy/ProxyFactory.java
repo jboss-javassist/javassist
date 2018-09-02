@@ -1186,8 +1186,8 @@ public class ProxyFactory {
                 // put the method to the cache, retrieve previous definition (if any)
                 Method oldMethod = hash.put(key, m);
 
-                // JIRA JASSIST-244
-                // ignore a bridge method with the same signature that the overridden one has.
+                // JIRA JASSIST-244, 267
+                // ignore a bridge method to a method declared in a non-public class.
                 if (null != oldMethod && isBridge(m)
                     && !Modifier.isPublic(oldMethod.getDeclaringClass().getModifiers())
                     && !Modifier.isAbstract(oldMethod.getModifiers()) && !isDuplicated(i, methods))
