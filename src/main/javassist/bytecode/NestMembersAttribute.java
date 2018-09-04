@@ -23,6 +23,8 @@ import java.util.Map;
 /**
  * <code>NestMembers_attribute</code>.
  * It was introduced by JEP-181.  See JVMS 4.7.29 for the specification.
+ *
+ * @since 3.24
  */
 public class NestMembersAttribute extends AttributeInfo {
     /**

@@ -23,6 +23,8 @@ import java.util.Map;
 /**
  * <code>NestHost_attribute</code>.
  * It was introduced by JEP-181.  See JVMS 4.7.28 for the specification.
+ *
+ * @since 3.24
  */
 public class NestHostAttribute extends AttributeInfo {
     /**
