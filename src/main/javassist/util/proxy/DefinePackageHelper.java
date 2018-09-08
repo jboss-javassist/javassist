@@ -32,110 +32,113 @@ import javassist.bytecode.ClassFile;
  */
 public class DefinePackageHelper
 {
-            
-    private static enum SecuredPrivileged
-    {
-        JAVA_9 {
-            // definePackage has been discontinued for JAVA 9
-            @Override
-            protected Package definePackage(ClassLoader loader, String name, String specTitle,
+    private static abstract class Helper {
+        abstract Package definePackage(ClassLoader loader, String name, String specTitle,
+                String specVersion, String specVendor, String implTitle, String implVersion,
+                String implVendor, URL sealBase)
+            throws IllegalArgumentException;
+    }
+
+    private static class Java9 extends Helper {
+        // definePackage has been discontinued for JAVA 9
+        @Override
+        Package definePackage(ClassLoader loader, String name, String specTitle,
                     String specVersion, String specVendor, String implTitle, String implVersion,
-                    String implVendor, URL sealBase) throws IllegalArgumentException
-            {
-                throw new RuntimeException("define package has been disabled for jigsaw");
-            }
-        },
-        JAVA_7 {
-            private final SecurityActions stack = SecurityActions.stack;
-            private final MethodHandle definePackage = getDefinePackageMethodHandle();
-            private MethodHandle getDefinePackageMethodHandle()
-            {
-                if (stack.getCallerClass() != this.getClass())
-                    throw new IllegalAccessError("Access denied for caller.");
-                try {
-                    return SecurityActions.getMethodHandle(ClassLoader.class, 
+                    String implVendor, URL sealBase)
+            throws IllegalArgumentException
+        {
+            throw new RuntimeException("define package has been disabled for jigsaw");
+        }
+    };
+
+    private static class Java7 extends Helper {
+        private final SecurityActions stack = SecurityActions.stack;
+        private final MethodHandle definePackage = getDefinePackageMethodHandle();
+
+        private MethodHandle getDefinePackageMethodHandle() {
+            if (stack.getCallerClass() != this.getClass())
+                throw new IllegalAccessError("Access denied for caller.");
+            try {
+                return SecurityActions.getMethodHandle(ClassLoader.class, 
                             "definePackage", new Class[] {
                                 String.class, String.class, String.class, String.class,
                                 String.class, String.class, String.class, URL.class 
                             });
-                } catch (NoSuchMethodException e) {
-                    throw new RuntimeException("cannot initialize", e);
-                }
+            } catch (NoSuchMethodException e) {
+                throw new RuntimeException("cannot initialize", e);
             }
+        }
             
-            @Override
-            protected Package definePackage(ClassLoader loader, String name, String specTitle,
+        @Override
+        Package definePackage(ClassLoader loader, String name, String specTitle,
                     String specVersion, String specVendor, String implTitle, String implVersion,
-                    String implVendor, URL sealBase) throws IllegalArgumentException {
-                if (stack.getCallerClass() != DefinePackageHelper.class)
-                    throw new IllegalAccessError("Access denied for caller.");
-                try {
-                    return (Package) definePackage.invokeWithArguments(loader, name, specTitle,
+                    String implVendor, URL sealBase)
+            throws IllegalArgumentException
+        {
+            if (stack.getCallerClass() != DefinePackageHelper.class)
+                throw new IllegalAccessError("Access denied for caller.");
+            try {
+                return (Package) definePackage.invokeWithArguments(loader, name, specTitle,
                         specVersion, specVendor, implTitle, implVersion, implVendor, sealBase);
-                } catch (Throwable e) {
-                    if (e instanceof IllegalArgumentException) throw (IllegalArgumentException) e;
-                    if (e instanceof RuntimeException) throw (RuntimeException) e;
-                }
-                return null;
+            } catch (Throwable e) {
+                if (e instanceof IllegalArgumentException) throw (IllegalArgumentException) e;
+                if (e instanceof RuntimeException) throw (RuntimeException) e;
             }
-        },
-        JAVA_OTHER {
-            private final SecurityActions stack = SecurityActions.stack;
-            private final Method definePackage = getDefinePackageMethod();
-            private Method getDefinePackageMethod()
-            {
-                if (stack.getCallerClass() != this.getClass())
-                    throw new IllegalAccessError("Access denied for caller.");
-                try {
-                    return SecurityActions.getDeclaredMethod(ClassLoader.class, 
+            return null;
+        }
+    }
+
+    private static class JavaOther extends Helper {
+        private final SecurityActions stack = SecurityActions.stack;
+        private final Method definePackage = getDefinePackageMethod();
+
+        private Method getDefinePackageMethod() {
+            if (stack.getCallerClass() != this.getClass())
+                throw new IllegalAccessError("Access denied for caller.");
+            try {
+                return SecurityActions.getDeclaredMethod(ClassLoader.class, 
                             "definePackage", new Class[] {
                                 String.class, String.class, String.class, String.class,
                                 String.class, String.class, String.class, URL.class 
                             });
-                } catch (NoSuchMethodException e) {
-                    throw new RuntimeException("cannot initialize", e);
-                }
+            } catch (NoSuchMethodException e) {
+                throw new RuntimeException("cannot initialize", e);
             }
+        }
             
-            @Override
-            protected Package definePackage(ClassLoader loader, String name, String specTitle,
+        @Override
+        Package definePackage(ClassLoader loader, String name, String specTitle,
                     String specVersion, String specVendor, String implTitle, String implVersion,
-                    String implVendor, URL sealBase) throws IllegalArgumentException
-            {
-                if (stack.getCallerClass() != DefinePackageHelper.class)
-                    throw new IllegalAccessError("Access denied for caller.");
-                try {
-                    definePackage.setAccessible(true);
-                    return (Package) definePackage.invoke(loader, new Object[] {
+                    String implVendor, URL sealBase)
+            throws IllegalArgumentException
+        {
+            if (stack.getCallerClass() != DefinePackageHelper.class)
+                throw new IllegalAccessError("Access denied for caller.");
+            try {
+                definePackage.setAccessible(true);
+                return (Package) definePackage.invoke(loader, new Object[] {
                         name, specTitle, specVersion, specVendor, implTitle,
                         implVersion, implVendor, sealBase                                
                     });
-                } catch (Throwable e) {
-                    if (e instanceof InvocationTargetException) {
-                        Throwable t = ((InvocationTargetException) e).getTargetException();
-                        if (t instanceof IllegalArgumentException)
-                            throw (IllegalArgumentException) t;
-                    }
-                    if (e instanceof RuntimeException) throw (RuntimeException) e;
+            } catch (Throwable e) {
+                if (e instanceof InvocationTargetException) {
+                    Throwable t = ((InvocationTargetException) e).getTargetException();
+                    if (t instanceof IllegalArgumentException)
+                        throw (IllegalArgumentException) t;
                 }
-                finally {
-                    definePackage.setAccessible(false);
-                }
-                return null;
+                if (e instanceof RuntimeException) throw (RuntimeException) e;
             }
-        };
+            finally {
+                definePackage.setAccessible(false);
+            }
+            return null;
+        }
+    };
 
-        protected abstract Package definePackage(ClassLoader loader, String name, String specTitle,
-                String specVersion, String specVendor, String implTitle, String implVersion,
-                String implVendor, URL sealBase) throws IllegalArgumentException;
-    }
-
-    private static final SecuredPrivileged privileged = ClassFile.MAJOR_VERSION >= ClassFile.JAVA_9
-            ? SecuredPrivileged.JAVA_9
-            : ClassFile.MAJOR_VERSION >= ClassFile.JAVA_7
-                ? SecuredPrivileged.JAVA_7
-                : SecuredPrivileged.JAVA_OTHER;
-
+    private static final Helper privileged
+        = ClassFile.MAJOR_VERSION >= ClassFile.JAVA_9
+          ? new Java9() : ClassFile.MAJOR_VERSION >= ClassFile.JAVA_7
+                          ? new Java7() : new JavaOther();
 
     /**
      * Defines a new package.  If the package is already defined, this method

@@ -1261,15 +1261,26 @@ public abstract class CtClass {
      * server, the context class loader might be inappropriate to load the
      * class.
      *
-     * <p>This method is provided for convenience.  If you need more
-     * complex functionality, you should write your own class loader.
+     * <p><b>Warning:</b> In Java 11 or later, the call to this method will
+     * print a warning message:
+     * <blockquote><pre>
+     * WARNING: An illegal reflective access operation has occurred
+     * WARNING: Illegal reflective access by javassist.util.proxy.SecurityActions$3 ...
+     * WARNING: Please consider reporting this to the maintainers of javassist.util.proxy.SecurityActions$3
+     * WARNING: Use --illegal-access=warn to enable warnings of further illegal reflective access operations
+     * WARNING: All illegal access operations will be denied in a future release
+     * </pre></blockquote>
+     * To avoid this message, use {@link #toClass(Class)}
+     * or {@link #toClass(java.lang.invoke.MethodHandles.Lookup)}.
+     * {@link #toClass()} will be unavailable in a future release.
+     * </p>
+     *
+     * <p><b>Warning:</b> A Class object returned by this method may not
+     * work with a security manager or a signed jar file because a
+     * protection domain is not specified.</p>
      *
      * <p>Note: this method calls <code>toClass()</code>
-     * in <code>ClassPool</code>.
-     *
-     * <p><b>Warining:</b> A Class object returned by this method may not
-     * work with a security manager or a signed jar file because a
-     * protection domain is not specified.
+     * in <code>ClassPool</code>.</p>
      *
      * @see #toClass(java.lang.invoke.MethodHandles.Lookup)
      * @see #toClass(Class)
@@ -1290,7 +1301,7 @@ public abstract class CtClass {
      * <p>Note: this method calls <code>toClass()</code>
      * in <code>ClassPool</code>.
      *
-     * <p><b>Warining:</b> A Class object returned by this method may not
+     * <p><b>Warning:</b> A Class object returned by this method may not
      * work with a security manager or a signed jar file because a
      * protection domain is not specified.
      *
@@ -1315,7 +1326,7 @@ public abstract class CtClass {
      * <p>Note: this method calls <code>toClass()</code>
      * in <code>ClassPool</code>.
      *
-     * <p><b>Warining:</b> A Class object returned by this method may not
+     * <p><b>Warning:</b> A Class object returned by this method may not
      * work with a security manager or a signed jar file because a
      * protection domain is not specified.
      *
@@ -1374,7 +1385,7 @@ public abstract class CtClass {
     /**
      * Converts this class to a <code>java.lang.Class</code> object.
      *
-     * <p><b>Warining:</b> A Class object returned by this method may not
+     * <p><b>Warning:</b> A Class object returned by this method may not
      * work with a security manager or a signed jar file because a
      * protection domain is not specified.
      *
