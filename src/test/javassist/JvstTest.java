@@ -1,6 +1,8 @@
 package javassist;
 
 import junit.framework.*;
+import test1.DefineClassCapability;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
@@ -743,8 +745,8 @@ public class JvstTest extends JvstTestRoot {
 
         ctInterface.stopPruning(true);
         ctInterface.writeFile();
-        ctInterface.toClass();
-        targetCtClass.toClass();
+        ctInterface.toClass(DefineClassCapability.class);
+        targetCtClass.toClass(DefineClassCapability.class);
     }
 
     public void testDispatch() throws Exception {
@@ -1161,6 +1163,7 @@ public class JvstTest extends JvstTestRoot {
         suite.addTestSuite(javassist.SetterTest.class);
         suite.addTestSuite(javassist.bytecode.InsertGap0.class);
         suite.addTestSuite(javassist.tools.reflect.LoaderTest.class);
+        suite.addTestSuite(javassist.tools.CallbackTest.class);
         suite.addTestSuite(testproxy.ProxyTester.class);
         suite.addTestSuite(testproxy.ProxyFactoryPerformanceTest.class); // remove?
         suite.addTestSuite(javassist.proxyfactory.ProxyFactoryTest.class);

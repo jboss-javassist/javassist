@@ -1054,7 +1054,7 @@ public class JvstTest4 extends JvstTestRoot {
         addDeadCode(newClass, "public boolean evaluate7(){ return !true; }");
 
         newClass.debugWriteFile();
-        Class<?> cClass = newClass.toClass();
+        Class<?> cClass = newClass.toClass(test4.DefineClassCapability.class);
         Object o = cClass.getConstructor().newInstance();
         java.lang.reflect.Method m = cClass.getMethod("evaluate");
         m.invoke(o);
@@ -1112,6 +1112,7 @@ public class JvstTest4 extends JvstTestRoot {
         attr.setAnnotation(a);
         m.getMethodInfo().addAttribute(attr);
         cc.writeFile();
+        anno.toClass(test4.DefineClassCapability.class);
         Class<?> rc = ((java.lang.annotation.Annotation)m.getAnnotations()[0]).annotationType();
         assertEquals(anno.getName(), rc.getName());
     }

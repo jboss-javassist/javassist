@@ -90,9 +90,9 @@ public class ProxyCacheGCTest extends TestCase
             // now create a proxyfactory and use it to create a proxy
 
             ProxyFactory factory = new ProxyFactory();
-            Class javaTargetClass = classPool.toClass(ctTargetClass);
-            Class javaHandlerClass = classPool.toClass(ctHandlerClass);
-            Class javaFilterClass = classPool.toClass(ctFilterClass);
+            Class javaTargetClass = classPool.toClass(ctTargetClass, test.javassist.DefineClassCapability.class);
+            Class javaHandlerClass = classPool.toClass(ctHandlerClass, test.javassist.DefineClassCapability.class);
+            Class javaFilterClass = classPool.toClass(ctFilterClass, test.javassist.DefineClassCapability.class);
 
             MethodHandler handler= (MethodHandler)javaHandlerClass.getConstructor().newInstance();
             MethodFilter filter = (MethodFilter)javaFilterClass.getConstructor().newInstance();

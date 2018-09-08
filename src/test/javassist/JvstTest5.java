@@ -223,7 +223,7 @@ public class JvstTest5 extends JvstTestRoot {
                 "}");
         System.out.println(src);
         badClass.addMethod(CtMethod.make(src, badClass));
-        Class clazzz = badClass.toClass();
+        Class clazzz = badClass.toClass(Class.forName("DefineClassCapability"));
         Object obj = clazzz.getConstructor().newInstance(); // <-- falls here
     }
 
@@ -451,6 +451,6 @@ public class JvstTest5 extends JvstTestRoot {
     public void testNestHostAttributeCopy() throws Exception {
         CtClass cc = sloader.get("test5.NestHost2$Foo");
         cc.getClassFile().compact();
-        cc.toClass();
+        cc.toClass(test5.DefineClassCapability.class);
     }
 }

@@ -34,9 +34,24 @@ import javassist.bytecode.ClassFile;
 public class DefineClassHelper {
 
     private static abstract class Helper {
-        abstract Class<?> defineClass(String name, byte[] b, int off, int len,
+        abstract Class<?> defineClass(String name, byte[] b, int off, int len, Class<?> neighbor,
                                       ClassLoader loader, ProtectionDomain protectionDomain)
-            throws ClassFormatError;
+            throws ClassFormatError, CannotCompileException;
+    }
+
+    private static class Java11 extends JavaOther {
+        Class<?> defineClass(String name, byte[] bcode, int off, int len, Class<?> neighbor,
+                             ClassLoader loader, ProtectionDomain protectionDomain)
+            throws ClassFormatError, CannotCompileException
+        {
+            if (neighbor != null)
+                return toClass(neighbor, bcode);
+            else {
+                // Lookup#defineClass() is not available.  So fallback to invoking defineClass on
+                // ClassLoader, which causes a warning message.
+                return super.defineClass(name, bcode, off, len, neighbor, loader, protectionDomain);
+            }
+        }
     }
 
     private static class Java9 extends Helper {
@@ -119,7 +134,7 @@ public class DefineClassHelper {
         }
 
         @Override
-        Class<?> defineClass(String name, byte[] b, int off, int len,
+        Class<?> defineClass(String name, byte[] b, int off, int len, Class<?> neighbor,
                                     ClassLoader loader, ProtectionDomain protectionDomain)
             throws ClassFormatError
         {
@@ -152,7 +167,7 @@ public class DefineClassHelper {
         }
 
         @Override
-        Class<?> defineClass(String name, byte[] b, int off, int len,
+        Class<?> defineClass(String name, byte[] b, int off, int len, Class<?> neighbor,
                 ClassLoader loader, ProtectionDomain protectionDomain)
             throws ClassFormatError
         {
@@ -187,11 +202,12 @@ public class DefineClassHelper {
         }
 
         @Override
-        Class<?> defineClass(String name, byte[] b, int off, int len,
+        Class<?> defineClass(String name, byte[] b, int off, int len, Class<?> neighbor,
                              ClassLoader loader, ProtectionDomain protectionDomain)
-            throws ClassFormatError
+            throws ClassFormatError, CannotCompileException
         {
-            if (stack.getCallerClass() != DefineClassHelper.class)
+            Class<?> klass = stack.getCallerClass();
+            if (klass != DefineClassHelper.class && klass != this.getClass())
                 throw new IllegalAccessError("Access denied for caller.");
             try {
                 SecurityActions.setAccessible(defineClass, true);
@@ -201,7 +217,7 @@ public class DefineClassHelper {
             } catch (Throwable e) {
                 if (e instanceof ClassFormatError) throw (ClassFormatError) e;
                 if (e instanceof RuntimeException) throw (RuntimeException) e;
-                throw new ClassFormatError(e.getMessage());
+                throw new CannotCompileException(e);
             }
             finally {
                 SecurityActions.setAccessible(defineClass, false);
@@ -212,7 +228,7 @@ public class DefineClassHelper {
     // Java 11+ removed sun.misc.Unsafe.defineClass, so we fallback to invoking defineClass on
     // ClassLoader until we have an implementation that uses MethodHandles.Lookup.defineClass
     private static final Helper privileged = ClassFile.MAJOR_VERSION > ClassFile.JAVA_10
-            ? new JavaOther()
+            ? new Java11()
             : ClassFile.MAJOR_VERSION >= ClassFile.JAVA_9
                 ? new Java9()
                 : ClassFile.MAJOR_VERSION >= ClassFile.JAVA_7 ? new Java7() : new JavaOther();
@@ -220,7 +236,9 @@ public class DefineClassHelper {
     /**
      * Loads a class file by a given class loader.
      *
-     * <p>This first tries to use {@code sun.misc.Unsafe} to load a class.
+     * <p>This first tries to use {@code java.lang.invoke.MethodHandle} to load a class.
+     * Otherwise, or if {@code neighbor} is null,
+     * this tries to use {@code sun.misc.Unsafe} to load a class.
      * Then it tries to use a {@code protected} method in {@code java.lang.ClassLoader}
      * via {@code PrivilegedAction}.  Since the latter approach is not available
      * any longer by default in Java 9 or later, the JVM argument
@@ -229,17 +247,26 @@ public class DefineClassHelper {
      * should be used instead.
      * </p>
      *
+     * @param className     the name of the loaded class.
+     * @param neighbor      the class contained in the same package as the loaded class.
+     * @param loader        the class loader.  It can be null if {@code neighbor} is not null
+     *                      and the JVM is Java 11 or later.
      * @param domain        if it is null, a default domain is used.
+     * @parma bcode         the bytecode for the loaded class.
      * @since 3.22
      */
-    public static Class<?> toClass(String className, ClassLoader loader,
+    public static Class<?> toClass(String className, Class<?> neighbor, ClassLoader loader,
                                    ProtectionDomain domain, byte[] bcode)
         throws CannotCompileException
     {
         try {
-            return privileged.defineClass(className, bcode, 0, bcode.length, loader, domain);
+            return privileged.defineClass(className, bcode, 0, bcode.length,
+                                          neighbor, loader, domain);
         }
         catch (RuntimeException e) {
+            throw e;
+        }
+        catch (CannotCompileException e) {
             throw e;
         }
         catch (ClassFormatError e) {
@@ -248,6 +275,47 @@ public class DefineClassHelper {
         }
         catch (Exception e) {
             throw new CannotCompileException(e);
+        }
+    }
+
+
+    /**
+     * Loads a class file by {@code java.lang.invoke.MethodHandles.Lookup}.
+     * It is obtained by using {@code neighbor}.
+     *
+     * @param neighbor  a class belonging to the same package that the loaded
+     *                  class belogns to.
+     * @param bcode     the bytecode.
+     * @since 3.24
+     */
+    public static Class<?> toClass(Class<?> neighbor, byte[] bcode)
+        throws CannotCompileException
+    {
+        try {
+            Lookup lookup = MethodHandles.lookup();
+            Lookup prvlookup = MethodHandles.privateLookupIn(neighbor, lookup);
+            return prvlookup.defineClass(bcode);
+        } catch (IllegalAccessException | IllegalArgumentException e) {
+            throw new CannotCompileException(e.getMessage() + ": " + neighbor.getName()
+                                             + " has no permission to define the class");
+        }
+    }
+
+    /**
+     * Loads a class file by {@code java.lang.invoke.MethodHandles.Lookup}.
+     * It can be obtained by {@code MethodHandles.lookup()} called from
+     * somewhere in the package that the loaded class belongs to.
+     *
+     * @param bcode     the bytecode.
+     * @since 3.24
+     */
+    public static Class<?> toClass(Lookup lookup, byte[] bcode)
+        throws CannotCompileException
+    {
+        try {
+            return lookup.defineClass(bcode);
+        } catch (IllegalAccessException | IllegalArgumentException e) {
+            throw new CannotCompileException(e.getMessage());
         }
     }
 

@@ -16,11 +16,12 @@
 
 package javassist;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.security.ProtectionDomain;
 import java.util.Arrays;
-import java.util.Hashtable;
+import java.util.HashMap;
 import java.util.Vector;
 
 import javassist.bytecode.ClassFile;
@@ -138,7 +139,48 @@ import javassist.bytecode.ClassFile;
  * @see javassist.Translator
  */
 public class Loader extends ClassLoader {
-    private Hashtable<String,ClassLoader> notDefinedHere; // must be atomic.
+
+    /**
+     * A simpler class loader.
+     * This is a class loader that exposes the protected {@code defineClass()} method
+     * declared in {@code java.lang.ClassLoader}.  It provides a method similar to
+     * {@code CtClass#toClass()}.
+     *
+     * <p>When loading a class, this class loader delegates the work to the
+     * parent class loader unless the loaded classes are explicitly given
+     * by {@link #invokeDefineClass(CtClass)}.
+     * Note that a class {@code Foo} loaded by this class loader is
+     * different from the class with the same name {@code Foo} but loaded by
+     * another class loader.  This is Java's naming rule.
+     * </p>
+     *
+     * @since 3.24
+     */
+    public static class Simple extends ClassLoader {
+        /**
+         * Constructs a class loader.
+         */
+        public Simple() {}
+
+        /**
+         * Constructs a class loader.
+         * @param parent    the parent class loader.
+         */
+        public Simple(ClassLoader parent) {
+            super(parent);
+        }
+
+        /**
+         * Invokes the protected {@code defineClass()} in {@code ClassLoader}.
+         * It converts the given {@link CtClass} object into a {@code java.lang.Class} object.
+         */
+        public Class<?> invokeDefineClass(CtClass cc) throws IOException, CannotCompileException {
+            byte[] code = cc.toBytecode();
+            return defineClass(cc.getName(), code, 0, code.length);
+        }
+    }
+
+    private HashMap<String,ClassLoader> notDefinedHere; // must be atomic.
     private Vector<String> notDefinedPackages; // must be atomic.
     private ClassPool source;
     private Translator translator;
@@ -186,7 +228,7 @@ public class Loader extends ClassLoader {
     }
 
     private void init(ClassPool cp) {
-        notDefinedHere = new Hashtable<String,ClassLoader>();
+        notDefinedHere = new HashMap<String,ClassLoader>();
         notDefinedPackages = new Vector<String>();
         source = cp;
         translator = null;

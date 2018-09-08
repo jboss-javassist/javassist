@@ -213,7 +213,7 @@ public class ProxyFactory {
      *
      * <p>The default value is {@code false}.</p>
      *
-     * @see DefineClassHelper#toClass(String, ClassLoader, ProtectionDomain, byte[])
+     * @see DefineClassHelper#toClass(String, Class<?>, ClassLoader, ProtectionDomain, byte[])
      * @since 3.22
      */
     public static boolean onlyPublicMethods = false;
@@ -549,7 +549,7 @@ public class ProxyFactory {
             if (writeDirectory != null)
                 FactoryHelper.writeFile(cf, writeDirectory);
 
-            thisClass = FactoryHelper.toClass(cf, cl, getDomain());
+            thisClass = FactoryHelper.toClass(cf, getClassInTheSamePackage(), cl, getDomain());
             setField(FILTER_SIGNATURE_FIELD, signature);
             // legacy behaviour : we only set the default interceptor static field if we are not using the cache
             if (!factoryUseCache) {
@@ -560,6 +560,20 @@ public class ProxyFactory {
             throw new RuntimeException(e.getMessage(), e);
         }
 
+    }
+
+    /**
+     * Obtains a class belonging to the same package that the created
+     * proxy class belongs to.  It is used to obtain an appropriate
+     * {@code java.lang.invoke.MethodHandles.Lookup}.
+     */
+    private Class<?> getClassInTheSamePackage() {
+        if (superClass != null && superClass != OBJECT_TYPE)
+            return superClass;
+        else if (interfaces != null && interfaces.length > 0)
+            return interfaces[0];
+        else
+            return this.getClass();     // maybe wrong?
     }
 
     private void setField(String fieldName, Object value) {

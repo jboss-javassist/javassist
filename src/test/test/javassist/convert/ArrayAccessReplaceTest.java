@@ -1,7 +1,5 @@
 package test.javassist.convert;
 
-import java.net.URL;
-import java.net.URLClassLoader;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -11,7 +9,7 @@ import javassist.CtClass;
 import junit.framework.TestCase;
 
 public class ArrayAccessReplaceTest extends TestCase {
-    private static SimpleInterface simple;
+    private static SimpleInterface simple = null;
 
     public void setUp() throws Exception {
         ClassPool pool = new ClassPool(true);
@@ -21,7 +19,9 @@ public class ArrayAccessReplaceTest extends TestCase {
         converter.replaceArrayAccess(echoClass, new CodeConverter.DefaultArrayAccessReplacementMethodNames());
         simpleClass.instrument(converter);
         //simpleClass.writeFile("/tmp");
-        simple = (SimpleInterface) simpleClass.toClass(new URLClassLoader(new URL[0], getClass().getClassLoader()), Class.class.getProtectionDomain()).getConstructor().newInstance();
+
+        simple = (SimpleInterface)new javassist.Loader.Simple().invokeDefineClass(simpleClass)
+                                                               .getConstructor().newInstance();
     }
 
     public void testComplex() throws Exception {
@@ -31,7 +31,9 @@ public class ArrayAccessReplaceTest extends TestCase {
         CodeConverter converter = new CodeConverter();
         converter.replaceArrayAccess(clazz, new CodeConverter.DefaultArrayAccessReplacementMethodNames());
         clazz.instrument(converter);
-        ComplexInterface instance = (ComplexInterface) clazz.toClass(new URLClassLoader(new URL[0], getClass().getClassLoader()), Class.class.getProtectionDomain()).getConstructor().newInstance();
+        ComplexInterface instance
+            = (ComplexInterface)new javassist.Loader.Simple().invokeDefineClass(clazz)
+                                                             .getConstructor().newInstance();
         assertEquals(Integer.valueOf(5), instance.complexRead(4));
     }
 
