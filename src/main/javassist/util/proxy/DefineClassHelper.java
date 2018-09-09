@@ -292,6 +292,7 @@ public class DefineClassHelper {
         throws CannotCompileException
     {
         try {
+            DefineClassHelper.class.getModule().addReads(neighbor.getModule());
             Lookup lookup = MethodHandles.lookup();
             Lookup prvlookup = MethodHandles.privateLookupIn(neighbor, lookup);
             return prvlookup.defineClass(bcode);

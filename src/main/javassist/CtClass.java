@@ -1295,8 +1295,9 @@ public abstract class CtClass {
      * Once this method is called, further modifications are not
      * allowed any more.
      *
-     * <p>This method is provided for convenience.  If you need more
-     * complex functionality, you should write your own class loader.
+     * <p>This method is provided for convenience.  You should use
+     * {@code toClass(Lookup)} for better compatibility with the
+     * module system.
      *
      * <p>Note: this method calls <code>toClass()</code>
      * in <code>ClassPool</code>.
@@ -1308,6 +1309,7 @@ public abstract class CtClass {
      * @param neighbor    A class belonging to the same package that this
      *                    class belongs to.  It is used to load the class.
      * @see ClassPool#toClass(CtClass,Class)
+     * @see #CtClass(java.lang.invoke.MethodHandles.Lookup)
      * @since 3.24
      */
     public Class<?> toClass(Class<?> neighbor) throws CannotCompileException

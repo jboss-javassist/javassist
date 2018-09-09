@@ -141,6 +141,24 @@ public class FactoryHelper {
         }
      }
 
+    /**
+     * Loads a class file by a given lookup.
+     *
+     * @param lookup        used to define the class.
+     * @since 3.24
+     */
+    public static Class<?> toClass(ClassFile cf, java.lang.invoke.MethodHandles.Lookup lookup)
+        throws CannotCompileException
+    {
+        try {
+            byte[] b = toBytecode(cf);
+            return DefineClassHelper.toClass(lookup, b);
+        }
+        catch (IOException e) {
+            throw new CannotCompileException(e);
+        }
+     }
+
     private static byte[] toBytecode(ClassFile cf) throws IOException {
         ByteArrayOutputStream barray = new ByteArrayOutputStream();
         DataOutputStream out = new DataOutputStream(barray);
