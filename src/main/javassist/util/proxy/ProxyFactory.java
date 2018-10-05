@@ -214,7 +214,7 @@ public class ProxyFactory {
      *
      * <p>The default value is {@code false}.</p>
      *
-     * @see DefineClassHelper#toClass(String, Class<?>, ClassLoader, ProtectionDomain, byte[])
+     * @see DefineClassHelper#toClass(String, Class, ClassLoader, ProtectionDomain, byte[])
      * @since 3.22
      */
     public static boolean onlyPublicMethods = false;

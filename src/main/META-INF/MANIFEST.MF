@@ -1,5 +1,5 @@
 Specification-Title: Javassist
 Specification-Vendor: Shigeru Chiba, www.javassist.org
-Specification-Version: 3.24-GA
+Specification-Version: 3.24.0-RC
 Main-Class: javassist.CtClass
 Automatic-Module-Name: org.javassist

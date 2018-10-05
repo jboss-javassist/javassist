@@ -252,7 +252,7 @@ public class DefineClassHelper {
      * @param loader        the class loader.  It can be null if {@code neighbor} is not null
      *                      and the JVM is Java 11 or later.
      * @param domain        if it is null, a default domain is used.
-     * @parma bcode         the bytecode for the loaded class.
+     * @param bcode         the bytecode for the loaded class.
      * @since 3.22
      */
     public static Class<?> toClass(String className, Class<?> neighbor, ClassLoader loader,

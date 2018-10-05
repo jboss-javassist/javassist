@@ -38,7 +38,7 @@ import javassist.compiler.ProceedHandler;
 import javassist.compiler.ast.ASTList;
 
 /**
- * Object creation (<tt>new</tt> expression).
+ * Object creation (<code>new</code> expression).
  */
 public class NewExpr extends Expr {
     String newTypeName;
@@ -69,7 +69,7 @@ public class NewExpr extends Expr {
     } */
 
     /**
-     * Returns the method or constructor containing the <tt>new</tt>
+     * Returns the method or constructor containing the <code>new</code>
      * expression represented by this object.
      */
     @Override
@@ -77,7 +77,7 @@ public class NewExpr extends Expr {
 
     /**
      * Returns the line number of the source line containing the
-     * <tt>new</tt> expression.
+     * <code>new</code> expression.
      *
      * @return -1       if this information is not available.
      */
@@ -87,7 +87,7 @@ public class NewExpr extends Expr {
     }
 
     /**
-     * Returns the source file containing the <tt>new</tt> expression.
+     * Returns the source file containing the <code>new</code> expression.
      *
      * @return null     if this information is not available.
      */
@@ -173,7 +173,7 @@ public class NewExpr extends Expr {
     }
 
     /**
-     * Replaces the <tt>new</tt> expression with the bytecode derived from
+     * Replaces the <code>new</code> expression with the bytecode derived from
      * the given source text.
      *
      * <p>$0 is available but the value is null.

@@ -69,7 +69,7 @@ public abstract class CtClass {
     /**
      * The version number of this release.
      */
-    public static final String version = "3.24-GA";
+    public static final String version = "3.24.0-RC";
 
     /**
      * Prints the version number and the copyright notice.
@@ -1262,7 +1262,7 @@ public abstract class CtClass {
      * class.
      *
      * <p><b>Warning:</b> In Java 11 or later, the call to this method will
-     * print a warning message:
+     * print a warning message:</p>
      * <blockquote><pre>
      * WARNING: An illegal reflective access operation has occurred
      * WARNING: Illegal reflective access by javassist.util.proxy.SecurityActions$3 ...
@@ -1270,7 +1270,7 @@ public abstract class CtClass {
      * WARNING: Use --illegal-access=warn to enable warnings of further illegal reflective access operations
      * WARNING: All illegal access operations will be denied in a future release
      * </pre></blockquote>
-     * To avoid this message, use {@link #toClass(Class)}
+     * <p>To avoid this message, use {@link #toClass(Class)}
      * or {@link #toClass(java.lang.invoke.MethodHandles.Lookup)}.
      * {@link #toClass()} will be unavailable in a future release.
      * </p>
@@ -1309,7 +1309,7 @@ public abstract class CtClass {
      * @param neighbor    A class belonging to the same package that this
      *                    class belongs to.  It is used to load the class.
      * @see ClassPool#toClass(CtClass,Class)
-     * @see #CtClass(java.lang.invoke.MethodHandles.Lookup)
+     * @see #toClass(java.lang.invoke.MethodHandles.Lookup)
      * @since 3.24
      */
     public Class<?> toClass(Class<?> neighbor) throws CannotCompileException

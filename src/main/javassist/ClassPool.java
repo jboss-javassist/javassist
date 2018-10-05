@@ -1038,7 +1038,7 @@ public class ClassPool {
      * work with a security manager or a signed jar file because a
      * protection domain is not specified.</p>
      *
-     * @see #toCalss(CtClass,Class)
+     * @see #toClass(CtClass,Class)
      * @see #toClass(CtClass,Class,java.lang.ClassLoader,ProtectionDomain)
      * @see #getClassLoader()
      */
@@ -1206,7 +1206,7 @@ public class ClassPool {
      *
      * <p>If your program is for only Java 9 or later, don't use this method.
      * Use {@link #toClass(CtClass,Class)} or
-     * {@link #toClass(CtClass)CtClass,java.lang.invoke.MethodHandles.Lookup)}.
+     * {@link #toClass(CtClass,java.lang.invoke.MethodHandles.Lookup)}.
      * </p>
      *
      * @param ct            the class converted into {@code java.lang.Class}.

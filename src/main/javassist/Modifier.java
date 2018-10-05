@@ -46,7 +46,7 @@ public class Modifier {
     public static final int ENUM      = AccessFlag.ENUM;
 
     /**
-     * Returns true if the modifiers include the <tt>public</tt>
+     * Returns true if the modifiers include the <code>public</code>
      * modifier.
      */
     public static boolean isPublic(int mod) {
@@ -54,7 +54,7 @@ public class Modifier {
     }
 
     /**
-     * Returns true if the modifiers include the <tt>private</tt>
+     * Returns true if the modifiers include the <code>private</code>
      * modifier.
      */
     public static boolean isPrivate(int mod) {
@@ -62,7 +62,7 @@ public class Modifier {
     }
 
     /**
-     * Returns true if the modifiers include the <tt>protected</tt>
+     * Returns true if the modifiers include the <code>protected</code>
      * modifier.
      */
     public static boolean isProtected(int mod) {
@@ -71,14 +71,14 @@ public class Modifier {
 
     /**
      * Returns true if the modifiers do not include either
-     * <tt>public</tt>, <tt>protected</tt>, or <tt>private</tt>.
+     * <code>public</code>, <code>protected</code>, or <code>private</code>.
      */
     public static boolean isPackage(int mod) {
         return (mod & (PUBLIC | PRIVATE | PROTECTED)) == 0;
     }
 
     /**
-     * Returns true if the modifiers include the <tt>static</tt>
+     * Returns true if the modifiers include the <code>static</code>
      * modifier.
      */
     public static boolean isStatic(int mod) {
@@ -86,7 +86,7 @@ public class Modifier {
     }
 
     /**
-     * Returns true if the modifiers include the <tt>final</tt>
+     * Returns true if the modifiers include the <code>final</code>
      * modifier.
      */
     public static boolean isFinal(int mod) {
@@ -94,7 +94,7 @@ public class Modifier {
     }
 
     /**
-     * Returns true if the modifiers include the <tt>synchronized</tt>
+     * Returns true if the modifiers include the <code>synchronized</code>
      * modifier.
      */
     public static boolean isSynchronized(int mod) {
@@ -102,7 +102,7 @@ public class Modifier {
     }
 
     /**
-     * Returns true if the modifiers include the <tt>volatile</tt>
+     * Returns true if the modifiers include the <code>volatile</code>
      * modifier.
      */
     public static boolean isVolatile(int mod) {
@@ -110,7 +110,7 @@ public class Modifier {
     }
 
     /**
-     * Returns true if the modifiers include the <tt>transient</tt>
+     * Returns true if the modifiers include the <code>transient</code>
      * modifier.
      */
     public static boolean isTransient(int mod) {
@@ -118,7 +118,7 @@ public class Modifier {
     }
 
     /**
-     * Returns true if the modifiers include the <tt>native</tt>
+     * Returns true if the modifiers include the <code>native</code>
      * modifier.
      */
     public static boolean isNative(int mod) {
@@ -126,7 +126,7 @@ public class Modifier {
     }
 
     /**
-     * Returns true if the modifiers include the <tt>interface</tt>
+     * Returns true if the modifiers include the <code>interface</code>
      * modifier.
      */
     public static boolean isInterface(int mod) {
@@ -134,7 +134,7 @@ public class Modifier {
     }
 
     /**
-     * Returns true if the modifiers include the <tt>annotation</tt>
+     * Returns true if the modifiers include the <code>annotation</code>
      * modifier.
      *
      * @since 3.2
@@ -144,7 +144,7 @@ public class Modifier {
     }
 
     /**
-     * Returns true if the modifiers include the <tt>enum</tt>
+     * Returns true if the modifiers include the <code>enum</code>
      * modifier.
      *
      * @since 3.2
@@ -154,7 +154,7 @@ public class Modifier {
     }
 
     /**
-     * Returns true if the modifiers include the <tt>abstract</tt>
+     * Returns true if the modifiers include the <code>abstract</code>
      * modifier.
      */
     public static boolean isAbstract(int mod) {
@@ -162,7 +162,7 @@ public class Modifier {
     }
 
     /**
-     * Returns true if the modifiers include the <tt>strictfp</tt>
+     * Returns true if the modifiers include the <code>strictfp</code>
      * modifier.
      */
     public static boolean isStrict(int mod) {
@@ -170,7 +170,7 @@ public class Modifier {
     }
 
     /**
-     * Returns true if the modifiers include the <tt>varargs</tt>
+     * Returns true if the modifiers include the <code>varargs</code>
      * (variable number of arguments) modifier.
      */
     public static boolean isVarArgs(int mod)  {
