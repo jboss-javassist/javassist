@@ -1526,7 +1526,7 @@ class CtClassType extends CtClass {
         ClassFile cf = getClassFile2();
         ConstPool cp = cf.getConstPool();
         List<MethodInfo> methods = cf.getMethods();
-        for (MethodInfo minfo:methods)
+        for (MethodInfo minfo: methods.toArray(new MethodInfo[methods.size()]))
             converter.doit(this, minfo, cp);
     }
 
@@ -1537,7 +1537,7 @@ class CtClassType extends CtClass {
         checkModify();
         ClassFile cf = getClassFile2();
         List<MethodInfo> methods = cf.getMethods();
-        for (MethodInfo minfo:methods)
+        for (MethodInfo minfo: methods.toArray(new MethodInfo[methods.size()]))
             editor.doit(this, minfo);
     }
 

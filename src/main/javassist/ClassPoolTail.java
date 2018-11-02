@@ -159,7 +159,9 @@ final class JarClassPath implements ClassPath {
         URL jarURL = find(classname);
         if (null != jarURL)
             try {
-                return jarURL.openConnection().getInputStream();
+                java.net.URLConnection con = jarURL.openConnection();
+                con.setUseCaches(false);
+                return con.getInputStream();
             }
             catch (IOException e) {
                 throw new NotFoundException("broken jar file?: "

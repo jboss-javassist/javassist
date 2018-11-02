@@ -9,6 +9,7 @@ import org.junit.runners.MethodSorters;
 import java.lang.reflect.Method;
 
 import javassist.expr.*;
+import test2.DefineClassCapability;
 
 @SuppressWarnings({"rawtypes","unused"})
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
@@ -709,7 +710,7 @@ public class JvstTest2 extends JvstTestRoot {
     public void testToClass() throws Exception {
         ClassPool cp = ClassPool.getDefault();
         CtClass cc = cp.makeClass("test2.ToClassTest");
-        Class c = cc.toClass();
+        Class c = cc.toClass(DefineClassCapability.class);
 	assertEquals(getClass().getClassLoader(), c.getClassLoader());
     }
 

@@ -35,6 +35,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.WeakHashMap;
+import java.lang.invoke.MethodHandles.Lookup;
 
 import javassist.CannotCompileException;
 import javassist.bytecode.AccessFlag;
@@ -213,7 +214,7 @@ public class ProxyFactory {
      *
      * <p>The default value is {@code false}.</p>
      *
-     * @see DefineClassHelper#toClass(String, ClassLoader, ProtectionDomain, byte[])
+     * @see DefineClassHelper#toClass(String, Class, ClassLoader, ProtectionDomain, byte[])
      * @since 3.22
      */
     public static boolean onlyPublicMethods = false;
@@ -436,43 +437,92 @@ public class ProxyFactory {
 
     /**
      * Generates a proxy class using the current filter.
+     * The module or package where a proxy class is created
+     * has to be opened to this package or the Javassist module.
+     *
+     * @see #createClass(Lookup)
      */
     public Class<?> createClass() {
         if (signature == null) {
             computeSignature(methodFilter);
         }
-        return createClass1();
+        return createClass1(null);
     }
 
     /**
      * Generates a proxy class using the supplied filter.
+     * The module or package where a proxy class is created
+     * has to be opened to this package or the Javassist module.
      */
     public Class<?> createClass(MethodFilter filter) {
         computeSignature(filter);
-        return createClass1();
+        return createClass1(null);
     }
 
     /**
      * Generates a proxy class with a specific signature.
      * access is package local so ProxyObjectInputStream can use this
      * @param signature
-     * @return
      */
     Class<?> createClass(byte[] signature)
     {
         installSignature(signature);
-        return createClass1();
+        return createClass1(null);
     }
 
-    private Class<?> createClass1() {
+    /**
+     * Generates a proxy class using the current filter.
+     *
+     * @param lookup    used for loading the proxy class.
+     *                  It needs an appropriate right to invoke {@code defineClass}
+     *                  for the proxy class.
+     * @since 3.24
+     */
+    public Class<?> createClass(Lookup lookup) {
+        if (signature == null) {
+            computeSignature(methodFilter);
+        }
+        return createClass1(lookup);
+    }
+
+    /**
+     * Generates a proxy class using the supplied filter.
+     *
+     * @param lookup    used for loading the proxy class.
+     *                  It needs an appropriate right to invoke {@code defineClass}
+     *                  for the proxy class.
+     * @param filter    the filter.
+     * @since 3.24
+     */
+    public Class<?> createClass(Lookup lookup, MethodFilter filter) {
+        computeSignature(filter);
+        return createClass1(lookup);
+    }
+
+    /**
+     * Generates a proxy class with a specific signature.
+     * access is package local so ProxyObjectInputStream can use this.
+     *
+     * @param lookup    used for loading the proxy class.
+     *                  It needs an appropriate right to invoke {@code defineClass}
+     *                  for the proxy class.
+     * @param signature         the signature.
+     */
+    Class<?> createClass(Lookup lookup, byte[] signature)
+    {
+        installSignature(signature);
+        return createClass1(lookup);
+    }
+
+    private Class<?> createClass1(Lookup lookup) {
         Class<?> result = thisClass;
         if (result == null) {
             ClassLoader cl = getClassLoader();
             synchronized (proxyCache) {
                 if (factoryUseCache)
-                    createClass2(cl);
+                    createClass2(cl, lookup);
                 else
-                    createClass3(cl);
+                    createClass3(cl, lookup);
 
                 result = thisClass;
                 // don't retain any unwanted references
@@ -512,7 +562,7 @@ public class ProxyFactory {
         return sbuf.toString();
     }
 
-    private void createClass2(ClassLoader cl) {
+    private void createClass2(ClassLoader cl, Lookup lookup) {
         String key = getKey(superClass, interfaces, signature, factoryWriteReplace);
         /*
          * Excessive concurrency causes a large memory footprint and slows the
@@ -534,13 +584,13 @@ public class ProxyFactory {
                     return;
                 }
             }
-            createClass3(cl);
+            createClass3(cl, lookup);
             details = new  ProxyDetails(signature, thisClass, factoryWriteReplace);
             cacheForTheLoader.put(key, details);
         // }
     }
 
-    private void createClass3(ClassLoader cl) {
+    private void createClass3(ClassLoader cl, Lookup lookup) {
         // we need a new class so we need a new class name
         allocateClassName();
 
@@ -549,7 +599,11 @@ public class ProxyFactory {
             if (writeDirectory != null)
                 FactoryHelper.writeFile(cf, writeDirectory);
 
-            thisClass = FactoryHelper.toClass(cf, cl, getDomain());
+            if (lookup == null)
+                thisClass = FactoryHelper.toClass(cf, getClassInTheSamePackage(), cl, getDomain());
+            else
+                thisClass = FactoryHelper.toClass(cf, lookup);
+
             setField(FILTER_SIGNATURE_FIELD, signature);
             // legacy behaviour : we only set the default interceptor static field if we are not using the cache
             if (!factoryUseCache) {
@@ -560,6 +614,20 @@ public class ProxyFactory {
             throw new RuntimeException(e.getMessage(), e);
         }
 
+    }
+
+    /**
+     * Obtains a class belonging to the same package that the created
+     * proxy class belongs to.  It is used to obtain an appropriate
+     * {@code java.lang.invoke.MethodHandles.Lookup}.
+     */
+    private Class<?> getClassInTheSamePackage() {
+        if (superClass != null && superClass != OBJECT_TYPE)
+            return superClass;
+        else if (interfaces != null && interfaces.length > 0)
+            return interfaces[0];
+        else
+            return this.getClass();     // maybe wrong?
     }
 
     private void setField(String fieldName, Object value) {
@@ -1186,8 +1254,8 @@ public class ProxyFactory {
                 // put the method to the cache, retrieve previous definition (if any)
                 Method oldMethod = hash.put(key, m);
 
-                // JIRA JASSIST-244
-                // ignore a bridge method with the same signature that the overridden one has.
+                // JIRA JASSIST-244, 267
+                // ignore a bridge method to a method declared in a non-public class.
                 if (null != oldMethod && isBridge(m)
                     && !Modifier.isPublic(oldMethod.getDeclaringClass().getModifiers())
                     && !Modifier.isAbstract(oldMethod.getModifiers()) && !isDuplicated(i, methods))

@@ -36,6 +36,7 @@ import javassist.bytecode.ClassFile;
 class SecurityActions extends SecurityManager
 {
     public static final SecurityActions stack = new SecurityActions();
+
     /**
      * Since Java 9 abruptly removed <code>Reflection.getCallerClass()</code>
      * in favour of <code>StackWalker</code> we are left having to find a
@@ -46,13 +47,12 @@ class SecurityActions extends SecurityManager
      * functional across all versions, for now.
      *
      * @return represents the declaring class of the method that invoked
-     *         the method that called this or idx 2 on the stack trace.
-     * @since 3.23 */
-    public Class<?> getCallerClass()
-    {
+     *         the method that called this or index 2 on the stack trace.
+     * @since 3.23
+     */
+    public Class<?> getCallerClass() {
         return getClassContext()[2];
     }
-
 
     static Method[] getDeclaredMethods(final Class<?> clazz)
     {

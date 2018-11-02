@@ -104,28 +104,55 @@ public class FactoryHelper {
      * This method uses a default protection domain for the class
      * but it may not work with a security manager or a signed jar file.
      *
-     * @see #toClass(ClassFile,ClassLoader,ProtectionDomain)
+     * @see #toClass(ClassFile,Class,ClassLoader,ProtectionDomain)
+     * @deprecated
      */
     public static Class<?> toClass(ClassFile cf, ClassLoader loader)
         throws CannotCompileException
     {
-        return toClass(cf, loader, null);
+        return toClass(cf, null, loader, null);
     }
 
     /**
      * Loads a class file by a given class loader.
      *
+     * @param neighbor      a class belonging to the same package that
+     *                      the loaded class belongs to.
+     *                      It can be null.
+     * @param loader        The class loader.  It can be null if {@code neighbor}
+     *                      is not null.
      * @param domain        if it is null, a default domain is used.
      * @since 3.3
      */
-    public static Class<?> toClass(ClassFile cf, ClassLoader loader, ProtectionDomain domain)
+    public static Class<?> toClass(ClassFile cf, Class<?> neighbor,
+                                   ClassLoader loader, ProtectionDomain domain)
         throws CannotCompileException
     {
         try {
             byte[] b = toBytecode(cf);
             if (ProxyFactory.onlyPublicMethods)
                 return DefineClassHelper.toPublicClass(cf.getName(), b);
-            return DefineClassHelper.toClass(cf.getName(), loader, domain, b);
+            else
+                return DefineClassHelper.toClass(cf.getName(), neighbor,
+                                                 loader, domain, b);
+        }
+        catch (IOException e) {
+            throw new CannotCompileException(e);
+        }
+     }
+
+    /**
+     * Loads a class file by a given lookup.
+     *
+     * @param lookup        used to define the class.
+     * @since 3.24
+     */
+    public static Class<?> toClass(ClassFile cf, java.lang.invoke.MethodHandles.Lookup lookup)
+        throws CannotCompileException
+    {
+        try {
+            byte[] b = toBytecode(cf);
+            return DefineClassHelper.toClass(lookup, b);
         }
         catch (IOException e) {
             throw new CannotCompileException(e);

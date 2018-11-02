@@ -6,7 +6,7 @@
 
 <project name="javassist" default="jar" basedir=".">
 
-  <property name="dist-version" value="javassist-3.23.1-GA"/>
+  <property name="dist-version" value="javassist-3.24-GA"/>
 
   <property environment="env"/>
   <property name="target.jar" value="javassist.jar"/>
@@ -74,13 +74,13 @@
     </javac>
   </target>
 
-  <target name="compile16" depends="prepare">
+  <target name="compile18" depends="prepare">
     <javac srcdir="${src.dir}"
            destdir="${build.classes.dir}"
            debug="on"
            deprecation="on"
-	       source="1.6"
-	       target="1.6"
+	       source="1.8"
+	       target="1.8"
            optimize="off"
     	   includeantruntime="true"
            includes="**">
@@ -181,7 +181,7 @@
 to ${build.classes.dir}.</echo>
   </target>
 
-  <target name="jar" depends="compile16">
+  <target name="jar" depends="compile18">
     <jar jarfile="${target.jar}" update="true" manifest="${src.dir}/META-INF/MANIFEST.MF">
       <fileset dir="${build.classes.dir}">
       	  <include name="**/*.class"/>

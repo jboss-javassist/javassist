@@ -3,6 +3,7 @@ package javassist.tools;
 import javassist.*;
 import junit.framework.TestCase;
 import test.javassist.tools.DummyClass;
+import test.javassist.tools.DefineClassCapability;
 
 import static javassist.tools.Callback.*;
 
@@ -34,7 +35,7 @@ public class CallbackTest extends TestCase {
         });
 
         // Change class and invoke method;
-        classToChange.toClass();
+        classToChange.toClass(DefineClassCapability.class);
         new DummyClass().dummyMethod();
     }
 }

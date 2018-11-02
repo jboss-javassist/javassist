@@ -31,7 +31,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * This Map will remove entries when the value in the map has been cleaned from
  * garbage collection
  * 
- * @version <tt>$Revision: 1.4 $</tt>
+ * @version <code>$Revision: 1.4 $</code>
  * @author <a href="mailto:bill@jboss.org">Bill Burke</a>
  */
 public class SoftValueHashMap<K,V> implements Map<K,V> {
@@ -133,10 +133,10 @@ public class SoftValueHashMap<K,V> implements Map<K,V> {
 
     /**
      * Constructs a new <code>WeakHashMap</code> with the same mappings as the
-     * specified <tt>Map</tt>. The <code>WeakHashMap</code> is created with
+     * specified <code>Map</code>. The <code>WeakHashMap</code> is created with
      * an initial capacity of twice the number of mappings in the specified map
      * or 11 (whichever is greater), and a default load factor, which is
-     * <tt>0.75</tt>.
+     * <code>0.75</code>.
      * 
      * @param t     the map whose mappings are to be placed in this map.
      */

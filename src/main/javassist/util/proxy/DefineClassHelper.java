@@ -31,199 +31,214 @@ import javassist.bytecode.ClassFile;
  *
  * @since 3.22
  */
-public class DefineClassHelper
-{
+public class DefineClassHelper {
 
-    private static enum SecuredPrivileged
-    {
-        JAVA_9 {
-            final class ReferencedUnsafe
-            {
-                private final SecurityActions.TheUnsafe sunMiscUnsafeTheUnsafe;
-                private final MethodHandle defineClass;
+    private static abstract class Helper {
+        abstract Class<?> defineClass(String name, byte[] b, int off, int len, Class<?> neighbor,
+                                      ClassLoader loader, ProtectionDomain protectionDomain)
+            throws ClassFormatError, CannotCompileException;
+    }
 
-                ReferencedUnsafe(SecurityActions.TheUnsafe usf, MethodHandle meth)
-                {
-                    this.sunMiscUnsafeTheUnsafe = usf;
-                    this.defineClass = meth;
-                }
-
-                Class<?> defineClass(String name, byte[] b, int off, int len,
-                        ClassLoader loader, ProtectionDomain protectionDomain)
-                                throws ClassFormatError {
-                    try {
-                        if (getCallerClass.invoke(stack) != SecuredPrivileged.JAVA_9.getClass())
-                            throw new IllegalAccessError("Access denied for caller.");
-                    } catch (Exception e) {
-                        throw new RuntimeException("cannot initialize", e);
-                    }
-                    try {
-                        return (Class<?>) defineClass.invokeWithArguments(
-                                sunMiscUnsafeTheUnsafe.theUnsafe,
-                                name, b, off, len, loader, protectionDomain);
-                    } catch (Throwable e) {
-                        if (e instanceof RuntimeException) throw (RuntimeException) e;
-                        if (e instanceof ClassFormatError) throw (ClassFormatError) e;
-                        throw new ClassFormatError(e.getMessage());
-                    }
-                }
+    private static class Java11 extends JavaOther {
+        Class<?> defineClass(String name, byte[] bcode, int off, int len, Class<?> neighbor,
+                             ClassLoader loader, ProtectionDomain protectionDomain)
+            throws ClassFormatError, CannotCompileException
+        {
+            if (neighbor != null)
+                return toClass(neighbor, bcode);
+            else {
+                // Lookup#defineClass() is not available.  So fallback to invoking defineClass on
+                // ClassLoader, which causes a warning message.
+                return super.defineClass(name, bcode, off, len, neighbor, loader, protectionDomain);
             }
-            private final Object stack;
-            private final Method getCallerClass;
-            {
-                Class<?> stackWalkerClass = null;
-                try {
-                    stackWalkerClass = Class.forName("java.lang.StackWalker");
-                } catch (ClassNotFoundException e) {
-                    // Skip initialization when the class doesn't exist i.e. we are on JDK < 9
-                }
-                if (stackWalkerClass != null) {
-                    try {
-                        Class<?> optionClass = Class.forName("java.lang.StackWalker$Option");
-                        stack = stackWalkerClass.getMethod("getInstance", optionClass)
-                                // The first one is RETAIN_CLASS_REFERENCE
-                                .invoke(null, optionClass.getEnumConstants()[0]);
-                        getCallerClass = stackWalkerClass.getMethod("getCallerClass");
-                    } catch (Throwable e) {
-                        throw new RuntimeException("cannot initialize", e);
-                    }
-                } else {
-                    stack = null;
-                    getCallerClass = null;
-                }
+        }
+    }
+
+    private static class Java9 extends Helper {
+        final class ReferencedUnsafe {
+            private final SecurityActions.TheUnsafe sunMiscUnsafeTheUnsafe;
+            private final MethodHandle defineClass;
+
+            ReferencedUnsafe(SecurityActions.TheUnsafe usf, MethodHandle meth) {
+                this.sunMiscUnsafeTheUnsafe = usf;
+                this.defineClass = meth;
             }
-            private final ReferencedUnsafe sunMiscUnsafe = getReferencedUnsafe();
-            private final ReferencedUnsafe getReferencedUnsafe()
+
+            Class<?> defineClass(String name, byte[] b, int off, int len,
+                                 ClassLoader loader, ProtectionDomain protectionDomain)
+                throws ClassFormatError
             {
                 try {
-                    if (null != SecuredPrivileged.JAVA_9
-                            && getCallerClass.invoke(stack) != this.getClass())
+                    if (getCallerClass.invoke(stack) != Java9.class)
                         throw new IllegalAccessError("Access denied for caller.");
                 } catch (Exception e) {
                     throw new RuntimeException("cannot initialize", e);
                 }
                 try {
-                    SecurityActions.TheUnsafe usf = SecurityActions.getSunMiscUnsafeAnonymously();
-                    List<Method> defineClassMethod = usf.methods.get("defineClass");
-                    // On Java 11+ the defineClass method does not exist anymore
-                    if (null == defineClassMethod)
-                        return null;
-                    MethodHandle meth = MethodHandles.lookup()
-                            .unreflect(defineClassMethod.get(0));
-                    return new ReferencedUnsafe(usf, meth);
+                    return (Class<?>) defineClass.invokeWithArguments(
+                                sunMiscUnsafeTheUnsafe.theUnsafe,
+                                name, b, off, len, loader, protectionDomain);
+                } catch (Throwable e) {
+                    if (e instanceof RuntimeException) throw (RuntimeException) e;
+                    if (e instanceof ClassFormatError) throw (ClassFormatError) e;
+                    throw new ClassFormatError(e.getMessage());
+                }
+            }
+        }
+
+        private final Object stack;
+        private final Method getCallerClass;
+        private final ReferencedUnsafe sunMiscUnsafe = getReferencedUnsafe();
+
+        Java9 () {
+            Class<?> stackWalkerClass = null;
+            try {
+                stackWalkerClass = Class.forName("java.lang.StackWalker");
+            } catch (ClassNotFoundException e) {
+                // Skip initialization when the class doesn't exist i.e. we are on JDK < 9
+            }
+            if (stackWalkerClass != null) {
+                try {
+                    Class<?> optionClass = Class.forName("java.lang.StackWalker$Option");
+                    stack = stackWalkerClass.getMethod("getInstance", optionClass)
+                            // The first one is RETAIN_CLASS_REFERENCE
+                                            .invoke(null, optionClass.getEnumConstants()[0]);
+                    getCallerClass = stackWalkerClass.getMethod("getCallerClass");
                 } catch (Throwable e) {
                     throw new RuntimeException("cannot initialize", e);
                 }
+            } else {
+                stack = null;
+                getCallerClass = null;
             }
+        }
 
-            @Override
-            public Class<?> defineClass(String name, byte[] b, int off, int len,
-                    ClassLoader loader, ProtectionDomain protectionDomain)
-                            throws ClassFormatError
-            {
-                try {
-                    if (getCallerClass.invoke(stack) != DefineClassHelper.class)
-                        throw new IllegalAccessError("Access denied for caller.");
-                } catch (Exception e) {
-                    throw new RuntimeException("cannot initialize", e);
-                }
-                return sunMiscUnsafe.defineClass(name, b, off, len, loader,
-                        protectionDomain);
-            }
-        },
-        JAVA_7 {
-            private final SecurityActions stack = SecurityActions.stack;
-            private final MethodHandle defineClass = getDefineClassMethodHandle();
-            private final MethodHandle getDefineClassMethodHandle()
-            {
-                if (null != SecuredPrivileged.JAVA_7
-                        && stack.getCallerClass() != this.getClass())
+        private final ReferencedUnsafe getReferencedUnsafe() {
+            try {
+                if (privileged != null && getCallerClass.invoke(stack) != this.getClass())
                     throw new IllegalAccessError("Access denied for caller.");
-                try {
-                    return SecurityActions.getMethodHandle(ClassLoader.class,
-                        "defineClass", new Class[] {
+            } catch (Exception e) {
+                throw new RuntimeException("cannot initialize", e);
+            }
+            try {
+                SecurityActions.TheUnsafe usf = SecurityActions.getSunMiscUnsafeAnonymously();
+                List<Method> defineClassMethod = usf.methods.get("defineClass");
+                // On Java 11+ the defineClass method does not exist anymore
+                if (null == defineClassMethod)
+                    return null;
+                MethodHandle meth = MethodHandles.lookup().unreflect(defineClassMethod.get(0));
+                return new ReferencedUnsafe(usf, meth);
+            } catch (Throwable e) {
+                throw new RuntimeException("cannot initialize", e);
+            }
+        }
+
+        @Override
+        Class<?> defineClass(String name, byte[] b, int off, int len, Class<?> neighbor,
+                                    ClassLoader loader, ProtectionDomain protectionDomain)
+            throws ClassFormatError
+        {
+            try {
+                if (getCallerClass.invoke(stack) != DefineClassHelper.class)
+                    throw new IllegalAccessError("Access denied for caller.");
+            } catch (Exception e) {
+                throw new RuntimeException("cannot initialize", e);
+            }
+            return sunMiscUnsafe.defineClass(name, b, off, len, loader,
+                                             protectionDomain);
+        }
+    }
+
+    private static class Java7 extends Helper {
+        private final SecurityActions stack = SecurityActions.stack;
+        private final MethodHandle defineClass = getDefineClassMethodHandle();
+        private final MethodHandle getDefineClassMethodHandle() {
+            if (privileged != null && stack.getCallerClass() != this.getClass())
+                throw new IllegalAccessError("Access denied for caller.");
+            try {
+                return SecurityActions.getMethodHandle(ClassLoader.class, "defineClass",
+                        new Class[] {
                             String.class, byte[].class, int.class, int.class,
                             ProtectionDomain.class
                         });
                 } catch (NoSuchMethodException e) {
                     throw new RuntimeException("cannot initialize", e);
                 }
-            }
+        }
 
-            @Override
-            protected Class<?> defineClass(String name, byte[] b, int off, int len,
-                    ClassLoader loader, ProtectionDomain protectionDomain) throws ClassFormatError
-            {
-                if (stack.getCallerClass() != DefineClassHelper.class)
-                    throw new IllegalAccessError("Access denied for caller.");
-                try {
-                    return (Class<?>) defineClass.invokeWithArguments(
+        @Override
+        Class<?> defineClass(String name, byte[] b, int off, int len, Class<?> neighbor,
+                ClassLoader loader, ProtectionDomain protectionDomain)
+            throws ClassFormatError
+        {
+            if (stack.getCallerClass() != DefineClassHelper.class)
+                throw new IllegalAccessError("Access denied for caller.");
+            try {
+                return (Class<?>) defineClass.invokeWithArguments(
                             loader, name, b, off, len, protectionDomain);
-                } catch (Throwable e) {
-                    if (e instanceof RuntimeException) throw (RuntimeException) e;
-                    if (e instanceof ClassFormatError) throw (ClassFormatError) e;
-                    throw new ClassFormatError(e.getMessage());
-                }
+            } catch (Throwable e) {
+                if (e instanceof RuntimeException) throw (RuntimeException) e;
+                if (e instanceof ClassFormatError) throw (ClassFormatError) e;
+                throw new ClassFormatError(e.getMessage());
             }
-        },
-        JAVA_OTHER {
-            private final Method defineClass = getDefineClassMethod();
-            private final SecurityActions stack = SecurityActions.stack;
-            private final Method getDefineClassMethod() {
-                if (null != SecuredPrivileged.JAVA_OTHER
-                        && stack.getCallerClass() != this.getClass())
-                    throw new IllegalAccessError("Access denied for caller.");
-                try {
-                    return SecurityActions.getDeclaredMethod(ClassLoader.class,
-                        "defineClass", new Class[] {
+        }
+    }
+
+    private static class JavaOther extends Helper {
+        private final Method defineClass = getDefineClassMethod();
+        private final SecurityActions stack = SecurityActions.stack;
+
+        private final Method getDefineClassMethod() {
+            if (privileged != null && stack.getCallerClass() != this.getClass())
+                throw new IllegalAccessError("Access denied for caller.");
+            try {
+                return SecurityActions.getDeclaredMethod(ClassLoader.class, "defineClass",
+                        new Class[] {
                                 String.class, byte[].class, int.class, int.class, ProtectionDomain.class
                         });
-                } catch (NoSuchMethodException e) {
-                    throw new RuntimeException("cannot initialize", e);
-                }
+            } catch (NoSuchMethodException e) {
+                throw new RuntimeException("cannot initialize", e);
             }
+        }
 
-            @Override
-            protected Class<?> defineClass(String name, byte[] b, int off, int len,
-                    ClassLoader loader, ProtectionDomain protectionDomain) throws ClassFormatError
-            {
-                if (stack.getCallerClass() != DefineClassHelper.class)
-                    throw new IllegalAccessError("Access denied for caller.");
-                try {
-                    SecurityActions.setAccessible(defineClass, true);
-                    return (Class<?>) defineClass.invoke(loader, new Object[] {
+        @Override
+        Class<?> defineClass(String name, byte[] b, int off, int len, Class<?> neighbor,
+                             ClassLoader loader, ProtectionDomain protectionDomain)
+            throws ClassFormatError, CannotCompileException
+        {
+            Class<?> klass = stack.getCallerClass();
+            if (klass != DefineClassHelper.class && klass != this.getClass())
+                throw new IllegalAccessError("Access denied for caller.");
+            try {
+                SecurityActions.setAccessible(defineClass, true);
+                return (Class<?>) defineClass.invoke(loader, new Object[] {
                             name, b, off, len, protectionDomain
-                        });
-                } catch (Throwable e) {
-                    if (e instanceof ClassFormatError) throw (ClassFormatError) e;
-                    if (e instanceof RuntimeException) throw (RuntimeException) e;
-                    throw new ClassFormatError(e.getMessage());
-                }
-                finally {
-                    SecurityActions.setAccessible(defineClass, false);
-                }
+                });
+            } catch (Throwable e) {
+                if (e instanceof ClassFormatError) throw (ClassFormatError) e;
+                if (e instanceof RuntimeException) throw (RuntimeException) e;
+                throw new CannotCompileException(e);
             }
-
-        };
-
-        protected abstract Class<?> defineClass(String name, byte[] b, int off, int len,
-                ClassLoader loader, ProtectionDomain protectionDomain) throws ClassFormatError;
+            finally {
+                SecurityActions.setAccessible(defineClass, false);
+            }
+        }
     }
 
     // Java 11+ removed sun.misc.Unsafe.defineClass, so we fallback to invoking defineClass on
     // ClassLoader until we have an implementation that uses MethodHandles.Lookup.defineClass
-    private static final SecuredPrivileged privileged = ClassFile.MAJOR_VERSION > ClassFile.JAVA_10
-            ? SecuredPrivileged.JAVA_OTHER
+    private static final Helper privileged = ClassFile.MAJOR_VERSION > ClassFile.JAVA_10
+            ? new Java11()
             : ClassFile.MAJOR_VERSION >= ClassFile.JAVA_9
-                ? SecuredPrivileged.JAVA_9
-                : ClassFile.MAJOR_VERSION >= ClassFile.JAVA_7
-                        ? SecuredPrivileged.JAVA_7
-                        : SecuredPrivileged.JAVA_OTHER;
+                ? new Java9()
+                : ClassFile.MAJOR_VERSION >= ClassFile.JAVA_7 ? new Java7() : new JavaOther();
 
     /**
      * Loads a class file by a given class loader.
      *
-     * <p>This first tries to use {@code sun.misc.Unsafe} to load a class.
+     * <p>This first tries to use {@code java.lang.invoke.MethodHandle} to load a class.
+     * Otherwise, or if {@code neighbor} is null,
+     * this tries to use {@code sun.misc.Unsafe} to load a class.
      * Then it tries to use a {@code protected} method in {@code java.lang.ClassLoader}
      * via {@code PrivilegedAction}.  Since the latter approach is not available
      * any longer by default in Java 9 or later, the JVM argument
@@ -232,17 +247,26 @@ public class DefineClassHelper
      * should be used instead.
      * </p>
      *
+     * @param className     the name of the loaded class.
+     * @param neighbor      the class contained in the same package as the loaded class.
+     * @param loader        the class loader.  It can be null if {@code neighbor} is not null
+     *                      and the JVM is Java 11 or later.
      * @param domain        if it is null, a default domain is used.
+     * @param bcode         the bytecode for the loaded class.
      * @since 3.22
      */
-    public static Class<?> toClass(String className, ClassLoader loader,
+    public static Class<?> toClass(String className, Class<?> neighbor, ClassLoader loader,
                                    ProtectionDomain domain, byte[] bcode)
         throws CannotCompileException
     {
         try {
-            return privileged.defineClass(className, bcode, 0, bcode.length, loader, domain);
+            return privileged.defineClass(className, bcode, 0, bcode.length,
+                                          neighbor, loader, domain);
         }
         catch (RuntimeException e) {
+            throw e;
+        }
+        catch (CannotCompileException e) {
             throw e;
         }
         catch (ClassFormatError e) {
@@ -251,6 +275,48 @@ public class DefineClassHelper
         }
         catch (Exception e) {
             throw new CannotCompileException(e);
+        }
+    }
+
+
+    /**
+     * Loads a class file by {@code java.lang.invoke.MethodHandles.Lookup}.
+     * It is obtained by using {@code neighbor}.
+     *
+     * @param neighbor  a class belonging to the same package that the loaded
+     *                  class belogns to.
+     * @param bcode     the bytecode.
+     * @since 3.24
+     */
+    public static Class<?> toClass(Class<?> neighbor, byte[] bcode)
+        throws CannotCompileException
+    {
+        try {
+            DefineClassHelper.class.getModule().addReads(neighbor.getModule());
+            Lookup lookup = MethodHandles.lookup();
+            Lookup prvlookup = MethodHandles.privateLookupIn(neighbor, lookup);
+            return prvlookup.defineClass(bcode);
+        } catch (IllegalAccessException | IllegalArgumentException e) {
+            throw new CannotCompileException(e.getMessage() + ": " + neighbor.getName()
+                                             + " has no permission to define the class");
+        }
+    }
+
+    /**
+     * Loads a class file by {@code java.lang.invoke.MethodHandles.Lookup}.
+     * It can be obtained by {@code MethodHandles.lookup()} called from
+     * somewhere in the package that the loaded class belongs to.
+     *
+     * @param bcode     the bytecode.
+     * @since 3.24
+     */
+    public static Class<?> toClass(Lookup lookup, byte[] bcode)
+        throws CannotCompileException
+    {
+        try {
+            return lookup.defineClass(bcode);
+        } catch (IllegalAccessException | IllegalArgumentException e) {
+            throw new CannotCompileException(e.getMessage());
         }
     }
 

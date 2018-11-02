@@ -1023,16 +1023,23 @@ public class ClassPool {
      * the <code>getClassLoader()</code> method.
      * If the program is running on some application
      * server, the context class loader might be inappropriate to load the
-     * class.
+     * class.</p>
      *
      * <p>This method is provided for convenience.  If you need more
      * complex functionality, you should write your own class loader.
      *
-     * <p><b>Warining:</b> A Class object returned by this method may not
-     * work with a security manager or a signed jar file because a
-     * protection domain is not specified.
+     * <p><b>Warining:</b>
+     * This method should not be used in Java 11 or later.
+     * Use {@link #toClass(CtClass,Class)}.
+     * </p>
      *
-     * @see #toClass(CtClass, java.lang.ClassLoader, ProtectionDomain)
+     * <p><b>Warining:</b>
+     * A Class object returned by this method may not
+     * work with a security manager or a signed jar file because a
+     * protection domain is not specified.</p>
+     *
+     * @see #toClass(CtClass,Class)
+     * @see #toClass(CtClass,Class,java.lang.ClassLoader,ProtectionDomain)
      * @see #getClassLoader()
      */
     public Class toClass(CtClass clazz) throws CannotCompileException {
@@ -1066,21 +1073,21 @@ public class ClassPool {
     /**
      * Converts the class to a <code>java.lang.Class</code> object.
      * Do not override this method any more at a subclass because
-     * <code>toClass(CtClass)</code> never calls this method.
+     * {@link #toClass(CtClass)} will never calls this method.
      *
      * <p><b>Warining:</b> A Class object returned by this method may not
      * work with a security manager or a signed jar file because a
      * protection domain is not specified.
      *
-     * @deprecated      Replaced by {@link #toClass(CtClass,ClassLoader,ProtectionDomain)}.
+     * @deprecated      Replaced by {@link #toClass(CtClass,Class,ClassLoader,ProtectionDomain)}.
      * A subclass of <code>ClassPool</code> that has been
      * overriding this method should be modified.  It should override
-     * {@link #toClass(CtClass,ClassLoader,ProtectionDomain)}.
+     * {@link #toClass(CtClass,Class,ClassLoader,ProtectionDomain)}.
      */
     public Class toClass(CtClass ct, ClassLoader loader)
         throws CannotCompileException
     {
-        return toClass(ct, loader, null);
+        return toClass(ct, null, loader, null);
     }
 
     /**
@@ -1092,7 +1099,7 @@ public class ClassPool {
      * loaded by the given class loader to construct a
      * <code>java.lang.Class</code> object.  Since a private method
      * on the class loader is invoked through the reflection API,
-     * the caller must have permissions to do that.
+     * the caller must have permissions to do that.</p>
      *
      * <p>An easy way to obtain <code>ProtectionDomain</code> object is
      * to call <code>getProtectionDomain()</code>
@@ -1100,8 +1107,9 @@ public class ClassPool {
      * class belongs to.
      *
      * <p>This method is provided for convenience.  If you need more
-     * complex functionality, you should write your own class loader.
+     * complex functionality, you should write your own class loader.</p>
      *
+     * @param ct            the class converted into {@code java.lang.Class}.
      * @param loader        the class loader used to load this class.
      *                      For example, the loader returned by
      *                      <code>getClassLoader()</code> can be used
@@ -1112,13 +1120,117 @@ public class ClassPool {
      *
      * @see #getClassLoader()
      * @since 3.3
+     * @deprecated      Replaced by {@link #toClass(CtClass,Class,ClassLoader,ProtectionDomain)}.
      */
     public Class toClass(CtClass ct, ClassLoader loader, ProtectionDomain domain)
         throws CannotCompileException
     {
+        return toClass(ct, null, loader, domain);
+    }
+
+    /**
+     * Converts the class to a <code>java.lang.Class</code> object.
+     * Once this method is called, further modifications are not allowed
+     * any more.
+     *
+     * <p>This method is available in Java 9 or later.
+     * It loads the class
+     * by using {@code java.lang.invoke.MethodHandles} with {@code neighbor}.
+     * </p>
+     *
+     * @param ct            the class converted into {@code java.lang.Class}.
+     * @param neighbor      a class belonging to the same package that
+     *                      the converted class belongs to.
+     * @since 3.24
+     */
+    public Class<?> toClass(CtClass ct, Class<?> neighbor)
+        throws CannotCompileException
+    {
+        try {
+            return javassist.util.proxy.DefineClassHelper.toClass(neighbor,
+                                                            ct.toBytecode());
+        }
+        catch (IOException e) {
+            throw new CannotCompileException(e);
+        }
+    }
+
+    /**
+     * Converts the class to a <code>java.lang.Class</code> object.
+     * Once this method is called, further modifications are not allowed
+     * any more.
+     *
+     * <p>This method is available in Java 9 or later.
+     * It loads the class
+     * by using the given {@code java.lang.invoke.MethodHandles.Lookup}.
+     * </p>
+     *
+     * @param ct            the class converted into {@code java.lang.Class}.
+     * @since 3.24
+     */
+    public Class<?> toClass(CtClass ct,
+                            java.lang.invoke.MethodHandles.Lookup lookup)
+        throws CannotCompileException
+    {
+        try {
+            return javassist.util.proxy.DefineClassHelper.toClass(lookup,
+                                                            ct.toBytecode());
+        }
+        catch (IOException e) {
+            throw new CannotCompileException(e);
+        }
+    }
+
+    /**
+     * Converts the class to a <code>java.lang.Class</code> object.
+     * Once this method is called, further modifications are not allowed
+     * any more.
+     *
+     * <p>When the JVM is Java 11 or later, this method loads the class
+     * by using {@code java.lang.invoke.MethodHandles} with {@code neighbor}.
+     * The other arguments {@code loader} and {@code domain} are not used;
+     * so they can be null.
+     * </p>
+     *
+     * <p>Otherwise, or when {@code neighbor} is null,
+     * the class file represented by the given <code>CtClass</code> is
+     * loaded by the given class loader to construct a
+     * <code>java.lang.Class</code> object.  Since a private method
+     * on the class loader is invoked through the reflection API,
+     * the caller must have permissions to do that.
+     *
+     * <p>An easy way to obtain <code>ProtectionDomain</code> object is
+     * to call <code>getProtectionDomain()</code>
+     * in <code>java.lang.Class</code>.  It returns the domain that the
+     * class belongs to.
+     *
+     * <p>If your program is for only Java 9 or later, don't use this method.
+     * Use {@link #toClass(CtClass,Class)} or
+     * {@link #toClass(CtClass,java.lang.invoke.MethodHandles.Lookup)}.
+     * </p>
+     *
+     * @param ct            the class converted into {@code java.lang.Class}.
+     * @param neighbor      a class belonging to the same package that
+     *                      the converted class belongs to.
+     *                      It can be null.
+     * @param loader        the class loader used to load this class.
+     *                      For example, the loader returned by
+     *                      <code>getClassLoader()</code> can be used
+     *                      for this parameter.
+     * @param domain        the protection domain for the class.
+     *                      If it is null, the default domain created
+     *                      by <code>java.lang.ClassLoader</code> is used.
+     *
+     * @see #getClassLoader()
+     * @since 3.24
+     */
+    public Class toClass(CtClass ct, Class<?> neighbor, ClassLoader loader,
+                         ProtectionDomain domain)
+            throws CannotCompileException
+    {
         try {
             return javassist.util.proxy.DefineClassHelper.toClass(ct.getName(),
-                    loader, domain, ct.toBytecode());
+                    neighbor, loader, domain, ct.toBytecode());
         }
         catch (IOException e) {
             throw new CannotCompileException(e);

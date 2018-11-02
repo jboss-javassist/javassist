@@ -108,6 +108,10 @@ public class AttributeInfo {
             /* Note that the names of Annotations attributes begin with 'R'. */
             if (nameStr.equals(MethodParametersAttribute.tag))
                 return new MethodParametersAttribute(cp, name, in);
+            else if (nameStr.equals(NestHostAttribute.tag))
+                return new NestHostAttribute(cp, name, in);
+            else if (nameStr.equals(NestMembersAttribute.tag))
+                return new NestMembersAttribute(cp, name, in);
             else if (nameStr.equals(AnnotationsAttribute.visibleTag)
                      || nameStr.equals(AnnotationsAttribute.invisibleTag))
                 // RuntimeVisibleAnnotations or RuntimeInvisibleAnnotations

@@ -175,7 +175,7 @@ public final class InsertGap0 extends JvstTestRoot {
         cc.addField(new CtField(CtClass.intType, "i", cc), "++counter");
         boolean p = cc.stopPruning(true);
         cc.writeFile();
-        Class c = cc.toClass();
+        Class c = cc.toClass(ClassFile.class);
         cc.stopPruning(p);
 
         Object obj = c.getConstructor().newInstance();
@@ -194,7 +194,7 @@ public final class InsertGap0 extends JvstTestRoot {
         cc.addField(new CtField(CtClass.intType, "i", cc), "++counter");
         boolean p = cc.stopPruning(true);
         cc.writeFile();
-        Class c = cc.toClass();
+        Class c = cc.toClass(ClassFile.class);
         cc.stopPruning(p);
 
         Object obj = c.getConstructor().newInstance();

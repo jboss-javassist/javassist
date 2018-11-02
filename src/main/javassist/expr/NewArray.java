@@ -92,9 +92,9 @@ public class NewArray extends Expr {
 
     /**
      * Returns the type of array components.  If the created array is
-     * a two-dimensional array of <tt>int</tt>,
+     * a two-dimensional array of <code>int</code>,
      * the type returned by this method is
-     * not <tt>int[]</tt> but <tt>int</tt>.
+     * not <code>int[]</code> but <code>int</code>.
      */
     public CtClass getComponentType() throws NotFoundException {
         if (opcode == Opcode.NEWARRAY) {

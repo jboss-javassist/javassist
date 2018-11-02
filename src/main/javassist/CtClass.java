@@ -69,7 +69,7 @@ public abstract class CtClass {
     /**
      * The version number of this release.
      */
-    public static final String version = "3.23.1-GA";
+    public static final String version = "3.24.0-GA";
 
     /**
      * Prints the version number and the copyright notice.
@@ -1261,21 +1261,86 @@ public abstract class CtClass {
      * server, the context class loader might be inappropriate to load the
      * class.
      *
+     * <p><b>Warning:</b> In Java 11 or later, the call to this method will
+     * print a warning message:</p>
+     * <blockquote><pre>
+     * WARNING: An illegal reflective access operation has occurred
+     * WARNING: Illegal reflective access by javassist.util.proxy.SecurityActions$3 ...
+     * WARNING: Please consider reporting this to the maintainers of javassist.util.proxy.SecurityActions$3
+     * WARNING: Use --illegal-access=warn to enable warnings of further illegal reflective access operations
+     * WARNING: All illegal access operations will be denied in a future release
+     * </pre></blockquote>
+     * <p>To avoid this message, use {@link #toClass(Class)}
+     * or {@link #toClass(java.lang.invoke.MethodHandles.Lookup)}.
+     * {@link #toClass()} will be unavailable in a future release.
+     * </p>
+     *
+     * <p><b>Warning:</b> A Class object returned by this method may not
+     * work with a security manager or a signed jar file because a
+     * protection domain is not specified.</p>
+     *
+     * <p>Note: this method calls <code>toClass()</code>
+     * in <code>ClassPool</code>.</p>
+     *
+     * @see #toClass(java.lang.invoke.MethodHandles.Lookup)
+     * @see #toClass(Class)
+     * @see ClassPool#toClass(CtClass)
+     */
+    public Class<?> toClass() throws CannotCompileException {
+        return getClassPool().toClass(this);
+    }
+
+    /**
+     * Converts this class to a <code>java.lang.Class</code> object.
+     * Once this method is called, further modifications are not
+     * allowed any more.
+     *
+     * <p>This method is provided for convenience.  You should use
+     * {@code toClass(Lookup)} for better compatibility with the
+     * module system.
+     *
+     * <p>Note: this method calls <code>toClass()</code>
+     * in <code>ClassPool</code>.
+     *
+     * <p><b>Warning:</b> A Class object returned by this method may not
+     * work with a security manager or a signed jar file because a
+     * protection domain is not specified.
+     *
+     * @param neighbor    A class belonging to the same package that this
+     *                    class belongs to.  It is used to load the class.
+     * @see ClassPool#toClass(CtClass,Class)
+     * @see #toClass(java.lang.invoke.MethodHandles.Lookup)
+     * @since 3.24
+     */
+    public Class<?> toClass(Class<?> neighbor) throws CannotCompileException
+    {
+        return getClassPool().toClass(this, neighbor);
+    }
+
+    /**
+     * Converts this class to a <code>java.lang.Class</code> object.
+     * Once this method is called, further modifications are not
+     * allowed any more.
+     *
      * <p>This method is provided for convenience.  If you need more
      * complex functionality, you should write your own class loader.
      *
      * <p>Note: this method calls <code>toClass()</code>
      * in <code>ClassPool</code>.
      *
-     * <p><b>Warining:</b> A Class object returned by this method may not
+     * <p><b>Warning:</b> A Class object returned by this method may not
      * work with a security manager or a signed jar file because a
      * protection domain is not specified.
      *
-     * @see #toClass(java.lang.ClassLoader,ProtectionDomain)
-     * @see ClassPool#toClass(CtClass)
+     * @param lookup    used when loading the class.  It has to have
+     *                  an access right to define a new class.
+     * @see ClassPool#toClass(CtClass,java.lang.invoke.MethodHandles.Lookup)
+     * @since 3.24
      */
-    public Class<?> toClass() throws CannotCompileException {
-        return getClassPool().toClass(this);
+    public Class<?> toClass(java.lang.invoke.MethodHandles.Lookup lookup)
+        throws CannotCompileException
+    {
+        return getClassPool().toClass(this, lookup);
     }
 
     /**
@@ -1316,13 +1381,13 @@ public abstract class CtClass {
         if (loader == null)
             loader = cp.getClassLoader();
 
-        return cp.toClass(this, loader, domain);
+        return cp.toClass(this, null, loader, domain);
     }
 
     /**
      * Converts this class to a <code>java.lang.Class</code> object.
      *
-     * <p><b>Warining:</b> A Class object returned by this method may not
+     * <p><b>Warning:</b> A Class object returned by this method may not
      * work with a security manager or a signed jar file because a
      * protection domain is not specified.
      *
@@ -1332,7 +1397,7 @@ public abstract class CtClass {
     public final Class<?> toClass(ClassLoader loader)
         throws CannotCompileException
     {
-        return getClassPool().toClass(this, loader);
+        return getClassPool().toClass(this, null, loader, null);
     }
 
     /**
@@ -1405,7 +1470,7 @@ public abstract class CtClass {
      * @see ClassPool#doPruning
      *
      * @see #toBytecode()
-     * @see #toClass()
+     * @see #toClass(Class)
      * @see #writeFile()
      * @see #instrument(CodeConverter)
      * @see #instrument(ExprEditor)
