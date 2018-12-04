@@ -622,7 +622,9 @@ public class ProxyFactory {
      * {@code java.lang.invoke.MethodHandles.Lookup}.
      */
     private Class<?> getClassInTheSamePackage() {
-        if (superClass != null && superClass != OBJECT_TYPE)
+        if (basename.startsWith("javassist.util.proxy."))       // maybe the super class is java.*
+            return this.getClass();
+        else if (superClass != null && superClass != OBJECT_TYPE)
             return superClass;
         else if (interfaces != null && interfaces.length > 0)
             return interfaces[0];

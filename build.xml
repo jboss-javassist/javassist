@@ -79,8 +79,8 @@
            destdir="${build.classes.dir}"
            debug="on"
            deprecation="on"
-	       source="1.8"
-	       target="1.8"
+	       source="1.7"
+	       target="1.7"
            optimize="off"
     	   includeantruntime="true"
            includes="**">
