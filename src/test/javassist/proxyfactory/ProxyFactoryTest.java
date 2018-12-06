@@ -140,4 +140,16 @@ public class ProxyFactoryTest extends TestCase {
             }
         });
     }
+
+    public void testJava11jdk() throws Exception {
+        ProxyFactory factory = new ProxyFactory();
+        factory.setSuperclass(jdk.javadoc.doclet.StandardDoclet.class);
+        jdk.javadoc.doclet.StandardDoclet e = (jdk.javadoc.doclet.StandardDoclet)factory.create(null, null, new MethodHandler() {
+            @Override
+            public Object invoke(Object self, Method thisMethod,
+                    Method proceed, Object[] args) throws Throwable {
+                return proceed.invoke(self, args);
+            }
+        });
+    }
 }

@@ -622,7 +622,7 @@ public class ProxyFactory {
      * {@code java.lang.invoke.MethodHandles.Lookup}.
      */
     private Class<?> getClassInTheSamePackage() {
-        if (basename.startsWith("javassist.util.proxy."))       // maybe the super class is java.*
+        if (basename.startsWith(packageForJavaBase))       // maybe the super class is java.*
             return this.getClass();
         else if (superClass != null && superClass != OBJECT_TYPE)
             return superClass;
@@ -921,9 +921,14 @@ public class ProxyFactory {
         if (Modifier.isFinal(superClass.getModifiers()))
             throw new RuntimeException(superName + " is final");
 
-        if (basename.startsWith("java.") || onlyPublicMethods)
-            basename = "javassist.util.proxy." + basename.replace('.', '_');
+        // Since java.base module is not opened, its proxy class should be
+        // in a different (open) module.  Otherwise, it could not be created
+        // by reflection.
+        if (basename.startsWith("java.") || basename.startsWith("jdk.") || onlyPublicMethods)
+            basename = packageForJavaBase + basename.replace('.', '_');
     }
+
+    private static final String packageForJavaBase = "javassist.util.proxy.";
 
     private void allocateClassName() {
         classname = makeProxyName(basename);
