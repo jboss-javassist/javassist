@@ -219,9 +219,6 @@ public class DefineClassHelper {
                 if (e instanceof RuntimeException) throw (RuntimeException) e;
                 throw new CannotCompileException(e);
             }
-            finally {
-                SecurityActions.setAccessible(defineClass, false);
-            }
         }
     }
 
