@@ -472,6 +472,10 @@ public class ProxyFactory {
 
     /**
      * Generates a proxy class using the current filter.
+     * It loads a class file by the given
+     * {@code java.lang.invoke.MethodHandles.Lookup} object,
+     * which can be obtained by {@code MethodHandles.lookup()} called from
+     * somewhere in the package that the loaded class belongs to.
      *
      * @param lookup    used for loading the proxy class.
      *                  It needs an appropriate right to invoke {@code defineClass}
@@ -492,6 +496,7 @@ public class ProxyFactory {
      *                  It needs an appropriate right to invoke {@code defineClass}
      *                  for the proxy class.
      * @param filter    the filter.
+     * @see #createClass(Lookup)
      * @since 3.24
      */
     public Class<?> createClass(Lookup lookup, MethodFilter filter) {
