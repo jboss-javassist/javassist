@@ -782,7 +782,7 @@ public abstract class CtBehavior extends CtMember {
                                         Modifier.isStatic(getModifiers()));
             jv.recordParamNames(ca, nvars);
             jv.recordLocalVariables(ca, 0);
-            jv.recordType(getReturnType0());
+            jv.recordReturnType(getReturnType0(), false);
             jv.compileStmnt(src);
             Bytecode b = jv.getBytecode();
             int stack = b.getMaxStack();

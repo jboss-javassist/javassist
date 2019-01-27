@@ -484,4 +484,18 @@ public class JvstTest5 extends JvstTestRoot {
         Object obj = make(cc.getName());
         assertEquals(1, invoke(obj, "run"));   
     }
+
+    // Issue #241
+    public void testInsertBeforeAndDollarR() throws Exception {
+        CtClass cc = sloader.get(test5.InsertBeforeDollarR.class.getName());
+        CtMethod m = cc.getDeclaredMethod("foo");
+        m.insertBefore("{ if ($1 == 1) return ($r)$2; }");
+        try {
+            m.insertBefore("{ $_ = \"bar\"; }");
+            assertTrue(false);
+        } catch (CannotCompileException e) {}
+        cc.writeFile();
+        Object obj = make(cc.getName());
+        assertEquals(1, invoke(obj, "run"));
+    }
 }
