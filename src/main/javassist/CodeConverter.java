@@ -25,6 +25,7 @@ import javassist.convert.TransformAccessArrayField;
 import javassist.convert.TransformAfter;
 import javassist.convert.TransformBefore;
 import javassist.convert.TransformCall;
+import javassist.convert.TransformCallToStatic;
 import javassist.convert.TransformFieldAccess;
 import javassist.convert.TransformNew;
 import javassist.convert.TransformNewClass;
@@ -404,6 +405,42 @@ public class CodeConverter {
     {
         transformers
             = new TransformCall(transformers, oldMethodName, newMethod);
+    }
+
+    /**
+     * Redirect non-static method invocations in a method body to a static
+     * method. The return type must be same with the originally invoked method.
+     * As parameters, the static method receives
+     * the target object and all the parameters to the originally invoked
+     * method.  For example, if the originally invoked method is
+     * <code>move()</code>:
+     *
+     * <pre>class Point {
+     *     Point move(int x, int y) { ... }
+     * }</pre>
+     *
+     * <p>Then the static method must be something like this:
+     *
+     * <pre>class Verbose {
+     *     static Point print(Point target, int x, int y) { ... }
+     * }</pre>
+     *
+     * <p>The <code>CodeConverter</code> would translate bytecode
+     * equivalent to:
+     *
+     * <pre>Point p2 = p.move(x + y, 0);</pre>
+     *
+     * <p>into the bytecode equivalent to:
+     *
+     * <pre>Point p2 = Verbose.print(p, x + y, 0);</pre>
+     *
+     * @param origMethod   original method
+     * @param staticMethod static method
+     */
+    public void redirectMethodCallToStatic(CtMethod origMethod,
+                                           CtMethod staticMethod) {
+        transformers = new TransformCallToStatic(transformers, origMethod,
+                staticMethod);
     }
 
     /**

@@ -586,6 +586,20 @@ public class JvstTest3 extends JvstTestRoot {
         assertEquals(524, invoke(obj, "test"));
     }
 
+    public void testMethodRedirectToStatic() throws Exception {
+        CtClass targetClass = sloader.get("test3.MethodRedirectToStatic");
+        CtClass staticClass = sloader.get("test3.MethodRedirectToStatic2");
+        CtMethod targetMethod = targetClass.getDeclaredMethod("add");
+        CtMethod staticMethod = staticClass.getDeclaredMethod("add2");
+        CodeConverter conv = new CodeConverter();
+
+        conv.redirectMethodCallToStatic(targetMethod, staticMethod);
+        targetClass.instrument(conv);
+        targetClass.writeFile();
+        Object obj = make(targetClass.getName());
+        assertEquals(30, invoke(obj, "test"));
+    }
+
     public void testClassMap() throws Exception {
         ClassMap map = new ClassMap();
         map.put("aa", "AA");
