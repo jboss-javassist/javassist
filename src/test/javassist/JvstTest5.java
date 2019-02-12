@@ -453,4 +453,49 @@ public class JvstTest5 extends JvstTestRoot {
         cc.getClassFile().compact();
         cc.toClass(test5.DefineClassCapability.class);
     }
+
+    public void testSwitchCaseWithStringConstant() throws Exception {
+        CtClass cc = sloader.get("test5.SwitchCase");
+        cc.addMethod(CtNewMethod.make(
+                "public int run() {" +
+                "    String s = \"foobar\";\n" +
+                "    switch (s) {\n" +
+                "    case STR1: return 1;\n" +
+                "    case \"foobar\": return 2;\n" +
+                "    default: return 3; }\n" +
+                "}\n", cc));
+        cc.writeFile();
+        Object obj = make(cc.getName());
+        assertEquals(2, invoke(obj, "run"));   
+    }
+
+    public void testSwitchCaseWithStringConstant2() throws Exception {
+        CtClass cc = sloader.makeClass("test5.SwitchCase2");
+        cc.addMethod(CtNewMethod.make(
+                "public int run() {" +
+                "    String s = \"foo\";\n" +
+                "    switch (s) {\n" +
+                "    case test5.SwitchCase.STR1: return 1;\n" +
+                "    case \"foobar\": return 2;\n" +
+                "    }\n" +
+                "    return 3;\n" +
+                "}\n", cc));
+        cc.writeFile();
+        Object obj = make(cc.getName());
+        assertEquals(1, invoke(obj, "run"));   
+    }
+
+    // Issue #241
+    public void testInsertBeforeAndDollarR() throws Exception {
+        CtClass cc = sloader.get(test5.InsertBeforeDollarR.class.getName());
+        CtMethod m = cc.getDeclaredMethod("foo");
+        m.insertBefore("{ if ($1 == 1) return ($r)$2; }");
+        try {
+            m.insertBefore("{ $_ = \"bar\"; }");
+            assertTrue(false);
+        } catch (CannotCompileException e) {}
+        cc.writeFile();
+        Object obj = make(cc.getName());
+        assertEquals(1, invoke(obj, "run"));
+    }
 }

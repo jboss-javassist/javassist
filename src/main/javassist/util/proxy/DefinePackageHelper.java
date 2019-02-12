@@ -128,9 +128,6 @@ public class DefinePackageHelper
                 }
                 if (e instanceof RuntimeException) throw (RuntimeException) e;
             }
-            finally {
-                definePackage.setAccessible(false);
-            }
             return null;
         }
     };

@@ -472,6 +472,10 @@ public class ProxyFactory {
 
     /**
      * Generates a proxy class using the current filter.
+     * It loads a class file by the given
+     * {@code java.lang.invoke.MethodHandles.Lookup} object,
+     * which can be obtained by {@code MethodHandles.lookup()} called from
+     * somewhere in the package that the loaded class belongs to.
      *
      * @param lookup    used for loading the proxy class.
      *                  It needs an appropriate right to invoke {@code defineClass}
@@ -492,6 +496,7 @@ public class ProxyFactory {
      *                  It needs an appropriate right to invoke {@code defineClass}
      *                  for the proxy class.
      * @param filter    the filter.
+     * @see #createClass(Lookup)
      * @since 3.24
      */
     public Class<?> createClass(Lookup lookup, MethodFilter filter) {
@@ -622,7 +627,7 @@ public class ProxyFactory {
      * {@code java.lang.invoke.MethodHandles.Lookup}.
      */
     private Class<?> getClassInTheSamePackage() {
-        if (basename.startsWith("javassist.util.proxy."))       // maybe the super class is java.*
+        if (basename.startsWith(packageForJavaBase))       // maybe the super class is java.*
             return this.getClass();
         else if (superClass != null && superClass != OBJECT_TYPE)
             return superClass;
@@ -921,9 +926,14 @@ public class ProxyFactory {
         if (Modifier.isFinal(superClass.getModifiers()))
             throw new RuntimeException(superName + " is final");
 
-        if (basename.startsWith("java.") || onlyPublicMethods)
-            basename = "javassist.util.proxy." + basename.replace('.', '_');
+        // Since java.base module is not opened, its proxy class should be
+        // in a different (open) module.  Otherwise, it could not be created
+        // by reflection.
+        if (basename.startsWith("java.") || basename.startsWith("jdk.") || onlyPublicMethods)
+            basename = packageForJavaBase + basename.replace('.', '_');
     }
+
+    private static final String packageForJavaBase = "javassist.util.proxy.";
 
     private void allocateClassName() {
         classname = makeProxyName(basename);
