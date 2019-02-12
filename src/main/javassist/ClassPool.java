@@ -1246,11 +1246,7 @@ public class ClassPool {
      * <code>getPackage()</code> on the <code>Class</code> object returned 
      * by <code>toClass()</code> will return a non-null object.</p>
      *
-     * <p>The jigsaw module introduced by Java 9 has broken this method.
-     * In Java 9 or later, the VM argument
-     * <code>--add-opens java.base/java.lang=ALL-UNNAMED</code>
-     * has to be given to the JVM so that this method can run.
-     * </p>
+     * <p>The jigsaw module introduced by Java 9 has broken this method.</p>
      *
      * @param loader        the class loader passed to <code>toClass()</code> or
      *                      the default one obtained by <code>getClassLoader()</code>.
