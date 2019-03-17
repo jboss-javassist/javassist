@@ -41,10 +41,25 @@ public class Desc {
         }
     };
 
+    /**
+     * Changes so that the current thread will use the context class loader
+     * when a class is loaded.
+     * This method changes the behavior per thread unlike {@link useContextClassLoader}.
+     *
+     * @since 3.25
+     */
     public static void setUseContextClassLoaderLocally() {
         USE_CONTEXT_CLASS_LOADER_LOCALLY.set(true);
     }
 
+    /**
+     * Changes so that the current thread will not use the context class loader
+     * when a class is loaded.
+     * Call this method before releasing the current thread for reuse.
+     * It invokes <code>ThreadLocal.remvoe()</code>.
+     *
+     * @since 3.25
+     */
     public static void resetUseContextClassLoaderLocally() {
         USE_CONTEXT_CLASS_LOADER_LOCALLY.remove();
     }
