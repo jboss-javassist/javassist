@@ -34,10 +34,25 @@ public class Desc {
      */
     public static boolean useContextClassLoader = false;
 
+    private static final ThreadLocal<Boolean> USE_CONTEXT_CLASS_LOADER_LOCALLY = new ThreadLocal<Boolean>() {
+        @Override
+        protected Boolean initialValue() {
+            return false;
+        }
+    };
+
+    public static void setUseContextClassLoaderLocally() {
+        USE_CONTEXT_CLASS_LOADER_LOCALLY.set(true);
+    }
+
+    public static void resetUseContextClassLoaderLocally() {
+        USE_CONTEXT_CLASS_LOADER_LOCALLY.remove();
+    }
+
     private static Class<?> getClassObject(String name)
         throws ClassNotFoundException
     {
-        if (useContextClassLoader)
+        if (useContextClassLoader || USE_CONTEXT_CLASS_LOADER_LOCALLY.get())
             return Class.forName(name, true, Thread.currentThread().getContextClassLoader());
         return Class.forName(name);
     }
