@@ -636,8 +636,22 @@ public class MemberCodeGen extends CodeGen {
                 throw new CompileError("no such constructor: " + targetClass.getName());
 
             if (declClass != thisClass && AccessFlag.isPrivate(acc)) {
-                desc = getAccessibleConstructor(desc, declClass, minfo);
-                bytecode.addOpcode(Opcode.ACONST_NULL); // the last parameter
+                boolean isNested = false;
+                if (declClass.getClassFile().getMajorVersion() >= ClassFile.JAVA_11) {
+                    try {
+                        CtClass[] nestedClasses = declClass.getNestedClasses();
+                        for (int i = 0; i < nestedClasses.length; i++) {
+                            if (thisClass == nestedClasses[i]) {
+                                isNested = true;
+                                break;
+                            }
+                        }
+                    } catch (NotFoundException ignored) { }
+                }
+                if (!isNested) {
+                    desc = getAccessibleConstructor(desc, declClass, minfo);
+                    bytecode.addOpcode(Opcode.ACONST_NULL); // the last parameter
+                }
             }
         }
         else if (AccessFlag.isPrivate(acc))

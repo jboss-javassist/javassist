@@ -14,6 +14,7 @@ import javassist.bytecode.NestMembersAttribute;
 import javassist.expr.ExprEditor;
 import javassist.expr.Handler;
 import javassist.expr.MethodCall;
+import javassist.expr.NewExpr;
 
 @SuppressWarnings({"rawtypes","unchecked","unused"})
 public class JvstTest5 extends JvstTestRoot {
@@ -467,6 +468,26 @@ public class JvstTest5 extends JvstTestRoot {
         cc.writeFile();
         Object obj = make(cc.getName());
         assertEquals(2, invoke(obj, "run"));   
+    }
+
+    public void testNestPrivateConstructor() throws Exception {
+        CtClass cc = sloader.get("test5.NestHost3$Builder");
+        cc.instrument(new ExprEditor() {
+            public void edit(NewExpr e) throws CannotCompileException {
+                String code = "$_ = $proceed($$);";
+                e.replace(code);
+            }
+        });
+        cc.writeFile();
+        try {
+            Class<?> nestHost3Class = cloader.loadClass("test5.NestHost3");
+            Object builder = nestHost3Class.getDeclaredMethod("builder").invoke(nestHost3Class);
+            Class<?> nestHost3BuilderClass = cloader.loadClass("test5.NestHost3$Builder");
+            nestHost3BuilderClass.getDeclaredMethod("build").invoke(builder);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            fail("it should be able to access the private constructor of the nest host");
+        }
     }
 
     public void testSwitchCaseWithStringConstant2() throws Exception {
