@@ -116,6 +116,24 @@ public class FactoryHelper {
     /**
      * Loads a class file by a given class loader.
      *
+     * @param loader        The class loader.  It can be null if {@code neighbor}
+     *                      is not null.
+     *
+     * @param domain        if it is null, a default domain is used.
+     * @since 3.3
+     *
+     * @see #toClass(ClassFile,Class,ClassLoader,ProtectionDomain)
+     * @deprecated
+     */
+    public static Class<?> toClass(ClassFile cf, ClassLoader loader, ProtectionDomain domain)
+        throws CannotCompileException
+    {
+        return toClass(cf, null, loader, domain);
+    }
+
+    /**
+     * Loads a class file by a given class loader.
+     *
      * @param neighbor      a class belonging to the same package that
      *                      the loaded class belongs to.
      *                      It can be null.
