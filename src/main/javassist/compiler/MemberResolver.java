@@ -539,7 +539,7 @@ public class MemberResolver implements TokenId {
                 if (intfs[i].getName().equals(interfaceName))
                     return intfs[i];
         } catch (NotFoundException e) {}
-        throw new CompileError("cannot find the super inetrface " + interfaceName
+        throw new CompileError("cannot find the super interface " + interfaceName
                                + " of " + c.getName());
     }
 
