@@ -490,6 +490,33 @@ public class JvstTest5 extends JvstTestRoot {
         }
     }
 
+    public void testNestPrivateConstructor2() throws Exception {
+        CtClass cc = sloader.get("test5.NestHost4$InnerClass1");
+        cc.instrument(new ExprEditor() {
+            public void edit(NewExpr e) throws CannotCompileException {
+                String code = "$_ = $proceed($$);";
+                e.replace(code);
+            }
+        });
+        cc.writeFile();
+
+        cc = sloader.get("test5.NestHost4$InnerClass1$InnerClass5");
+        cc.instrument(new ExprEditor() {
+            public void edit(NewExpr e) throws CannotCompileException {
+                String code = "$_ = $proceed($$);";
+                e.replace(code);
+            }
+        });
+        cc.writeFile();
+        try {
+            Class<?> nestHost4Class = cloader.loadClass("test5.NestHost4");
+            nestHost4Class.getDeclaredConstructor().newInstance();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            fail("it should be able to access the private constructor of the nest host");
+        }
+    }
+
     public void testSwitchCaseWithStringConstant2() throws Exception {
         CtClass cc = sloader.makeClass("test5.SwitchCase2");
         cc.addMethod(CtNewMethod.make(
