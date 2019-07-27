@@ -49,6 +49,7 @@ import javassist.bytecode.ExceptionsAttribute;
 import javassist.bytecode.FieldInfo;
 import javassist.bytecode.MethodInfo;
 import javassist.bytecode.Opcode;
+import javassist.bytecode.SignatureAttribute;
 import javassist.bytecode.StackMapTable;
 
 /*
@@ -186,6 +187,8 @@ public class ProxyFactory {
     private String basename;
     private String superName;
     private Class<?> thisClass;
+    private String genericSignature;
+
     /**
      * per factory setting initialised from current setting for useCache but able to be reset before each create call
      */
@@ -389,6 +392,7 @@ public class ProxyFactory {
         signatureMethods = null;
         hasGetHandler = false;
         thisClass = null;
+        genericSignature = null;
         writeDirectory = null;
         factoryUseCache = useCache;
         factoryWriteReplace = useWriteReplace;
@@ -433,6 +437,34 @@ public class ProxyFactory {
         methodFilter = mf;
         // force recompute of signature
         signature = null;
+    }
+
+    /**
+     * Sets the generic signature for the proxy class.
+     * <p>For example,
+     *
+     * <pre>class NullPtr&lt;T&gt; {
+     *     T get() { return null; }
+     * }
+     * </pre>
+     *
+     * <p>The following code makes a proxy for <code>NullPtr&lt;String&gt;</code>:
+     *
+     * <pre>ProxyFactory factory = new ProxyFactory();
+     * factory.setSuperclass(NullPtr.class);
+     * factory.setGenericSignature("LNullPtr&lt;Ljava/lang/String;&gt;;");
+     * NullPtr&lt;?&gt; np = (NullPtr&lt;?&gt;)factory.create(null, null);
+     *java.lang.reflect.Type[] x = ((java.lang.reflect.ParameterizedType)np.getClass().getGenericSuperclass())
+     *                                                                     .getActualTypeArguments();
+     * // x[0] == String.class
+     * </pre>
+     * 
+     * @param sig   a generic signature.
+     * @see javassist.CtClass#setGenericSignature(String)
+     * @since 3.26
+     */
+    public void setGenericSignature(String sig) {
+        genericSignature = sig;
     }
 
     /**
@@ -884,6 +916,11 @@ public class ProxyFactory {
         FieldInfo finfo4 = new FieldInfo(pool, SERIAL_VERSION_UID_FIELD, SERIAL_VERSION_UID_TYPE);
         finfo4.setAccessFlags(AccessFlag.PUBLIC | AccessFlag.STATIC| AccessFlag.FINAL);
         cf.addField(finfo4);
+
+        if (genericSignature != null) {
+            SignatureAttribute sa = new SignatureAttribute(pool, genericSignature);
+            cf.addAttribute(sa);
+        }
 
         // HashMap allMethods = getMethods(superClass, interfaces);
         // int size = allMethods.size();

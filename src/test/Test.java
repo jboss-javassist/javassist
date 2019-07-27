@@ -44,9 +44,11 @@ public class Test {
 
         final CtClass ctClass = classPool.get(INVALID_STACK_MAP_FRAME);
         final CtMethod method = ctClass.getDeclaredMethod("bytecodeVerifyError");
-        method.addLocalVariable("test_localVariable", CtClass.intType);
-        method.insertBefore("{ test_localVariable = 1; }");
-        ctClass.debugWriteFile();
+        // method.addLocalVariable("test_localVariable", CtClass.intType);
+        method.insertBefore("{ java.math.BigDecimal d = null; d.divide(d); }");
+        //ctClass.debugWriteFile();
+        System.out.println("ok");
+        ctClass.writeFile();
         Class<?> cc = ctClass.toClass();
         System.out.println(cc.getName());
         InvalidStackMapFrame obj = (InvalidStackMapFrame)cc.getDeclaredConstructor().newInstance();

@@ -152,4 +152,15 @@ public class ProxyFactoryTest extends TestCase {
             }
         });
     }
+
+    // Issue #263
+    public void testGenericSignature() throws Exception {
+        ProxyFactory factory = new ProxyFactory();
+        factory.setSuperclass(GenSig.class);
+        factory.setGenericSignature("Ljavassist/proxyfactory/GenSig<Ljava/lang/Integer;>;");
+        GenSig gs = (GenSig)factory.create(null, null);
+        java.lang.reflect.Type[] x = ((java.lang.reflect.ParameterizedType)gs.getClass().getGenericSuperclass())
+                                                                             .getActualTypeArguments();
+        assertEquals(Integer.class, x[0]);
+    }
 }
