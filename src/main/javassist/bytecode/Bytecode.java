@@ -1241,6 +1241,25 @@ public class Bytecode extends ByteVector implements Cloneable, Opcode {
     }
 
     /**
+     * Appends DYNAMIC.
+     *
+     * @param bootstrap     an index into the <code>bootstrap_methods</code> array
+     *                      of the bootstrap method table.
+     * @param name          the method name.
+     * @param desc          the method descriptor.
+     * @see Descriptor#ofMethod(CtClass,CtClass[])
+     * @since 3.17
+     */
+    public void addDynamic(int bootstrap, String name, String desc) {
+        int nt = constPool.addNameAndTypeInfo(name, desc);
+        int dyn = constPool.addDynamicInfo(bootstrap, nt);
+        add(INVOKEDYNAMIC);
+        addIndex(dyn);
+        add(0, 0);
+        growStack(Descriptor.dataSize(desc));   // assume ConstPool#REF_invokeStatic
+    }
+
+    /**
      * Appends LDC or LDC_W.  The pushed item is a <code>String</code>
      * object.
      *

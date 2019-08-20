@@ -693,8 +693,26 @@ public class ClassFileWriter {
          * @since 3.17.1
          */
         public int addInvokeDynamicInfo(int bootstrap,
-                                        int nameAndTypeInfo) {
+            int nameAndTypeInfo) {
             output.write(InvokeDynamicInfo.tag);
+            output.writeShort(bootstrap);
+            output.writeShort(nameAndTypeInfo);
+            return num++;
+        }
+
+        /**
+         * Adds a new <code>CONSTANT_InvokeDynamic_info</code>
+         * structure.
+         *
+         * @param bootstrap         <code>bootstrap_method_attr_index</code>.
+         * @param nameAndTypeInfo   <code>name_and_type_index</code>.
+         * @return                  the index of the added entry.
+         *
+         * @since 3.17.1
+         */
+        public int addDynamicInfo(int bootstrap,
+            int nameAndTypeInfo) {
+            output.write(DynamicInfo.tag);
             output.writeShort(bootstrap);
             output.writeShort(nameAndTypeInfo);
             return num++;
