@@ -105,7 +105,12 @@ public final class ConstPool
     public static final int CONST_MethodType = MethodTypeInfo.tag;
 
     /**
-     * <code>CONSTANT_MethodHandle</code>
+     * <code>CONSTANT_Dynamic</code>
+     */
+    public static final int CONST_Dynamic = DynamicInfo.tag;
+
+    /**
+     * <code>CONSTANT_InvokeDynamic</code>
      */
     public static final int CONST_InvokeDynamic = InvokeDynamicInfo.tag;
 
