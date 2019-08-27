@@ -693,7 +693,7 @@ public class ClassFileWriter {
          * @since 3.17.1
          */
         public int addInvokeDynamicInfo(int bootstrap,
-            int nameAndTypeInfo) {
+                                        int nameAndTypeInfo) {
             output.write(InvokeDynamicInfo.tag);
             output.writeShort(bootstrap);
             output.writeShort(nameAndTypeInfo);
