@@ -827,42 +827,6 @@ public class BytecodeTest extends TestCase {
         assertEquals("(I)V", cPool2.getUtf8Info(cPool2.getMethodTypeInfo(mtIndex)));
     }
 
-//    public void testDynamicInfo() throws Exception {
-//        ClassFile cf = new ClassFile(false, "test4.Dyn", null);
-//        cf.setInterfaces(new String[] { "java.lang.Cloneable" });
-//        ConstPool cp = cf.getConstPool();
-//
-//        Bytecode code = new Bytecode(cp, 0, 1);
-//        code.addAload(0);
-//        code.addIconst(9);
-//        code.addLdc("nine");
-//        code.addDynamic(0, "call", "I");
-//        code.addOpcode(Opcode.SWAP);
-//        code.addOpcode(Opcode.POP);
-//        code.addOpcode(Opcode.IRETURN);
-//
-//        FieldInfo fieldInfo = new FieldInfo(cp, "test", "S");
-//        fieldInfo.setAccessFlags(AccessFlag.PUBLIC);
-//        cf.addField(fieldInfo);
-//
-//        String desc
-//            = "(Ljava/lang/String;)I";
-//        int mri = cp.addMethodrefInfo(cp.addClassInfo("Dyn"), "boot", desc);
-//        int mhi = cp.addMethodHandleInfo(ConstPool.REF_invokeStatic, mri);
-//        int[] args = new int[0];
-//        BootstrapMethodsAttribute.BootstrapMethod[] bms
-//            = new BootstrapMethodsAttribute.BootstrapMethod[1];
-//        bms[0] = new BootstrapMethodsAttribute.BootstrapMethod(mhi, args);
-//
-//        cf.addAttribute(new BootstrapMethodsAttribute(cp, bms));
-//
-//        cf.write(new DataOutputStream(new FileOutputStream("test4/Dyn.class")));
-//
-//        Object obj = make(cf.getName());
-//
-//        assertNotNull(obj);
-//    }
-
     public static Test suite() {
         TestSuite suite = new TestSuite("Bytecode Tests");
         suite.addTestSuite(BytecodeTest.class);

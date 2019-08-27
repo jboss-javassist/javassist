@@ -1242,7 +1242,7 @@ public final class ConstPool
     }
 
     /**
-   * Adds a new <code>CONSTANT_InvokeDynamic_info</code> structure.
+   * Adds a new <code>CONSTANT_Dynamic_info</code> structure.
    *
    * @param bootstrap   <code>bootstrap_method_attr_index</code>.
    * @param nameAndType <code>name_and_type_index</code>.
