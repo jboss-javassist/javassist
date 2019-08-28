@@ -1405,9 +1405,9 @@ public final class ConstPool
         case MethodTypeInfo.tag :               // 16
             info = new MethodTypeInfo(in, numOfItems);
             break;
-            case DynamicInfo.tag :            // 17
-                info = new DynamicInfo(in, numOfItems);
-                break;
+        case DynamicInfo.tag :                  // 17
+            info = new DynamicInfo(in, numOfItems);
+            break;
         case InvokeDynamicInfo.tag :            // 18
             info = new InvokeDynamicInfo(in, numOfItems);
             break;
