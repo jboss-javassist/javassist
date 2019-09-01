@@ -721,99 +721,99 @@ public final class ConstPool
         return mtinfo.descriptor;
     }
 
-  /**
-   * Reads the <code>bootstrap_method_attr_index</code> field of the
-   * <code>CONSTANT_InvokeDynamic_info</code> structure
-   * at the given index.
-   *
-   * @since 3.17
-   */
-  public int getInvokeDynamicBootstrap(int index)
-  {
-    InvokeDynamicInfo iv = (InvokeDynamicInfo)getItem(index);
-    return iv.bootstrap;
-  }
+    /**
+     * Reads the <code>bootstrap_method_attr_index</code> field of the
+     * <code>CONSTANT_InvokeDynamic_info</code> structure
+     * at the given index.
+     *
+     * @since 3.17
+     */
+    public int getInvokeDynamicBootstrap(int index)
+    {
+        InvokeDynamicInfo iv = (InvokeDynamicInfo)getItem(index);
+        return iv.bootstrap;
+    }
 
-  /**
-   * Reads the <code>name_and_type_index</code> field of the
-   * <code>CONSTANT_InvokeDynamic_info</code> structure
-   * at the given index.
-   *
-   * @since 3.17
-   */
-  public int getInvokeDynamicNameAndType(int index)
-  {
-    InvokeDynamicInfo iv = (InvokeDynamicInfo)getItem(index);
-    return iv.nameAndType;
-  }
+    /**
+     * Reads the <code>name_and_type_index</code> field of the
+     * <code>CONSTANT_InvokeDynamic_info</code> structure
+     * at the given index.
+     *
+     * @since 3.17
+     */
+    public int getInvokeDynamicNameAndType(int index)
+    {
+        InvokeDynamicInfo iv = (InvokeDynamicInfo)getItem(index);
+        return iv.nameAndType;
+    }
 
-  /**
-   * Reads the <code>descriptor_index</code> field of the
-   * <code>CONSTANT_NameAndType_info</code> structure
-   * indirectly specified by the given index.
-   *
-   * @param index     an index to a <code>CONSTANT_InvokeDynamic_info</code>.
-   * @return  the descriptor of the method.
-   * @since 3.17
-   */
-  public String getInvokeDynamicType(int index)
-  {
-    InvokeDynamicInfo iv = (InvokeDynamicInfo)getItem(index);
-    if (iv == null)
-      return null;
-    NameAndTypeInfo n = (NameAndTypeInfo)getItem(iv.nameAndType);
-    if(n == null)
-      return null;
-    return getUtf8Info(n.typeDescriptor);
-  }
+    /**
+     * Reads the <code>descriptor_index</code> field of the
+     * <code>CONSTANT_NameAndType_info</code> structure
+     * indirectly specified by the given index.
+     *
+     * @param index     an index to a <code>CONSTANT_InvokeDynamic_info</code>.
+     * @return  the descriptor of the bootstrap method.
+     * @since 3.17
+     */
+    public String getInvokeDynamicType(int index)
+    {
+        InvokeDynamicInfo iv = (InvokeDynamicInfo)getItem(index);
+        if (iv == null)
+            return null;
+        NameAndTypeInfo n = (NameAndTypeInfo)getItem(iv.nameAndType);
+        if(n == null)
+            return null;
+        return getUtf8Info(n.typeDescriptor);
+    }
 
-  /**
-   * Reads the <code>bootstrap_method_attr_index</code> field of the
-   * <code>CONSTANT_Dynamic_info</code> structure
-   * at the given index.
-   *
-   * @since 3.17
-   */
-  public int getDynamicBootstrap(int index)
-  {
-    DynamicInfo iv = (DynamicInfo)getItem(index);
-    return iv.bootstrap;
-  }
+    /**
+     * Reads the <code>bootstrap_method_attr_index</code> field of the
+     * <code>CONSTANT_Dynamic_info</code> structure
+     * at the given index.
+     *
+     * @since 3.26
+     */
+    public int getDynamicBootstrap(int index)
+    {
+        DynamicInfo iv = (DynamicInfo)getItem(index);
+        return iv.bootstrap;
+    }
 
-  /**
-   * Reads the <code>name_and_type_index</code> field of the
-   * <code>CONSTANT_Dynamic_info</code> structure
-   * at the given index.
-   *
-   * @since 3.17
-   */
-  public int getDynamicNameAndType(int index)
-  {
-    DynamicInfo iv = (DynamicInfo)getItem(index);
-    return iv.nameAndType;
-  }
+    /**
+     * Reads the <code>name_and_type_index</code> field of the
+     * <code>CONSTANT_Dynamic_info</code> structure
+     * at the given index.
+     *
+     * @since 3.26
+     */
+    public int getDynamicNameAndType(int index)
+    {
+        DynamicInfo iv = (DynamicInfo)getItem(index);
+        return iv.nameAndType;
+    }
 
-  /**
-   * Reads the <code>descriptor_index</code> field of the
-   * <code>CONSTANT_NameAndType_info</code> structure
-   * indirectly specified by the given index.
-   *
-   * @param index     an index to a <code>CONSTANT_Dynamic_info</code>.
-   * @return  the descriptor of the method.
-   * @since 3.17
-   */
-  public String getDynamicType(int index)
-  {
-    DynamicInfo iv = (DynamicInfo)getItem(index);
-    if (iv == null)
-      return null;
-    NameAndTypeInfo n = (NameAndTypeInfo)getItem(iv.nameAndType);
-    if(n == null)
-      return null;
-    return getUtf8Info(n.typeDescriptor);
-  }
+    /**
+     * Reads the <code>descriptor_index</code> field of the
+     * <code>CONSTANT_NameAndType_info</code> structure
+     * indirectly specified by the given index.
+     *
+     * @param index     an index to a <code>CONSTANT_Dynamic_info</code>.
+     * @return  the descriptor of the bootstrap method.
+     * @since 3.26
+     */
+    public String getDynamicType(int index)
+    {
+        DynamicInfo iv = (DynamicInfo)getItem(index);
+        if (iv == null)
+            return null;
+        NameAndTypeInfo n = (NameAndTypeInfo)getItem(iv.nameAndType);
+        if(n == null)
+            return null;
+        return getUtf8Info(n.typeDescriptor);
+    }
 
-  /**
+    /**
      * Reads the <code>name_index</code> field of the
      * <code>CONSTANT_Module_info</code> structure at the given index.
      *
@@ -1247,18 +1247,18 @@ public final class ConstPool
     }
 
     /**
-   * Adds a new <code>CONSTANT_Dynamic_info</code> structure.
-   *
-   * @param bootstrap   <code>bootstrap_method_attr_index</code>.
-   * @param nameAndType <code>name_and_type_index</code>.
-   * @return the index of the added entry.
-   * @since 3.17
-   */
-  public int addDynamicInfo(int bootstrap, int nameAndType) {
-    return addItem(new DynamicInfo(bootstrap, nameAndType, numOfItems));
-  }
+     * Adds a new <code>CONSTANT_Dynamic_info</code> structure.
+     *
+     * @param bootstrap   <code>bootstrap_method_attr_index</code>.
+     * @param nameAndType <code>name_and_type_index</code>.
+     * @return the index of the added entry.
+     * @since 3.26
+     */
+    public int addDynamicInfo(int bootstrap, int nameAndType) {
+        return addItem(new DynamicInfo(bootstrap, nameAndType, numOfItems));
+    }
 
-  /**
+    /**
      * Adds a new <code>CONSTANT_Module_info</code>
      * @param nameIndex         the index of the Utf8 entry.
      * @return          the index of the added entry.
@@ -2390,64 +2390,59 @@ class InvokeDynamicInfo extends ConstInfo
 
 class DynamicInfo extends ConstInfo {
 
-  static final int tag = 17;
-  int bootstrap, nameAndType;
+    static final int tag = 17;
+    int bootstrap, nameAndType;
 
-  public DynamicInfo(int bootstrapMethod,
-      int ntIndex, int index) {
-    super(index);
-    bootstrap = bootstrapMethod;
-    nameAndType = ntIndex;
-  }
-
-  public DynamicInfo(DataInputStream in, int index)
-      throws IOException {
-    super(index);
-    bootstrap = in.readUnsignedShort();
-    nameAndType = in.readUnsignedShort();
-  }
-
-  @Override
-  public int hashCode() {
-    return (bootstrap << 16) ^ nameAndType;
-  }
-
-  @Override
-  public boolean equals(Object obj) {
-    if (obj instanceof DynamicInfo) {
-      DynamicInfo iv = (DynamicInfo) obj;
-      return iv.bootstrap == bootstrap
-          && iv.nameAndType == nameAndType;
+    public DynamicInfo(int bootstrapMethod, int ntIndex, int index) {
+        super(index);
+        bootstrap = bootstrapMethod;
+        nameAndType = ntIndex;
     }
-    return false;
-  }
 
-  @Override
-  public int getTag() {
-    return tag;
-  }
+    public DynamicInfo(DataInputStream in, int index) throws IOException {
+        super(index);
+        bootstrap = in.readUnsignedShort();
+        nameAndType = in.readUnsignedShort();
+    }
 
-  @Override
-  public int copy(ConstPool src, ConstPool dest,
-      Map<String, String> map) {
-    return dest.addDynamicInfo(bootstrap,
-        src.getItem(nameAndType).copy(src, dest, map));
-  }
+    @Override
+    public int hashCode() {
+        return (bootstrap << 16) ^ nameAndType;
+    }
 
-  @Override
-  public void write(DataOutputStream out) throws IOException {
-    out.writeByte(tag);
-    out.writeShort(bootstrap);
-    out.writeShort(nameAndType);
-  }
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof DynamicInfo) {
+            DynamicInfo iv = (DynamicInfo)obj;
+            return iv.bootstrap == bootstrap && iv.nameAndType == nameAndType;
+        }
+        return false;
+    }
 
-  @Override
-  public void print(PrintWriter out) {
-    out.print("Dynamic #");
-    out.print(bootstrap);
-    out.print(", name&type #");
-    out.println(nameAndType);
-  }
+    @Override
+    public int getTag() {
+        return tag;
+    }
+
+    @Override
+    public int copy(ConstPool src, ConstPool dest, Map<String, String> map) {
+        return dest.addDynamicInfo(bootstrap, src.getItem(nameAndType).copy(src, dest, map));
+    }
+
+    @Override
+    public void write(DataOutputStream out) throws IOException {
+        out.writeByte(tag);
+        out.writeShort(bootstrap);
+        out.writeShort(nameAndType);
+    }
+
+    @Override
+    public void print(PrintWriter out) {
+        out.print("Dynamic #");
+        out.print(bootstrap);
+        out.print(", name&type #");
+        out.println(nameAndType);
+    }
 }
 
 class ModuleInfo extends ConstInfo
