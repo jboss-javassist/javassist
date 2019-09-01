@@ -113,6 +113,14 @@ public class ClassPool {
      */
     public static boolean releaseUnmodifiedClassFile = true;
 
+    /**
+     * If true, the contents of a jar file are cached after the jar
+     * file is opened.
+     *
+     * <p>The initial value is true.
+     */
+    public static boolean cacheOpenedJarFile = true;    // see ClassPoolTail.JarClassPath#openClassfile(String)
+
     protected ClassPoolTail source;
     protected ClassPool parent;
     protected Hashtable classes;        // should be synchronous
