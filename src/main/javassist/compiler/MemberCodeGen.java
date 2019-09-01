@@ -619,6 +619,18 @@ public class MemberCodeGen extends CodeGen {
                           aload0pos, found);
     }
 
+    private boolean isFromSameDeclaringClass(CtClass outer, CtClass inner) {
+        try {
+            while (outer != null) {
+                if (isEnclosing(outer, inner))
+                    return true;
+                outer = outer.getDeclaringClass();
+            }
+        }
+        catch (NotFoundException e) {}
+        return false;
+    }
+
     private void atMethodCallCore2(CtClass targetClass, String mname,
                                    boolean isStatic, boolean isSpecial,
                                    int aload0pos,
@@ -636,19 +648,8 @@ public class MemberCodeGen extends CodeGen {
                 throw new CompileError("no such constructor: " + targetClass.getName());
 
             if (declClass != thisClass && AccessFlag.isPrivate(acc)) {
-                boolean isNested = false;
-                if (declClass.getClassFile().getMajorVersion() >= ClassFile.JAVA_11) {
-                    try {
-                        CtClass[] nestedClasses = declClass.getNestedClasses();
-                        for (int i = 0; i < nestedClasses.length; i++) {
-                            if (thisClass == nestedClasses[i]) {
-                                isNested = true;
-                                break;
-                            }
-                        }
-                    } catch (NotFoundException ignored) { }
-                }
-                if (!isNested) {
+                if (declClass.getClassFile().getMajorVersion() < ClassFile.JAVA_11
+                        || !isFromSameDeclaringClass(declClass, thisClass)) {
                     desc = getAccessibleConstructor(desc, declClass, minfo);
                     bytecode.addOpcode(Opcode.ACONST_NULL); // the last parameter
                 }
