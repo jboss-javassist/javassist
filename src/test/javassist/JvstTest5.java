@@ -546,4 +546,16 @@ public class JvstTest5 extends JvstTestRoot {
         Object obj = make(cc.getName());
         assertEquals(1, invoke(obj, "run"));
     }
+
+    // Issue #275
+    public void testRedundantInsertAfter() throws Exception {
+        CtClass cc = sloader.get(test5.InsertAfter.class.getName());
+        CtMethod m = cc.getDeclaredMethod("foo");
+        m.insertAfter("{ $_ += 1; }", false, true);
+        CtMethod m2 = cc.getDeclaredMethod("bar");
+        m2.insertAfter("{ $_ += 1; }", true, true);
+        cc.writeFile();
+        Object obj = make(cc.getName());
+        assertEquals(1, invoke(obj, "run"));
+    }
 }
