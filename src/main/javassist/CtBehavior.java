@@ -821,7 +821,7 @@ public abstract class CtBehavior extends CtMember {
     public void insertAfter(String src)
         throws CannotCompileException
     {
-        insertAfter(src, false, false);
+        insertAfter0(src, false, isKotlinClass());
     }
 
     /**
@@ -839,7 +839,7 @@ public abstract class CtBehavior extends CtMember {
     public void insertAfter(String src, boolean asFinally)
         throws CannotCompileException
     {
-        insertAfter(src, asFinally, false);
+        insertAfter0(src, asFinally, isKotlinClass());
     }
 
     /**
@@ -860,7 +860,7 @@ public abstract class CtBehavior extends CtMember {
      *                  with <code>false</code> for this parameter.
      * @since 3.26
      */
-    public void insertAfter(String src, boolean asFinally, boolean redundant)
+    private void insertAfter0(String src, boolean asFinally, boolean redundant)
         throws CannotCompileException
     {
         CtClass cc = declaringClass;
@@ -967,6 +967,10 @@ public abstract class CtBehavior extends CtMember {
         catch (BadBytecode e) {
             throw new CannotCompileException(e);
         }
+    }
+
+    private boolean isKotlinClass() {
+        return declaringClass.hasAnnotation("kotlin.Metadata");
     }
 
     private int insertAfterAdvice(Bytecode code, Javac jv, String src,

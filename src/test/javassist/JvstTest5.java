@@ -1,6 +1,7 @@
 package javassist;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Method;
 import java.lang.reflect.TypeVariable;
 
 import javassist.bytecode.AccessFlag;
@@ -551,9 +552,12 @@ public class JvstTest5 extends JvstTestRoot {
     public void testRedundantInsertAfter() throws Exception {
         CtClass cc = sloader.get(test5.InsertAfter.class.getName());
         CtMethod m = cc.getDeclaredMethod("foo");
-        m.insertAfter("{ $_ += 1; }", false, true);
+        Method insertAfterMethod =
+                CtBehavior.class.getDeclaredMethod("insertAfter0", String.class, boolean.class, boolean.class);
+        insertAfterMethod.setAccessible(true);
+        insertAfterMethod.invoke(m, "{ $_ += 1; }", false, true);
         CtMethod m2 = cc.getDeclaredMethod("bar");
-        m2.insertAfter("{ $_ += 1; }", true, true);
+        insertAfterMethod.invoke(m2, "{ $_ += 1; }", true, true);
         cc.writeFile();
         Object obj = make(cc.getName());
         assertEquals(71 + 22, invoke(obj, "run"));
