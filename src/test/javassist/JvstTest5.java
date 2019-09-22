@@ -556,6 +556,6 @@ public class JvstTest5 extends JvstTestRoot {
         m2.insertAfter("{ $_ += 1; }", true, true);
         cc.writeFile();
         Object obj = make(cc.getName());
-        assertEquals(1, invoke(obj, "run"));
+        assertEquals(71 + 22, invoke(obj, "run"));
     }
 }
