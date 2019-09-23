@@ -333,6 +333,14 @@ public abstract class CtClass {
     }
 
     /**
+     * Returns <code>true</code> if this object represents a Kotlin class.
+     * @since 3.26
+     */
+    public boolean isKotlin() {
+        return hasAnnotation("kotlin.Metadata");
+    }
+
+    /**
      * If this object represents an array, this method returns the component
      * type of the array.  Otherwise, it returns <code>null</code>.
      */

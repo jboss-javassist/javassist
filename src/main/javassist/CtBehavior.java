@@ -858,6 +858,11 @@ public abstract class CtBehavior extends CtMember {
      *                  generate the original bytecode.
      *                  The other <code>insertAfter</code> methods calls this method
      *                  with <code>false</code> for this parameter.
+     *                  A tip is to pass <code>this.getDeclaringClass().isKotlin()</code>
+     *                  to this parameter.
+     *
+     * @see CtClass#isKotlin()
+     * @see #getDeclaringClass()
      * @since 3.26
      */
     public void insertAfter(String src, boolean asFinally, boolean redundant)
