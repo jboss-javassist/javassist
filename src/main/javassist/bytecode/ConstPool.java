@@ -2158,6 +2158,36 @@ class Utf8Info extends ConstInfo
     public int getTag() { return tag; }
 
     @Override
+    public void renameClass(ConstPool cp, String oldName, String newName,
+                            Map<ConstInfo, ConstInfo> cache)
+    {
+        String desc = string;
+        String desc2 = Descriptor.renameGenerics(desc, oldName, newName);
+        if (!desc.equals(desc2)) {
+            string = desc2;
+            if (cache != null) {
+                cache.remove(this);
+                cache.put(this, this);
+            }
+        }
+    }
+
+    @Override
+    public void renameClass(ConstPool cp, Map<String, String> map,
+                            Map<ConstInfo, ConstInfo> cache)
+    {
+        String desc = string;
+        String desc2 = Descriptor.renameGenerics(desc, map);
+        if (!desc.equals(desc2)) {
+            string = desc2;
+            if (cache != null) {
+                cache.remove(this);
+                cache.put(this, this);
+            }
+        }
+    }
+
+    @Override
     public int copy(ConstPool src, ConstPool dest,
             Map<String,String> map)
     {
