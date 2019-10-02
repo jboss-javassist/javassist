@@ -1,0 +1,12 @@
+javassist
+javassist.bytecode
+javassist.bytecode.analysis
+javassist.bytecode.annotation
+javassist.expr
+javassist.runtime
+javassist.tools
+javassist.tools.reflect
+javassist.tools.rmi
+javassist.tools.web
+javassist.util
+javassist.util.proxy
