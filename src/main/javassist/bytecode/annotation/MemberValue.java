@@ -18,6 +18,7 @@ package javassist.bytecode.annotation;
 
 import java.io.IOException;
 import java.lang.reflect.Method;
+import java.util.Map;
 
 import javassist.ClassPool;
 import javassist.bytecode.ConstPool;
@@ -73,6 +74,14 @@ public abstract class MemberValue {
         }
         return classname;
     }
+
+    /* The following two methods are used to implement
+     * ClassFile.renameClass().
+     * Only ArrayMemberValue, ClassMemberValue, EnumMemberValue
+     * override these methods.
+     */
+    public void renameClass(String oldname, String newname) {}
+    public void renameClass(Map<String, String> classnames) {}
 
     /**
      * Accepts a visitor.

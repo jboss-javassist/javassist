@@ -18,6 +18,7 @@ package javassist.bytecode.annotation;
 import java.io.IOException;
 import java.lang.reflect.Array;
 import java.lang.reflect.Method;
+import java.util.Map;
 
 import javassist.ClassPool;
 import javassist.bytecode.ConstPool;
@@ -85,6 +86,30 @@ public class ArrayMemberValue extends MemberValue {
 
         Object a = Array.newInstance(type.getType(cl), 0);
         return a.getClass();
+    }
+
+    @Override
+    public void renameClass(String oldname, String newname) {
+        if (type != null) {
+            type.renameClass(oldname, newname);
+        }
+        if (values != null) {
+            for (MemberValue value : values) {
+                value.renameClass(oldname, newname);
+            }
+        }
+    }
+
+    @Override
+    public void renameClass(Map<String, String> classnames) {
+        if (type != null) {
+            type.renameClass(classnames);
+        }
+        if (values != null) {
+            for (MemberValue value : values) {
+                value.renameClass(classnames);
+            }
+        }
     }
 
     /**
