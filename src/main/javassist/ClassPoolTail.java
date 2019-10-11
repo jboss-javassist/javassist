@@ -25,9 +25,9 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
@@ -128,14 +128,14 @@ final class JarDirClassPath implements ClassPath {
 }
 
 final class JarClassPath implements ClassPath {
-    List<String> jarfileEntries;
+    Set<String> jarfileEntries;
     String jarfileURL;
 
     JarClassPath(String pathname) throws NotFoundException {
         JarFile jarfile = null;
         try {
             jarfile = new JarFile(pathname);
-            jarfileEntries = new ArrayList<String>();
+            jarfileEntries = new HashSet<String>();
             for (JarEntry je:Collections.list(jarfile.entries()))
                 if (je.getName().endsWith(".class"))
                     jarfileEntries.add(je.getName());
