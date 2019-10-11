@@ -136,7 +136,7 @@ final class JarClassPath implements ClassPath {
         try {
             jarfile = new JarFile(pathname);
             jarfileEntries = new HashSet<String>();
-            for (JarEntry je:Collections.list(jarfile.entries()))
+            for (JarEntry je: Collections.list(jarfile.entries()))
                 if (je.getName().endsWith(".class"))
                     jarfileEntries.add(je.getName());
             jarfileURL = new File(pathname).getCanonicalFile()
