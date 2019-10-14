@@ -285,7 +285,7 @@ public class InstructionPrinter implements Opcode {
             case ConstPool.CONST_Long:
                 return "#" + index + " = long " + pool.getLongInfo(index);
             case ConstPool.CONST_Double:
-                return "#" + index + " = int " + pool.getDoubleInfo(index);
+                return "#" + index + " = double " + pool.getDoubleInfo(index);
             case ConstPool.CONST_Class:
                 return classInfo(pool, index);
             default:
