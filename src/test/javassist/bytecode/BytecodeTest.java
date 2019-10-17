@@ -472,10 +472,14 @@ public class BytecodeTest extends TestCase {
         changeMsig2("<S:Ljava/lang/Object;>(TS;[TS;)Ljava/lang/Objec;", "java/lang/Object",
                     "<S:Ljava/lang/Object2;>(TS;[TS;)Ljava/lang/Objec;", "java/lang/Object2"); 
         String sig = "<T:Ljava/lang/Exception;>LPoi$Foo<Ljava/lang/String;>;LBar;LBar2;";
-        //String res = "<T:Ljava/lang/Exception;>LPoi$Foo<Ljava/lang/String2;>;LBar;LBar2;";
-        changeMsig(sig, "java/lang/String", sig, "java/lang/String2");
-        changeMsig2(sig, "java/lang/String", sig, "java/lang/String2");
-        changeMsig("Ltest<TE;>.List;", "ist", "Ltest<TE;>.List;", "IST");
+        String res = "<T:Ljava/lang/Exception;>LPoi$Foo<Ljava/lang/String2;>;LBar;LBar2;";
+        changeMsig(sig, "java/lang/String", res, "java/lang/String2");
+        changeMsig2(sig, "java/lang/String", res, "java/lang/String2");
+        //changeMsig("Ltest<TE;>.List;", "ist", "Ltest<TE;>.List;", "IST");
+        changeMsig("Ljava/lang/String<Ljava/lang/Object;>;", "java/lang/String",
+                   "Ljava/lang/String2<Ljava/lang/Object;>;", "java/lang/String2");
+        changeMsig2("Ljava/lang/String<Ljava/lang/Object;>;", "java/lang/String",
+                   "Ljava/lang/String2<Ljava/lang/Object;>;", "java/lang/String2");
     }
 
     private void changeMsig(String old, String oldname, String result, String newname) {
