@@ -558,4 +558,20 @@ public class JvstTest5 extends JvstTestRoot {
         Object obj = make(cc.getName());
         assertEquals(71 + 22, invoke(obj, "run"));
     }
+
+    // PR #294
+    public void testEmptyArrayInit() throws Exception {
+        CtClass cc = sloader.makeClass("test5.EmptyArrayInit");
+        CtMethod m = CtNewMethod.make("public int[] foo(){ int[] a = {}; return a; }", cc);
+        cc.addMethod(m);
+        CtMethod m2 = CtNewMethod.make("public int[] bar(){ int[] a = new int[]{}; return a; }", cc);
+        cc.addMethod(m2);
+        CtMethod m3 = CtNewMethod.make("public String[] baz(){ String[] a = { null }; return a; }", cc);
+        cc.addMethod(m3);
+        CtMethod m0 = CtNewMethod.make("public int run() { return foo().length + bar().length + baz().length; }", cc);
+        cc.addMethod(m0);
+        cc.writeFile();
+        Object obj = make(cc.getName());
+        assertEquals(1, invoke(obj, "run"));
+    }
 }

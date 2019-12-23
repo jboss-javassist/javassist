@@ -683,7 +683,7 @@ public final class Parser implements TokenId {
         lex.get();      // '{'
         if(lex.lookAhead() == '}'){
             lex.get();
-            return new ArrayInit(new IntConst(0,TokenId.IntConstant));
+            return new ArrayInit(null);
         }
         ASTree expr = parseExpression(tbl);
         ArrayInit init = new ArrayInit(expr);

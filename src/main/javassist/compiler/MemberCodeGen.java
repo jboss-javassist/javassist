@@ -365,7 +365,7 @@ public class MemberCodeGen extends CodeGen {
                 sizeExpr.accept(this);
         else
             if (sizeExpr == null) {
-                int s = init.length();
+                int s = init.size();
                 bytecode.addIconst(s);
             }
             else
@@ -414,7 +414,7 @@ public class MemberCodeGen extends CodeGen {
         }
 
         if (init != null) {
-            int s = init.length();
+            int s = init.size();
             ASTList list = init;
             for (int i = 0; i < s; i++) {
                 bytecode.addOpcode(DUP);
