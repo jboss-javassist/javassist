@@ -263,6 +263,10 @@ public abstract class Tracer implements TypeTag {
         }
         else if (tag == ConstPool.CONST_Class)
             stackTypes[stackTop++] = new TypeData.ClassName("java.lang.Class");
+        else if (tag == ConstPool.CONST_Dynamic) {
+            String desc = cpool.getDynamicType(index);
+            pushMemberType(desc);
+        }
         else
             throw new RuntimeException("bad LDC: " + tag);
     }

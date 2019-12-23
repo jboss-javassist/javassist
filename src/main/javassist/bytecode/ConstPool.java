@@ -110,8 +110,10 @@ public final class ConstPool
     public static final int CONST_Dynamic = DynamicInfo.tag;
 
     /**
-     * <code>CONSTANT_InvokeDynamic</code>
+     * <code>CONSTANT_DynamicCallSite</code>,
+     * also known as <code>CONSTANT_InvokeDynamic</code>
      */
+    public static final int CONST_DynamicCallSite = InvokeDynamicInfo.tag;
     public static final int CONST_InvokeDynamic = InvokeDynamicInfo.tag;
 
     /**
