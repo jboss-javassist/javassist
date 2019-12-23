@@ -681,6 +681,10 @@ public final class Parser implements TokenId {
         throws CompileError
     {
         lex.get();      // '{'
+        if(lex.lookAhead() == '}'){
+            lex.get();
+            return new ArrayInit(new IntConst(0,TokenId.IntConstant));
+        }
         ASTree expr = parseExpression(tbl);
         ArrayInit init = new ArrayInit(expr);
         while (lex.lookAhead() == ',') {
