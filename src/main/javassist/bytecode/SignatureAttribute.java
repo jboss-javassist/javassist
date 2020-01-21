@@ -117,34 +117,56 @@ public class SignatureAttribute extends AttributeInfo {
         int head = 0;
         int i = 0;
         for (;;) {
-            int j = desc.indexOf('L', i);
+            final int j = desc.indexOf('L', i);
             if (j < 0)
                 break;
 
             StringBuilder nameBuf = new StringBuilder();
+            StringBuilder genericParamBuf = new StringBuilder();
+            final ArrayList<StringBuilder> nameBufs = new ArrayList<>();
+            final ArrayList<StringBuilder> genericParamBufs = new ArrayList<>();
             int k = j;
             char c;
             try {
                 while ((c = desc.charAt(++k)) != ';') {
-                    nameBuf.append(c);
                     if (c == '<') {
+                    	genericParamBuf.append(c);
                         while ((c = desc.charAt(++k)) != '>')
-                            nameBuf.append(c);
+                        	genericParamBuf.append(c);
 
-                        nameBuf.append(c);
+                        genericParamBuf.append(c);
+                    } else if (c == '.') {
+                    	nameBufs.add(nameBuf);
+                    	genericParamBufs.add(genericParamBuf);
+                    	nameBuf = new StringBuilder();
+                    	genericParamBuf = new StringBuilder();
+                    } else {
+                    	nameBuf.append(c);
                     }
                 }
             }
             catch (IndexOutOfBoundsException e) { break; }
+        	nameBufs.add(nameBuf);
+        	genericParamBufs.add(genericParamBuf);
             i = k + 1;
-            String name = nameBuf.toString();
+            
+            String name = String.join("$", nameBufs.toArray(new StringBuilder[0]));
             String name2 = map.get(name);
             if (name2 != null) {
-                newdesc.append(desc.substring(head, j));
-                newdesc.append('L');
-                newdesc.append(name2);
-                newdesc.append(c);
-                head = i;
+                final String[] name2Split = name2.split("\\$");
+            	if (nameBufs.size() == name2Split.length) {
+            		newdesc.append(desc.substring(head, j));
+            		newdesc.append('L');
+            		for (int z = 0; z < name2Split.length; ++z) {
+            			if (z > 0) {
+            				newdesc.append('.');
+            			}
+            			newdesc.append(name2Split[z]);
+            			newdesc.append(genericParamBufs.get(z).toString());
+            		}
+            		newdesc.append(c); //the final semicolon
+            		head = i;
+            	}
             }
         }
 
