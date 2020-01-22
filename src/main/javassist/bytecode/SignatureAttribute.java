@@ -19,6 +19,7 @@ package javassist.bytecode;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -110,7 +111,7 @@ public class SignatureAttribute extends AttributeInfo {
     }
 
     static String renameClass(String desc, Map<String,String> map) {
-        if (map == null)
+        if (map == null || map.isEmpty())
             return desc;
 
         StringBuilder newdesc = new StringBuilder();
@@ -131,10 +132,13 @@ public class SignatureAttribute extends AttributeInfo {
                 while ((c = desc.charAt(++k)) != ';') {
                     if (c == '<') {
                     	genericParamBuf.append(c);
-                        while ((c = desc.charAt(++k)) != '>')
+                    	int level = 1;
+                        while (level > 0) {
+                        	c = desc.charAt(++k);
                         	genericParamBuf.append(c);
-
-                        genericParamBuf.append(c);
+                        	if (c == '<') ++level;
+                        	else if (c == '>') --level;
+                        }
                     } else if (c == '.') {
                     	nameBufs.add(nameBuf);
                     	genericParamBufs.add(genericParamBuf);
@@ -151,18 +155,35 @@ public class SignatureAttribute extends AttributeInfo {
             i = k + 1;
             
             String name = String.join("$", nameBufs.toArray(new StringBuilder[0]));
-            String name2 = map.get(name);
-            if (name2 != null) {
-                final String[] name2Split = name2.split("\\$");
-            	if (nameBufs.size() == name2Split.length) {
+            String newname = map.get(name);
+            if (newname != null) {
+                final String[] nameSplit = name.split("\\$");
+                final String[] newnameSplit = newname.split("\\$");
+            	if (nameSplit.length == newnameSplit.length) {
+            		final String[] newnames = new String[nameBufs.size()];
+            		for (int start = 0, z = 0; z < nameBufs.size(); ++z) {
+            			final int toAggregate = (int) nameBufs.get(z).chars().filter(ch -> ch == '$').count() + 1;
+            			String s = String.join("$", Arrays.copyOfRange(newnameSplit, start, start + toAggregate));
+            			start += toAggregate;
+            			newnames[z] = s;
+            		}
+            		
+            		
             		newdesc.append(desc.substring(head, j));
             		newdesc.append('L');
-            		for (int z = 0; z < name2Split.length; ++z) {
+            		for (int z = 0; z < newnames.length; ++z) {
             			if (z > 0) {
             				newdesc.append('.');
             			}
-            			newdesc.append(name2Split[z]);
-            			newdesc.append(genericParamBufs.get(z).toString());
+            			newdesc.append(newnames[z]);
+            			final String newgenericParam;
+            			final StringBuilder genericParamBufCurrent = genericParamBufs.get(z);
+            			if (genericParamBufCurrent.length() > 0) {
+            				newgenericParam = "<" + renameClass(genericParamBufCurrent.substring(1, genericParamBufCurrent.length() - 1), map) + ">";
+            			} else {
+            				newgenericParam = genericParamBufCurrent.toString(); //empty string
+            			}
+            			newdesc.append(newgenericParam);
             		}
             		newdesc.append(c); //the final semicolon
             		head = i;
