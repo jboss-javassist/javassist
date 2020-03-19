@@ -277,7 +277,17 @@ To run, first type the following commands:
 <p>Javassist provides a class file viewer for debugging.  For more details,
 see javassist.Dump.
 
-<p><br>
+<h2>Release</h2>
+
+<p></p>When you want to upload a new release to Sonatype, do the following steps:</p>
+<ul>
+<li>1. Switch to jdk11 in bash shell</li>
+<li>2. pull latest from git master branch</li>
+<li>3. <code>mvn  -P centralRelease javadoc:jar deploy</code></li>
+<li>4. close and release via <a href="https://oss.sonatype.org/index.html#stagingRepositories">https://oss.sonatype.org/index.html#stagingRepositories</a></li>
+</ul>
+
+<p><br/></p>
 
 <h2>Changes</h2>
 
@@ -300,7 +310,7 @@ see javassist.Dump.
 <p>-version 3.24.1 on December 9, 2018
 <ul>
     <li>GitHub Issue #228, #229</li>
-<ul>
+</ul>
 </p>
 
 <p>-version 3.24 on November 1, 2018
@@ -889,7 +899,6 @@ and all other contributors for their contributions.
 
 <hr>
 <a href="http://www.javassist.org">Shigeru Chiba</a>
-(Email: <tt>chiba@javassist.org</tt>)
 
 </body>
 </html>
