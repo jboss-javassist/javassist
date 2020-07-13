@@ -12,6 +12,7 @@ import java.lang.reflect.Method;
 import javassist.ClassPool;
 import javassist.CodeConverter;
 import javassist.CtClass;
+import javassist.CtConstructor;
 import javassist.CtMethod;
 import javassist.CtNewConstructor;
 import javassist.CtNewMethod;
@@ -829,5 +830,22 @@ public class StackMapTest extends TestCase {
         }
 
         return null;
+    }
+
+    public static class C7 {
+        public int value;
+        public static int value2;
+        public C7() { this(3); }
+        public C7(int i) {
+            value = i;
+        }
+    }
+
+    public void testIssue328() throws Exception {
+        CtClass cc = loader.get("javassist.bytecode.StackMapTest$C7");
+        CtConstructor cons = cc.getDeclaredConstructor(new CtClass[] { CtClass.intType });
+        cons.insertBefore("if ($1 < 0) { super(); if (value2 > 0) { value2++; } return; }");
+        cc.writeFile();
+        Object t1 = make(cc.getName());
     }
 }
