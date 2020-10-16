@@ -881,7 +881,11 @@ public class StackMapTable extends AttributeInfo {
             position = oldPos + offsetDelta + (oldPos == 0 ? 0 : 1);
             boolean match;
             if (exclusive)
-                match = oldPos < where  && where <= position;
+                // We optimize this expression by hand:
+                //   match = (oldPos == 0 && where == 0 && (0 < position || 0 == position))
+                //           || oldPos < where  && where <= position;
+                match = (oldPos == 0 && where == 0)
+                        || oldPos < where  && where <= position;
             else
                 match = oldPos <= where  && where < position;
 
@@ -931,7 +935,8 @@ public class StackMapTable extends AttributeInfo {
             position = oldPos + offsetDelta + (oldPos == 0 ? 0 : 1);
             boolean match;
             if (exclusive)
-                match = oldPos < where  && where <= position;
+                match = (oldPos == 0 && where == 0)
+                        || oldPos < where  && where <= position;
             else
                 match = oldPos <= where  && where < position;
 

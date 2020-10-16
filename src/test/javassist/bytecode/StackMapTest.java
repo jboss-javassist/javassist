@@ -848,4 +848,79 @@ public class StackMapTest extends TestCase {
         cc.writeFile();
         Object t1 = make(cc.getName());
     }
+
+    public static class C8 {
+        int value = 0;
+        int loop = 0;
+        int loop2 = 1;
+        public void foo(int i) { value += i; }
+        public void bar(int i) { value += i; }
+        public void foo2(int i) { value += i; }
+        public void bar2(int i) { value += i; }
+    }
+
+    public static class C9 extends C8 {
+        public void foo(int i) {
+            while(true) {
+                loop--;
+                if (loop < 0)
+                    break;
+            }
+            value += i;
+        }
+        public void bar(int i) {
+            value += i;
+            for (int k = 0; i < 10; k++)
+                loop += k;
+        }
+        public void foo2(int i) {
+            while(true) {
+                loop2--;
+                if (loop2 < 0)
+                    break;
+            }
+            value += i;
+            for (int k = 0; k < 3; k++)
+                loop2--;
+        }
+        public void bar2(int i) {
+            value += i;
+            for (int k = 0; i < 10; k++)
+                loop += k;
+        }
+        public int run() {
+            foo(1);
+            bar(10);
+            foo2(100);
+            bar2(1000);
+            return value;
+        }
+    }
+
+    public void testIssue339() throws Exception {
+        CtClass cc0 = loader.get("javassist.bytecode.StackMapTest$C8");
+        CtClass cc = loader.get("javassist.bytecode.StackMapTest$C9");
+
+        testIssue339b(cc, cc0, "foo", true);
+        testIssue339b(cc, cc0, "bar", true);
+        testIssue339b(cc, cc0, "foo2", false);
+        testIssue339b(cc, cc0, "bar2", false);
+
+        cc.writeFile();
+        Object t1 = make(cc.getName());
+        assertEquals(2322, invoke(t1, "run"));
+    }
+
+    public void testIssue339b(CtClass cc, CtClass cc0, String name, boolean exclusive) throws Exception {
+        Bytecode newCode = new Bytecode(cc.getClassFile().constPool);
+        newCode.addAload(0); // Loads 'this'
+        newCode.addIload(1); // Loads method param 1 (int)
+        newCode.addInvokespecial(cc0.getName(), name, "(I)V");
+        CodeAttribute ca = cc.getDeclaredMethod(name).getMethodInfo().getCodeAttribute();
+        CodeIterator ci = ca.iterator();
+        if (exclusive)
+            ci.insertEx(newCode.get());
+        else
+            ci.insert(newCode.get());
+    }
 }
