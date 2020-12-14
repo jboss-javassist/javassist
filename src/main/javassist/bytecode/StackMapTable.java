@@ -204,8 +204,11 @@ public class StackMapTable extends AttributeInfo {
             }
             else if (type < 128)
                 pos = sameLocals(pos, type);
-            else if (type < 247)
-                throw new BadBytecode("bad frame_type in StackMapTable");
+            else if (type < 247) {
+                throw new BadBytecode(
+                    "bad frame_type " + type + " in StackMapTable (pos: "
+                        + pos + ", frame no.:" + nth + ")");
+            }
             else if (type == 247)   // SAME_LOCALS_1_STACK_ITEM_EXTENDED
                 pos = sameLocals(pos, type);
             else if (type < 251) {
@@ -890,11 +893,12 @@ public class StackMapTable extends AttributeInfo {
                 match = oldPos <= where  && where < position;
 
             if (match) {
+                int current = info[pos] & 0xff;
                 int newDelta = offsetDelta + gap;
                 position += gap;
                 if (newDelta < 64)
                     info[pos] = (byte)(newDelta + base);
-                else if (offsetDelta < 64) {
+                else if (offsetDelta < 64 && current != entry) {
                     byte[] newinfo = insertGap(info, pos, 2);
                     newinfo[pos] = (byte)entry;
                     ByteArray.write16bit(newDelta, newinfo, pos + 1);
