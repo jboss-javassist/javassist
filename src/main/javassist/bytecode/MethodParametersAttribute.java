@@ -57,6 +57,14 @@ public class MethodParametersAttribute extends AttributeInfo {
     }
 
     /**
+     * Returns the name of the i-th element of <code>parameters</code>.
+     * @param i         the position of the parameter.
+     */
+    public String parameterName(int i) {
+        return getConstPool().getUtf8Info(name(i));
+    }
+
+    /**
      * Returns the value of <code>access_flags</code> of the i-th element of <code>parameters</code>.
      *
      * @param i         the position of the parameter.
