@@ -227,7 +227,7 @@ public class LocalVariableAttribute extends AttributeInfo {
     public String variableNameByIndex(int index) {
         for (int i = 0; i < tableLength(); i++) {
             if (index(i) == index) {
-                return getConstPool().getUtf8Info(nameIndex(i));
+                return variableName(i);
             }
         }
         throw new ArrayIndexOutOfBoundsException();
