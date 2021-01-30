@@ -321,7 +321,7 @@ Copyright (C) 1999- Shigeru Chiba. All Rights Reserved.</i>]]></bottom>
     <dependency>
         <groupId>junit</groupId>
         <artifactId>junit</artifactId>
-        <version>4.12</version>
+        <version>[4.13.1,)</version>
         <scope>test</scope>
     </dependency>
     <dependency>
