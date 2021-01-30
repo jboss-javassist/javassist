@@ -218,6 +218,22 @@ public class LocalVariableAttribute extends AttributeInfo {
     }
 
     /**
+     * Returns the name of the local variable with given index.
+     * If you want get the parameter name of method with correct order,
+     * should using this method.
+     *
+     * @param index         the index of the local variable.
+     */
+    public String variableNameByIndex(int index) {
+        for (int i = 0; i < tableLength(); i++) {
+            if (index(i) == index) {
+                return variableName(i);
+            }
+        }
+        throw new ArrayIndexOutOfBoundsException();
+    }
+
+    /**
      * Returns the value of
      * <code>local_variable_table[i].descriptor_index</code>.
      * This represents the type descriptor of the local variable.

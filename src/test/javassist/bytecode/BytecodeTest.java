@@ -354,6 +354,9 @@ public class BytecodeTest extends TestCase {
                 assertEquals("I", ainfo2.descriptor(i));
         }
         print("**** end ***");
+
+        assertEquals("this", ainfo2.variableNameByIndex(0));
+        assertEquals("i", ainfo2.variableNameByIndex(1));
     }
 
     public void testAnnotations() throws Exception {
