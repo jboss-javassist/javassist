@@ -219,8 +219,8 @@ public class LocalVariableAttribute extends AttributeInfo {
 
     /**
      * Returns the name of the local variable with given index.
-     * If you want get the parameter name of method with correct order,
-     * should using this method.
+     * If you want to get the parameter name of method with correct order,
+     * you should using this method.
      *
      * @param index         the index of the local variable.
      */
