@@ -179,6 +179,7 @@ class CtClassType extends CtClass {
     }
 
     public ClassFile getClassFile3(boolean doCompress) {
+        // quick path - no locking
         ClassFile cfile = classfile;
         if (cfile != null)
             return cfile;
@@ -186,16 +187,28 @@ class CtClassType extends CtClass {
         if (doCompress)
             classPool.compress();
 
-        if (rawClassfile != null) {
+        byte[] rcfile;
+        synchronized (this) {
+            // repeat under lock to make sure we get a consistent result (classfile might have been set by another thread)
+            cfile = classfile;
+            if (cfile != null)
+                return cfile;
+
+            rcfile = rawClassfile;
+        }
+
+        if (rcfile != null) {
+            final ClassFile cf;
             try {
-                ClassFile cf = new ClassFile(new DataInputStream(
-                                             new ByteArrayInputStream(rawClassfile)));
-                rawClassfile = null;
-                getCount = GET_THRESHOLD;
-                return setClassFile(cf);
+                cf = new ClassFile(new DataInputStream(new ByteArrayInputStream(rcfile)));
             }
             catch (IOException e) {
                 throw new RuntimeException(e.toString(), e);
+            }
+            getCount = GET_THRESHOLD;
+            synchronized (this) {
+                rawClassfile = null;
+                return setClassFile(cf);
             }
         }
 
