@@ -106,6 +106,19 @@
           tofile="${test.lib.dir}/emptyorig.jar"
           preservelastmodified="true" />
     <junit fork="true" printsummary="true" dir="${test.run.dir}">
+      <classpath refid="test.classpath"/>
+      <formatter type="xml" extension=".xml"/>
+      <test name="javassist.JvstTest" outfile="TestLog" />
+    </junit>
+    <move file="${test.lib.dir}/emptyorig.jar"
+          tofile="${test.lib.dir}/empty.jar" />
+  </target>
+
+  <target name="runtest8" depends="jar,test-compile">
+    <copy file="${test.lib.dir}/empty.jar"
+          tofile="${test.lib.dir}/emptyorig.jar"
+          preservelastmodified="true" />
+    <junit fork="true" printsummary="true" dir="${test.run.dir}">
       <jvmarg value="-XX:-FailOverToOldVerifier"/>
       <classpath refid="test.classpath"/>
       <formatter type="xml" extension=".xml"/>

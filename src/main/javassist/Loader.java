@@ -444,6 +444,7 @@ public class Loader extends ClassLoader {
         if (doDelegation)
             if (name.startsWith("java.")
                 || name.startsWith("javax.")
+                || name.startsWith("jdk.internal.")
                 || name.startsWith("sun.")
                 || name.startsWith("com.sun.")
                 || name.startsWith("org.w3c.")
