@@ -107,10 +107,10 @@ public class URLClassPath implements ClassPath {
     public URL find(String classname) {
         try {
             URLConnection con = openClassfile0(classname);
-            InputStream is = con.getInputStream();
-            if (is != null) {
-                is.close();
-                return con.getURL();
+            try (InputStream is = con.getInputStream()) {
+                if (is != null) {
+                    return con.getURL();
+                }
             }
         }
         catch (IOException e) {}
@@ -135,25 +135,22 @@ public class URLClassPath implements ClassPath {
         URLConnection con = fetchClass0(host, port,
                 directory + classname.replace('.', '/') + ".class");
         int size = con.getContentLength();
-        InputStream s = con.getInputStream();
-        try {
-            if (size <= 0)
+        try (InputStream s = con.getInputStream()) {
+            if (size <= 0) {
                 b = ClassPoolTail.readStream(s);
-            else {
+            } else {
                 b = new byte[size];
                 int len = 0;
                 do {
                     int n = s.read(b, len, size - len);
-                    if (n < 0)
+                    if (n < 0) {
                         throw new IOException("the stream was closed: "
-                                              + classname);
+                                + classname);
+                    }
 
                     len += n;
                 } while (len < size);
             }
-        }
-        finally {
-            s.close();
         }
 
         return b;
