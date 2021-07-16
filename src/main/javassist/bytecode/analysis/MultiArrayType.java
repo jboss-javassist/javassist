@@ -108,16 +108,10 @@ public class MultiArrayType extends Type {
             return false;
 
         if (typeDims < dims) {
-            if (eq(typeRoot.getCtClass(), Type.OBJECT.getCtClass()))
-                return true;
-
-            if (eq(typeRoot.getCtClass(), Type.CLONEABLE.getCtClass()))
-                return true;
-
-            if (eq(typeRoot.getCtClass(), Type.SERIALIZABLE.getCtClass()))
-                return true;
-
-            return false;
+            CtClass c = typeRoot.getCtClass();
+            return eq(c, Type.OBJECT.getCtClass()) 
+                    || eq(c, Type.CLONEABLE.getCtClass()) 
+                    || eq(c, Type.SERIALIZABLE.getCtClass());
         }
 
         return component.isAssignableTo(typeRoot);

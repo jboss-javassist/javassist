@@ -96,9 +96,9 @@ public class SerialVersionUID {
             int classMods = clazz.getModifiers();
             if ((classMods & Modifier.INTERFACE) != 0)
                 if (methods.length > 0)
-                    classMods = classMods | Modifier.ABSTRACT;
+                    classMods |= Modifier.ABSTRACT;
                 else
-                    classMods = classMods & ~Modifier.ABSTRACT;
+                    classMods &= ~Modifier.ABSTRACT;
 
             out.writeInt(classMods);
 

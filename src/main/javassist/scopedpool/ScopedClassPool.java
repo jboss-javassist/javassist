@@ -100,6 +100,7 @@ public class ScopedClassPool extends ClassPool {
      * 
      * @return the class loader
      */
+    @Override
     public ClassLoader getClassLoader() {
        ClassLoader cl = getClassLoader0();
        if (cl == null && !isBootstrapCl)
@@ -218,6 +219,7 @@ public class ScopedClassPool extends ClassPool {
      * @param dynamic
      *            whether the class is dynamically generated
      */
+    @Override
     protected void cacheCtClass(String classname, CtClass c, boolean dynamic) {
         if (dynamic) {
             super.cacheCtClass(classname, c, dynamic);
@@ -288,6 +290,7 @@ public class ScopedClassPool extends ClassPool {
      * @throws CannotCompileException
      *             for any error
      */
+    @Override
     public Class<?> toClass(CtClass ct, ClassLoader loader, ProtectionDomain domain)
             throws CannotCompileException {
         // We need to pass up the classloader stored in this pool, as the

@@ -374,16 +374,25 @@ public class Webserver {
         out.write("Content-Length: ".getBytes());
         out.write(Long.toString(dataLength).getBytes());
         out.write(endofline);
-        if (filetype == typeClass)
-            out.write("Content-Type: application/octet-stream".getBytes());
-        else if (filetype == typeHtml)
-            out.write("Content-Type: text/html".getBytes());
-        else if (filetype == typeGif)
-            out.write("Content-Type: image/gif".getBytes());
-        else if (filetype == typeJpeg)
-            out.write("Content-Type: image/jpg".getBytes());
-        else if (filetype == typeText)
-            out.write("Content-Type: text/plain".getBytes());
+        switch (filetype) {
+            case typeClass:
+                out.write("Content-Type: application/octet-stream".getBytes());
+                break;
+            case typeHtml:
+                out.write("Content-Type: text/html".getBytes());
+                break;
+            case typeGif:
+                out.write("Content-Type: image/gif".getBytes());
+                break;
+            case typeJpeg:
+                out.write("Content-Type: image/jpg".getBytes());
+                break;
+            case typeText:
+                out.write("Content-Type: text/plain".getBytes());
+                break;
+            default:
+                break;
+        }
 
         out.write(endofline);
         out.write(endofline);

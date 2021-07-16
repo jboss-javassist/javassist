@@ -97,42 +97,42 @@ public class NewArray extends Expr {
      * not <code>int[]</code> but <code>int</code>.
      */
     public CtClass getComponentType() throws NotFoundException {
-        if (opcode == Opcode.NEWARRAY) {
-            int atype = iterator.byteAt(currentPos + 1);
-            return getPrimitiveType(atype);
+        switch (opcode) {
+            case Opcode.NEWARRAY:
+                int atype = iterator.byteAt(currentPos + 1);
+                return getPrimitiveType(atype);
+            case Opcode.ANEWARRAY:
+            case Opcode.MULTIANEWARRAY:
+                int index = iterator.u16bitAt(currentPos + 1);
+                String desc = getConstPool().getClassInfo(index);
+                int dim = Descriptor.arrayDimension(desc);
+                desc = Descriptor.toArrayComponent(desc, dim);
+                return Descriptor.toCtClass(desc, thisClass.getClassPool());
+            default:
+                throw new RuntimeException("bad opcode: " + opcode);
         }
-        else if (opcode == Opcode.ANEWARRAY
-                 || opcode == Opcode.MULTIANEWARRAY) {
-            int index = iterator.u16bitAt(currentPos + 1);
-            String desc = getConstPool().getClassInfo(index);
-            int dim = Descriptor.arrayDimension(desc);
-            desc = Descriptor.toArrayComponent(desc, dim);
-            return Descriptor.toCtClass(desc, thisClass.getClassPool());
-        }
-        else
-            throw new RuntimeException("bad opcode: " + opcode);
     }
 
     CtClass getPrimitiveType(int atype) {
         switch (atype) {
-        case Opcode.T_BOOLEAN :
-            return CtClass.booleanType;
-        case Opcode.T_CHAR :
-            return CtClass.charType;
-        case Opcode.T_FLOAT :
-            return CtClass.floatType;
-        case Opcode.T_DOUBLE :
-            return CtClass.doubleType;
-        case Opcode.T_BYTE :
-            return CtClass.byteType;
-        case Opcode.T_SHORT :
-            return CtClass.shortType;
-        case Opcode.T_INT :
-            return CtClass.intType;
-        case Opcode.T_LONG :
-            return CtClass.longType;
-        default :
-            throw new RuntimeException("bad atype: " + atype);        
+            case Opcode.T_BOOLEAN:
+                return CtClass.booleanType;
+            case Opcode.T_CHAR:
+                return CtClass.charType;
+            case Opcode.T_FLOAT:
+                return CtClass.floatType;
+            case Opcode.T_DOUBLE:
+                return CtClass.doubleType;
+            case Opcode.T_BYTE:
+                return CtClass.byteType;
+            case Opcode.T_SHORT:
+                return CtClass.shortType;
+            case Opcode.T_INT:
+                return CtClass.intType;
+            case Opcode.T_LONG:
+                return CtClass.longType;
+            default:
+                throw new RuntimeException("bad atype: " + atype);
         }
     }
 
@@ -140,17 +140,18 @@ public class NewArray extends Expr {
      * Returns the dimension of the created array.
      */
     public int getDimension() {
-        if (opcode == Opcode.NEWARRAY)
-            return 1;
-        else if (opcode == Opcode.ANEWARRAY
-                 || opcode == Opcode.MULTIANEWARRAY) {
-            int index = iterator.u16bitAt(currentPos + 1);
-            String desc = getConstPool().getClassInfo(index);
-            return Descriptor.arrayDimension(desc)
-                    + (opcode == Opcode.ANEWARRAY ? 1 : 0);
+        switch (opcode) {
+            case Opcode.NEWARRAY:
+                return 1;
+            case Opcode.ANEWARRAY:
+            case Opcode.MULTIANEWARRAY:
+                int index = iterator.u16bitAt(currentPos + 1);
+                String desc = getConstPool().getClassInfo(index);
+                return Descriptor.arrayDimension(desc)
+                        + (opcode == Opcode.ANEWARRAY ? 1 : 0);
+            default:
+                throw new RuntimeException("bad opcode: " + opcode);
         }
-        else
-            throw new RuntimeException("bad opcode: " + opcode);
     }
 
     /**
@@ -193,37 +194,38 @@ public class NewArray extends Expr {
         thisClass.getClassFile();   // to call checkModify().
         ConstPool constPool = getConstPool();
         int pos = currentPos;
-        CtClass retType;
         int codeLength;
         int index = 0;
         int dim = 1;
         String desc;
-        if (opcode == Opcode.NEWARRAY) {
-            index = iterator.byteAt(currentPos + 1);    // atype
-            CtPrimitiveType cpt = (CtPrimitiveType)getPrimitiveType(index); 
-            desc = "[" + cpt.getDescriptor();
-            codeLength = 2;
+        switch (opcode) {
+            case Opcode.NEWARRAY:
+                index = iterator.byteAt(currentPos + 1);    // atype
+                CtPrimitiveType cpt = (CtPrimitiveType) getPrimitiveType(index);
+                desc = "[" + cpt.getDescriptor();
+                codeLength = 2;
+                break;
+            case Opcode.ANEWARRAY:
+                index = iterator.u16bitAt(pos + 1);
+                desc = constPool.getClassInfo(index);
+                if (desc.charAt(0) == '[') {
+                    desc = "[" + desc;
+                } else {
+                    desc = "[L" + desc + ";";
+                }
+                codeLength = 3;
+                break;
+            case Opcode.MULTIANEWARRAY:
+                index = iterator.u16bitAt(currentPos + 1);
+                desc = constPool.getClassInfo(index);
+                dim = iterator.byteAt(currentPos + 3);
+                codeLength = 4;
+                break;
+            default:
+                throw new RuntimeException("bad opcode: " + opcode);
         }
-        else if (opcode == Opcode.ANEWARRAY) {
-            index = iterator.u16bitAt(pos + 1);
-            desc = constPool.getClassInfo(index);
-            if (desc.startsWith("["))
-                desc = "[" + desc;
-            else
-                desc = "[L" + desc + ";";
 
-            codeLength = 3;
-        }
-        else if (opcode == Opcode.MULTIANEWARRAY) {
-            index = iterator.u16bitAt(currentPos + 1);
-            desc = constPool.getClassInfo(index);
-            dim = iterator.byteAt(currentPos + 3);
-            codeLength = 4;
-        }
-        else
-            throw new RuntimeException("bad opcode: " + opcode);
-
-        retType = Descriptor.toCtClass(desc, thisClass.getClassPool());
+        CtClass retType = Descriptor.toCtClass(desc, thisClass.getClassPool());
 
         Javac jc = new Javac(thisClass);
         CodeAttribute ca = iterator.get();
@@ -281,14 +283,19 @@ public class NewArray extends Expr {
             gen.atMethodArgs(args, new int[num],
                              new int[num], new String[num]);
             bytecode.addOpcode(opcode);
-            if (opcode == Opcode.ANEWARRAY)
-                bytecode.addIndex(index);
-            else if (opcode == Opcode.NEWARRAY)
-                bytecode.add(index);
-            else /* if (opcode == Opcode.MULTIANEWARRAY) */ {
-                bytecode.addIndex(index);
-                bytecode.add(dimension);
-                bytecode.growStack(1 - dimension);
+            switch (opcode) {
+                case Opcode.ANEWARRAY:
+                    bytecode.addIndex(index);
+                    break;
+                case Opcode.NEWARRAY:
+                    bytecode.add(index);
+                    break;
+                // case Opcode.MULTIANEWARRAY:
+                default:
+                    bytecode.addIndex(index);
+                    bytecode.add(dimension);
+                    bytecode.growStack(1 - dimension);
+                    break;
             }
 
             gen.setType(arrayType);

@@ -98,6 +98,7 @@ public class ByteArrayClassPath implements ClassPath {
     }
 
     private class BytecodeURLStreamHandler extends URLStreamHandler {
+        @Override
         protected URLConnection openConnection(final URL u) {
             return new BytecodeURLConnection(u);
         }
@@ -108,13 +109,16 @@ public class ByteArrayClassPath implements ClassPath {
             super(url);
         }
 
+        @Override
         public void connect() throws IOException {
         }
 
+        @Override
         public InputStream getInputStream() throws IOException {
             return new ByteArrayInputStream(classfile);
         }
 
+        @Override
         public int getContentLength() {
             return classfile.length;
         }

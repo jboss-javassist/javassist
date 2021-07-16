@@ -78,31 +78,42 @@ public class Descriptor {
         }
 
         String name;
-        if (c == 'L') {
-            int i2 = descriptor.indexOf(';', i++);
-            name = descriptor.substring(i, i2).replace('/', '.');
-            i = i2;
+        switch (c) {
+            case 'L':
+                int i2 = descriptor.indexOf(';', i++);
+                name = descriptor.substring(i, i2).replace('/', '.');
+                i = i2;
+                break;
+            case 'V':
+                name = "void";
+                break;
+            case 'I':
+                name = "int";
+                break;
+            case 'B':
+                name = "byte";
+                break;
+            case 'J':
+                name = "long";
+                break;
+            case 'D':
+                name = "double";
+                break;
+            case 'F':
+                name = "float";
+                break;
+            case 'C':
+                name = "char";
+                break;
+            case 'S':
+                name = "short";
+                break;
+            case 'Z':
+                name = "boolean";
+                break;
+            default:
+                throw new RuntimeException("bad descriptor: " + descriptor);
         }
-        else if (c == 'V')
-            name =  "void";
-        else if (c == 'I')
-            name = "int";
-        else if (c == 'B')
-            name = "byte";
-        else if (c == 'J')
-            name = "long";
-        else if (c == 'D')
-            name = "double";
-        else if (c == 'F')
-            name = "float";
-        else if (c == 'C')
-            name = "char";
-        else if (c == 'S')
-            name = "short";
-        else if (c == 'Z')
-            name = "boolean";
-        else
-            throw new RuntimeException("bad descriptor: " + descriptor);
 
         if (i + 1 != descriptor.length())
             throw new RuntimeException("multiple descriptors?: " + descriptor);

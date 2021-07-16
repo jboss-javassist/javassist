@@ -40,6 +40,7 @@ public class DefineClassHelper {
     }
 
     private static class Java11 extends JavaOther {
+        @Override
         Class<?> defineClass(String name, byte[] bcode, int off, int len, Class<?> neighbor,
                              ClassLoader loader, ProtectionDomain protectionDomain)
             throws ClassFormatError, CannotCompileException
