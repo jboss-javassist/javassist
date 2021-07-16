@@ -355,55 +355,73 @@ public abstract class CodeGen extends Visitor implements Opcode, TokenId {
             return;     // empty
 
         int op = st.getOperator();
-        if (op == EXPR) {
-            ASTree expr = st.getLeft();
-            doTypeCheck(expr);
-            if (expr instanceof AssignExpr)
-                atAssignExpr((AssignExpr)expr, false);
-            else if (isPlusPlusExpr(expr)) {
-                Expr e = (Expr)expr;
-                atPlusPlus(e.getOperator(), e.oprand1(), e, false);
-            }
-            else {
-                expr.accept(this);
-                if (is2word(exprType, arrayDim))
-                    bytecode.addOpcode(POP2);
-                else if (exprType != VOID)
-                    bytecode.addOpcode(POP);
-            }
-        }
-        else if (op == DECL || op == BLOCK) {
-            ASTList list = st;
-            while (list != null) {
-                ASTree h = list.head();
-                list = list.tail();
-                if (h != null)
-                    h.accept(this);
-            }
-        }
-        else if (op == IF)
-            atIfStmnt(st);
-        else if (op == WHILE || op == DO)
-            atWhileStmnt(st, op == WHILE);
-        else if (op == FOR)
-            atForStmnt(st);
-        else if (op == BREAK || op == CONTINUE)
-            atBreakStmnt(st, op == BREAK);
-        else if (op == TokenId.RETURN)
-            atReturnStmnt(st);
-        else if (op == THROW)
-            atThrowStmnt(st);
-        else if (op == TRY)
-            atTryStmnt(st);
-        else if (op == SWITCH)
-            atSwitchStmnt(st);
-        else if (op == SYNCHRONIZED)
-            atSyncStmnt(st);
-        else {
-            // LABEL, SWITCH label stament might be null?.
-            hasReturned = false;
-            throw new CompileError(
-                "sorry, not supported statement: TokenId " + op);
+        switch (op) {
+            case EXPR:
+                ASTree expr = st.getLeft();
+                doTypeCheck(expr);
+                if (expr instanceof AssignExpr) {
+                    atAssignExpr((AssignExpr) expr, false);
+                } else if (isPlusPlusExpr(expr)) {
+                    Expr e = (Expr) expr;
+                    atPlusPlus(e.getOperator(), e.oprand1(), e, false);
+                } else {
+                    expr.accept(this);
+                    if (is2word(exprType, arrayDim)) {
+                        bytecode.addOpcode(POP2);
+                    } else if (exprType != VOID) {
+                        bytecode.addOpcode(POP);
+                    }
+                }
+                break;
+            case DECL:
+            case BLOCK:
+                ASTList list = st;
+                while (list != null) {
+                    ASTree h = list.head();
+                    list = list.tail();
+                    if (h != null) {
+                        h.accept(this);
+                    }
+                }
+                break;
+            case IF:
+                atIfStmnt(st);
+                break;
+            case WHILE:
+                atWhileStmnt(st, true);
+                break;
+            case DO:
+                atWhileStmnt(st, false);
+                break;
+            case FOR:
+                atForStmnt(st);
+                break;
+            case BREAK:
+                atBreakStmnt(st, true);
+                break;
+            case CONTINUE:
+                atBreakStmnt(st, false);
+                break;
+            case TokenId.RETURN:
+                atReturnStmnt(st);
+                break;
+            case THROW:
+                atThrowStmnt(st);
+                break;
+            case TRY:
+                atTryStmnt(st);
+                break;
+            case SWITCH:
+                atSwitchStmnt(st);
+                break;
+            case SYNCHRONIZED:
+                atSyncStmnt(st);
+                break;
+            default:
+                // LABEL, SWITCH label stament might be null?.
+                hasReturned = false;
+                throw new CompileError(
+                        "sorry, not supported statement: TokenId " + op);
         }
     }
 
@@ -1312,53 +1330,67 @@ public abstract class CodeGen extends Visitor implements Opcode, TokenId {
                              int token, int type1, BinExpr expr)
         throws CompileError
     {
-        if (arrayDim == 0)
+        if (arrayDim == 0) {
             convertOprandTypes(type1, exprType, expr);
+        }
 
         int p = typePrecedence(exprType);
-        if (p == P_OTHER || arrayDim > 0)
-            if (token == EQ)
-                bytecode.addOpcode(branchIf ? IF_ACMPEQ : IF_ACMPNE);
-            else if (token == NEQ)
-                bytecode.addOpcode(branchIf ? IF_ACMPNE : IF_ACMPEQ);
-            else
-                badTypes(expr);
-        else
-            if (p == P_INT) {
-                int op[] = ifOp;
-                for (int i = 0; i < op.length; i += 3)
-                    if (op[i] == token) {
-                        bytecode.addOpcode(op[i + (branchIf ? 1 : 2)]);
-                        return;
-                    }
-
-                badTypes(expr);
+        if (p == P_OTHER || arrayDim > 0) {
+            switch (token) {
+                case EQ:
+                    bytecode.addOpcode(branchIf ? IF_ACMPEQ : IF_ACMPNE);
+                    break;
+                case NEQ:
+                    bytecode.addOpcode(branchIf ? IF_ACMPNE : IF_ACMPEQ);
+                    break;
+                default:
+                    badTypes(expr);
+                    break;
             }
-            else {
-                if (p == P_DOUBLE)
-                    if (token == '<' || token == LE)
+        } else if (p == P_INT) {
+            int op[] = ifOp;
+            for (int i = 0, e = op.length; i < e; i += 3) {
+                if (op[i] == token) {
+                    bytecode.addOpcode(op[i + (branchIf ? 1 : 2)]);
+                    return;
+                }
+            }
+
+            badTypes(expr);
+        } else {
+            switch (p) {
+                case P_DOUBLE:
+                    if (token == '<' || token == LE) {
                         bytecode.addOpcode(DCMPG);
-                    else
+                    } else {
                         bytecode.addOpcode(DCMPL);
-                else if (p == P_FLOAT)
-                    if (token == '<' || token == LE)
-                        bytecode.addOpcode(FCMPG);
-                    else
-                        bytecode.addOpcode(FCMPL);
-                else if (p == P_LONG)
-                    bytecode.addOpcode(LCMP); // 1: >, 0: =, -1: <
-                else
-                    fatal();
-
-                int[] op = ifOp2;
-                for (int i = 0; i < op.length; i += 3)
-                    if (op[i] == token) {
-                        bytecode.addOpcode(op[i + (branchIf ? 1 : 2)]);
-                        return;
                     }
-
-                badTypes(expr);
+                    break;
+                case P_FLOAT:
+                    if (token == '<' || token == LE) {
+                        bytecode.addOpcode(FCMPG);
+                    } else {
+                        bytecode.addOpcode(FCMPL);
+                    }
+                    break;
+                case P_LONG:
+                    bytecode.addOpcode(LCMP); // 1: >, 0: =, -1: <
+                    break;
+                default:
+                    fatal();
+                    break;
             }
+
+            int[] op = ifOp2;
+            for (int i = 0, e = op.length; i < e; i += 3) {
+                if (op[i] == token) {
+                    bytecode.addOpcode(op[i + (branchIf ? 1 : 2)]);
+                    return;
+                }
+            }
+
+            badTypes(expr);
+        }
     }
 
     protected static void badTypes(Expr expr) throws CompileError {
@@ -1376,18 +1408,22 @@ public abstract class CodeGen extends Visitor implements Opcode, TokenId {
     }
 
     private static int typePrecedence(int type) {
-        if (type == DOUBLE)
-            return P_DOUBLE;
-        else if (type == FLOAT)
-            return P_FLOAT;
-        else if (type == LONG)
-            return P_LONG;
-        else if (isRefType(type))
-            return P_OTHER;
-        else if (type == VOID)
-            return P_OTHER;     // this is wrong, but ...
-        else
-            return P_INT;       // BOOLEAN, BYTE, CHAR, SHORT, INT
+        switch (type) {
+            case DOUBLE:
+                return P_DOUBLE;
+            case FLOAT:
+                return P_FLOAT;
+            case LONG:
+                return P_LONG;
+            case CLASS:
+                return P_OTHER;
+            case NULL:
+                return P_OTHER;
+            case VOID:
+                return P_OTHER;     // this is wrong, but ...
+            default:
+                return P_INT;       // BOOLEAN, BYTE, CHAR, SHORT, INT
+        }
     }
 
     // used in TypeChecker.
@@ -1439,33 +1475,36 @@ public abstract class CodeGen extends Visitor implements Opcode, TokenId {
         }
 
         if (rightStrong) {
-            if (result_type == P_DOUBLE || result_type == P_LONG) {
-                if (type1_p == P_DOUBLE || type1_p == P_LONG)
+            switch (result_type) {
+                case P_DOUBLE:
+                case P_LONG:
+                    if (type1_p == P_DOUBLE || type1_p == P_LONG) {
+                        bytecode.addOpcode(DUP2_X2);
+                    } else {
+                        bytecode.addOpcode(DUP2_X1);
+                    }
+                    bytecode.addOpcode(POP2);
+                    bytecode.addOpcode(op);
                     bytecode.addOpcode(DUP2_X2);
-                else
-                    bytecode.addOpcode(DUP2_X1);
-
-                bytecode.addOpcode(POP2);
-                bytecode.addOpcode(op);
-                bytecode.addOpcode(DUP2_X2);
-                bytecode.addOpcode(POP2);
-            }
-            else if (result_type == P_FLOAT) {
-                if (type1_p == P_LONG) {
-                    bytecode.addOpcode(DUP_X2);
-                    bytecode.addOpcode(POP);
-                }
-                else
+                    bytecode.addOpcode(POP2);
+                    break;
+                case P_FLOAT:
+                    if (type1_p == P_LONG) {
+                        bytecode.addOpcode(DUP_X2);
+                        bytecode.addOpcode(POP);
+                    } else {
+                        bytecode.addOpcode(SWAP);
+                    }
+                    bytecode.addOpcode(op);
                     bytecode.addOpcode(SWAP);
-
-                bytecode.addOpcode(op);
-                bytecode.addOpcode(SWAP);
+                    break;
+                default:
+                    fatal();
+                    break;
             }
-            else
-                fatal();
-        }
-        else if (op != NOP)
+        } else if (op != NOP) {
             bytecode.addOpcode(op);
+        }
     }
 
     @Override
@@ -1527,25 +1566,35 @@ public abstract class CodeGen extends Visitor implements Opcode, TokenId {
         int op, op2;
         int stype = typePrecedence(srcType);
         int dtype = typePrecedence(destType);
-        if (0 <= stype && stype < 3)
+        if (0 <= stype && stype < 3) {
             op = castOp[stype * 4 + dtype];
-        else
+        } else {
             op = NOP;
+        }
 
-        if (destType == DOUBLE)
-            op2 = I2D;
-        else if (destType == FLOAT)
-            op2 = I2F;
-        else if (destType == LONG)
-            op2 = I2L;
-        else if (destType == SHORT)
-            op2 = I2S;
-        else if (destType == CHAR)
-            op2 = I2C;
-        else if (destType == BYTE)
-            op2 = I2B;
-        else
-            op2 = NOP;
+        switch (destType) {
+            case DOUBLE:
+                op2 = I2D;
+                break;
+            case FLOAT:
+                op2 = I2F;
+                break;
+            case LONG:
+                op2 = I2L;
+                break;
+            case SHORT:
+                op2 = I2S;
+                break;
+            case CHAR:
+                op2 = I2C;
+                break;
+            case BYTE:
+                op2 = I2B;
+                break;
+            default:
+                op2 = NOP;
+                break;
+        }
 
         if (op != NOP)
             bytecode.addOpcode(op);
@@ -1562,78 +1611,96 @@ public abstract class CodeGen extends Visitor implements Opcode, TokenId {
 
         int token = expr.getOperator();
         ASTree oprand = expr.oprand1();
-        if (token == '.') {
-            String member = ((Symbol)expr.oprand2()).get();
-            if (member.equals("class"))
-                atClassObject(expr);  // .class
-            else
+        switch (token) {
+            case '.':
+                if ("class".equals(((Symbol) expr.oprand2()).get())) {
+                    atClassObject(expr);  // .class
+                } else {
+                    atFieldRead(expr);
+                }
+                break;
+            case MEMBER:
+                // field read
+                /* MEMBER ('#') is an extension by Javassist.
+                * The compiler internally uses # for compiling .class
+                * expressions such as "int.class".
+                 */
                 atFieldRead(expr);
-        }
-        else if (token == MEMBER) {     // field read
-            /* MEMBER ('#') is an extension by Javassist.
-             * The compiler internally uses # for compiling .class
-             * expressions such as "int.class".
-             */
-            atFieldRead(expr);
-        }
-        else if (token == ARRAY)
-            atArrayRead(oprand, expr.oprand2());
-        else if (token == PLUSPLUS || token == MINUSMINUS)
-            atPlusPlus(token, oprand, expr, true);
-        else if (token == '!') {
-            if (!booleanExpr(false, expr)) {
-                bytecode.addIndex(7);
-                bytecode.addIconst(1);
-                bytecode.addOpcode(Opcode.GOTO);
-                bytecode.addIndex(4);
-            }
-
-            bytecode.addIconst(0);
-        }
-        else if (token == CALL)         // method call
-            fatal();
-        else {
-            expr.oprand1().accept(this);
-            int type = typePrecedence(exprType);
-            if (arrayDim > 0)
-                badType(expr);
-
-            if (token == '-') {
-                if (type == P_DOUBLE)
-                    bytecode.addOpcode(DNEG);
-                else if (type == P_FLOAT)
-                    bytecode.addOpcode(FNEG);
-                else if (type == P_LONG)
-                    bytecode.addOpcode(LNEG);
-                else if (type == P_INT) {
-                    bytecode.addOpcode(INEG);
-                    exprType = INT;     // type may be BYTE, ...
+                break;
+            case ARRAY:
+                atArrayRead(oprand, expr.oprand2());
+                break;
+            case PLUSPLUS:
+            case MINUSMINUS:
+                atPlusPlus(token, oprand, expr, true);
+                break;
+            case '!':
+                if (!booleanExpr(false, expr)) {
+                    bytecode.addIndex(7);
+                    bytecode.addIconst(1);
+                    bytecode.addOpcode(Opcode.GOTO);
+                    bytecode.addIndex(4);
                 }
-                else
-                    badType(expr);
-            }
-            else if (token == '~') {
-                if (type == P_INT) {
-                    bytecode.addIconst(-1);
-                    bytecode.addOpcode(IXOR);
-                    exprType = INT;     // type may be BYTE. ...
-                }
-                else if (type == P_LONG) {
-                    bytecode.addLconst(-1);
-                    bytecode.addOpcode(LXOR);
-                }
-                else
-                    badType(expr);
-
-            }
-            else if (token == '+') {
-                if (type == P_OTHER)
-                    badType(expr);
-
-                // do nothing. ignore.
-            }
-            else
+                bytecode.addIconst(0);
+                break;
+            // method call
+            case CALL:
                 fatal();
+                break;
+            default:
+                expr.oprand1().accept(this);
+                int type = typePrecedence(exprType);
+                if (arrayDim > 0) {
+                    badType(expr);
+                }
+                switch (token) {
+                    case '-':
+                        switch (type) {
+                            case P_DOUBLE:
+                                bytecode.addOpcode(DNEG);
+                                break;
+                            case P_FLOAT:
+                                bytecode.addOpcode(FNEG);
+                                break;
+                            case P_LONG:
+                                bytecode.addOpcode(LNEG);
+                                break;
+                            case P_INT:
+                                bytecode.addOpcode(INEG);
+                                exprType = INT;     // type may be BYTE, ...
+                                break;
+                            default:
+                                badType(expr);
+                                break;
+                        }
+                        break;
+                    case '~':
+                        switch (type) {
+                            case P_INT:
+                                bytecode.addIconst(-1);
+                                bytecode.addOpcode(IXOR);
+                                exprType = INT;     // type may be BYTE. ...
+                                break;
+                            case P_LONG:
+                                bytecode.addLconst(-1);
+                                bytecode.addOpcode(LXOR);
+                                break;
+                            default:
+                                badType(expr);
+                                break;
+                        }
+                        break;
+                    case '+':
+                        if (type == P_OTHER) {
+                            badType(expr);
+                        }
+                        // do nothing. ignore.
+                        break;
+                    default:
+                        fatal();
+                        break;
+                }
+                break;
         }
     }
 
@@ -1754,23 +1821,23 @@ public abstract class CodeGen extends Visitor implements Opcode, TokenId {
             return AALOAD;
 
         switch (type) {
-        case DOUBLE :
-            return DALOAD;
-        case FLOAT :
-            return FALOAD;
-        case LONG :
-            return LALOAD;
-        case INT :
-            return IALOAD;
-        case SHORT :
-            return SALOAD;
-        case CHAR :
-            return CALOAD;
-        case BYTE :
-        case BOOLEAN :
-            return BALOAD;
-        default :
-            return AALOAD;
+            case DOUBLE:
+                return DALOAD;
+            case FLOAT:
+                return FALOAD;
+            case LONG:
+                return LALOAD;
+            case INT:
+                return IALOAD;
+            case SHORT:
+                return SALOAD;
+            case CHAR:
+                return CALOAD;
+            case BYTE:
+            case BOOLEAN:
+                return BALOAD;
+            default:
+                return AALOAD;
         }
     }
 
@@ -1779,23 +1846,23 @@ public abstract class CodeGen extends Visitor implements Opcode, TokenId {
             return AASTORE;
 
         switch (type) {
-        case DOUBLE :
-            return DASTORE;
-        case FLOAT :
-            return FASTORE;
-        case LONG :
-            return LASTORE;
-        case INT :
-            return IASTORE;
-        case SHORT :
-            return SASTORE;
-        case CHAR :
-            return CASTORE;
-        case BYTE :
-        case BOOLEAN :
-            return BASTORE;
-        default :
-            return AASTORE;
+            case DOUBLE:
+                return DASTORE;
+            case FLOAT:
+                return FASTORE;
+            case LONG:
+                return LASTORE;
+            case INT:
+                return IASTORE;
+            case SHORT:
+                return SASTORE;
+            case CHAR:
+                return CASTORE;
+            case BYTE:
+            case BOOLEAN:
+                return BASTORE;
+            default:
+                return AASTORE;
         }
     }
 
@@ -1814,64 +1881,69 @@ public abstract class CodeGen extends Visitor implements Opcode, TokenId {
             if (arrayDim > 0)
                 badType(expr);
 
-            if (t == DOUBLE) {
-                bytecode.addDload(var);
-                if (doDup && isPost)
-                    bytecode.addOpcode(DUP2);
-
-                bytecode.addDconst(1.0);
-                bytecode.addOpcode(token == PLUSPLUS ? DADD : DSUB);
-                if (doDup && !isPost)
-                    bytecode.addOpcode(DUP2);
-
-                bytecode.addDstore(var);
+            switch (t) {
+                case DOUBLE:
+                    bytecode.addDload(var);
+                    if (doDup && isPost) {
+                        bytecode.addOpcode(DUP2);
+                    }
+                    bytecode.addDconst(1.0);
+                    bytecode.addOpcode(token == PLUSPLUS ? DADD : DSUB);
+                    if (doDup && !isPost) {
+                        bytecode.addOpcode(DUP2);
+                    }
+                    bytecode.addDstore(var);
+                    break;
+                case LONG:
+                    bytecode.addLload(var);
+                    if (doDup && isPost) {
+                        bytecode.addOpcode(DUP2);
+                    }
+                    bytecode.addLconst(1);
+                    bytecode.addOpcode(token == PLUSPLUS ? LADD : LSUB);
+                    if (doDup && !isPost) {
+                        bytecode.addOpcode(DUP2);
+                    }
+                    bytecode.addLstore(var);
+                    break;
+                case FLOAT:
+                    bytecode.addFload(var);
+                    if (doDup && isPost) {
+                        bytecode.addOpcode(DUP);
+                    }
+                    bytecode.addFconst(1.0f);
+                    bytecode.addOpcode(token == PLUSPLUS ? FADD : FSUB);
+                    if (doDup && !isPost) {
+                        bytecode.addOpcode(DUP);
+                    }
+                    bytecode.addFstore(var);
+                    break;
+                case BYTE:
+                case CHAR:
+                case SHORT:
+                case INT:
+                    if (doDup && isPost) {
+                        bytecode.addIload(var);
+                    }
+                    int delta = token == PLUSPLUS ? 1 : -1;
+                    if (var > 0xff) {
+                        bytecode.addOpcode(WIDE);
+                        bytecode.addOpcode(IINC);
+                        bytecode.addIndex(var);
+                        bytecode.addIndex(delta);
+                    } else {
+                        bytecode.addOpcode(IINC);
+                        bytecode.add(var);
+                        bytecode.add(delta);
+                    }
+                    if (doDup && !isPost) {
+                        bytecode.addIload(var);
+                    }
+                    break;
+                default:
+                    badType(expr);
+                    break;
             }
-            else if (t == LONG) {
-                bytecode.addLload(var);
-                if (doDup && isPost)
-                    bytecode.addOpcode(DUP2);
-
-                bytecode.addLconst(1);
-                bytecode.addOpcode(token == PLUSPLUS ? LADD : LSUB);
-                if (doDup && !isPost)
-                    bytecode.addOpcode(DUP2);
-
-                bytecode.addLstore(var);
-            }
-            else if (t == FLOAT) {
-                bytecode.addFload(var);
-                if (doDup && isPost)
-                    bytecode.addOpcode(DUP);
-
-                bytecode.addFconst(1.0f);
-                bytecode.addOpcode(token == PLUSPLUS ? FADD : FSUB);
-                if (doDup && !isPost)
-                    bytecode.addOpcode(DUP);
-
-                bytecode.addFstore(var);
-            }
-            else if (t == BYTE || t == CHAR || t == SHORT || t == INT) {
-                if (doDup && isPost)
-                    bytecode.addIload(var);
-
-                int delta = token == PLUSPLUS ? 1 : -1;
-                if (var > 0xff) {
-                    bytecode.addOpcode(WIDE);
-                    bytecode.addOpcode(IINC);
-                    bytecode.addIndex(var);
-                    bytecode.addIndex(delta);
-                }
-                else {
-                    bytecode.addOpcode(IINC);
-                    bytecode.add(var);
-                    bytecode.add(delta);
-                }
-
-                if (doDup && !isPost)
-                    bytecode.addIload(var);
-            }
-            else
-                badType(expr);
         }
         else {
             if (oprand instanceof Expr) {
@@ -1911,25 +1983,31 @@ public abstract class CodeGen extends Visitor implements Opcode, TokenId {
         if (doDup && isPost)
             bytecode.addOpcode(dup_code);
 
-        if (t == INT || t == BYTE || t == CHAR || t == SHORT) {
-            bytecode.addIconst(1);
-            bytecode.addOpcode(token == PLUSPLUS ? IADD : ISUB);
-            exprType = INT;
+        switch (t) {
+            case INT:
+            case BYTE:
+            case CHAR:
+            case SHORT:
+                bytecode.addIconst(1);
+                bytecode.addOpcode(token == PLUSPLUS ? IADD : ISUB);
+                exprType = INT;
+                break;
+            case LONG:
+                bytecode.addLconst(1);
+                bytecode.addOpcode(token == PLUSPLUS ? LADD : LSUB);
+                break;
+            case FLOAT:
+                bytecode.addFconst(1.0f);
+                bytecode.addOpcode(token == PLUSPLUS ? FADD : FSUB);
+                break;
+            case DOUBLE:
+                bytecode.addDconst(1.0);
+                bytecode.addOpcode(token == PLUSPLUS ? DADD : DSUB);
+                break;
+            default:
+                badType(expr);
+                break;
         }
-        else if (t == LONG) {
-            bytecode.addLconst(1);
-            bytecode.addOpcode(token == PLUSPLUS ? LADD : LSUB);
-        }
-        else if (t == FLOAT) {
-            bytecode.addFconst(1.0f);
-            bytecode.addOpcode(token == PLUSPLUS ? FADD : FSUB);
-        }
-        else if (t == DOUBLE) {
-            bytecode.addDconst(1.0);
-            bytecode.addOpcode(token == PLUSPLUS ? DADD : DSUB);
-        }
-        else
-            badType(expr);
 
         if (doDup && !isPost)
             bytecode.addOpcode(dup_code);
@@ -1953,21 +2031,21 @@ public abstract class CodeGen extends Visitor implements Opcode, TokenId {
             bytecode.addAload(var);
         else
             switch (exprType) {
-            case CLASS :
-                bytecode.addAload(var);
-                break;
-            case LONG :
-                bytecode.addLload(var);
-                break;
-            case FLOAT :
-                bytecode.addFload(var);
-                break;
-            case DOUBLE :
-                bytecode.addDload(var);
-                break;
-            default :   // BOOLEAN, BYTE, CHAR, SHORT, INT
-                bytecode.addIload(var);
-                break;
+                case CLASS:
+                    bytecode.addAload(var);
+                    break;
+                case LONG:
+                    bytecode.addLload(var);
+                    break;
+                case FLOAT:
+                    bytecode.addFload(var);
+                    break;
+                case DOUBLE:
+                    bytecode.addDload(var);
+                    break;
+                default:   // BOOLEAN, BYTE, CHAR, SHORT, INT
+                    bytecode.addIload(var);
+                    break;
             }
     }
 
@@ -1976,33 +2054,31 @@ public abstract class CodeGen extends Visitor implements Opcode, TokenId {
         arrayDim = 0;
         int token = k.get();
         switch (token) {
-        case TRUE :
-            bytecode.addIconst(1);
-            exprType = BOOLEAN;
-            break;
-        case FALSE :
-            bytecode.addIconst(0);
-            exprType = BOOLEAN;
-            break;
-        case NULL :
-            bytecode.addOpcode(ACONST_NULL);
-            exprType = NULL;
-            break;
-        case THIS :
-        case SUPER :
-            if (inStaticMethod)
-                throw new CompileError("not-available: "
-                                       + (token == THIS ? "this" : "super"));
+            case TRUE:
+                bytecode.addIconst(1);
+                exprType = BOOLEAN;
+                break;
+            case FALSE:
+                bytecode.addIconst(0);
+                exprType = BOOLEAN;
+                break;
+            case NULL:
+                bytecode.addOpcode(ACONST_NULL);
+                exprType = NULL;
+                break;
+            case THIS:
+            case SUPER:
+                if (inStaticMethod) {
+                    throw new CompileError("not-available: "
+                            + (token == THIS ? "this" : "super"));
+                }
 
-            bytecode.addAload(0);
-            exprType = CLASS;
-            if (token == THIS)
-                className = getThisName();
-            else
-                className = getSuperName();
-            break;
-        default :
-            fatal();
+                bytecode.addAload(0);
+                exprType = CLASS;
+                className = (token == THIS) ? getThisName() : getSuperName();
+                break;
+            default:
+                fatal();
         }
     }
 

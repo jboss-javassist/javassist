@@ -247,28 +247,34 @@ public abstract class Tracer implements TypeTag {
     private void doLDC(int index) {
         TypeData[] stackTypes = this.stackTypes;
         int tag = cpool.getTag(index);
-        if (tag == ConstPool.CONST_String)
-            stackTypes[stackTop++] = new TypeData.ClassName("java.lang.String");
-        else if (tag == ConstPool.CONST_Integer)
-            stackTypes[stackTop++] = INTEGER;
-        else if (tag == ConstPool.CONST_Float)
-            stackTypes[stackTop++] = FLOAT;
-        else if (tag == ConstPool.CONST_Long) {
-            stackTypes[stackTop++] = LONG;
-            stackTypes[stackTop++] = TOP;
+        switch (tag) {
+            case ConstPool.CONST_String:
+                stackTypes[stackTop++] = new TypeData.ClassName("java.lang.String");
+                break;
+            case ConstPool.CONST_Integer:
+                stackTypes[stackTop++] = INTEGER;
+                break;
+            case ConstPool.CONST_Float:
+                stackTypes[stackTop++] = FLOAT;
+                break;
+            case ConstPool.CONST_Long:
+                stackTypes[stackTop++] = LONG;
+                stackTypes[stackTop++] = TOP;
+                break;
+            case ConstPool.CONST_Double:
+                stackTypes[stackTop++] = DOUBLE;
+                stackTypes[stackTop++] = TOP;
+                break;
+            case ConstPool.CONST_Class:
+                stackTypes[stackTop++] = new TypeData.ClassName("java.lang.Class");
+                break;
+            case ConstPool.CONST_Dynamic:
+                String desc = cpool.getDynamicType(index);
+                pushMemberType(desc);
+                break;
+            default:
+                throw new RuntimeException("bad LDC: " + tag);
         }
-        else if (tag == ConstPool.CONST_Double) {
-            stackTypes[stackTop++] = DOUBLE;
-            stackTypes[stackTop++] = TOP;
-        }
-        else if (tag == ConstPool.CONST_Class)
-            stackTypes[stackTop++] = new TypeData.ClassName("java.lang.Class");
-        else if (tag == ConstPool.CONST_Dynamic) {
-            String desc = cpool.getDynamicType(index);
-            pushMemberType(desc);
-        }
-        else
-            throw new RuntimeException("bad LDC: " + tag);
     }
 
     private int doXLOAD(TypeData type, byte[] code, int pos) {

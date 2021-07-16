@@ -1077,16 +1077,20 @@ public final class Parser implements TokenId {
             case '.' :
                 lex.get();
                 t = lex.get();
-                if (t == CLASS)
-                    expr = parseDotClass(expr, 0);
-                else if (t == SUPER)
-                    expr = Expr.make('.', new Symbol(toClassName(expr)), new Keyword(t));
-                else if (t == Identifier) {
-                    str = lex.getString();
-                    expr = Expr.make('.', expr, new Member(str));
+                switch (t) {
+                    case CLASS:
+                        expr = parseDotClass(expr, 0);
+                        break;
+                    case SUPER:
+                        expr = Expr.make('.', new Symbol(toClassName(expr)), new Keyword(t));
+                        break;
+                    case Identifier:
+                        str = lex.getString();
+                        expr = Expr.make('.', expr, new Member(str));
+                        break;
+                    default:
+                        throw new CompileError("missing member name", lex);
                 }
-                else
-                    throw new CompileError("missing member name", lex);
                 break;
             case '#' :
                 lex.get();

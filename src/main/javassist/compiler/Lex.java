@@ -142,29 +142,34 @@ public class Lex implements TokenId {
             c = getc();
             if (c == '/') {
                 c = getc();
-                if (c == '/')
-                    do {
-                        c = getc();
-                    } while (c != '\n' && c != '\r' && c != -1);
-                else if (c == '*')
-                    while (true) {
-                        c = getc();
-                        if (c == -1)
-                            break;
-                        else if (c == '*')
-                            if ((c = getc()) == '/') {
-                                c = ' ';
+                switch (c) {
+                    case '/':
+                        do {
+                            c = getc();
+                        } while (c != '\n' && c != '\r' && c != -1);
+                        break;
+                    case '*':
+                        while (true) {
+                            c = getc();
+                            if (c == -1) {
                                 break;
+                            } else if (c == '*') {
+                                if ((c = getc()) == '/') {
+                                    c = ' ';
+                                    break;
+                                } else {
+                                    ungetc(c);
+                                }
                             }
-                            else
-                                ungetc(c);
-                    }
-                else {
-                    ungetc(c);
-                    c = '/';
+                        }
+                        break;
+                    default:
+                        ungetc(c);
+                        c = '/';
+                        break;
                 }
             }
-        } while(isBlank(c));
+        } while (isBlank(c));
         return c;
     }
 
@@ -189,17 +194,25 @@ public class Lex implements TokenId {
 
     private int readEscapeChar() {
         int c = getc();
-        if (c == 'n')
-            c = '\n';
-        else if (c == 't')
-            c = '\t';
-        else if (c == 'r')
-            c = '\r';
-        else if (c == 'f')
-            c = '\f';
-        else if (c == '\n')
-            ++lineNumber;
-
+        switch (c) {
+            case 'n':
+                c = '\n';
+                break;
+            case 't':
+                c = '\t';
+                break;
+            case 'r':
+                c = '\r';
+                break;
+            case 'f':
+                c = '\f';
+                break;
+            case '\n':
+                ++lineNumber;
+                break;
+            default:
+                break;
+        }
         return c;
     }
 
@@ -281,22 +294,26 @@ public class Lex implements TokenId {
         }
 
         token.longValue = value;
-        if (c2 == 'F' || c2 == 'f') {
-            token.doubleValue = value;
-            return FloatConstant;
-        }
-        else if (c2 == 'E' || c2 == 'e'
-                 || c2 == 'D' || c2 == 'd' || c2 == '.') {
-            StringBuffer tbuf = textBuffer;
-            tbuf.setLength(0);
-            tbuf.append(value);
-            return readDouble(tbuf, c2, token);
-        }
-        else if (c2 == 'L' || c2 == 'l')
-            return LongConstant;
-        else {
-            ungetc(c2);
-            return IntConstant;
+        switch (c2) {
+            case 'F':
+            case 'f':
+                token.doubleValue = value;
+                return FloatConstant;
+            case 'E':
+            case 'e':
+            case 'D':
+            case 'd':
+            case '.':
+                StringBuffer tbuf = textBuffer;
+                tbuf.setLength(0);
+                tbuf.append(value);
+                return readDouble(tbuf, c2, token);
+            case 'L':
+            case 'l':
+                return LongConstant;
+            default:
+                ungetc(c2);
+                return IntConstant;
         }
     }
 
@@ -352,60 +369,65 @@ public class Lex implements TokenId {
         int c2, c3;
         if ('!' <= c && c <= '?') {
             int t = equalOps[c - '!'];
-            if (t == 0)
+            if (t == 0) {
                 return c;
+            }
             c2 = getc();
-            if (c == c2)
+            if (c == c2) {
                 switch (c) {
-                case '=' :
-                    return EQ;
-                case '+' :
-                    return PLUSPLUS;
-                case '-' :
-                    return MINUSMINUS;
-                case '&' :
-                    return ANDAND;
-                case '<' :
-                    c3 = getc();
-                    if (c3 == '=')
-                        return LSHIFT_E;
-                    ungetc(c3);
-                    return LSHIFT;
-                case '>' :
-                    c3 = getc();
-                    if (c3 == '=')
-                        return RSHIFT_E;
-                    else if (c3 == '>') {
+                    case '=':
+                        return EQ;
+                    case '+':
+                        return PLUSPLUS;
+                    case '-':
+                        return MINUSMINUS;
+                    case '&':
+                        return ANDAND;
+                    case '<':
                         c3 = getc();
-                        if (c3 == '=')
-                            return ARSHIFT_E;
+                        if (c3 == '=') {
+                            return LSHIFT_E;
+                        }
                         ungetc(c3);
-                        return ARSHIFT;
-                    }
-                    else {
-                        ungetc(c3);
-                        return RSHIFT;
-                    }
-                default :
-                    break;
+                        return LSHIFT;
+                    case '>':
+                        c3 = getc();
+                        switch (c3) {
+                            case '=':
+                                return RSHIFT_E;
+                            case '>':
+                                c3 = getc();
+                                if (c3 == '=') {
+                                    return ARSHIFT_E;
+                                }
+                                ungetc(c3);
+                                return ARSHIFT;
+                            default:
+                                ungetc(c3);
+                                return RSHIFT;
+                        }
+
+                    default:
+                        break;
                 }
-            else if (c2 == '=')
+            } else if (c2 == '=') {
                 return t;
-        }
-        else if (c == '^') {
+            }
+        } else if (c == '^') {
             c2 = getc();
-            if (c2 == '=')
+            if (c2 == '=') {
                 return EXOR_E;
-        }
-        else if (c == '|') {
+            }
+        } else if (c == '|') {
             c2 = getc();
-            if (c2 == '=')
+            if (c2 == '=') {
                 return OR_E;
-            else if (c2 == '|')
+            } else if (c2 == '|') {
                 return OROR;
-        }
-        else
+            }
+        } else {
             return c;
+        }
 
         ungetc(c2);
         return c;

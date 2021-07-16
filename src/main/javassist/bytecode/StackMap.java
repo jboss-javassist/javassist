@@ -181,21 +181,22 @@ public class StackMap extends AttributeInfo {
 
         int typeInfoArray2(int k, int pos) {
             byte tag = info[pos];
-            if (tag == OBJECT) {
-                int clazz = ByteArray.readU16bit(info, pos + 1);
-                objectVariable(pos, clazz);
-                pos += 3;
+            switch (tag) {
+                case OBJECT:
+                    int clazz = ByteArray.readU16bit(info, pos + 1);
+                    objectVariable(pos, clazz);
+                    pos += 3;
+                    break;
+                case UNINIT:
+                    int offsetOfNew = ByteArray.readU16bit(info, pos + 1);
+                    uninitialized(pos, offsetOfNew);
+                    pos += 3;
+                    break;
+                default:
+                    typeInfo(pos, tag);
+                    pos++;
+                    break;
             }
-            else if (tag == UNINIT) {
-                int offsetOfNew = ByteArray.readU16bit(info, pos + 1);
-                uninitialized(pos, offsetOfNew);
-                pos += 3;
-            }
-            else {
-                typeInfo(pos, tag);
-                pos++;
-            }
-
             return pos;
         }
 
@@ -374,12 +375,17 @@ public class StackMap extends AttributeInfo {
         }
 
         private void writeVarTypeInfo() {
-            if (varTag == OBJECT)
-                writer.writeVerifyTypeInfo(OBJECT, varData);
-            else if (varTag == UNINIT)
-                writer.writeVerifyTypeInfo(UNINIT, varData);
-            else
-                writer.writeVerifyTypeInfo(varTag, 0);
+            switch (varTag) {
+                case OBJECT:
+                    writer.writeVerifyTypeInfo(OBJECT, varData);
+                    break;
+                case UNINIT:
+                    writer.writeVerifyTypeInfo(UNINIT, varData);
+                    break;
+                default:
+                    writer.writeVerifyTypeInfo(varTag, 0);
+                    break;
+            }
         }
     }
 
@@ -473,38 +479,42 @@ public class StackMap extends AttributeInfo {
             int p = pos;
             int count = 0;
             for (int k = 0; k < num; k++) {
-                byte tag = info[p];
-                if (tag == OBJECT)
-                    p += 3;
-                else if (tag == UNINIT) {
-                    int offsetOfNew = ByteArray.readU16bit(info, p + 1);
-                    if (offsetOfNew == posOfNew)
-                        count++;
-
-                    p += 3;
+                switch (info[p]) {
+                    case OBJECT:
+                        p += 3;
+                        break;
+                    case UNINIT:
+                        if (ByteArray.readU16bit(info, p + 1) == posOfNew) {
+                            count++;
+                        }
+                        p += 3;
+                        break;
+                    default:
+                        p++;
+                        break;
                 }
-                else
-                    p++;
             }
 
             writer.write16bit(num - count);
             for (int k = 0; k < num; k++) {
                 byte tag = info[pos];
-                if (tag == OBJECT) {
-                    int clazz = ByteArray.readU16bit(info, pos + 1);
-                    objectVariable(pos, clazz);
-                    pos += 3;
-                }
-                else if (tag == UNINIT) {
-                    int offsetOfNew = ByteArray.readU16bit(info, pos + 1);
-                    if (offsetOfNew != posOfNew)
-                        uninitialized(pos, offsetOfNew);
-
-                    pos += 3;
-                }
-                else {
-                    typeInfo(pos, tag);
-                    pos++;
+                switch (tag) {
+                    case OBJECT:
+                        int clazz = ByteArray.readU16bit(info, pos + 1);
+                        objectVariable(pos, clazz);
+                        pos += 3;
+                        break;
+                    case UNINIT:
+                        int offsetOfNew = ByteArray.readU16bit(info, pos + 1);
+                        if (offsetOfNew != posOfNew) {
+                            uninitialized(pos, offsetOfNew);
+                        }
+                        pos += 3;
+                        break;
+                    default:
+                        typeInfo(pos, tag);
+                        pos++;
+                        break;
                 }
             }
 
