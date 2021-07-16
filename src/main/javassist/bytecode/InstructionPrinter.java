@@ -235,17 +235,17 @@ public class InstructionPrinter implements Opcode {
 
 
     private static String lookupSwitch(CodeIterator iter, int pos) {
-        StringBuffer buffer = new StringBuffer("lookupswitch {\n");
+        StringBuilder buffer = new StringBuilder("lookupswitch {\n");
         int index = (pos & ~3) + 4;
         // default
-        buffer.append("\t\tdefault: ").append(pos + iter.s32bitAt(index)).append("\n");
+        buffer.append("\t\tdefault: ").append(pos + iter.s32bitAt(index)).append('\n');
         int npairs = iter.s32bitAt(index += 4);
         int end = npairs * 8 + (index += 4);
 
         for (; index < end; index += 8) {
             int match = iter.s32bitAt(index);
             int target = iter.s32bitAt(index + 4) + pos;
-            buffer.append("\t\t").append(match).append(": ").append(target).append("\n");
+            buffer.append("\t\t").append(match).append(": ").append(target).append('\n');
         }
 
         buffer.setCharAt(buffer.length() - 1, '}');
@@ -254,10 +254,10 @@ public class InstructionPrinter implements Opcode {
 
 
     private static String tableSwitch(CodeIterator iter, int pos) {
-        StringBuffer buffer = new StringBuffer("tableswitch {\n");
+        StringBuilder buffer = new StringBuilder("tableswitch {\n");
         int index = (pos & ~3) + 4;
         // default
-        buffer.append("\t\tdefault: ").append(pos + iter.s32bitAt(index)).append("\n");
+        buffer.append("\t\tdefault: ").append(pos + iter.s32bitAt(index)).append('\n');
         int low = iter.s32bitAt(index += 4);
         int high = iter.s32bitAt(index += 4);
         int end = (high - low + 1) * 4 + (index += 4);
@@ -265,7 +265,7 @@ public class InstructionPrinter implements Opcode {
         // Offset table
         for (int key = low; index < end; index += 4, key++) {
             int target = iter.s32bitAt(index) + pos;
-            buffer.append("\t\t").append(key).append(": ").append(target).append("\n");
+            buffer.append("\t\t").append(key).append(": ").append(target).append('\n');
         }
 
         buffer.setCharAt(buffer.length() - 1, '}');

@@ -100,7 +100,7 @@ public abstract class CtBehavior extends CtMember {
     }
 
     @Override
-    protected void extendToString(StringBuffer buffer) {
+    protected void extendToString(StringBuilder buffer) {
         buffer.append(' ');
         buffer.append(getName());
         buffer.append(' ');

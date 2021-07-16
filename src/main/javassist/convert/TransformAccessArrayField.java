@@ -218,7 +218,7 @@ public final class TransformAccessArrayField extends Transformer {
             break;
         }
 
-        if (methodName.equals(""))
+        if ("".equals(methodName))
             methodName = null;
 
         return methodName;

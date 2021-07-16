@@ -74,7 +74,7 @@ public class TypeChecker extends Visitor implements Opcode, TokenId {
      */
     protected static String argTypesToString(int[] types, int[] dims,
                                              String[] cnames) {
-        StringBuffer sbuf = new StringBuffer();
+        StringBuilder sbuf = new StringBuilder();
         sbuf.append('(');
         int n = types.length;
         if (n > 0) {
@@ -96,7 +96,7 @@ public class TypeChecker extends Visitor implements Opcode, TokenId {
      * Converts a tuple of exprType, arrayDim, and className
      * into a String object.
      */
-    protected static StringBuffer typeToString(StringBuffer sbuf,
+    protected static StringBuilder typeToString(StringBuilder sbuf,
                                         int type, int dim, String cname) {
         String s;
         if (type == CLASS)

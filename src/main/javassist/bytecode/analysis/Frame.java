@@ -231,7 +231,7 @@ public class Frame {
 
     @Override
     public String toString() {
-        StringBuffer buffer = new StringBuffer();
+        StringBuilder buffer = new StringBuilder();
 
         buffer.append("locals = [");
         for (int i = 0; i < locals.length; i++) {
@@ -245,7 +245,7 @@ public class Frame {
             if (i < top - 1)
                 buffer.append(", ");
         }
-        buffer.append("]");
+        buffer.append(']');
 
         return buffer.toString();
     }

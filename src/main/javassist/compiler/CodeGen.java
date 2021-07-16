@@ -197,7 +197,7 @@ public abstract class CodeGen extends Visitor implements Opcode, TokenId {
 
         if (dim == 0)
             return name;
-        StringBuffer sbuf = new StringBuffer();
+        StringBuilder sbuf = new StringBuilder();
         int d = dim;
         while (d-- > 0)
             sbuf.append('[');
@@ -241,7 +241,7 @@ public abstract class CodeGen extends Visitor implements Opcode, TokenId {
             break;
         }
 
-        StringBuffer sbuf = new StringBuffer();
+        StringBuilder sbuf = new StringBuilder();
         while (dim-- > 0)
                 sbuf.append('[');
 
@@ -473,7 +473,7 @@ public abstract class CodeGen extends Visitor implements Opcode, TokenId {
         boolean alwaysBranch = compileBooleanExpr(true, expr);
         if (alwaysBranch) {
             bytecode.addOpcode(Opcode.GOTO);
-            alwaysBranch = breakList.size() == 0;
+            alwaysBranch = breakList.isEmpty();
         }
 
         bytecode.addIndex(pc2 - bytecode.currentPc() + 1);
@@ -1663,7 +1663,7 @@ public abstract class CodeGen extends Visitor implements Opcode, TokenId {
                      * must be passed to Class.forName().
                      */
                     name2 = MemberResolver.jvmToJavaName(name2);
-                    StringBuffer sbuf = new StringBuffer();
+                    StringBuilder sbuf = new StringBuilder();
                     while (i-- >= 0)
                         sbuf.append('[');
 

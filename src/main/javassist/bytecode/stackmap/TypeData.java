@@ -434,7 +434,7 @@ public abstract class TypeData {
 
         private String fixTypes2(List<TypeData> scc, Set<String> lowersSet, ClassPool cp) throws NotFoundException {
             Iterator<String> it = lowersSet.iterator();
-            if (lowersSet.size() == 0)
+            if (lowersSet.isEmpty())
                 return null;      // only NullType
             else if (lowersSet.size() == 1)
                 return it.next();

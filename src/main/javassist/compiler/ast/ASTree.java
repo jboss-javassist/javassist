@@ -46,7 +46,7 @@ public abstract class ASTree implements Serializable {
 
     @Override
     public String toString() {
-        StringBuffer sbuf = new StringBuffer();
+        StringBuilder sbuf = new StringBuilder();
         sbuf.append('<');
         sbuf.append(getTag());
         sbuf.append('>');

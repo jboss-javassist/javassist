@@ -30,7 +30,7 @@ public abstract class CtMember {
      */
     static class Cache extends CtMember {
         @Override
-        protected void extendToString(StringBuffer buffer) {}
+        protected void extendToString(StringBuilder buffer) {}
         @Override
         public boolean hasAnnotation(String clz) { return false; }
         @Override
@@ -155,13 +155,13 @@ public abstract class CtMember {
 
     @Override
     public String toString() {
-        StringBuffer buffer = new StringBuffer(getClass().getName());
-        buffer.append("@");
+        StringBuilder buffer = new StringBuilder(getClass().getName());
+        buffer.append('@');
         buffer.append(Integer.toHexString(hashCode()));
-        buffer.append("[");
+        buffer.append('[');
         buffer.append(Modifier.toString(getModifiers()));
         extendToString(buffer);
-        buffer.append("]");
+        buffer.append(']');
         return buffer.toString();
     }
 
@@ -172,7 +172,7 @@ public abstract class CtMember {
      * provided first; subclasses should provide additional data such
      * as return type, field or method name, etc.
      */
-    protected abstract void extendToString(StringBuffer buffer);
+    protected abstract void extendToString(StringBuilder buffer);
 
     /**
      * Returns the class that declares this member.

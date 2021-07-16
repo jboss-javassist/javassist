@@ -431,7 +431,7 @@ public class SignatureAttribute extends AttributeInfo {
          */
         @Override
         public String toString() {
-            StringBuffer sbuf = new StringBuffer(getName());
+            StringBuilder sbuf = new StringBuilder(getName());
             if (superClass != null)
                 sbuf.append(" extends ").append(superClass.toString());
 
@@ -740,7 +740,7 @@ public class SignatureAttribute extends AttributeInfo {
          */
         @Override
         public String toString() {
-            StringBuffer sbuf = new StringBuffer();
+            StringBuilder sbuf = new StringBuilder();
             ClassType parent = getDeclaringClass();
             if (parent != null)
                 sbuf.append(parent.toString()).append('.');
@@ -748,7 +748,7 @@ public class SignatureAttribute extends AttributeInfo {
             return toString2(sbuf);
         }
 
-        private String toString2(StringBuffer sbuf) {
+        private String toString2(StringBuilder sbuf) {
             sbuf.append(name);
             if (arguments != null) {
                 sbuf.append('<');
@@ -773,7 +773,7 @@ public class SignatureAttribute extends AttributeInfo {
          */
         @Override
         public String jvmTypeName() {
-            StringBuffer sbuf = new StringBuffer();
+            StringBuilder sbuf = new StringBuilder();
             ClassType parent = getDeclaringClass();
             if (parent != null)
                 sbuf.append(parent.jvmTypeName()).append('$');
@@ -868,7 +868,7 @@ public class SignatureAttribute extends AttributeInfo {
          */
         @Override
         public String toString() {
-            StringBuffer sbuf = new StringBuffer(componentType.toString());
+            StringBuilder sbuf = new StringBuilder(componentType.toString());
             for (int i = 0; i < dim; i++)
                 sbuf.append("[]");
 

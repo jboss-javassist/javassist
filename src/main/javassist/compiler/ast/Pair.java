@@ -37,7 +37,7 @@ public class Pair extends ASTree {
 
     @Override
     public String toString() {
-        StringBuffer sbuf = new StringBuffer();
+        StringBuilder sbuf = new StringBuilder();
         sbuf.append("(<Pair> ");
         sbuf.append(left == null ? "<null>" : left.toString());
         sbuf.append(" . ");

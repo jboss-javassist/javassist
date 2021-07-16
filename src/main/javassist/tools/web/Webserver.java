@@ -222,7 +222,7 @@ public class Webserver {
     }
 
     private String readLine(InputStream in) throws IOException {
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
         int c;
         while ((c = in.read()) >= 0 && c != 0x0d)
             buf.append((char)c);

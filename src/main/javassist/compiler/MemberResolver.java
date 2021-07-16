@@ -491,7 +491,7 @@ public class MemberResolver implements TokenId {
                 int i = classname.lastIndexOf('.');
                 if (notCheckInner || i < 0)
                     throw e;
-                StringBuffer sbuf = new StringBuffer(classname);
+                StringBuilder sbuf = new StringBuilder(classname);
                 sbuf.setCharAt(i, '$');
                 classname = sbuf.toString();
             }

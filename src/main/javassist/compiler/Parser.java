@@ -1113,7 +1113,7 @@ public final class Parser implements TokenId {
     {
         String cname = toClassName(className);
         if (dim > 0) {
-            StringBuffer sbuf = new StringBuffer();
+            StringBuilder sbuf = new StringBuilder();
             while (dim-- > 0)
                 sbuf.append('[');
 
@@ -1199,12 +1199,12 @@ public final class Parser implements TokenId {
     private String toClassName(ASTree name)
         throws CompileError
     {
-        StringBuffer sbuf = new StringBuffer();
+        StringBuilder sbuf = new StringBuilder();
         toClassName(name, sbuf);
         return sbuf.toString();
     }
 
-    private void toClassName(ASTree name, StringBuffer sbuf)
+    private void toClassName(ASTree name, StringBuilder sbuf)
         throws CompileError
     {
         if (name instanceof Symbol) {

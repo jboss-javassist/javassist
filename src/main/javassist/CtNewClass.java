@@ -45,7 +45,7 @@ class CtNewClass extends CtClassType {
     }
 
     @Override
-    protected void extendToString(StringBuffer buffer) {
+    protected void extendToString(StringBuilder buffer) {
         if (hasConstructor)
             buffer.append("hasConstructor ");
 

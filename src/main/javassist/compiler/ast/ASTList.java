@@ -79,7 +79,7 @@ public class ASTList extends ASTree {
 
     @Override
     public String toString() {
-        StringBuffer sbuf = new StringBuffer();
+        StringBuilder sbuf = new StringBuilder();
         sbuf.append("(<");
         sbuf.append(getTag());
         sbuf.append('>');
