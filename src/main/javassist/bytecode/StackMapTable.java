@@ -912,9 +912,15 @@ public class StackMapTable extends AttributeInfo {
         static byte[] insertGap(byte[] info, int where, int gap) {
             int len = info.length;
             byte[] newinfo = new byte[len + gap];
-            for (int i = 0; i < len; i++)
-                newinfo[i + (i < where ? 0 : gap)] = info[i];
-
+            if (where <= 0) {
+                System.arraycopy(info, 0, newinfo, gap, len);
+            } else if (where >= len) {
+                System.arraycopy(info, 0, newinfo, 0, len);
+            } else {
+                assert (where > 0 && where < len);
+                System.arraycopy(info, 0, newinfo, 0, where);
+                System.arraycopy(info, where, newinfo, where + gap, len - where);
+            }
             return newinfo;
         }
 

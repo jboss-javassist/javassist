@@ -309,8 +309,7 @@ public class MapMaker extends Tracer {
     }
 
     protected static void copyTypeData(int n, TypeData[] srcTypes, TypeData[] destTypes) {
-        for (int i = 0; i < n; i++)
-            destTypes[i] = srcTypes[i];
+        System.arraycopy(srcTypes, 0, destTypes, 0, n);
     }
 
     private static TypeData validateTypeData(TypeData[] data, int length, int index) {
