@@ -667,8 +667,9 @@ public class MemberCodeGen extends CodeGen {
                                                       origDesc);
 
                 acc = AccessFlag.setPackage(acc) | AccessFlag.STATIC;
-                mname = getAccessiblePrivate(mname, origDesc, desc,
-                                             minfo, declClass);
+                if (!isFromSameDeclaringClass(declClass, thisClass))
+                    mname = getAccessiblePrivate(mname, origDesc, desc,
+                        minfo, declClass);
             }
 
         boolean popTarget = false;
