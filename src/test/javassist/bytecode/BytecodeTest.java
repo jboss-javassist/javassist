@@ -475,9 +475,9 @@ public class BytecodeTest extends TestCase {
         changeMsig2("<S:Ljava/lang/Object;>(TS;[TS;)Ljava/lang/Objec;", "java/lang/Object",
                     "<S:Ljava/lang/Object2;>(TS;[TS;)Ljava/lang/Objec;", "java/lang/Object2"); 
         String sig = "<T:Ljava/lang/Exception;>LPoi$Foo<Ljava/lang/String;>;LBar;LBar2;";
-        //String res = "<T:Ljava/lang/Exception;>LPoi$Foo<Ljava/lang/String2;>;LBar;LBar2;";
-        changeMsig(sig, "java/lang/String", sig, "java/lang/String2");
-        changeMsig2(sig, "java/lang/String", sig, "java/lang/String2");
+        String res = "<T:Ljava/lang/Exception;>LPoi$Foo<Ljava/lang/String2;>;LBar;LBar2;";
+        changeMsig(sig, "java/lang/String", res, "java/lang/String2");
+        changeMsig2(sig, "java/lang/String", res, "java/lang/String2");
         changeMsig("Ltest<TE;>.List;", "ist", "Ltest<TE;>.List;", "IST");
     }
 

@@ -110,51 +110,48 @@ public class SignatureAttribute extends AttributeInfo {
     }
 
     static String renameClass(String desc, Map<String,String> map) {
-        if (map == null)
+        if (map == null) {
             return desc;
+        }
 
-        StringBuilder newdesc = new StringBuilder();
+        StringBuilder newDesc = new StringBuilder();
         int head = 0;
-        int i = 0;
-        for (;;) {
-            int j = desc.indexOf('L', i);
-            if (j < 0)
-                break;
-
+        for (int i = 0, j; (j = desc.indexOf('L', i)) >= 0; ) {
+            if (j > 0 && desc.charAt(j - 1) == '.') {
+                i = j + 1;
+                continue;
+            }
             StringBuilder nameBuf = new StringBuilder();
             int k = j;
             char c;
             try {
-                while ((c = desc.charAt(++k)) != ';') {
+                while ((c = desc.charAt(++k)) != ';' && c != '<') {
                     nameBuf.append(c);
-                    if (c == '<') {
-                        while ((c = desc.charAt(++k)) != '>')
-                            nameBuf.append(c);
-
-                        nameBuf.append(c);
-                    }
                 }
+            } catch (IndexOutOfBoundsException ignored) {
+                break;
             }
-            catch (IndexOutOfBoundsException e) { break; }
             i = k + 1;
             String name = nameBuf.toString();
-            String name2 = map.get(name);
-            if (name2 != null) {
-                newdesc.append(desc.substring(head, j));
-                newdesc.append('L');
-                newdesc.append(name2);
-                newdesc.append(c);
+            String newName = map.get(name);
+            if (newName != null) {
+                newDesc.append(desc, head, j);
+                newDesc.append('L');
+                newDesc.append(newName);
+                newDesc.append(c);
                 head = i;
             }
         }
 
-        if (head == 0)
+        if (head == 0) {
             return desc;
+        }
         int len = desc.length();
-        if (head < len)
-            newdesc.append(desc.substring(head, len));
+        if (head < len) {
+            newDesc.append(desc, head, len);
+        }
 
-        return newdesc.toString();
+        return newDesc.toString();
     }
 
     @SuppressWarnings("unused")
