@@ -213,7 +213,6 @@ class SecurityActions extends SecurityManager
             if (e.getCause() instanceof NoSuchFieldException)
                 throw new ClassNotFoundException("No such instance.", e.getCause());
             if (e.getCause() instanceof IllegalAccessException
-                    || e.getCause() instanceof IllegalAccessException
                     || e.getCause() instanceof SecurityException)
                 throw new ClassNotFoundException("Security denied access.", e.getCause());
             throw new RuntimeException(e.getCause());
