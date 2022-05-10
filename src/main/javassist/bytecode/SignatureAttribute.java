@@ -121,29 +121,29 @@ public class SignatureAttribute extends AttributeInfo {
             if (j < 0)
                 break;
 
-            StringBuilder nameBuf = new StringBuilder();
-            int k = j;
-            char c;
-            try {
-                while ((c = desc.charAt(++k)) != ';') {
-                    nameBuf.append(c);
-                    if (c == '<') {
-                        while ((c = desc.charAt(++k)) != '>')
-                            nameBuf.append(c);
+            int k = desc.indexOf(';', j);
+            if (k < 0)
+                break;
 
-                        nameBuf.append(c);
-                    }
-                }
+            int l = desc.indexOf('<', j);
+            int classEndIndex;
+            char classEndChar;
+            if (l < 0 || k < l) {
+                classEndIndex = k;
+                classEndChar = ';';
+            } else {
+                classEndIndex = l;
+                classEndChar = '<';
             }
-            catch (IndexOutOfBoundsException e) { break; }
-            i = k + 1;
-            String name = nameBuf.toString();
+            i = classEndIndex + 1;
+
+            String name = desc.substring(j + 1, classEndIndex);
             String name2 = map.get(name);
             if (name2 != null) {
                 newdesc.append(desc.substring(head, j));
                 newdesc.append('L');
                 newdesc.append(name2);
-                newdesc.append(c);
+                newdesc.append(classEndChar);
                 head = i;
             }
         }
