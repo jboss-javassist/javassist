@@ -4,9 +4,8 @@ package test2;
 public class Inner {
     public void sample() throws Exception {
         java.util.Properties props = new java.util.Properties();
-        java.rmi.activation.ActivationGroupDesc.CommandEnvironment ace = null;
-        java.rmi.activation.ActivationGroupDesc agd = new
-            java.rmi.activation.ActivationGroupDesc(props,ace);
+        test2.Inner2.Child ace = null;
+        test2.Inner2 agd = new test2.Inner2(props, ace);
     }
     public static void main(String args[]) {
         System.out.println("Inner");
