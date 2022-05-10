@@ -275,10 +275,8 @@ public class JvstTest2 extends JvstTestRoot {
         String src =
             "public void sampleMethod() throws Exception {"
           + "java.util.Properties props = new java.util.Properties();"
-          + "java.rmi.activation.ActivationGroupDesc.CommandEnvironment ace "
-          + " = null;"
-          + "java.rmi.activation.ActivationGroupDesc agd "
-          + " = new java.rmi.activation.ActivationGroupDesc(props,ace);}";
+          + "test2.Inner2.Child ace = null;"
+          + "test2.Inner2 agd = new test2.Inner2(props, ace);}";
         CtMethod newmethod = CtNewMethod.make(src, target);
         target.addMethod(newmethod);
 

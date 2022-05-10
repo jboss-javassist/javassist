@@ -648,7 +648,7 @@ public class MemberCodeGen extends CodeGen {
                 throw new CompileError("no such constructor: " + targetClass.getName());
 
             if (declClass != thisClass && AccessFlag.isPrivate(acc)) {
-                if (declClass.getClassFile().getMajorVersion() < ClassFile.JAVA_11
+                if (declClass.getClassFile().getMajorVersion() < ClassFile.JAVA_8
                         || !isFromSameDeclaringClass(declClass, thisClass)) {
                     desc = getAccessibleConstructor(desc, declClass, minfo);
                     bytecode.addOpcode(Opcode.ACONST_NULL); // the last parameter

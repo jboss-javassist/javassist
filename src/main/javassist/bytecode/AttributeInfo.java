@@ -254,7 +254,7 @@ public class AttributeInfo {
     /* The following two methods are used to implement
      * ClassFile.renameClass().
      * Only CodeAttribute, LocalVariableAttribute,
-     * AnnotationsAttribute, and SignatureAttribute
+     * AnnotationDefaultAttribute, AnnotationsAttribute, and SignatureAttribute
      * override these methods.
      */
     void renameClass(String oldname, String newname) {}

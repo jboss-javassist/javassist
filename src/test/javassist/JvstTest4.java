@@ -1019,11 +1019,15 @@ public class JvstTest4 extends JvstTestRoot {
         assertEquals(2, attr.size());
         assertEquals("i", cp.getUtf8Info(attr.name(0)));
         assertEquals("s", cp.getUtf8Info(attr.name(1)));
+        assertEquals("i", attr.parameterName(0));
+        assertEquals("s", attr.parameterName(1));
 
         attr = (MethodParametersAttribute)attr.copy(cp, null);
         assertEquals(2, attr.size());
         assertEquals("i", cp.getUtf8Info(attr.name(0)));
         assertEquals("s", cp.getUtf8Info(attr.name(1)));
+        assertEquals("i", attr.parameterName(0));
+        assertEquals("s", attr.parameterName(1));
     }
 
     // JIRA JASSIST-220

@@ -1179,6 +1179,7 @@ public class JvstTest extends JvstTestRoot {
         suite.addTestSuite(test.javassist.proxy.ProxySimpleTest.class);
         suite.addTestSuite(test.javassist.bytecode.analysis.AnalyzerTest.class);
         suite.addTestSuite(test.javassist.convert.ArrayAccessReplaceTest.class);
+        suite.addTestSuite(test.javassist.convert.ArrayAccessReplaceTest2.class);
         suite.addTestSuite(test.javassist.bytecode.analysis.DomTreeTest.class);
         return suite;
     }

@@ -933,7 +933,7 @@ public class TypeChecker extends Visitor implements Opcode, TokenId {
             }
         }
 
-        throw new CompileError("bad filed access");
+        throw new CompileError("bad field access");
     }
 
     private CtField fieldAccess2(Expr e, String jvmClassName) throws CompileError {

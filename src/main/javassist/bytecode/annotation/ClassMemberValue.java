@@ -18,6 +18,7 @@ package javassist.bytecode.annotation;
 
 import java.io.IOException;
 import java.lang.reflect.Method;
+import java.util.Map;
 
 import javassist.ClassPool;
 import javassist.bytecode.BadBytecode;
@@ -93,6 +94,20 @@ public class ClassMemberValue extends MemberValue {
     @Override
     Class<?> getType(ClassLoader cl) throws ClassNotFoundException {
         return loadClass(cl, "java.lang.Class");
+    }
+
+    @Override
+    public void renameClass(String oldname, String newname) {
+        String value = cp.getUtf8Info(valueIndex);
+        String newValue = Descriptor.rename(value, oldname, newname);
+        setValue(Descriptor.toClassName(newValue));
+    }
+
+    @Override
+    public void renameClass(Map<String, String> classnames) {
+        String value = cp.getUtf8Info(valueIndex);
+        String newValue = Descriptor.rename(value, classnames);
+        setValue(Descriptor.toClassName(newValue));
     }
 
     /**

@@ -69,7 +69,7 @@ public abstract class CtClass {
     /**
      * The version number of this release.
      */
-    public static final String version = "3.26.0-GA";
+    public static final String version = "3.29.0-SNAPSHOT";
 
     /**
      * Prints the version number and the copyright notice.
@@ -80,7 +80,7 @@ public abstract class CtClass {
      */
     public static void main(String[] args) {
         System.out.println("Javassist version " + CtClass.version);
-        System.out.println("Copyright (C) 1999-2019 Shigeru Chiba."
+        System.out.println("Copyright (C) 1999-2021 Shigeru Chiba."
                            + " All Rights Reserved.");
     }
 
@@ -1423,7 +1423,7 @@ public abstract class CtClass {
     public void detach() {
         ClassPool cp = getClassPool();
         CtClass obj = cp.removeCached(getName());
-        if (obj != this)
+        if (obj != null && obj != this)
             cp.cacheCtClass(getName(), obj, false);
     }
 

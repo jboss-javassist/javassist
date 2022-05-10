@@ -150,8 +150,9 @@ public class SignatureAttribute extends AttributeInfo {
                 }
             }
             catch (IndexOutOfBoundsException e) { break; }
-        	nameBufs.add(nameBuf);
-        	genericParamBufs.add(genericParamBuf);
+
+            nameBufs.add(nameBuf);
+        	  genericParamBufs.add(genericParamBuf);
             i = k + 1;
             
             String name = String.join("$", nameBufs.toArray(new StringBuilder[0]));

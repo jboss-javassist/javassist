@@ -12,6 +12,7 @@ import java.lang.reflect.Method;
 import javassist.ClassPool;
 import javassist.CodeConverter;
 import javassist.CtClass;
+import javassist.CtConstructor;
 import javassist.CtMethod;
 import javassist.CtNewConstructor;
 import javassist.CtNewMethod;
@@ -829,5 +830,174 @@ public class StackMapTest extends TestCase {
         }
 
         return null;
+    }
+
+    public static class C7 {
+        public int value;
+        public static int value2;
+        public C7() { this(3); }
+        public C7(int i) {
+            value = i;
+        }
+    }
+
+    public void testIssue328() throws Exception {
+        CtClass cc = loader.get("javassist.bytecode.StackMapTest$C7");
+        CtConstructor cons = cc.getDeclaredConstructor(new CtClass[] { CtClass.intType });
+        cons.insertBefore("if ($1 < 0) { super(); if (value2 > 0) { value2++; } return; }");
+        cc.writeFile();
+        Object t1 = make(cc.getName());
+    }
+
+    public static class C8 {
+        int value = 0;
+        int loop = 0;
+        int loop2 = 1;
+        public void foo(int i) { value += i; }
+        public void bar(int i) { value += i; }
+        public void foo2(int i) { value += i; }
+        public void bar2(int i) { value += i; }
+    }
+
+    public static class C9 extends C8 {
+        public void foo(int i) {
+            while(true) {
+                loop--;
+                if (loop < 0)
+                    break;
+            }
+            value += i;
+        }
+        public void bar(int i) {
+            value += i;
+            for (int k = 0; i < 10; k++)
+                loop += k;
+        }
+        public void foo2(int i) {
+            while(true) {
+                loop2--;
+                if (loop2 < 0)
+                    break;
+            }
+            value += i;
+            for (int k = 0; k < 3; k++)
+                loop2--;
+        }
+        public void bar2(int i) {
+            value += i;
+            for (int k = 0; i < 10; k++)
+                loop += k;
+        }
+        public int run() {
+            foo(1);
+            bar(10);
+            foo2(100);
+            bar2(1000);
+            return value;
+        }
+    }
+
+    public void testIssue339() throws Exception {
+        CtClass cc0 = loader.get("javassist.bytecode.StackMapTest$C8");
+        CtClass cc = loader.get("javassist.bytecode.StackMapTest$C9");
+
+        testIssue339b(cc, cc0, "foo", true);
+        testIssue339b(cc, cc0, "bar", true);
+        testIssue339b(cc, cc0, "foo2", false);
+        testIssue339b(cc, cc0, "bar2", false);
+
+        cc.writeFile();
+        Object t1 = make(cc.getName());
+        assertEquals(2322, invoke(t1, "run"));
+    }
+
+    public void testIssue339b(CtClass cc, CtClass cc0, String name, boolean exclusive) throws Exception {
+        Bytecode newCode = new Bytecode(cc.getClassFile().constPool);
+        newCode.addAload(0); // Loads 'this'
+        newCode.addIload(1); // Loads method param 1 (int)
+        newCode.addInvokespecial(cc0.getName(), name, "(I)V");
+        CodeAttribute ca = cc.getDeclaredMethod(name).getMethodInfo().getCodeAttribute();
+        CodeIterator ci = ca.iterator();
+        if (exclusive)
+            ci.insertEx(newCode.get());
+        else
+            ci.insert(newCode.get());
+    }
+
+    public void testIssue350() throws Exception {
+        byte sameLocals1StackItemFrameExtended = 247 - 256;
+        byte sameFrameExtended = 251 - 256;
+        byte appendFrame = 252 - 256;
+        ConstPool cp = new ConstPool("Test");
+        StackMapTable stmt;
+        int originalLength;
+
+        stmt = new StackMapTable(cp, new byte[] {
+            0, 1,
+            sameLocals1StackItemFrameExtended, 0, 63, 1
+        });
+        originalLength = stmt.info.length;
+        assertEquals(63, stmt.info[4]);
+        stmt.shiftPc(0, 2, false);
+        assertEquals(originalLength, stmt.info.length);
+        assertEquals(65, stmt.info[4]);
+
+        stmt = new StackMapTable(cp, new byte[] {
+            0, 1,
+            sameFrameExtended, 0, 63
+        });
+        originalLength = stmt.info.length;
+        assertEquals(63, stmt.info[4]);
+        stmt.shiftPc(0, 2, false);
+        assertEquals(originalLength, stmt.info.length);
+        assertEquals(65, stmt.info[4]);
+
+        stmt = new StackMapTable(cp, new byte[] {
+            0, 2,
+            sameLocals1StackItemFrameExtended, 0, 63, 1,
+            sameFrameExtended, 0, 63
+        });
+        originalLength = stmt.info.length;
+        assertEquals(63, stmt.info[4]);
+        assertEquals(63, stmt.info[8]);
+        stmt.shiftPc(0, 2, false);
+        assertEquals(originalLength, stmt.info.length);
+        assertEquals(65, stmt.info[4]);
+        assertEquals(63, stmt.info[8]);
+        stmt.shiftPc(100, 2, false);
+        assertEquals(65, stmt.info[4]);
+        assertEquals(65, stmt.info[8]);
+
+        // Actual StackMapTable reported in https://github.com/jboss-javassist/javassist/issues/350.
+        stmt = new StackMapTable(cp, new byte[] {
+            0, 7, // size
+            sameLocals1StackItemFrameExtended, 0, 76, 7, 2, 206 - 256,
+            sameLocals1StackItemFrameExtended, 0, 63, 7, 2, 221 - 256,
+            appendFrame, 0, 63, 7, 0, 14,
+            appendFrame, 0, 43, 7, 2, 225 - 256, 1,
+            74, 7, 0, 19,  // same_locals_1_stack_item_frame (not extended)
+            appendFrame, 0, 23, 7, 0, 19,
+            66, 7, 2, 225 - 256 // same_locals_1_stack_item_frame (not extended)
+        });
+        assertEquals(63, stmt.info[10]);
+        originalLength = stmt.info.length;
+
+        stmt.shiftPc(100, 2, false);
+        assertEquals(originalLength, stmt.info.length);
+        assertEquals(65, stmt.info[10]);
+    }
+
+    public static void dump(byte[] content) {
+        final int bytesPerLine = 16;
+        for (int i = 0; i < content.length; i += bytesPerLine) {
+            for (int j = 0; j < bytesPerLine && i + j < content.length; j++) {
+                int unsignedByte = content[i + j];
+                if (unsignedByte < 0) {
+                    unsignedByte = 256 + unsignedByte;
+                }
+                System.out.print(unsignedByte + ", ");
+            }
+            System.out.println();
+        }
     }
 }

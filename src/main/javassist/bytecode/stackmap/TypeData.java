@@ -206,7 +206,12 @@ public abstract class TypeData {
         }
 
         @Override
-        public boolean eq(TypeData d) { return getName().equals(d.getName()); }
+        public boolean eq(TypeData d) {
+            if (d.isUninit())
+                return d.eq(this);
+            else
+                return getName().equals(d.getName());
+        }
     }
 
     /* a type variable representing a class type or a basic type.
@@ -853,7 +858,12 @@ public abstract class TypeData {
         }
 
         @Override
-        public boolean eq(TypeData d) { return name.equals(d.getName()); }
+        public boolean eq(TypeData d) {
+            if (d.isUninit())
+                return d.eq(this);
+            else
+                return name.equals(d.getName());
+        }
 
         @Override
         public void setType(String typeName, ClassPool cp) throws BadBytecode {}

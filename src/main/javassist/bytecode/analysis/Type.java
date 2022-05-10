@@ -15,9 +15,7 @@
  */
 package javassist.bytecode.analysis;
 
-import java.util.HashMap;
-import java.util.IdentityHashMap;
-import java.util.Map;
+import java.util.*;
 
 import javassist.ClassPool;
 import javassist.CtClass;
@@ -496,24 +494,26 @@ public class Type {
         if (typeMap == null||typeMap.isEmpty())
             alterMap.clear();
 
-        for (String name:alterMap.keySet())
+        Iterator<String> it = alterMap.keySet().iterator();
+        while (it.hasNext()) {
+            String name = it.next();
             if (!typeMap.containsKey(name))
-                alterMap.remove(name);
+                it.remove();
+        }
 
         // Reduce to subinterfaces
         // This does not need to be recursive since we make a copy,
         // and that copy contains all super types for the whole hierarchy
-        for (CtClass intf:alterMap.values()) {
-            CtClass[] interfaces;
+        Collection<CtClass> interfaces = new ArrayList<>();
+        for (CtClass intf : alterMap.values()) {
             try {
-                interfaces = intf.getInterfaces();
+                interfaces.addAll(Arrays.asList(intf.getInterfaces()));
             } catch (NotFoundException e) {
                 throw new RuntimeException(e);
             }
-
-            for (CtClass c:interfaces)
-                alterMap.remove(c.getName());
         }
+        for (CtClass c : interfaces)
+            alterMap.remove(c.getName());
 
         return alterMap;
     }
