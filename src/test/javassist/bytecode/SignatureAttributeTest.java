@@ -1,11 +1,10 @@
 package javassist.bytecode;
 
-import static org.junit.Assert.assertEquals;
-
+import junit.framework.TestCase;
 import java.util.HashMap;
 
-public class SignatureAttributeTest {
-	void test1() {
+public class SignatureAttributeTest extends TestCase {
+	public void test1() {
 		final String signature = "TX;TY;La/b/C$D$E$J$K;"; //a sequence of three ReferenceTypeSignature
 		final HashMap<String, String> map = new HashMap<>();
 		map.put("a/b/C$D$E$J$K", "o/p/Q$R$S$T$U");
@@ -13,8 +12,8 @@ public class SignatureAttributeTest {
 		final String signatureRenamed = SignatureAttribute.renameClass(signature, map);
 		assertEquals("TX;TY;Lo/p/Q$R$S$T$U;", signatureRenamed);
 	}
-	
-	void test2() {
+
+	public void test2() {
 		final String signature = "La/b/C<TA;TB;>.D<Ljava/lang/Integer;>;"; //a ClassTypeSignature
 		final HashMap<String, String> map = new HashMap<>();
 		map.put("a/b/C$D", "o/p/Q$R");
@@ -23,7 +22,7 @@ public class SignatureAttributeTest {
 		assertEquals("Lo/p/Q<TA;TB;>.R<Ljava/lang/Long;>;", signatureRenamed);
 	}
 	
-	void test3() {
+	public void test3() {
 		final String signature = "BJLB<TX;Lc/D$E;>.F<TY;>;TZ;"; //a sequence of four JavaTypeSignature
 		final HashMap<String, String> map = new HashMap<>();
 		map.put("B$F", "P$T");
@@ -32,7 +31,7 @@ public class SignatureAttributeTest {
 		assertEquals("BJLP<TX;Lq/R$S;>.T<TY;>;TZ;", signatureRenamed);
 	}
 	
-	void test4() {
+	public void test4() {
 		final String signature = "La/b/C<TX;>;[[Ld/E<+TY;-Ljava/lang/Object;*>;Z"; //a sequence of three JavaTypeSignature
 		final HashMap<String, String> map = new HashMap<>();
 		map.put("java/lang/Object", "java/util/Map");
@@ -41,7 +40,7 @@ public class SignatureAttributeTest {
 		assertEquals("La/b/C<TX;>;[[LF<+TY;-Ljava/util/Map;*>;Z", signatureRenamed);
 	}
 	
-	void test5() {
+	public void test5() {
 		final String signature = "La/b/C$D$E<TX;Le/F$G<TY;TZ;>.H$I<TU;TV;>;>.J$K;"; //a ClassTypeSignature
 		final HashMap<String, String> map = new HashMap<>();
 		map.put("a/b/C$D$E$J$K", "o/p/Q$R$S$T$U");
@@ -50,7 +49,7 @@ public class SignatureAttributeTest {
 		assertEquals("Lo/p/Q$R$S<TX;Lv/W$X<TY;TZ;>.Y$Z<TU;TV;>;>.T$U;", signatureRenamed);
 	}
 	
-	void test6() {
+	public void test6() {
 		final String signature = "<X:La/B$C<TY;>.D<TZ;>;:Le/F$G;>Lh/I$J;"; //a ClassSignature
 		final HashMap<String, String> map = new HashMap<>();
 		map.put("a/B$C$D", "o/P$Q$R");
@@ -60,7 +59,7 @@ public class SignatureAttributeTest {
 		assertEquals("<X:Lo/P$Q<TY;>.R<TZ;>;:Ls/T$U;>Lv/W$X;", signatureRenamed);
 	}
 	
-	void test7() {
+	public void test7() {
 		final String signature = "<A:La/B$C;:Ld/E<TX;>.F<TY;>;:TZ;B:Ljava/lang/Thread;>(LX;TA;LA;)V^Ljava/lang/Exception;"; //a MethodSignature
 		final HashMap<String, String> map = new HashMap<>();
 		map.put("A", "P");
