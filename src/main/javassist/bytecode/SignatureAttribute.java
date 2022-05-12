@@ -122,106 +122,23 @@ public class SignatureAttribute extends AttributeInfo {
             if (j < 0)
                 break;
 
-            StringBuilder nameBuf = new StringBuilder();
-            StringBuilder genericParamBuf = new StringBuilder();
             final ArrayList<StringBuilder> nameBufs = new ArrayList<>();
             final ArrayList<StringBuilder> genericParamBufs = new ArrayList<>();
-            int k = j;
-            char c;
-            try {
-                while ((c = desc.charAt(++k)) != ';') {
-                    if (c == '<') {
-                        genericParamBuf.append(c);
-                        int level = 1;
-                        while (level > 0) {
-                            c = desc.charAt(++k);
-                            genericParamBuf.append(c);
-                            if (c == '<')
-                                ++level;
-                            else if (c == '>')
-                                --level;
-                        }
-                    }
-                    else if (c == '.') {
-                        nameBufs.add(nameBuf);
-                        genericParamBufs.add(genericParamBuf);
-                        nameBuf = new StringBuilder();
-                        genericParamBuf = new StringBuilder();
-                    }
-                    else
-                        nameBuf.append(c);
-                }
-            }
-            catch (IndexOutOfBoundsException e) { break; }
-
-            nameBufs.add(nameBuf);
-            genericParamBufs.add(genericParamBuf);
-            i = k + 1;
+            i = parseClassName(nameBufs, genericParamBufs, desc, j) + 1;
+            if (i < 0)
+                break;
 
             String name = String.join("$", nameBufs.toArray(new StringBuilder[0]));
             String newname = map.get(name);
             if (newname != null) {
-                final String[] nameSplit = name.split("\\$");
-                final String[] newnameSplit = newname.split("\\$");
-                if (nameSplit.length == newnameSplit.length) {
-                    final String[] newnames = new String[nameBufs.size()];
-                    for (int start = 0, z = 0; z < nameBufs.size(); z++) {
-                        final int toAggregate = (int) nameBufs.get(z).chars().filter(ch -> ch == '$').count() + 1;
-                        String s = String.join("$", Arrays.copyOfRange(newnameSplit, start, start + toAggregate));
-                        start += toAggregate;
-                        newnames[z] = s;
-                    }
-
-                    newdesc.append(desc.substring(head, j));
-                    newdesc.append('L');
-                    for (int z = 0; z < newnames.length; z++) {
-                        if (z > 0)
-                            newdesc.append('.');
-
-                        newdesc.append(newnames[z]);
-                        final String newgenericParam;
-                        final StringBuilder genericParamBufCurrent = genericParamBufs.get(z);
-                        if (genericParamBufCurrent.length() > 0)
-                            newgenericParam = "<" + renameClass(genericParamBufCurrent.substring(1, genericParamBufCurrent.length() - 1), map) + ">";
-                        else
-                            newgenericParam = genericParamBufCurrent.toString(); //empty string
-
-                        newdesc.append(newgenericParam);
-                    }
-                    newdesc.append(c); //the final semicolon
+                if (makeNewClassName(desc, map, name, newname, newdesc, head, j,
+                                     nameBufs, genericParamBufs))
                     head = i;
-                }
             }
-            else {
-                    final ArrayList<String> newGenericParamBufs = new ArrayList<String>();
-                    boolean changed = false;
-                    for (int z = 0; z < genericParamBufs.size(); z++) {
-                        final String newGenericParam;
-                        final StringBuilder genericParamBufCurrent = genericParamBufs.get(z);
-                        if (genericParamBufCurrent.length() > 0) {
-                            newGenericParam = "<" + renameClass(genericParamBufCurrent.substring(1, genericParamBufCurrent.length() - 1), map) + ">";
-                            changed = changed || !genericParamBufCurrent.toString().equals(newGenericParam);
-                        }
-                        else
-                            newGenericParam = genericParamBufCurrent.toString(); //empty string
-
-                        newGenericParamBufs.add(newGenericParam);
-                    }
-
-                    if (changed) {
-                        newdesc.append(desc.substring(head, j));
-                        newdesc.append('L');
-                        for (int z = 0; z < genericParamBufs.size(); z++) {
-                            if (z > 0)
-                                newdesc.append('.');
-
-                            newdesc.append(nameBufs.get(z));
-                            newdesc.append(newGenericParamBufs.get(z));
-                        }
-                        newdesc.append(';');
-                        head = i;
-                    }
-            }
+            else
+                if (replaceTypeArguments(desc, map, newdesc, head, j,
+                                      nameBufs, genericParamBufs))
+                    head = i;
         }
 
         if (head == 0)
@@ -231,6 +148,127 @@ public class SignatureAttribute extends AttributeInfo {
             newdesc.append(desc.substring(head, len));
 
         return newdesc.toString();
+    }
+
+    private static int parseClassName(ArrayList<StringBuilder> nameBufs,
+                                    ArrayList<StringBuilder> genericParamBufs,
+                                    String desc, int j)
+    {
+        StringBuilder nameBuf = new StringBuilder();
+        StringBuilder genericParamBuf = new StringBuilder();
+        int k = j;
+        char c;
+        try {
+            while ((c = desc.charAt(++k)) != ';') {
+                if (c == '<') {
+                    genericParamBuf.append(c);
+                    int level = 1;
+                    while (level > 0) {
+                        c = desc.charAt(++k);
+                        genericParamBuf.append(c);
+                        if (c == '<')
+                            ++level;
+                        else if (c == '>')
+                            --level;
+                    }
+                }
+                else if (c == '.') {
+                    nameBufs.add(nameBuf);
+                    genericParamBufs.add(genericParamBuf);
+                    nameBuf = new StringBuilder();
+                    genericParamBuf = new StringBuilder();
+                }
+                else
+                    nameBuf.append(c);
+            }
+        }
+        catch (IndexOutOfBoundsException e) {
+            return -2;  // error
+        }
+
+        nameBufs.add(nameBuf);
+        genericParamBufs.add(genericParamBuf);
+        return k;
+    }
+
+    private static boolean makeNewClassName(String desc,
+                                    Map<String,String> map, String name,
+                                    String newname, StringBuilder newdesc,
+                                    int head, int j,
+                                    ArrayList<StringBuilder> nameBufs,
+                                    ArrayList<StringBuilder> genericParamBufs)
+    {
+        final String[] nameSplit = name.split("\\$");
+        final String[] newnameSplit = newname.split("\\$");
+        if (nameSplit.length == newnameSplit.length) {
+            final String[] newnames = new String[nameBufs.size()];
+            for (int start = 0, z = 0; z < nameBufs.size(); z++) {
+                final int toAggregate = (int) nameBufs.get(z).chars().filter(ch -> ch == '$').count() + 1;
+                String s = String.join("$", Arrays.copyOfRange(newnameSplit, start, start + toAggregate));
+                start += toAggregate;
+                newnames[z] = s;
+            }
+
+            newdesc.append(desc.substring(head, j));
+            newdesc.append('L');
+            for (int z = 0; z < newnames.length; z++) {
+                if (z > 0)
+                    newdesc.append('.');
+
+                newdesc.append(newnames[z]);
+                final String newgenericParam;
+                final StringBuilder genericParamBufCurrent = genericParamBufs.get(z);
+                if (genericParamBufCurrent.length() > 0)
+                    newgenericParam = "<" + renameClass(genericParamBufCurrent.substring(1, genericParamBufCurrent.length() - 1), map) + ">";
+                else
+                    newgenericParam = genericParamBufCurrent.toString(); //empty string
+
+                newdesc.append(newgenericParam);
+            }
+            newdesc.append(';'); //the final semicolon
+            return true;
+        }
+        else
+            return false;
+    }
+
+    private static boolean replaceTypeArguments(String desc,
+                                    Map<String,String> map,
+                                    StringBuilder newdesc,
+                                    int head, int j,
+                                    ArrayList<StringBuilder> nameBufs,
+                                    ArrayList<StringBuilder> genericParamBufs)
+    {
+        final ArrayList<String> newGenericParamBufs = new ArrayList<String>();
+        boolean changed = false;
+        for (int z = 0; z < genericParamBufs.size(); z++) {
+            final String newGenericParam;
+            final StringBuilder genericParamBufCurrent = genericParamBufs.get(z);
+            if (genericParamBufCurrent.length() > 0) {
+                newGenericParam = "<" + renameClass(genericParamBufCurrent.substring(1, genericParamBufCurrent.length() - 1), map) + ">";
+                changed = changed || !genericParamBufCurrent.toString().equals(newGenericParam);
+            }
+            else
+                newGenericParam = genericParamBufCurrent.toString(); //empty string
+
+                newGenericParamBufs.add(newGenericParam);
+        }
+
+        if (changed) {
+            newdesc.append(desc.substring(head, j));
+            newdesc.append('L');
+            for (int z = 0; z < genericParamBufs.size(); z++) {
+                if (z > 0)
+                    newdesc.append('.');
+
+                newdesc.append(nameBufs.get(z));
+                newdesc.append(newGenericParamBufs.get(z));
+            }
+            newdesc.append(';');
+            return true;
+        }
+        else
+            return false;
     }
 
     @SuppressWarnings("unused")
