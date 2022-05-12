@@ -61,6 +61,7 @@ class SecurityActions extends SecurityManager
         else {
             return AccessController.doPrivileged(
                 new PrivilegedAction<Method[]>() {
+                    @Override
                     public Method[] run() {
                         return clazz.getDeclaredMethods();
                     }
@@ -75,6 +76,7 @@ class SecurityActions extends SecurityManager
         else {
             return AccessController.doPrivileged(
                 new PrivilegedAction<Constructor<?>[]>() {
+                    @Override
                     public Constructor<?>[] run() {
                         return clazz.getDeclaredConstructors();
                     }
@@ -88,6 +90,7 @@ class SecurityActions extends SecurityManager
         try {
             return AccessController.doPrivileged(
                 new PrivilegedExceptionAction<MethodHandle>() {
+                    @Override
                     public MethodHandle run() throws IllegalAccessException,
                             NoSuchMethodException, SecurityException {
                         Method rmet = clazz.getDeclaredMethod(name, params);
@@ -114,6 +117,7 @@ class SecurityActions extends SecurityManager
             try {
                 return AccessController.doPrivileged(
                     new PrivilegedExceptionAction<Method>() {
+                        @Override
                         public Method run() throws Exception {
                             return clazz.getDeclaredMethod(name, types);
                         }
@@ -138,6 +142,7 @@ class SecurityActions extends SecurityManager
             try {
                 return AccessController.doPrivileged(
                     new PrivilegedExceptionAction<Constructor<?>>() {
+                        @Override
                         public Constructor<?> run() throws Exception {
                             return clazz.getDeclaredConstructor(types);
                         }
@@ -159,6 +164,7 @@ class SecurityActions extends SecurityManager
             ao.setAccessible(accessible);
         else {
             AccessController.doPrivileged(new PrivilegedAction<Void>() {
+                @Override
                 public Void run() {
                     ao.setAccessible(accessible);
                     return null;
@@ -176,6 +182,7 @@ class SecurityActions extends SecurityManager
             try {
                 AccessController.doPrivileged(
                     new PrivilegedExceptionAction<Void>() {
+                        @Override
                         public Void run() throws Exception {
                             fld.set(target, value);
                             return null;
@@ -194,7 +201,9 @@ class SecurityActions extends SecurityManager
     {
         try {
             return AccessController.doPrivileged(
-                new PrivilegedExceptionAction<TheUnsafe>() { public TheUnsafe run() throws
+                    new PrivilegedExceptionAction<TheUnsafe>() {
+                @Override
+                public TheUnsafe run() throws
                         ClassNotFoundException, NoSuchFieldException, SecurityException,
                         IllegalArgumentException, IllegalAccessException {
                     Class<?> unsafe = Class.forName("sun.misc.Unsafe");

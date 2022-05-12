@@ -28,6 +28,7 @@ public class ScopedClassPoolFactoryImpl implements ScopedClassPoolFactory {
     /**
      * Makes an instance.
      */
+    @Override
     public ScopedClassPool create(ClassLoader cl, ClassPool src,
                                   ScopedClassPoolRepository repository) {
         return new ScopedClassPool(cl, src, repository, false);
@@ -36,6 +37,7 @@ public class ScopedClassPoolFactoryImpl implements ScopedClassPoolFactory {
     /**
      * Makes an instance.
      */
+    @Override
     public ScopedClassPool create(ClassPool src,
                                   ScopedClassPoolRepository repository) {
         return new ScopedClassPool(null, src, repository, true);

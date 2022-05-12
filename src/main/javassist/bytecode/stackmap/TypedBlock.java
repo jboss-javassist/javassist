@@ -230,12 +230,13 @@ public class TypedBlock extends BasicBlock {
         if (i < 0)
             return "java.lang.Object";
 
-        char c = desc.charAt(i + 1);
-        if (c == '[')
-            return desc.substring(i + 1);
-        else if (c == 'L')
-            return desc.substring(i + 2, desc.length() - 1).replace('/', '.');
-        else
-            return "java.lang.Object";
+        switch (desc.charAt(i + 1)) {
+            case '[':
+                return desc.substring(i + 1);
+            case 'L':
+                return desc.substring(i + 2, desc.length() - 1).replace('/', '.');
+            default:
+                return "java.lang.Object";
+        }
     }
 }

@@ -417,27 +417,30 @@ public class AnnotationsAttribute extends AttributeInfo {
          */
         final int memberValue(int pos) throws Exception {
             int tag = info[pos] & 0xff;
-            if (tag == 'e') {
-                int typeNameIndex = ByteArray.readU16bit(info, pos + 1);
-                int constNameIndex = ByteArray.readU16bit(info, pos + 3);
-                enumMemberValue(pos, typeNameIndex, constNameIndex);
-                return pos + 5;
-            }
-            else if (tag == 'c') {
-                int index = ByteArray.readU16bit(info, pos + 1);
-                classMemberValue(pos, index);
-                return pos + 3;
-            }
-            else if (tag == '@')
-                return annotationMemberValue(pos + 1);
-            else if (tag == '[') {
-                int num = ByteArray.readU16bit(info, pos + 1);
-                return arrayMemberValue(pos + 3, num);
-            }
-            else { // primitive types or String.
-                int index = ByteArray.readU16bit(info, pos + 1);
-                constValueMember(tag, index);
-                return pos + 3;
+            switch (tag) {
+                case 'e': {
+                    int typeNameIndex = ByteArray.readU16bit(info, pos + 1);
+                    int constNameIndex = ByteArray.readU16bit(info, pos + 3);
+                    enumMemberValue(pos, typeNameIndex, constNameIndex);
+                    return pos + 5;
+                }
+                case 'c': {
+                    int index = ByteArray.readU16bit(info, pos + 1);
+                    classMemberValue(pos, index);
+                    return pos + 3;
+                }
+                case '@': {
+                    return annotationMemberValue(pos + 1);
+                }
+                case '[': {
+                    int num = ByteArray.readU16bit(info, pos + 1);
+                    return arrayMemberValue(pos + 3, num);
+                }
+                default: { // primitive types or String.
+                    int index = ByteArray.readU16bit(info, pos + 1);
+                    constValueMember(tag, index);
+                    return pos + 3;
+                }
             }
         }
 

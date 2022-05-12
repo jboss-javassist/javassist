@@ -1049,25 +1049,28 @@ public abstract class CtBehavior extends CtMember {
         b.addAstore(var);   // store an exception
         if (rtype.isPrimitive()) {
             char c = ((CtPrimitiveType)rtype).getDescriptor();
-            if (c == 'D') {
-                b.addDconst(0.0);
-                b.addDstore(returnVarNo);
-            }
-            else if (c == 'F') {
-                b.addFconst(0);
-                b.addFstore(returnVarNo);
-            }
-            else if (c == 'J') {
-                b.addLconst(0);
-                b.addLstore(returnVarNo);
-            }
-            else if (c == 'V') {
-                b.addOpcode(Opcode.ACONST_NULL);
-                b.addAstore(returnVarNo);
-            }
-            else { // int, boolean, char, short, ...
-                b.addIconst(0);
-                b.addIstore(returnVarNo);
+            switch (c) {
+                case 'D':
+                    b.addDconst(0.0);
+                    b.addDstore(returnVarNo);
+                    break;
+                case 'F':
+                    b.addFconst(0);
+                    b.addFstore(returnVarNo);
+                    break;
+                case 'J':
+                    b.addLconst(0);
+                    b.addLstore(returnVarNo);
+                    break;
+                case 'V':
+                    b.addOpcode(Opcode.ACONST_NULL);
+                    b.addAstore(returnVarNo);
+                    break;
+                default:
+                    // int, boolean, char, short, ...
+                    b.addIconst(0);
+                    b.addIstore(returnVarNo);
+                    break;
             }
         }
         else {

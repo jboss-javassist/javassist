@@ -533,25 +533,33 @@ public class TypeChecker extends Visitor implements Opcode, TokenId {
     private void booleanExpr(ASTree expr)
         throws CompileError
     {
-        int op = CodeGen.getCompOperator(expr);
-        if (op == EQ) {         // ==, !=, ...
-            BinExpr bexpr = (BinExpr)expr;
-            bexpr.oprand1().accept(this);
-            int type1 = exprType;
-            int dim1 = arrayDim;
-            bexpr.oprand2().accept(this);
-            if (dim1 == 0 && arrayDim == 0)
-                insertCast(bexpr, type1, exprType);
+        switch (CodeGen.getCompOperator(expr)) {
+            case EQ: {
+                BinExpr bexpr = (BinExpr) expr;
+                bexpr.oprand1().accept(this);
+                int type1 = exprType;
+                int dim1 = arrayDim;
+                bexpr.oprand2().accept(this);
+                if (dim1 == 0 && arrayDim == 0) {
+                    insertCast(bexpr, type1, exprType);
+                }
+                break;
+            }
+            case '!':
+                ((Expr) expr).oprand1().accept(this);
+                break;
+            case ANDAND:
+            case OROR: {
+                BinExpr bexpr = (BinExpr) expr;
+                bexpr.oprand1().accept(this);
+                bexpr.oprand2().accept(this);
+                break;
+            }
+            default:
+                // others
+                expr.accept(this);
+                break;
         }
-        else if (op == '!')
-            ((Expr)expr).oprand1().accept(this);
-        else if (op == ANDAND || op == OROR) {
-            BinExpr bexpr = (BinExpr)expr;
-            bexpr.oprand1().accept(this);
-            bexpr.oprand2().accept(this);
-        }
-        else                // others
-            expr.accept(this);
 
         exprType = BOOLEAN;
         arrayDim = 0;
@@ -589,42 +597,57 @@ public class TypeChecker extends Visitor implements Opcode, TokenId {
 
         int token = expr.getOperator();
         ASTree oprand = expr.oprand1();
-        if (token == '.') {
-            String member = ((Symbol)expr.oprand2()).get();
-            if (member.equals("length"))
-                try {
-                    atArrayLength(expr);
-                }
-                catch (NoFieldException nfe) {
-                    // length might be a class or package name.
+        switch (token) {
+            case '.': {
+                String member = ((Symbol) expr.oprand2()).get();
+                if ("length".equals(member)) {
+                    try {
+                        atArrayLength(expr);
+                    } catch (NoFieldException nfe) {
+                        // length might be a class or package name.
+                        atFieldRead(expr);
+                    }
+                } else if ("class".equals(member)) {
+                    atClassObject(expr);  // .class
+                } else {
                     atFieldRead(expr);
                 }
-            else if (member.equals("class"))
-                atClassObject(expr);  // .class
-            else
-                atFieldRead(expr);
-        }
-        else if (token == MEMBER) {     // field read
-            String member = ((Symbol)expr.oprand2()).get();
-            if (member.equals("class"))
-                atClassObject(expr);  // .class
-            else
-                atFieldRead(expr);
-        }
-        else if (token == ARRAY)
-            atArrayRead(oprand, expr.oprand2());
-        else if (token == PLUSPLUS || token == MINUSMINUS)
-            atPlusPlus(token, oprand, expr);
-        else if (token == '!')
-            booleanExpr(expr);
-        else if (token == CALL)              // method call
-            fatal();
-        else {
-            oprand.accept(this);
-            if (!isConstant(expr, token, oprand))
-                if (token == '-' || token == '~')
-                    if (CodeGen.isP_INT(exprType))
-                        exprType = INT;         // type may be BYTE, ...
+                break;
+            }
+            case MEMBER: {
+                // field read
+                String member = ((Symbol) expr.oprand2()).get();
+                if ("class".equals(member)) {
+                    atClassObject(expr);  // .class
+                } else {
+                    atFieldRead(expr);
+                }
+                break;
+            }
+            case ARRAY:
+                atArrayRead(oprand, expr.oprand2());
+                break;
+            case PLUSPLUS:
+            case MINUSMINUS:
+                atPlusPlus(token, oprand, expr);
+                break;
+            case '!':
+                booleanExpr(expr);
+                break;
+            // method call
+            case CALL:
+                fatal();
+                break;
+            default:
+                oprand.accept(this);
+                if (!isConstant(expr, token, oprand)) {
+                    if (token == '-' || token == '~') {
+                        if (CodeGen.isP_INT(exprType)) {
+                            exprType = INT;         // type may be BYTE, ...
+                        }
+                    }
+                }
+                break;
         }
     }
 
@@ -633,13 +656,16 @@ public class TypeChecker extends Visitor implements Opcode, TokenId {
         if (oprand instanceof IntConst) {
             IntConst c = (IntConst)oprand;
             long v = c.get();
-            if (op == '-')
-                v = -v;
-            else if (op == '~')
-                v = ~v;
-            else
-                return false;
-
+            switch (op) {
+                case '-':
+                    v = -v;
+                    break;
+                case '~':
+                    v = ~v;
+                    break;
+                default:
+                    return false;
+            }
             c.set(v);
         }
         else if (oprand instanceof DoubleConst) {

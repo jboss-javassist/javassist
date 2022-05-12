@@ -201,21 +201,24 @@ public class MethodCall extends Expr {
         String classname, methodname, signature;
         int opcodeSize;
         int c = iterator.byteAt(pos);
-        if (c == INVOKEINTERFACE) {
-            opcodeSize = 5;
-            classname = constPool.getInterfaceMethodrefClassName(index);
-            methodname = constPool.getInterfaceMethodrefName(index);
-            signature = constPool.getInterfaceMethodrefType(index);
+        switch (c) {
+            case INVOKEINTERFACE:
+                opcodeSize = 5;
+                classname = constPool.getInterfaceMethodrefClassName(index);
+                methodname = constPool.getInterfaceMethodrefName(index);
+                signature = constPool.getInterfaceMethodrefType(index);
+                break;
+            case INVOKESTATIC:
+            case INVOKESPECIAL:
+            case INVOKEVIRTUAL:
+                opcodeSize = 3;
+                classname = constPool.getMethodrefClassName(index);
+                methodname = constPool.getMethodrefName(index);
+                signature = constPool.getMethodrefType(index);
+                break;
+            default:
+                throw new CannotCompileException("not method invocation");
         }
-        else if (c == INVOKESTATIC
-                 || c == INVOKESPECIAL || c == INVOKEVIRTUAL) {
-            opcodeSize = 3;
-            classname = constPool.getMethodrefClassName(index);
-            methodname = constPool.getMethodrefName(index);
-            signature = constPool.getMethodrefType(index);
-        }
-        else
-            throw new CannotCompileException("not method invocation");
 
         Javac jc = new Javac(thisClass);
         ClassPool cp = thisClass.getClassPool();
@@ -227,13 +230,18 @@ public class MethodCall extends Expr {
             jc.recordParams(classname, params,
                             true, paramVar, withinStatic());
             int retVar = jc.recordReturnType(retType, true);
-            if (c == INVOKESTATIC)
-                jc.recordStaticProceed(classname, methodname);
-            else if (c == INVOKESPECIAL)
-                jc.recordSpecialProceed(Javac.param0Name, classname,
-                                        methodname, signature, index);
-            else
-                jc.recordProceed(Javac.param0Name, methodname);
+            switch (c) {
+                case INVOKESTATIC:
+                    jc.recordStaticProceed(classname, methodname);
+                    break;
+                case INVOKESPECIAL:
+                    jc.recordSpecialProceed(Javac.param0Name, classname,
+                            methodname, signature, index);
+                    break;
+                default:
+                    jc.recordProceed(Javac.param0Name, methodname);
+                    break;
+            }
 
             /* Is $_ included in the source code?
              */

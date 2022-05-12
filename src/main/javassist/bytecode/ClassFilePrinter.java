@@ -123,13 +123,17 @@ public class ClassFilePrinter {
                 out.println("signature: " + sig);
                 try {
                     String s;
-                    if (kind == 'c')
-                        s = SignatureAttribute.toClassSignature(sig).toString();
-                    else if (kind == 'm')
-                        s = SignatureAttribute.toMethodSignature(sig).toString();
-                    else
-                        s = SignatureAttribute.toFieldSignature(sig).toString();
-
+                    switch (kind) {
+                        case 'c':
+                            s = SignatureAttribute.toClassSignature(sig).toString();
+                            break;
+                        case 'm':
+                            s = SignatureAttribute.toMethodSignature(sig).toString();
+                            break;
+                        default:
+                            s = SignatureAttribute.toFieldSignature(sig).toString();
+                            break;
+                    }
                     out.println("           " + s);
                 }
                 catch (BadBytecode e) {

@@ -241,16 +241,23 @@ public class Javac {
         if (type instanceof CtPrimitiveType) {
             CtPrimitiveType pt = (CtPrimitiveType)type;
             op = pt.getReturnOp();
-            if (op == Opcode.DRETURN)
-                value = Opcode.DCONST_0;
-            else if (op == Opcode.FRETURN)
-                value = Opcode.FCONST_0;
-            else if (op == Opcode.LRETURN)
-                value = Opcode.LCONST_0;
-            else if (op == Opcode.RETURN)
-                value = Opcode.NOP;
-            else
-                value = Opcode.ICONST_0;
+            switch (op) {
+                case Opcode.DRETURN:
+                    value = Opcode.DCONST_0;
+                    break;
+                case Opcode.FRETURN:
+                    value = Opcode.FCONST_0;
+                    break;
+                case Opcode.LRETURN:
+                    value = Opcode.LCONST_0;
+                    break;
+                case Opcode.RETURN:
+                    value = Opcode.NOP;
+                    break;
+                default:
+                    value = Opcode.ICONST_0;
+                    break;
+            }
         }
         else {
             op = Opcode.ARETURN;

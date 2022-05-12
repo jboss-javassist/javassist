@@ -849,7 +849,7 @@ public class Executor implements Opcode {
         if (opcode == MULTIANEWARRAY) {
             dimensions = iter.byteAt(pos + 3);
         } else {
-            name = name + "[]";
+            name += "[]";
             dimensions = 1;
         }
 

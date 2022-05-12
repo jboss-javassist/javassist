@@ -672,16 +672,16 @@ public class SignatureAttribute extends AttributeInfo {
          */
         @Override
         public String toString() {
-            if (wildcard == '*')
-                return "?";
-
-            String type = arg.toString();
-            if (wildcard == ' ')
-                return type;
-            else if (wildcard == '+')
-                return "? extends " + type;
-            else
-                return "? super " + type;
+            switch (this.wildcard) {
+                case '*':
+                    return "?";
+                case ' ':
+                    return arg.toString();
+                case '+':
+                    return "? extends " + arg.toString();
+                default:
+                    return "? super " + arg.toString();
+            }
         }
 
         static void encode(StringBuffer sb, TypeArgument[] args) {
