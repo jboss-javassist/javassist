@@ -312,14 +312,15 @@ public class MultiType extends Type {
         if (resolved != null)
             return resolved.toString();
 
-        StringBuffer buffer = new StringBuffer("{");
+        StringBuilder buffer = new StringBuilder();
+        buffer.append('{');
         for (String key:interfaces.keySet())
             buffer.append(key).append(", ");
         if (potentialClass != null)
-            buffer.append("*").append(potentialClass.toString());
+            buffer.append('*').append(potentialClass.toString());
         else
             buffer.setLength(buffer.length() - 2);
-        buffer.append("}");
+        buffer.append('}');
         return buffer.toString();
     }
 }

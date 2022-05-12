@@ -183,7 +183,7 @@ public class StubGenerator implements Translator {
         if (!rtclass.isArray())
             name = rtclass.getName();
         else {
-            StringBuffer sbuf = new StringBuffer();
+            StringBuilder sbuf = new StringBuilder();
             do {
                 sbuf.append("[]");
                 rtclass = rtclass.getComponentType();

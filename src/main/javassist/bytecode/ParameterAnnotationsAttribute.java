@@ -201,7 +201,7 @@ public class ParameterAnnotationsAttribute extends AttributeInfo {
         StringBuilder sbuf = new StringBuilder();
         for (Annotation[] a : aa) {
             for (Annotation i : a)
-                sbuf.append(i.toString()).append(" ");
+                sbuf.append(i.toString()).append(' ');
 
             sbuf.append(", ");
         }

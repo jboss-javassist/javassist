@@ -107,12 +107,12 @@ public class Declarator extends ASTList implements TokenId {
         if (name == null)
             return null;
 
-        StringBuffer sbuf = new StringBuffer();
+        StringBuilder sbuf = new StringBuilder();
         astToClassName(sbuf, name, sep);
         return sbuf.toString();
     }
 
-    private static void astToClassName(StringBuffer sbuf, ASTList name,
+    private static void astToClassName(StringBuilder sbuf, ASTList name,
                                        char sep) {
         for (;;) {
             ASTree h = name.head();

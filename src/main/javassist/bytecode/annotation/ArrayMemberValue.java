@@ -142,7 +142,8 @@ public class ArrayMemberValue extends MemberValue {
      */
     @Override
     public String toString() {
-        StringBuffer buf = new StringBuffer("{");
+        StringBuilder buf = new StringBuilder();
+        buf.append('{');
         if (values != null) {
             for (int i = 0; i < values.length; i++) {
                 buf.append(values[i].toString());
@@ -151,7 +152,7 @@ public class ArrayMemberValue extends MemberValue {
                 }
         }
 
-        buf.append("}");
+        buf.append('}');
         return buf.toString();
     }
 

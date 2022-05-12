@@ -264,7 +264,7 @@ public class JvstCodeGen extends MemberCodeGen {
     /* To support $cflow().
      */
     protected void atCflow(ASTList cname) throws CompileError {
-        StringBuffer sbuf = new StringBuffer();
+        StringBuilder sbuf = new StringBuilder();
         if (cname == null || cname.tail() != null)
             throw new CompileError("bad " + cflowName);
 
@@ -288,7 +288,7 @@ public class JvstCodeGen extends MemberCodeGen {
      * <cflow> : $cflow '(' <cflow name> ')'
      * <cflow name> : <identifier> ('.' <identifier>)*
      */
-    private static void makeCflowName(StringBuffer sbuf, ASTree name)
+    private static void makeCflowName(StringBuilder sbuf, ASTree name)
         throws CompileError
     {
         if (name instanceof Symbol) {

@@ -210,17 +210,18 @@ public class Annotation {
      */
     @Override
     public String toString() {
-        StringBuffer buf = new StringBuffer("@");
+        StringBuilder buf = new StringBuilder();
+        buf.append('@');
         buf.append(getTypeName());
         if (members != null) {
-            buf.append("(");
+            buf.append('(');
             for (String name:members.keySet()) {
-                buf.append(name).append("=")
+                buf.append(name).append('=')
                    .append(getMemberValue(name))
                    .append(", ");
             }
             buf.setLength(buf.length()-2);
-            buf.append(")");
+            buf.append(')');
         }
 
         return buf.toString();

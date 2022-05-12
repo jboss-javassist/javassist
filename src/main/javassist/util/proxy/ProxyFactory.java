@@ -576,14 +576,14 @@ public class ProxyFactory {
 
     public String getKey(Class<?> superClass, Class<?>[] interfaces, byte[] signature, boolean useWriteReplace)
     {
-        StringBuffer sbuf = new StringBuffer();
+        StringBuilder sbuf = new StringBuilder();
         if (superClass != null){
             sbuf.append(superClass.getName());
         }
-        sbuf.append(":");
+        sbuf.append(':');
         for (int i = 0; i < interfaces.length; i++) {
             sbuf.append(interfaces[i].getName());
-            sbuf.append(":");
+            sbuf.append(':');
         }
         for (int i = 0; i < signature.length; i++) {
             byte b = signature[i];

@@ -109,7 +109,7 @@ public class Descriptor {
 
         if (arrayDim == 0)
             return name;
-        StringBuffer sbuf = new StringBuffer(name);
+        StringBuilder sbuf = new StringBuilder(name);
         do {
             sbuf.append("[]");
         } while (--arrayDim > 0);
@@ -157,7 +157,7 @@ public class Descriptor {
         if (desc.indexOf(oldname) < 0)
             return desc;
 
-        StringBuffer newdesc = new StringBuffer();
+        StringBuilder newdesc = new StringBuilder();
         int head = 0;
         int i = 0;
         for (;;) {
@@ -200,7 +200,7 @@ public class Descriptor {
         if (map == null)
             return desc;
 
-        StringBuffer newdesc = new StringBuffer();
+        StringBuilder newdesc = new StringBuilder();
         int head = 0;
         int i = 0;
         for (;;) {
@@ -237,12 +237,12 @@ public class Descriptor {
      * Returns the descriptor representing the given type.
      */
     public static String of(CtClass type) {
-        StringBuffer sbuf = new StringBuffer();
+        StringBuilder sbuf = new StringBuilder();
         toDescriptor(sbuf, type);
         return sbuf.toString();
     }
 
-    private static void toDescriptor(StringBuffer desc, CtClass type) {
+    private static void toDescriptor(StringBuilder desc, CtClass type) {
         if (type.isArray()) {
             desc.append('[');
             try {
@@ -284,7 +284,7 @@ public class Descriptor {
      * @param paramTypes parameter types
      */
     public static String ofMethod(CtClass returnType, CtClass[] paramTypes) {
-        StringBuffer desc = new StringBuffer();
+        StringBuilder desc = new StringBuilder();
         desc.append('(');
         if (paramTypes != null) {
             int n = paramTypes.length;
@@ -323,7 +323,7 @@ public class Descriptor {
         int i = desc.indexOf(')');
         if (i < 0)
             return desc;
-        StringBuffer newdesc = new StringBuffer();
+        StringBuilder newdesc = new StringBuilder();
         newdesc.append(desc.substring(0, i));
         newdesc.append('L');
         newdesc.append(classname.replace('.', '/'));
@@ -361,7 +361,7 @@ public class Descriptor {
         int i = descriptor.indexOf(')');
         if (i < 0)
             return descriptor;
-        StringBuffer newdesc = new StringBuffer();
+        StringBuilder newdesc = new StringBuilder();
         newdesc.append(descriptor.substring(0, i));
         toDescriptor(newdesc, type);
         newdesc.append(descriptor.substring(i));
@@ -395,7 +395,7 @@ public class Descriptor {
         int i = desc.indexOf(')');
         if (i < 0)
             return desc;
-        StringBuffer newdesc = new StringBuffer();
+        StringBuilder newdesc = new StringBuilder();
         newdesc.append(desc.substring(0, i + 1));
         newdesc.append('L');
         newdesc.append(classname.replace('.', '/'));
@@ -561,7 +561,7 @@ public class Descriptor {
         }
 
         if (arrayDim > 0) {
-            StringBuffer sbuf = new StringBuffer(name);
+            StringBuilder sbuf = new StringBuilder(name);
             while (arrayDim-- > 0)
                 sbuf.append("[]");
 
@@ -719,7 +719,7 @@ public class Descriptor {
 
     static class PrettyPrinter {
         static String toString(String desc) {
-            StringBuffer sbuf = new StringBuffer();
+            StringBuilder sbuf = new StringBuilder();
             if (desc.charAt(0) == '(') {
                 int pos = 1;
                 sbuf.append('(');
@@ -738,7 +738,7 @@ public class Descriptor {
             return sbuf.toString();
         }
 
-        static int readType(StringBuffer sbuf, int pos, String desc) {
+        static int readType(StringBuilder sbuf, int pos, String desc) {
             char c = desc.charAt(pos);
             int arrayDim = 0;
             while (c == '[') {

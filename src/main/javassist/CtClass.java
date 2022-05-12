@@ -200,12 +200,12 @@ public abstract class CtClass {
      */
     @Override
     public String toString() {
-        StringBuffer buf = new StringBuffer(getClass().getName());
-        buf.append("@");
+        StringBuilder buf = new StringBuilder(getClass().getName());
+        buf.append('@');
         buf.append(Integer.toHexString(hashCode()));
-        buf.append("[");
+        buf.append('[');
         extendToString(buf);
-        buf.append("]");
+        buf.append(']');
         return buf.toString();
     }
 
@@ -213,7 +213,7 @@ public abstract class CtClass {
      * Implemented in subclasses to add to the {@link #toString()} result.
      * Subclasses should put a space before each token added to the buffer.
      */
-    protected void extendToString(StringBuffer buffer) {
+    protected void extendToString(StringBuilder buffer) {
         buffer.append(getName());
     }
 

@@ -54,7 +54,7 @@ final class DirClassPath implements ClassPath {
             char sep = File.separatorChar;
             String filename = directory + sep
                 + classname.replace('.', sep) + ".class";
-            return new FileInputStream(filename.toString());
+            return new FileInputStream(filename);
         }
         catch (FileNotFoundException e) {}
         catch (SecurityException e) {}
@@ -187,7 +187,7 @@ final class JarClassPath implements ClassPath {
 
     @Override
     public String toString() {
-        return jarfileURL == null ? "<null>" : jarfileURL.toString();
+        return jarfileURL == null ? "<null>" : jarfileURL;
     }
 }
 
@@ -200,7 +200,7 @@ final class ClassPoolTail {
 
     @Override
     public String toString() {
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
         buf.append("[class path: ");
         ClassPathList list = pathList;
         while (list != null) {

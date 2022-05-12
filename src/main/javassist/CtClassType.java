@@ -106,7 +106,7 @@ class CtClassType extends CtClass {
     }
 
     @Override
-    protected void extendToString(StringBuffer buffer) {
+    protected void extendToString(StringBuilder buffer) {
         if (wasChanged)
             buffer.append("changed ");
 
@@ -125,7 +125,7 @@ class CtClassType extends CtClass {
             if (ext != null) {
                 String name = ext.getName();
                 if (!name.equals("java.lang.Object"))
-                    buffer.append(" extends " + ext.getName());
+                    buffer.append(" extends ").append(ext.getName());
             }
         }
         catch (NotFoundException e) {
@@ -155,7 +155,7 @@ class CtClassType extends CtClass {
                    memCache.methodHead(), memCache.lastMethod());
     }
 
-    private void exToString(StringBuffer buffer, String msg,
+    private void exToString(StringBuilder buffer, String msg,
                             CtMember head, CtMember tail) {
         buffer.append(msg);
         while (head != tail) {
