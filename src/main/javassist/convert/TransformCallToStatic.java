@@ -1,7 +1,6 @@
 package javassist.convert;
 
 import javassist.CtMethod;
-import javassist.bytecode.BadBytecode;
 import javassist.bytecode.CodeIterator;
 import javassist.bytecode.ConstPool;
 import javassist.bytecode.Descriptor;
