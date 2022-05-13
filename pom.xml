@@ -7,7 +7,7 @@
   	Javassist (JAVA programming ASSISTant) makes Java bytecode manipulation
     simple.  It is a class library for editing bytecodes in Java.
   </description>
-  <version>3.28.0-GA</version>
+  <version>3.29.0-GA</version>
   <name>Javassist</name>
   <url>http://www.javassist.org/</url>
 
@@ -122,7 +122,7 @@
   
   mvn deploy -Dversion=3.x.y-SNAPSHOT
 
-  To deploy a release you need to change the version to 3.x.y.GA and run
+  To deploy a release you need to change the version to 3.x.y-GA and run
 
   mvn deploy
     -->
