@@ -26,17 +26,56 @@ the Apache License Version 2.0.
   * [Readme.html](Readme.html)
 Readme file (a longer version of this file).
 
-  * [License.html](License.html)
-License file
+  * [Changes.md](Changes.md)
+  Release notes.
 
-  * [tutorial/tutorial.html](tutorial/tutorial.html)
-Tutorial
+  * [License.html](License.html)
+License file.
+
+  * [tutorial/tutorial.html](https://www.javassist.org/tutorial/tutorial.html)
+Tutorial.
 
   * ./javassist.jar
-The Javassist jar file (class files)
+The Javassist jar file (class files).
 
   * ./src/main
 The source files
 
-  * [html/index.html](html/index.html)
+  * [Examples.md](Examples.md)
+How to run examples.
+
+  * [html/index.html](https://www.javassist.org/html/index.html)
 The top page of the Javassist API document.
+
+#### Hints
+
+To print the version number, type this command:
+
+```
+java -jar javassist.jar
+```
+
+#### Acknowledgments
+
+The development of this software is sponsored in part by the PRESTO
+and CREST programs of [Japan
+Science and Technology Corporation](http://www.jst.go.jp/).
+
+I'd like to thank Michiaki Tatsubori, Johan Cloetens,
+Philip Tomlinson, Alex Villazon, Pascal Rapicault, Dan HE, Eric Tanter,
+Michael Haupt, Toshiyuki Sasaki, Renaud Pawlak, Luc Bourlier,
+Eric Bui, Lewis Stiller, Susumu Yamazaki, Rodrigo Teruo Tomita,
+Marc Segura-Devillechaise, Jan Baudisch, Julien Blass, Yoshiki Sato,
+Fabian Crabus, Bo Norregaard Jorgensen, Bob Lee, Bill Burke,
+Remy Sanlaville, Muga Nishizawa, Alexey Loubyansky, Saori Oki,
+Andreas Salathe, Dante Torres estrada, S. Pam, Nuno Santos,
+Denis Taye, Colin Sampaleanu, Robert Bialek, Asato Shimotaki,
+Howard Lewis Ship, Richard Jones, Marjan Sterjev,
+Bruce McDonald, Mark Brennan, Vlad Skarzhevskyy,
+Brett Randall, Tsuyoshi Murakami, Nathan Meyers, Yoshiyuki Usui
+Yutaka Sunaga, Arjan van der Meer, Bruce Eckel, Guillaume Pothier,
+Kumar Matcha, Andreas Salathe, Renat Zubairov, Armin Haaf,
+Emmanuel Bernard, Jason T. Greene
+and all other contributors for their contributions.
+
+by [Shigeru Chiba](https://github.com/chibash)
