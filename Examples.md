@@ -8,7 +8,7 @@ JDK 1.4 or later is needed.
 Run the sample-all task.
 Otherwise, follow the instructions below.
 
-### 1. Move to the directory where this Readme.html file is located.
+### 1. Move to the directory where this `Examples.md` file is located.
 
 In the following instructions, we assume that the `javassist.jar`
 file is included in the class path.
