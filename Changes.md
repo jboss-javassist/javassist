@@ -2,7 +2,7 @@
 
 #### version 3.30
 
-* `Readme.html` was deleted.
+* `Readme.html` was deleted (GitHub Issue #414).
 
 #### version 3.29 on May 13, 2022
 
