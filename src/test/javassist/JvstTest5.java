@@ -15,6 +15,7 @@ import javassist.expr.ExprEditor;
 import javassist.expr.Handler;
 import javassist.expr.MethodCall;
 import javassist.expr.NewExpr;
+import junit.framework.Assert;
 
 @SuppressWarnings({"rawtypes","unchecked","unused"})
 public class JvstTest5 extends JvstTestRoot {
@@ -573,5 +574,18 @@ public class JvstTest5 extends JvstTestRoot {
         cc.writeFile();
         Object obj = make(cc.getName());
         assertEquals(1, invoke(obj, "run"));
+    }
+
+    public void testTooManyConstPoolItems() throws Exception {
+        CtClass cc = sloader.makeClass("TooManyConstPoolItems");
+        ClassFile cf = cc.getClassFile();
+        ConstPool cPool = cf.getConstPool();
+        for (int i = 0; i <= 65527; i++)
+            cPool.addIntegerInfo(i);
+        try {
+            cc.writeFile();
+            fail("too many items were accepted");
+        }
+        catch (CannotCompileException e) {}
     }
 }
