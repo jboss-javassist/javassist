@@ -580,8 +580,13 @@ public class JvstTest5 extends JvstTestRoot {
         CtClass cc = sloader.makeClass("TooManyConstPoolItems");
         ClassFile cf = cc.getClassFile();
         ConstPool cPool = cf.getConstPool();
-        for (int i = 0; i <= 65527; i++)
-            cPool.addIntegerInfo(i);
+        int size = cPool.getSize();
+        while (cPool.getSize() < 65536 - 6)
+            cPool.addIntegerInfo(cPool.getSize());
+
+        cc.writeFile();
+        cc.defrost();
+        cPool.addIntegerInfo(-1);
         try {
             cc.writeFile();
             fail("too many items were accepted");

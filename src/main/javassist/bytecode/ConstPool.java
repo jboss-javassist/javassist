@@ -1433,7 +1433,7 @@ public final class ConstPool
      */
     public void write(DataOutputStream out) throws IOException
     {
-        if (numOfItems < 0 || Short.MAX_VALUE < numOfItems)
+        if (numOfItems < 0 || ((1 << 16) - 1) < numOfItems)
             throw new IOException("too many constant pool items " + numOfItems);
 
         out.writeShort(numOfItems);
