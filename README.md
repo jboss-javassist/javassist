@@ -59,7 +59,7 @@ java -jar javassist.jar
 
 The development of this software is sponsored in part by the PRESTO
 and CREST programs of [Japan
-Science and Technology Corporation](http://www.jst.go.jp/).
+Science and Technology Agency](http://www.jst.go.jp/).
 
 I'd like to thank Michiaki Tatsubori, Johan Cloetens,
 Philip Tomlinson, Alex Villazon, Pascal Rapicault, Dan HE, Eric Tanter,
@@ -75,7 +75,7 @@ Bruce McDonald, Mark Brennan, Vlad Skarzhevskyy,
 Brett Randall, Tsuyoshi Murakami, Nathan Meyers, Yoshiyuki Usui
 Yutaka Sunaga, Arjan van der Meer, Bruce Eckel, Guillaume Pothier,
 Kumar Matcha, Andreas Salathe, Renat Zubairov, Armin Haaf,
-Emmanuel Bernard, Jason T. Greene
+Emmanuel Bernard, Jason T. Greene, Omer Kaspi,
 and all other contributors for their contributions.
 
 by [Shigeru Chiba](https://github.com/chibash)
