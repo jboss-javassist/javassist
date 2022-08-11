@@ -2,6 +2,8 @@
 
 #### version 3.29.1 on August 11, 2022
 
+* GitHub Issue #423.
+
 * `Readme.html` was deleted (GitHub Issue #414).
 
 #### version 3.29 on May 13, 2022
