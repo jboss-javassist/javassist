@@ -183,9 +183,7 @@
               <mainClass>javassist.CtClass</mainClass>
               <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
             </manifest>
-            <manifestFile>
-	      src/main/META-INF/MANIFEST.MF
-            </manifestFile>
+            <manifestFile>src/main/META-INF/MANIFEST.MF</manifestFile>
           </archive>
         </configuration>
       </plugin>
