@@ -69,7 +69,7 @@ public abstract class CtClass {
     /**
      * The version number of this release.
      */
-    public static final String version = "3.29.1-GA";
+    public static final String version = CtClass.class.getPackage().getSpecificationVersion();
 
     /**
      * Prints the version number and the copyright notice.
@@ -583,7 +583,7 @@ public abstract class CtClass {
      * For decoding, use <code>javassist.Modifier</code>.
      *
      * <p>If the class is a static nested class (a.k.a. static inner class),
-     * the returned modifiers include <code>Modifier.STATIC</code>. 
+     * the returned modifiers include <code>Modifier.STATIC</code>.
      *
      * @see Modifier
      */
@@ -785,7 +785,7 @@ public abstract class CtClass {
     /**
      * Returns the immediately enclosing method of this class.
      * This method works only with JDK 1.5 or later.
-     * 
+     *
      * @return null if this class is not a local class or an anonymous
      * class.
      * @deprecated The enclosing method might be a constructor.
@@ -818,7 +818,7 @@ public abstract class CtClass {
     /**
      * Makes a new public nested class.  If this method is called,
      * the <code>CtClass</code>, which encloses the nested class, is modified
-     * since a class file includes a list of nested classes.  
+     * since a class file includes a list of nested classes.
      *
      * <p>The current implementation only supports a static nested class.
      * <code>isStatic</code> must be true.
@@ -1443,7 +1443,7 @@ public abstract class CtClass {
      * <p>If <code>ClassPool.doPruning</code> is true, the automatic pruning
      * is on by default.  Otherwise, it is off.  The default value of
      * <code>ClassPool.doPruning</code> is false.
-     * 
+     *
      * @param stop      disallow pruning if true.  Otherwise, allow.
      * @return the previous status of pruning.  true if pruning is already stopped.
      *
@@ -1467,7 +1467,7 @@ public abstract class CtClass {
      *
      * <p><code>toBytecode()</code>, <code>writeFile()</code>, and
      * <code>toClass()</code> internally call this method if
-     * automatic pruning is on. 
+     * automatic pruning is on.
      *
      * <p>According to some experiments, pruning does not really reduce
      * memory consumption.  Only about 20%.  Since pruning takes time,
