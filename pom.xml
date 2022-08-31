@@ -9,7 +9,7 @@
         Javassist (JAVA programming ASSISTant) makes Java bytecode manipulation
         simple. It is a class library for editing bytecodes in Java.
     </description>
-    <version>0.0.1-GA</version>
+    <version>0.0.1-GA-SNAPSHOT</version>
     <name>Javassist</name>
     <url>http://www.javassist.org/</url>
 
@@ -28,9 +28,7 @@
         <maven-bundle-plugin.version>3.3.0</maven-bundle-plugin.version>
         <junit.version>[4.13.1,)</junit.version>
         <hamcrest-all.version>1.3</hamcrest-all.version>
-        <github.global.server>github</github.global.server>
     </properties>
-
     <organization>
         <name>Shigeru Chiba, www.javassist.org</name>
     </organization>
@@ -39,7 +37,6 @@
         <system>JIRA</system>
         <url>https://jira.jboss.org/jira/browse/JASSIST/</url>
     </issueManagement>
-
     <licenses>
         <!-- this is the license under which javassist is usually distributed
           -->
@@ -63,13 +60,12 @@
     </licenses>
 
     <scm>
-        <connection>scm:git:git@github.com:jboss-javassist/${project.name}.git
+        <connection>scm:git:git@github.com:jboss-javassist/javassist.git
         </connection>
         <developerConnection>
-            scm:git:git@github.com:jboss-javassist/${project.name}.git
+            scm:git:git@github.com:jboss-javassist/javassist.git
         </developerConnection>
-        <url>http://www.javassist.org/</url>
-        <tag>${project.name}-${project.version}</tag>
+        <url>scm:git:git@github.com:jboss-javassist/javassist.git</url>
     </scm>
 
     <developers>
@@ -124,6 +120,45 @@
 
     </developers>
 
+    <distributionManagement>
+        <!--
+            You need entries in your .m2/settings.xml like this:
+         <servers>
+          <server>
+             <id>jboss-releases-repository</id>
+             <username>your_jboss.org_username</username>
+             <password>password</password>
+          </server>
+          <server>
+             <id>jboss-snapshots-repository</id>
+             <username>your_jboss.org_username</username>
+             <password>password</password>
+          </server>
+        </servers>
+
+        To deploy a snapshot, you need to run
+
+        mvn deploy -Dversion=3.x.y-SNAPSHOT
+
+        To deploy a release you need to change the version to 3.x.y-GA and run
+
+        mvn deploy
+          -->
+        <repository>
+            <id>jboss-releases-repository</id>
+            <name>JBoss Releases Repository</name>
+            <url>
+                https://repository.jboss.org/nexus/service/local/staging/deploy/maven2/
+            </url>
+        </repository>
+        <snapshotRepository>
+            <id>jboss-snapshots-repository</id>
+            <name>JBoss Snapshots Repository</name>
+            <url>
+                https://repository.jboss.org/nexus/content/repositories/snapshots/
+            </url>
+        </snapshotRepository>
+    </distributionManagement>
     <build>
         <plugins>
             <plugin>
@@ -234,48 +269,6 @@ Copyright (C) 1999- Shigeru Chiba. All Rights Reserved.</i>]]></bottom>
             </plugin>
         </plugins>
     </build>
-
-
-    <distributionManagement>
-        <!--
-            You need entries in your .m2/settings.xml like this:
-         <servers>
-          <server>
-             <id>jboss-releases-repository</id>
-             <username>your_jboss.org_username</username>
-             <password>password</password>
-          </server>
-          <server>
-             <id>jboss-snapshots-repository</id>
-             <username>your_jboss.org_username</username>
-             <password>password</password>
-          </server>
-        </servers>
-
-        To deploy a snapshot, you need to run
-
-        mvn deploy -Dversion=3.x.y-SNAPSHOT
-
-        To deploy a release you need to change the version to 3.x.y-GA and run
-
-        mvn deploy
-          -->
-        <repository>
-            <id>jboss-releases-repository</id>
-            <name>JBoss Releases Repository</name>
-            <url>
-                https://repository.jboss.org/nexus/service/local/staging/deploy/maven2/
-            </url>
-        </repository>
-        <snapshotRepository>
-            <id>jboss-snapshots-repository</id>
-            <name>JBoss Snapshots Repository</name>
-            <url>
-                https://repository.jboss.org/nexus/content/repositories/snapshots/
-            </url>
-        </snapshotRepository>
-    </distributionManagement>
-
     <profiles>
         <!-- profile for releasing to sonatype repo
          exercise with mvn -PcentralRelease
