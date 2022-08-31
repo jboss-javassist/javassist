@@ -72,7 +72,7 @@
         <connection>scm:git:git@github.com/dakusui/${project.name}.git</connection>
         <developerConnection>scm:git:git@github.com:dakusui/${project.name}.git
         </developerConnection>
-        <url>scm:git:git@github.com:jboss-javassist/javassist.git</url>
+        <url>http://www.javassist.org/</url>
         <tag>${project.name}-${project.version}</tag>
 
     </scm>
