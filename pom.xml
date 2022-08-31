@@ -84,13 +84,12 @@
         <developerConnection>
             scm:git:git@github.com:jboss-javassist/javassist.git
         </developerConnection>
-        <url>scm:git:git@github.com:jboss-javassist/javassist.git</url>
         END: Elements we need to rollback before merge -->
         <connection>scm:git:git@github.com/dakusui/${project.name}.git
         </connection>
         <developerConnection>scm:git:git@github.com:dakusui/${project.name}.git
         </developerConnection>
-        <url>http://dakusui.github.io/${project.name}</url>
+        <url>http://www.javassist.org/</url>
         <tag>${project.name}-${project.version}</tag>
     </scm>
 
@@ -142,8 +141,6 @@
             </roles>
             <timezone>-5</timezone>
         </developer>
-
-
     </developers>
 
     <distributionManagement>
@@ -295,6 +292,7 @@ Copyright (C) 1999- Shigeru Chiba. All Rights Reserved.</i>]]></bottom>
             </plugin>
         </plugins>
     </build>
+
     <profiles>
         <!-- profile for releasing to sonatype repo
          exercise with mvn -PcentralRelease
