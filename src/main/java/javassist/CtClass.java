@@ -1693,7 +1693,7 @@ public abstract class CtClass {
             properties.load(CtClass.class.getClassLoader().getResourceAsStream(".properties"));
         return properties.getProperty("product.version");
         } catch (IOException e) {
-            throw new RuntimeException("Failed to a resource '.properties' from the classpath. (Packaging issue)", e);
+            throw new RuntimeException("Failed to read a resource '.properties' from the classpath. (Packaging issue)", e);
         }
     }
 }
