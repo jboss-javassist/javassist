@@ -173,8 +173,8 @@ public final class ClassFile {
             ver = JAVA_10;
             Class.forName("java.util.Optional").getMethod("isEmpty");
             ver = JAVA_11;
+        } catch (Throwable t) {
         }
-        catch (Throwable t) {}
         MAJOR_VERSION = ver;
     }
 
@@ -187,13 +187,10 @@ public final class ClassFile {
 
     /**
      * Constructs a class file including no members.
-     * 
-     * @param isInterface
-     *            true if this is an interface. false if this is a class.
-     * @param classname
-     *            a fully-qualified class name
-     * @param superclass
-     *            a fully-qualified super class name or null.
+     *
+     * @param isInterface true if this is an interface. false if this is a class.
+     * @param classname   a fully-qualified class name
+     * @param superclass  a fully-qualified super class name or null.
      */
     public ClassFile(boolean isInterface, String classname, String superclass) {
         major = MAJOR_VERSION;
@@ -220,15 +217,14 @@ public final class ClassFile {
         if (superclass != null) {
             this.superClass = constPool.addClassInfo(superclass);
             cachedSuperclass = superclass;
-        }
-        else {
+        } else {
             this.superClass = constPool.addClassInfo("java.lang.Object");
             cachedSuperclass = "java.lang.Object";
         }
     }
 
     private static String getSourcefileName(String qname) {
-        return qname.replaceAll("^.*\\.","") + ".java";
+        return qname.replaceAll("^.*\\.", "") + ".java";
     }
 
     /**
@@ -238,10 +234,10 @@ public final class ClassFile {
      */
     public void compact() {
         ConstPool cp = compact0();
-        for (MethodInfo minfo:methods)
+        for (MethodInfo minfo : methods)
             minfo.compact(cp);
 
-        for (FieldInfo finfo:fields)
+        for (FieldInfo finfo : fields)
             finfo.compact(cp);
 
         attributes = AttributeInfo.copyAll(attributes, cp);
@@ -258,7 +254,7 @@ public final class ClassFile {
         if (interfaces != null)
             for (int i = 0; i < interfaces.length; ++i)
                 interfaces[i]
-                    = cp.addClassInfo(constPool.getClassInfo(interfaces[i]));
+                        = cp.addClassInfo(constPool.getClassInfo(interfaces[i]));
 
         return cp;
     }
@@ -273,30 +269,30 @@ public final class ClassFile {
         ConstPool cp = compact0();
         List<AttributeInfo> newAttributes = new ArrayList<AttributeInfo>();
         AttributeInfo invisibleAnnotations
-            = getAttribute(AnnotationsAttribute.invisibleTag);
+                = getAttribute(AnnotationsAttribute.invisibleTag);
         if (invisibleAnnotations != null) {
             invisibleAnnotations = invisibleAnnotations.copy(cp, null);
             newAttributes.add(invisibleAnnotations);
         }
 
         AttributeInfo visibleAnnotations
-            = getAttribute(AnnotationsAttribute.visibleTag);
+                = getAttribute(AnnotationsAttribute.visibleTag);
         if (visibleAnnotations != null) {
             visibleAnnotations = visibleAnnotations.copy(cp, null);
             newAttributes.add(visibleAnnotations);
         }
 
         AttributeInfo signature
-            = getAttribute(SignatureAttribute.tag);
+                = getAttribute(SignatureAttribute.tag);
         if (signature != null) {
             signature = signature.copy(cp, null);
             newAttributes.add(signature);
         }
 
-        for (MethodInfo minfo:methods)
+        for (MethodInfo minfo : methods)
             minfo.prune(cp);
 
-        for (FieldInfo finfo:fields)
+        for (FieldInfo finfo : fields)
             finfo.prune(cp);
 
         attributes = newAttributes;
@@ -333,7 +329,7 @@ public final class ClassFile {
 
     /**
      * Returns access flags.
-     * 
+     *
      * @see javassist.bytecode.AccessFlag
      */
     public int getAccessFlags() {
@@ -342,7 +338,7 @@ public final class ClassFile {
 
     /**
      * Changes access flags.
-     * 
+     *
      * @see javassist.bytecode.AccessFlag
      */
     public void setAccessFlags(int acc) {
@@ -354,15 +350,15 @@ public final class ClassFile {
 
     /**
      * Returns access and property flags of this nested class.
-     * This method returns -1 if the class is not a nested class. 
+     * This method returns -1 if the class is not a nested class.
      *
      * <p>The returned value is obtained from <code>inner_class_access_flags</code>
      * of the entry representing this nested class itself
-     * in <code>InnerClasses_attribute</code>. 
+     * in <code>InnerClasses_attribute</code>.
      */
     public int getInnerAccessFlags() {
         InnerClassesAttribute ica
-            = (InnerClassesAttribute)getAttribute(InnerClassesAttribute.tag);
+                = (InnerClassesAttribute) getAttribute(InnerClassesAttribute.tag);
         if (ica == null)
             return -1;
 
@@ -410,7 +406,7 @@ public final class ClassFile {
 
     /**
      * Sets the super class.
-     * 
+     *
      * <p>
      * The new super class should inherit from the old super class.
      * This method modifies constructors so that they call constructors declared
@@ -422,10 +418,9 @@ public final class ClassFile {
 
         try {
             this.superClass = constPool.addClassInfo(superclass);
-            for (MethodInfo minfo:methods)
+            for (MethodInfo minfo : methods)
                 minfo.setSuperclass(superclass);
-        }
-        catch (BadBytecode e) {
+        } catch (BadBytecode e) {
             throw new CannotCompileException(e);
         }
         cachedSuperclass = superclass;
@@ -433,17 +428,15 @@ public final class ClassFile {
 
     /**
      * Replaces all occurrences of a class name in the class file.
-     * 
+     *
      * <p>
      * If class X is substituted for class Y in the class file, X and Y must
      * have the same signature. If Y provides a method m(), X must provide it
      * even if X inherits m() from the super class. If this fact is not
      * guaranteed, the bytecode verifier may cause an error.
-     * 
-     * @param oldname
-     *            the replaced class name
-     * @param newname
-     *            the substituted class name
+     *
+     * @param oldname the replaced class name
+     * @param newname the substituted class name
      */
     public final void renameClass(String oldname, String newname) {
         if (oldname.equals(newname))
@@ -457,13 +450,13 @@ public final class ClassFile {
         constPool.renameClass(oldname, newname);
 
         AttributeInfo.renameClass(attributes, oldname, newname);
-        for (MethodInfo minfo :methods) {
+        for (MethodInfo minfo : methods) {
             String desc = minfo.getDescriptor();
             minfo.setDescriptor(Descriptor.rename(desc, oldname, newname));
             AttributeInfo.renameClass(minfo.getAttributes(), oldname, newname);
         }
 
-        for (FieldInfo finfo:fields) {
+        for (FieldInfo finfo : fields) {
             String desc = finfo.getDescriptor();
             finfo.setDescriptor(Descriptor.rename(desc, oldname, newname));
             AttributeInfo.renameClass(finfo.getAttributes(), oldname, newname);
@@ -472,14 +465,13 @@ public final class ClassFile {
 
     /**
      * Replaces all occurrences of several class names in the class file.
-     * 
-     * @param classnames
-     *            specifies which class name is replaced with which new name.
-     *            Class names must be described with the JVM-internal
-     *            representation like <code>java/lang/Object</code>.
-     * @see #renameClass(String,String)
+     *
+     * @param classnames specifies which class name is replaced with which new name.
+     *                   Class names must be described with the JVM-internal
+     *                   representation like <code>java/lang/Object</code>.
+     * @see #renameClass(String, String)
      */
-    public final void renameClass(Map<String,String> classnames) {
+    public final void renameClass(Map<String, String> classnames) {
         String jvmNewThisName = classnames.get(Descriptor
                 .toJvmName(thisclassname));
         if (jvmNewThisName != null)
@@ -488,13 +480,13 @@ public final class ClassFile {
         constPool.renameClass(classnames);
 
         AttributeInfo.renameClass(attributes, classnames);
-        for (MethodInfo minfo:methods) {
+        for (MethodInfo minfo : methods) {
             String desc = minfo.getDescriptor();
             minfo.setDescriptor(Descriptor.rename(desc, classnames));
             AttributeInfo.renameClass(minfo.getAttributes(), classnames);
         }
 
-        for (FieldInfo finfo:fields) {
+        for (FieldInfo finfo : fields) {
             String desc = finfo.getDescriptor();
             finfo.setDescriptor(Descriptor.rename(desc, classnames));
             AttributeInfo.renameClass(finfo.getAttributes(), classnames);
@@ -503,23 +495,53 @@ public final class ClassFile {
 
     /**
      * Internal-use only.
-     * <code>CtClass.getRefClasses()</code> calls this method. 
+     * <code>CtClass.getRefClasses()</code> calls this method.
      */
-    public final void getRefClasses(Map<String,String> classnames) {
+    public final void getRefClasses(Map<String, String> classnames) {
         constPool.renameClass(classnames);
 
         AttributeInfo.getRefClasses(attributes, classnames);
-        for (MethodInfo minfo:methods) {
+        for (MethodInfo minfo : methods) {
             String desc = minfo.getDescriptor();
             Descriptor.rename(desc, classnames);
             AttributeInfo.getRefClasses(minfo.getAttributes(), classnames);
         }
 
-        for (FieldInfo finfo:fields) {
+        for (FieldInfo finfo : fields) {
             String desc = finfo.getDescriptor();
             Descriptor.rename(desc, classnames);
             AttributeInfo.getRefClasses(finfo.getAttributes(), classnames);
         }
+    }
+
+    /**
+     * Internal-use only.
+     * <code>CtClass.getAllRefClasses()</code> calls this method.
+     */
+    public final void getAllRefClasses(Map<String, String> classnames) {
+        constPool.renameClass(classnames);
+
+        AttributeInfo.getRefClasses(attributes, classnames);
+        for (MethodInfo minfo : methods) {
+            String genericDesc = getGenericDesc(minfo);
+            if (genericDesc != null)
+                Descriptor.renameIncludeGenerics(genericDesc, classnames);
+            else
+                Descriptor.rename(minfo.getDescriptor(), classnames);
+            AttributeInfo.getRefClasses(minfo.getAttributes(), classnames);
+        }
+
+        for (FieldInfo finfo : fields) {
+            String desc = finfo.getDescriptor();
+            Descriptor.rename(desc, classnames);
+            AttributeInfo.getRefClasses(finfo.getAttributes(), classnames);
+        }
+    }
+
+    private String getGenericDesc(MethodInfo methodInfo) {
+        SignatureAttribute sa
+                = (SignatureAttribute) methodInfo.getAttribute(SignatureAttribute.tag);
+        return sa == null ? null : sa.getSignature();
     }
 
     /**
@@ -547,9 +569,8 @@ public final class ClassFile {
 
     /**
      * Sets the interfaces.
-     * 
-     * @param nameList
-     *            the names of the interfaces.
+     *
+     * @param nameList the names of the interfaces.
      */
     public void setInterfaces(String[] nameList) {
         cachedInterfaces = null;
@@ -569,8 +590,7 @@ public final class ClassFile {
         if (interfaces == null) {
             interfaces = new int[1];
             interfaces[0] = info;
-        }
-        else {
+        } else {
             int n = interfaces.length;
             int[] newarray = new int[n + 1];
             System.arraycopy(interfaces, 0, newarray, 0, n);
@@ -581,7 +601,7 @@ public final class ClassFile {
 
     /**
      * Returns all the fields declared in the class.
-     * 
+     *
      * @return a list of <code>FieldInfo</code>.
      * @see FieldInfo
      */
@@ -592,7 +612,7 @@ public final class ClassFile {
     /**
      * Appends a field to the class.
      *
-     * @throws DuplicateMemberException         when the field is already included.
+     * @throws DuplicateMemberException when the field is already included.
      */
     public void addField(FieldInfo finfo) throws DuplicateMemberException {
         testExistingField(finfo.getName(), finfo.getDescriptor());
@@ -613,14 +633,14 @@ public final class ClassFile {
 
     private void testExistingField(String name, String descriptor)
             throws DuplicateMemberException {
-        for (FieldInfo minfo:fields)
+        for (FieldInfo minfo : fields)
             if (minfo.getName().equals(name))
                 throw new DuplicateMemberException("duplicate field: " + name);
     }
 
     /**
      * Returns all the methods declared in the class.
-     * 
+     *
      * @return a list of <code>MethodInfo</code>.
      * @see MethodInfo
      */
@@ -631,11 +651,11 @@ public final class ClassFile {
     /**
      * Returns the method with the specified name. If there are multiple methods
      * with that name, this method returns one of them.
-     * 
+     *
      * @return null if no such method is found.
      */
     public MethodInfo getMethod(String name) {
-        for (MethodInfo minfo:methods)
+        for (MethodInfo minfo : methods)
             if (minfo.getName().equals(name))
                 return minfo;
         return null;
@@ -654,7 +674,7 @@ public final class ClassFile {
      * If there is a bridge method with the same name and signature,
      * then the bridge method is removed before a new method is added.
      *
-     * @throws DuplicateMemberException         when the method is already included.
+     * @throws DuplicateMemberException when the method is already included.
      */
     public void addMethod(MethodInfo minfo) throws DuplicateMemberException {
         testExistingMethod(minfo);
@@ -674,38 +694,36 @@ public final class ClassFile {
     }
 
     private void testExistingMethod(MethodInfo newMinfo)
-        throws DuplicateMemberException
-    {
+            throws DuplicateMemberException {
         String name = newMinfo.getName();
         String descriptor = newMinfo.getDescriptor();
         ListIterator<MethodInfo> it = methods.listIterator(0);
         while (it.hasNext())
             if (isDuplicated(newMinfo, name, descriptor, it.next(), it))
                 throw new DuplicateMemberException("duplicate method: " + name
-                                                   + " in " + this.getName());
+                        + " in " + this.getName());
     }
 
     private static boolean isDuplicated(MethodInfo newMethod, String newName,
                                         String newDesc, MethodInfo minfo,
-                                        ListIterator<MethodInfo> it)
-    {
+                                        ListIterator<MethodInfo> it) {
         if (!minfo.getName().equals(newName))
             return false;
 
         String desc = minfo.getDescriptor();
         if (!Descriptor.eqParamTypes(desc, newDesc))
-           return false;
+            return false;
 
         if (desc.equals(newDesc)) {
             if (notBridgeMethod(minfo))
                 return true;
-            	// if the bridge method with the same signature
-            	// already exists, replace it.
+            // if the bridge method with the same signature
+            // already exists, replace it.
             it.remove();
             return false;
         }
-        	return false;
-           // return notBridgeMethod(minfo) && notBridgeMethod(newMethod);
+        return false;
+        // return notBridgeMethod(minfo) && notBridgeMethod(newMethod);
     }
 
     /* For a bridge method, see Sec. 15.12.4.5 of JLS 3rd Ed.
@@ -720,7 +738,7 @@ public final class ClassFile {
      * the attribute is also added to the classs file represented by this
      * object.  If you remove an attribute from the list, it is also removed
      * from the class file.
-     * 
+     *
      * @return a list of <code>AttributeInfo</code> objects.
      * @see AttributeInfo
      */
@@ -735,14 +753,14 @@ public final class ClassFile {
      *
      * <p>An attribute name can be obtained by, for example,
      * {@link AnnotationsAttribute#visibleTag} or
-     * {@link AnnotationsAttribute#invisibleTag}. 
+     * {@link AnnotationsAttribute#invisibleTag}.
      * </p>
      *
-     * @param name          attribute name
+     * @param name attribute name
      * @see #getAttributes()
      */
     public AttributeInfo getAttribute(String name) {
-        for (AttributeInfo ai:attributes)
+        for (AttributeInfo ai : attributes)
             if (ai.getName().equals(name))
                 return ai;
         return null;
@@ -751,8 +769,8 @@ public final class ClassFile {
     /**
      * Removes an attribute with the specified name.
      *
-     * @param name      attribute name.
-     * @return          the removed attribute or null.
+     * @param name attribute name.
+     * @return the removed attribute or null.
      * @since 3.21
      */
     public AttributeInfo removeAttribute(String name) {
@@ -772,12 +790,12 @@ public final class ClassFile {
 
     /**
      * Returns the source file containing this class.
-     * 
+     *
      * @return null if this information is not available.
      */
     public String getSourceFile() {
         SourceFileAttribute sf
-            = (SourceFileAttribute)getAttribute(SourceFileAttribute.tag);
+                = (SourceFileAttribute) getAttribute(SourceFileAttribute.tag);
         if (sf == null)
             return null;
         return sf.getFileName();
@@ -855,7 +873,7 @@ public final class ClassFile {
         }
 
         out.writeShort(methods.size());
-        for (MethodInfo minfo:methods)
+        for (MethodInfo minfo : methods)
             minfo.write(out);
 
         out.writeShort(attributes.size());
@@ -864,7 +882,7 @@ public final class ClassFile {
 
     /**
      * Get the Major version.
-     * 
+     *
      * @return the major version
      */
     public int getMajorVersion() {
@@ -873,9 +891,8 @@ public final class ClassFile {
 
     /**
      * Set the major version.
-     * 
-     * @param major
-     *            the major version
+     *
+     * @param major the major version
      */
     public void setMajorVersion(int major) {
         this.major = major;
@@ -883,7 +900,7 @@ public final class ClassFile {
 
     /**
      * Get the minor version.
-     * 
+     *
      * @return the minor version
      */
     public int getMinorVersion() {
@@ -892,9 +909,8 @@ public final class ClassFile {
 
     /**
      * Set the minor version.
-     * 
-     * @param minor
-     *            the minor version
+     *
+     * @param minor the minor version
      */
     public void setMinorVersion(int minor) {
         this.minor = minor;
@@ -902,7 +918,7 @@ public final class ClassFile {
 
     /**
      * Sets the major and minor version to Java 5.
-     *
+     * <p>
      * If the major version is older than 49, Java 5
      * extensions such as annotations are ignored
      * by the JVM.
