@@ -481,6 +481,28 @@ public class JvstTest4 extends JvstTestRoot {
         }
     }
 
+    public void testGetAllRefD() throws Exception {
+        CtClass cc = sloader.get("test4.GetAllRefD");
+        HashSet set = new HashSet();
+        set.add("java.lang.Object");
+        set.add("java.lang.String");
+        set.add("test4.GetAllRefC");
+        set.add("test4.GetAllRefAnno");
+        set.add("test4.GetAllRefEnum");
+        set.add("test4.GetAllRefAnnoC");
+        set.add("test4.GetAllRefAnnoC2");
+        set.add("test4.GetAllRefAnnoC3");
+        set.add("test4.GetAllRefAnnoC4");
+        set.add("java.util.List");
+        set.add("test4.GetAllRefD");
+        java.util.Collection<String> refs
+                = (java.util.Collection<String>)cc.getAllRefClasses();
+        assertEquals(set.size(), refs.size());
+        for (String s: refs) {
+            assertTrue(set.contains(s));
+        }
+    }
+
     public void testGetAllRefInner() throws Exception {
         HashSet set = new HashSet();
         set.add("java.lang.Object");

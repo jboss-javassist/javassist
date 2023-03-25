@@ -523,6 +523,39 @@ public final class ClassFile {
     }
 
     /**
+     * Internal-use only.
+     * <code>CtClass.getAllRefClasses()</code> calls this method.
+     */
+    public final void getAllRefClasses(Map<String, String> classnames) {
+        constPool.renameClass(classnames);
+
+        AttributeInfo.getRefClasses(attributes, classnames);
+        for (MethodInfo minfo : methods) {
+            String genericDesc = getGenericDesc(minfo);
+            if (genericDesc != null)
+                Descriptor.renameIncludeGenerics(genericDesc, classnames);
+            else
+                Descriptor.rename(minfo.getDescriptor(), classnames);
+            AttributeInfo.getRefClasses(minfo.getAttributes(), classnames);
+        }
+
+        for (FieldInfo finfo : fields) {
+            String desc = finfo.getDescriptor();
+            Descriptor.rename(desc, classnames);
+            AttributeInfo.getRefClasses(finfo.getAttributes(), classnames);
+        }
+    }
+
+    /**
+     * Returns the generic signature
+     */
+    private String getGenericDesc(MethodInfo methodInfo) {
+        SignatureAttribute sa
+                = (SignatureAttribute) methodInfo.getAttribute(SignatureAttribute.tag);
+        return sa == null ? null : sa.getSignature();
+    }
+
+    /**
      * Returns the names of the interfaces implemented by the class.
      * The returned array is read only.
      */
