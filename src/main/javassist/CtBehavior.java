@@ -20,6 +20,7 @@ import javassist.bytecode.AccessFlag;
 import javassist.bytecode.AnnotationsAttribute;
 import javassist.bytecode.AttributeInfo;
 import javassist.bytecode.BadBytecode;
+import javassist.bytecode.ByteArray;
 import javassist.bytecode.Bytecode;
 import javassist.bytecode.CodeAttribute;
 import javassist.bytecode.CodeIterator;
@@ -1308,5 +1309,83 @@ public abstract class CtBehavior extends CtMember {
         catch (BadBytecode e) {
             throw new CannotCompileException(e);
         }
+    }
+
+    /**
+     * Inserts bytecode after the local variable specified by the type and position
+     * in the body.
+     *
+     * @param type    the type of the variable.
+     * @param pos     the position of the local variable with the same type. The
+     *                bytecode is inserted at the beginning of the code after the
+     *                local variable specified by the type and this position.
+     * @param addName add or change the local variable name. If the value of addName
+     *                is null it does nothing.
+     * @param src     the source code representing the inserted bytecode. It must be
+     *                a single statement or block.
+     * @since 3.30
+     */
+    public void insertAfterLocalVariable(CtClass type, int pos, String addName, String src)
+	    throws CannotCompileException {
+	ConstPool cp = methodInfo.getConstPool();
+	CodeAttribute ca = methodInfo.getCodeAttribute();
+	if (ca == null)
+	    throw new CannotCompileException("no method body");
+
+	LocalVariableAttribute va = (LocalVariableAttribute) ca.getAttribute(LocalVariableAttribute.tag);
+	if (va == null)
+	    throw new CannotCompileException("no local variable");
+
+	CtClass cc = declaringClass;
+	cc.checkModify();
+	String desc = Descriptor.of(type);
+	int i = 0;
+	for (int j : va.entryListOrderedByIndex()) {
+	    if (va.descriptor(j).equals(desc)) {
+		if (i != pos) {
+		    i++;
+		    continue;
+		}
+
+		if (addName != null) {
+		    ByteArray.write16bit(cp.addUtf8Info(addName), va.get(), j * 10 + 6);
+		}
+
+		int index = va.startPc(j);
+		CodeIterator iterator = ca.iterator();
+		Javac jv = new Javac(cc);
+		try {
+		    jv.recordLocalVariables(ca, index);
+		    jv.recordParams(getParameterTypes(), Modifier.isStatic(getModifiers()));
+		    jv.setMaxLocals(ca.getMaxLocals());
+		    jv.compileStmnt(src);
+		    Bytecode b = jv.getBytecode();
+		    int locals = b.getMaxLocals();
+		    int stack = b.getMaxStack();
+		    ca.setMaxLocals(locals);
+
+		    /*
+		     * We assume that there is no values in the operand stack at the position where
+		     * the bytecode is inserted.
+		     */
+		    if (stack > ca.getMaxStack())
+			ca.setMaxStack(stack);
+
+		    index = iterator.insertAt(index, b.get());
+		    iterator.insert(b.getExceptionTable(), index);
+		    methodInfo.rebuildStackMapIf6(cc.getClassPool(), cc.getClassFile2());
+		    return;
+		} catch (NotFoundException e) {
+		    throw new CannotCompileException(e);
+		} catch (CompileError e) {
+		    throw new CannotCompileException(e);
+		} catch (BadBytecode e) {
+		    throw new CannotCompileException(e);
+		}
+	    }
+	}
+
+	throw new CannotCompileException(
+		String.format("no local variable with this type %s and position %s", new Object[] { type, pos }));
     }
 }
