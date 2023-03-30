@@ -593,4 +593,27 @@ public class JvstTest5 extends JvstTestRoot {
         }
         catch (CannotCompileException e) {}
     }
+
+    // Issue #430
+    public void testInsertAfterLocalVariable() throws Exception {
+	CtClass cc = sloader.get("test5.InsertLocalVariable");
+	CtMethod m1 = cc.getDeclaredMethod("foo");
+	m1.insertAfterLocalVariable(CtClass.intType, 0, null, "$1++;");
+	m1.insertAfterLocalVariable(CtClass.intType, 1, null, "$2++;");
+	m1.insertAfterLocalVariable(CtClass.intType, 2, null, "$3++;");
+	m1.insertAfterLocalVariable(CtClass.booleanType, 0, null, "bI = true;");
+	m1.insertAfterLocalVariable(CtClass.intType, 3, "iL", "iL++;");
+	m1.insertAfterLocalVariable(CtClass.booleanType, 1, null, "bJ = false;");
+	m1.insertAfterLocalVariable(CtClass.intType, 4, "iM", "iM++;");
+	m1.insertAfterLocalVariable(CtClass.intType, 5, "iN", "iN++;");
+	m1.insertAfterLocalVariable(CtClass.booleanType, 2, null, "bK = true;");
+	m1.insertAfterLocalVariable(CtClass.intType, 6, "iO", "iO++;");
+	m1.insertAfterLocalVariable(CtClass.intType, 7, "iP", "iP++;");
+	m1.insertAfterLocalVariable(CtClass.intType, 8, "iQ", "iQ++;");
+	m1.insertAfterLocalVariable(CtClass.intType, 9, "iR", "iR++;");
+	m1.insertAfterLocalVariable(CtClass.intType, 10, "iS", "iS++;");
+	cc.writeFile();
+	Object obj = make(cc.getName());
+	assertEquals(12, invoke(obj, "test"));
+    }
 }

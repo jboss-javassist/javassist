@@ -18,6 +18,9 @@ package javassist.bytecode;
 
 import java.io.DataInputStream;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -350,5 +353,32 @@ public class LocalVariableAttribute extends AttributeInfo {
     // LocalVariableTypeAttribute overrides this method.
     LocalVariableAttribute makeThisAttr(ConstPool cp, byte[] dest) {
         return new LocalVariableAttribute(cp, tag, dest);
+    }
+
+    /**
+     * Undocumented method. Do not use; internal-use only.
+     * 
+     * Returns a list of entries in the correct order according to the local
+     * variable index. This method is for internal use only as the order may be
+     * wrong with local variables with different type descriptor.
+     * 
+     * @see #index(int)
+     * @since 3.30
+     */
+    public List<Integer> entryListOrderedByIndex() {
+	int n = tableLength();
+	Integer[] entries = new Integer[n];
+	for (int i = 0; i < n; i++) {
+	    int index = index(i);
+	    while (index < n && entries[index] != null) {
+		index++;
+	    }
+
+	    if (index < n) {
+		entries[index] = i;
+	    }
+	}
+
+	return Collections.unmodifiableList(Arrays.asList(entries));
     }
 }

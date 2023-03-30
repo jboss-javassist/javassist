@@ -69,7 +69,7 @@ public abstract class CtClass {
     /**
      * The version number of this release.
      */
-    public static final String version = "3.29.2-GA";
+    public static final String version = "3.30.0-GA-SNAPSHOT";
 
     /**
      * Prints the version number and the copyright notice.
