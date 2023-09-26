@@ -25,12 +25,12 @@ public class InstanceOfExpr extends CastExpr {
     /** default serialVersionUID */
     private static final long serialVersionUID = 1L;
 
-    public InstanceOfExpr(ASTList className, int dim, ASTree expr) {
-        super(className, dim, expr);
+    public InstanceOfExpr(ASTList className, int dim, ASTree expr, int lineNumber) {
+        super(className, dim, expr, lineNumber);
     }
 
-    public InstanceOfExpr(int type, int dim, ASTree expr) {
-        super(type, dim, expr);
+    public InstanceOfExpr(int type, int dim, ASTree expr, int lineNumber) {
+        super(type, dim, expr, lineNumber);
     }
 
     @Override

@@ -25,8 +25,8 @@ public class CondExpr extends ASTList {
     /** default serialVersionUID */
     private static final long serialVersionUID = 1L;
 
-    public CondExpr(ASTree cond, ASTree thenp, ASTree elsep) {
-        super(cond, new ASTList(thenp, new ASTList(elsep)));
+    public CondExpr(ASTree cond, ASTree thenp, ASTree elsep, int lineNumber) {
+        super(cond, new ASTList(thenp, new ASTList(elsep, lineNumber), lineNumber), lineNumber);
     }
 
     public ASTree condExpr() { return head(); }

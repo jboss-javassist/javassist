@@ -35,7 +35,7 @@ public class LineNumberAttribute extends AttributeInfo {
         super(cp, n, in);
     }
 
-    private LineNumberAttribute(ConstPool cp, byte[] i) {
+    LineNumberAttribute(ConstPool cp, byte[] i) {
         super(cp, tag, i);
     }
 

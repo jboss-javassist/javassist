@@ -302,6 +302,41 @@ public class BytecodeTest extends TestCase {
         assertEquals(20, pc.line);
     }
 
+    public void testLineNumberCompiler() {
+        CtClass testClass = loader.makeClass("javassist.bytecode.LineNumberCompilerClass");
+        String run = String.join("\n",
+                "public void run() {",
+                "    return",
+                "}");
+        try {
+            testClass.addMethod(CtMethod.make(run, testClass));
+        } catch (CannotCompileException e) {
+            assertEquals("line 3: syntax error near \"  return\n}\"", e.getCause().getMessage());
+            return;
+        }
+        fail("should not happen");
+    }
+
+    public void testLineNumberException() {
+        CtClass testClass = loader.makeClass("javassist.bytecode.LineNumberExceptionClass");
+        String run = String.join("\n",
+                "public void run() {",
+                "    throw new java.lang.RuntimeException();",
+                "}");
+        try {
+            testClass.addInterface(loader.get("java.lang.Runnable"));
+            testClass.addMethod(CtMethod.make(run, testClass));
+            Class cls = testClass.toClass(BytecodeTest.class);
+            var runnable = (Runnable) cls.getConstructor().newInstance();
+            runnable.run();
+        } catch (Exception e) {
+            var lineNum = e.getStackTrace()[0].getLineNumber();
+            assertEquals("Line number should be right", 2, lineNum);
+            return;
+        }
+        fail("should not happen");
+    }
+
     public void testRenameClass() throws Exception {
         CtClass cc = loader.get("test1.RenameClass");
         cc.replaceClassName("test1.RenameClass2", "java.lang.String");

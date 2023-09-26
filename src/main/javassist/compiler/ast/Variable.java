@@ -26,8 +26,8 @@ public class Variable extends Symbol {
     private static final long serialVersionUID = 1L;
     protected Declarator declarator;
 
-    public Variable(String sym, Declarator d) {
-        super(sym);
+    public Variable(String sym, Declarator d, int lineNumber) {
+        super(sym, lineNumber);
         declarator = d;
     }
 

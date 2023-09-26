@@ -43,7 +43,7 @@ import javassist.compiler.ast.Stmnt;
 import javassist.compiler.ast.Symbol;
 
 public class Javac {
-    JvstCodeGen gen;
+    JvstCodeGenWitlLineNumber gen;
     SymbolTable stable;
     private Bytecode bytecode;
 
@@ -71,7 +71,7 @@ public class Javac {
      *                          belongs to.
      */
     public Javac(Bytecode b, CtClass thisClass) {
-        gen = new JvstCodeGen(b, thisClass, thisClass.getClassPool());
+        gen = new JvstCodeGenWitlLineNumber(b, thisClass, thisClass.getClassPool());
         stable = new SymbolTable();
         bytecode = b;
     }
@@ -160,8 +160,9 @@ public class Javac {
                                                    gen.getThisClass());
                 cons.setModifiers(mod);
                 md.accept(gen);
-                cons.getMethodInfo().setCodeAttribute(
-                                        bytecode.toCodeAttribute());
+                CodeAttribute cattr = bytecode.toCodeAttribute();
+                cattr.setAttribute(gen.toLineNumberAttribute());
+                cons.getMethodInfo().setCodeAttribute(cattr);
                 cons.setExceptionTypes(tlist);
                 return cons;
             }
@@ -173,10 +174,11 @@ public class Javac {
             method.setModifiers(mod);
             gen.setThisMethod(method);
             md.accept(gen);
-            if (md.getBody() != null)
-                method.getMethodInfo().setCodeAttribute(
-                                    bytecode.toCodeAttribute());
-            else
+            if (md.getBody() != null) {
+                CodeAttribute cattr = bytecode.toCodeAttribute();
+                cattr.setAttribute(gen.toLineNumberAttribute());
+                method.getMethodInfo().setCodeAttribute(cattr);
+            } else
                 method.setModifiers(mod | Modifier.ABSTRACT);
 
             method.setExceptionTypes(tlist);
@@ -446,11 +448,11 @@ public class Javac {
                 public void doit(JvstCodeGen gen, Bytecode b, ASTList args)
                     throws CompileError
                 {
-                    ASTree expr = new Member(m);
+                    ASTree expr = new Member(m, texpr.getLineNumber());
                     if (texpr != null)
-                        expr = Expr.make('.', texpr, expr);
+                        expr = Expr.make('.', texpr, expr, texpr.getLineNumber());
 
-                    expr = CallExpr.makeCall(expr, args);
+                    expr = CallExpr.makeCall(expr, args, texpr.getLineNumber());
                     gen.compileExpr(expr);
                     gen.addNullIfVoid();
                 }
@@ -459,11 +461,11 @@ public class Javac {
                 public void setReturnType(JvstTypeChecker check, ASTList args)
                     throws CompileError
                 {
-                    ASTree expr = new Member(m);
+                    ASTree expr = new Member(m, texpr.getLineNumber());
                     if (texpr != null)
-                        expr = Expr.make('.', texpr, expr);
+                        expr = Expr.make('.', texpr, expr, texpr.getLineNumber());
 
-                    expr = CallExpr.makeCall(expr, args);
+                    expr = CallExpr.makeCall(expr, args, texpr.getLineNumber());
                     expr.accept(check);
                     check.addNullIfVoid();
                 }
@@ -493,8 +495,8 @@ public class Javac {
                     throws CompileError
                 {
                     Expr expr = Expr.make(TokenId.MEMBER,
-                                          new Symbol(c), new Member(m));
-                    expr = CallExpr.makeCall(expr, args);
+                                          new Symbol(c, args.getLineNumber()), new Member(m, args.getLineNumber()), args.getLineNumber());
+                    expr = CallExpr.makeCall(expr, args, args.getLineNumber());
                     gen.compileExpr(expr);
                     gen.addNullIfVoid();
                 }
@@ -504,8 +506,8 @@ public class Javac {
                     throws CompileError
                 {
                     Expr expr = Expr.make(TokenId.MEMBER,
-                                          new Symbol(c), new Member(m));
-                    expr = CallExpr.makeCall(expr, args);
+                                          new Symbol(c, args.getLineNumber()), new Member(m, args.getLineNumber()), args.getLineNumber());
+                    expr = CallExpr.makeCall(expr, args, args.getLineNumber());
                     expr.accept(check);
                     check.addNullIfVoid();
                 }

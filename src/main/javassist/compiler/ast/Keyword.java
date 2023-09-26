@@ -26,7 +26,8 @@ public class Keyword extends ASTree {
     private static final long serialVersionUID = 1L;
     protected int tokenId;
 
-    public Keyword(int token) {
+    public Keyword(int token, int lineNumber) {
+        super(lineNumber);
         tokenId = token;
     }
 

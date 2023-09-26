@@ -234,7 +234,7 @@ public class MemberCodeGen extends CodeGen {
         body.accept(this);
         int end = bc.currentPc();
         if (start == end)
-            throw new CompileError("empty try block");
+            throw new CompileError("empty try block", st.getLineNumber());
 
         boolean tryNotReturn = !hasReturned;
         if (tryNotReturn) {
@@ -346,21 +346,21 @@ public class MemberCodeGen extends CodeGen {
             if (init != null)
                 throw new CompileError(
                         "sorry, multi-dimensional array initializer " +
-                        "for new is not supported");
+                        "for new is not supported", expr.getLineNumber());
 
             atMultiNewArray(type, classname, size);
             return;
         }
 
         ASTree sizeExpr = size.head();
-        atNewArrayExpr2(type, sizeExpr, Declarator.astToClassName(classname, '/'), init);
+        atNewArrayExpr2(type, sizeExpr, Declarator.astToClassName(classname, '/'), init, expr.getLineNumber());
     }
 
     private void atNewArrayExpr2(int type, ASTree sizeExpr,
-                        String jvmClassname, ArrayInit init) throws CompileError {
+                        String jvmClassname, ArrayInit init, int lineNumber) throws CompileError {
         if (init == null)
             if (sizeExpr == null)
-                throw new CompileError("no array size");
+                throw new CompileError("no array size", lineNumber);
             else
                 sizeExpr.accept(this);
         else
@@ -369,7 +369,7 @@ public class MemberCodeGen extends CodeGen {
                 bytecode.addIconst(s);
             }
             else
-                throw new CompileError("unnecessary array size specified for new");
+                throw new CompileError("unnecessary array size specified for new", lineNumber);
 
         String elementClass;
         if (type == CLASS) {
@@ -405,7 +405,7 @@ public class MemberCodeGen extends CodeGen {
                 atype = T_LONG;
                 break;
             default :
-                badNewExpr();
+                badNewExpr(lineNumber);
                 break;
             }
 
@@ -433,19 +433,19 @@ public class MemberCodeGen extends CodeGen {
         className = elementClass;
     }
 
-    private static void badNewExpr() throws CompileError {
-        throw new CompileError("bad new expression");
+    private static void badNewExpr(int lineNumber) throws CompileError {
+        throw new CompileError("bad new expression", lineNumber);
     }
 
     @Override
     protected void atArrayVariableAssign(ArrayInit init, int varType,
                                          int varArray, String varClass) throws CompileError {
-        atNewArrayExpr2(varType, null, varClass, init);
+        atNewArrayExpr2(varType, null, varClass, init, init.getLineNumber());
     }
 
     @Override
     public void atArrayInit(ArrayInit init) throws CompileError {
-        throw new CompileError("array initializer is not supported");
+        throw new CompileError("array initializer is not supported", init.getLineNumber());
     }
 
     protected void atMultiNewArray(int type, ASTList classname, ASTList size)
@@ -461,7 +461,7 @@ public class MemberCodeGen extends CodeGen {
             ++count;
             s.accept(this);
             if (exprType != INT)
-                throw new CompileError("bad type for array size");
+                throw new CompileError("bad type for array size", classname.getLineNumber());
         }
 
         String desc;
@@ -503,7 +503,7 @@ public class MemberCodeGen extends CodeGen {
             mname = MethodInfo.nameInit;        // <init>
             targetClass = thisClass;
             if (inStaticMethod)
-                throw new CompileError("a constructor cannot be static");
+                throw new CompileError("a constructor cannot be static", expr.getLineNumber());
             bytecode.addAload(0);   // this
 
             if (((Keyword)method).get() == SUPER)
@@ -563,7 +563,7 @@ public class MemberCodeGen extends CodeGen {
                 badMethod();
         }
         else
-            fatal();
+            fatal(expr.getLineNumber());
 
         atMethodCallCore(targetClass, mname, args, isStatic, isSpecial,
                          aload0pos, cached);
@@ -612,7 +612,7 @@ public class MemberCodeGen extends CodeGen {
                 msg = "Method " + mname + " not found in "
                     + targetClass.getName();
 
-            throw new CompileError(msg);
+            throw new CompileError(msg, args.getLineNumber());
         }
 
         atMethodCallCore2(targetClass, mname, isStatic, isSpecial,
@@ -844,14 +844,14 @@ public class MemberCodeGen extends CodeGen {
         if (op == '=') {
             FieldInfo finfo = f.getFieldInfo2();
             setFieldType(finfo);
-            AccessorMaker maker = isAccessibleField(f, finfo);            
+            AccessorMaker maker = isAccessibleField(f, finfo, expr.getLineNumber());
             if (maker == null)
                 fi = addFieldrefInfo(f, finfo);
             else
                 fi = 0;
         }
         else
-            fi = atFieldRead(f, is_static);
+            fi = atFieldRead(f, is_static, expr.getLineNumber());
 
         int fType = exprType;
         int fDim = arrayDim;
@@ -921,9 +921,9 @@ public class MemberCodeGen extends CodeGen {
         }
 
         boolean is_static = resultStatic;
-        ASTree cexpr = TypeChecker.getConstantFieldValue(f);
+        ASTree cexpr = TypeChecker.getConstantFieldValue(f, expr.getLineNumber());
         if (cexpr == null)
-            atFieldRead(f, is_static);
+            atFieldRead(f, is_static,expr.getLineNumber() );
         else {
             cexpr.accept(this);
             setFieldType(f.getFieldInfo2());
@@ -932,7 +932,7 @@ public class MemberCodeGen extends CodeGen {
 
     private void atArrayLength(ASTree expr) throws CompileError {
         if (arrayDim == 0)
-            throw new CompileError(".length applied to a non array");
+            throw new CompileError(".length applied to a non array", expr.getLineNumber());
 
         bytecode.addOpcode(ARRAYLENGTH);
         exprType = INT;
@@ -944,10 +944,10 @@ public class MemberCodeGen extends CodeGen {
      * It returns a fieldref_info index or zero if the field is a private
      * one declared in an enclosing class. 
      */
-    private int atFieldRead(CtField f, boolean isStatic) throws CompileError {
+    private int atFieldRead(CtField f, boolean isStatic, int lineNumber) throws CompileError {
         FieldInfo finfo = f.getFieldInfo2();
         boolean is2byte = setFieldType(finfo);
-        AccessorMaker maker = isAccessibleField(f, finfo);
+        AccessorMaker maker = isAccessibleField(f, finfo, lineNumber);
         if (maker != null) {
             MethodInfo minfo = maker.getFieldGetter(finfo, isStatic);
             bytecode.addInvokestatic(f.getDeclaringClass(), minfo.getName(),
@@ -973,7 +973,7 @@ public class MemberCodeGen extends CodeGen {
      * an exception or it returns AccessorMaker if the field is a private
      * one declared in an enclosing class.
      */
-    private AccessorMaker isAccessibleField(CtField f, FieldInfo finfo)
+    private AccessorMaker isAccessibleField(CtField f, FieldInfo finfo, int lineNumber)
         throws CompileError
     {
         if (AccessFlag.isPrivate(finfo.getAccessFlags())
@@ -985,7 +985,7 @@ public class MemberCodeGen extends CodeGen {
                     return maker;
             }
             throw new CompileError("Field " + f.getName() + " in "
-                                   + declClass.getName() + " is private.");
+                                   + declClass.getName() + " is private.", lineNumber);
         }
 
         return null;    // accessible field
@@ -1046,7 +1046,7 @@ public class MemberCodeGen extends CodeGen {
         if (!is_static)
             bytecode.addOpcode(DUP);
 
-        int fi = atFieldRead(f, is_static);
+        int fi = atFieldRead(f, is_static, oprand.getLineNumber());
         int t = exprType;
         boolean is2w = is2word(t, arrayDim);
 
@@ -1082,7 +1082,7 @@ public class MemberCodeGen extends CodeGen {
             if (!is_static)
                 if (inStaticMethod)
                     throw new CompileError(
-                                "not available in a static method: " + name);
+                                "not available in a static method: " + name, expr.getLineNumber());
                 else
                     bytecode.addAload(0);       // this
 
@@ -1117,7 +1117,7 @@ public class MemberCodeGen extends CodeGen {
                              && ((Symbol)e.oprand2()).get().equals("length"))
                         return null;    // expr is an array length.
                     else
-                        badLvalue();
+                        badLvalue(expr.getLineNumber());
 
                     boolean is_static = Modifier.isStatic(f.getModifiers());
                     if (is_static)
@@ -1142,17 +1142,17 @@ public class MemberCodeGen extends CodeGen {
                 }
             }
             else
-                badLvalue();
+                badLvalue(expr.getLineNumber());
         }
         else
-            badLvalue();
+            badLvalue(expr.getLineNumber());
 
         resultStatic = false;
         return null;    // never reach
     }
 
-    private static void badLvalue() throws CompileError {
-        throw new CompileError("bad l-value");
+    private static void badLvalue(int lineNumber) throws CompileError {
+        throw new CompileError("bad l-value", lineNumber);
     }
 
     public CtClass[] makeParamList(MethodDecl md) throws CompileError {

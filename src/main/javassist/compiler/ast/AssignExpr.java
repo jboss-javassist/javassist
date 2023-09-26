@@ -29,13 +29,13 @@ public class AssignExpr extends Expr {
     /** default serialVersionUID */
     private static final long serialVersionUID = 1L;
 
-    private AssignExpr(int op, ASTree _head, ASTList _tail) {
-        super(op, _head, _tail);
+    private AssignExpr(int op, ASTree _head, ASTList _tail, int lineNumber) {
+        super(op, _head, _tail, lineNumber);
     }
 
     public static AssignExpr makeAssign(int op, ASTree oprand1,
-                                        ASTree oprand2) {
-        return new AssignExpr(op, oprand1, new ASTList(oprand2));
+                                        ASTree oprand2, int lineNumber) {
+        return new AssignExpr(op, oprand1, new ASTList(oprand2, lineNumber), lineNumber);
     }
 
     @Override

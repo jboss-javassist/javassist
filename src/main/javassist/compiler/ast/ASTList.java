@@ -28,18 +28,18 @@ public class ASTList extends ASTree {
     private ASTree left;
     private ASTList right;
 
-    public ASTList(ASTree _head, ASTList _tail) {
+    public ASTList(ASTree _head, ASTList _tail, int lineNumber) {
+        super(lineNumber);
         left = _head;
         right = _tail;
     }
 
-    public ASTList(ASTree _head) {
-        left = _head;
-        right = null;
+    public ASTList(ASTree _head, int lineNumber) {
+        this(_head, null, lineNumber);
     }
 
-    public static ASTList make(ASTree e1, ASTree e2, ASTree e3) {
-        return new ASTList(e1, new ASTList(e2, new ASTList(e3)));
+    public static ASTList make(ASTree e1, ASTree e2, ASTree e3 , int lineNumber) {
+        return new ASTList(e1, new ASTList(e2, new ASTList(e3, lineNumber), lineNumber), lineNumber);
     }
 
     @Override
@@ -146,8 +146,8 @@ public class ASTList extends ASTree {
     /**
      * Appends an object to a list.
      */
-    public static ASTList append(ASTList a, ASTree b) {
-        return concat(a, new ASTList(b));
+    public static ASTList append(ASTList a, ASTree b, int lineNumber) {
+        return concat(a, new ASTList(b, lineNumber));
     }
 
     /**

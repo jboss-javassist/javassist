@@ -29,8 +29,8 @@ public class Member extends Symbol {
     // this is used to obtain the value of a static final field.
     private CtField field;
 
-    public Member(String name) {
-        super(name);
+    public Member(String name, int lineNumber) {
+        super(name, lineNumber);
         field = null;
     }
 

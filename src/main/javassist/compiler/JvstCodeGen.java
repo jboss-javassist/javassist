@@ -110,14 +110,14 @@ public class JvstCodeGen extends MemberCodeGen {
         }
         else if (name.equals(dollarTypeName)) {
             if (dollarType == null)
-                throw new CompileError(dollarTypeName + " is not available");
+                throw new CompileError(dollarTypeName + " is not available", mem.getLineNumber());
 
             bytecode.addLdc(Descriptor.of(dollarType));
             callGetType("getType");
         }
         else if (name.equals(clazzName)) {
             if (param0Type == null)
-                throw new CompileError(clazzName + " is not available");
+                throw new CompileError(clazzName + " is not available", mem.getLineNumber());
 
             bytecode.addLdc(param0Type);
             callGetType("getClazz");
@@ -141,11 +141,11 @@ public class JvstCodeGen extends MemberCodeGen {
         if (left instanceof Member
             && ((Member)left).get().equals(paramArrayName)) {
             if (op != '=')
-                throw new CompileError("bad operator for " + paramArrayName);
+                throw new CompileError("bad operator for " + paramArrayName, expr.getLineNumber());
 
             right.accept(this);
             if (arrayDim != 1 || exprType != CLASS)
-                throw new CompileError("invalid type for " + paramArrayName);
+                throw new CompileError("invalid type for " + paramArrayName, expr.getLineNumber());
 
             atAssignParamList(paramTypeList, bytecode);
             if (!doDup)
@@ -211,7 +211,7 @@ public class JvstCodeGen extends MemberCodeGen {
             className = null;
         }
         else
-            throw new CompileError("invalid cast");
+            throw new CompileError("invalid cast", expr.getLineNumber());
     }
 
     protected void atCastToWrapper(CastExpr expr) throws CompileError {
@@ -253,7 +253,7 @@ public class JvstCodeGen extends MemberCodeGen {
                 return;
             }
             else if (name.equals(cflowName)) {
-                atCflow((ASTList)expr.oprand2());
+                atCflow((ASTList)expr.oprand2(), expr.getLineNumber());
                 return;
             }
         }
@@ -263,16 +263,16 @@ public class JvstCodeGen extends MemberCodeGen {
 
     /* To support $cflow().
      */
-    protected void atCflow(ASTList cname) throws CompileError {
+    protected void atCflow(ASTList cname, int lineNumber) throws CompileError {
         StringBuilder sbuf = new StringBuilder();
         if (cname == null || cname.tail() != null)
-            throw new CompileError("bad " + cflowName);
+            throw new CompileError("bad " + cflowName, lineNumber);
 
         makeCflowName(sbuf, cname.head());
         String name = sbuf.toString();
         Object[] names = resolver.getClassPool().lookupCflow(name);
         if (names == null)
-            throw new CompileError("no such " + cflowName + ": " + name);
+            throw new CompileError("no such " + cflowName + ": " + name, lineNumber);
 
         bytecode.addGetstatic((String)names[0], (String)names[1],
                               "Ljavassist/runtime/Cflow;");
@@ -305,7 +305,7 @@ public class JvstCodeGen extends MemberCodeGen {
             }
         }
 
-        throw new CompileError("bad " + cflowName);
+        throw new CompileError("bad " + cflowName, name.getLineNumber());
     }
 
     /* To support $$.  ($$) is equivalent to ($1, ..., $n).
@@ -530,7 +530,7 @@ public class JvstCodeGen extends MemberCodeGen {
             String varName = prefix + "0";
             Declarator decl
                 = new Declarator(CLASS, MemberResolver.javaToJvmName(target),
-                                 0, varNo++, new Symbol(varName));
+                                 0, varNo++, new Symbol(varName, 0), 0);
             tbl.append(varName, decl);
         }
 
@@ -573,7 +573,7 @@ public class JvstCodeGen extends MemberCodeGen {
 
         Declarator decl
             = new Declarator(exprType, className, arrayDim,
-                             varNo, new Symbol(varName));
+                             varNo, new Symbol(varName, 0), 0);
         tbl.append(varName, decl);
         return is2word(exprType, arrayDim) ? 2 : 1;
     }
@@ -603,7 +603,7 @@ public class JvstCodeGen extends MemberCodeGen {
         }
 
         Declarator decl
-            = new Declarator(type, cname, dim, varNo, new Symbol(varName));
+            = new Declarator(type, cname, dim, varNo, new Symbol(varName, 0), 0);
         tbl.append(varName, decl);
     }
 

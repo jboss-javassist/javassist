@@ -66,7 +66,7 @@ public final class Parser implements TokenId {
         Declarator d;
         boolean isConstructor = false;
         if (lex.lookAhead() == Identifier && lex.lookAhead(1) == '(') {
-            d = new Declarator(VOID, 0);
+            d = new Declarator(VOID, 0, lex.getLineNumber());
             isConstructor = true;
         }
         else
@@ -81,7 +81,7 @@ public final class Parser implements TokenId {
         else
             name = lex.getString();
 
-        d.setVariable(new Symbol(name));
+        d.setVariable(new Symbol(name, lex.getLineNumber()));
         if (isConstructor || lex.lookAhead() == '(')
             return parseMethod1(tbl, isConstructor, mods, d);
         return parseField(tbl, mods, d);
@@ -103,7 +103,7 @@ public final class Parser implements TokenId {
 
         int c = lex.get();
         if (c == ';')
-            return new FieldDecl(mods, new ASTList(d, new ASTList(expr)));
+            return new FieldDecl(mods, new ASTList(d, new ASTList(expr, lex.getLineNumber()), lex.getLineNumber()), lex.getLineNumber());
         else if (c == ',')
             throw new CompileError(
                 "only one field can be declared in one declaration", lex);
@@ -131,7 +131,7 @@ public final class Parser implements TokenId {
         ASTList parms = null;
         if (lex.lookAhead() != ')')
             while (true) {
-                parms = ASTList.append(parms, parseFormalParam(tbl));
+                parms = ASTList.append(parms, parseFormalParam(tbl), lex.getLineNumber());
                 int t = lex.lookAhead();
                 if (t == ',')
                     lex.get();
@@ -148,7 +148,7 @@ public final class Parser implements TokenId {
         if (lex.lookAhead() == THROWS) {
             lex.get();
             while (true) {
-                throwsList = ASTList.append(throwsList, parseClassType(tbl));
+                throwsList = ASTList.append(throwsList, parseClassType(tbl), lex.getLineNumber());
                 if (lex.lookAhead() == ',')
                     lex.get();
                 else
@@ -157,7 +157,7 @@ public final class Parser implements TokenId {
         }
 
         return new MethodDecl(mods, new ASTList(d,
-                                ASTList.make(parms, throwsList, null)));
+                                ASTList.make(parms, throwsList, null, lex.getLineNumber()), lex.getLineNumber()), lex.getLineNumber());
     }
 
     /* Parses a method body.
@@ -171,7 +171,7 @@ public final class Parser implements TokenId {
         else {
             body = parseBlock(tbl);
             if (body == null)
-                body = new Stmnt(BLOCK);
+                body = new Stmnt(BLOCK, lex.getLineNumber());
         }
 
         md.sublist(4).setHead(body);
@@ -191,7 +191,7 @@ public final class Parser implements TokenId {
             if (t == ABSTRACT || t == FINAL || t == PUBLIC || t == PROTECTED
                 || t == PRIVATE || t == SYNCHRONIZED || t == STATIC
                 || t == VOLATILE || t == TRANSIENT || t == STRICT)
-                list = new ASTList(new Keyword(lex.get()), list);
+                list = new ASTList(new Keyword(lex.get(), lex.getLineNumber()), list, lex.getLineNumber());
             else
                 break;
         }
@@ -206,11 +206,11 @@ public final class Parser implements TokenId {
         if (isBuiltinType(t) || t == VOID) {
             lex.get();  // primitive type
             int dim = parseArrayDimension();
-            return new Declarator(t, dim);
+            return new Declarator(t, dim, lex.getLineNumber());
         }
         ASTList name = parseClassType(tbl);
         int dim = parseArrayDimension();
-        return new Declarator(name, dim);
+        return new Declarator(name, dim, lex.getLineNumber());
     }
 
     private static boolean isBuiltinType(int t) {
@@ -228,7 +228,7 @@ public final class Parser implements TokenId {
             throw new SyntaxError(lex);
 
         String name = lex.getString();
-        d.setVariable(new Symbol(name));
+        d.setVariable(new Symbol(name, lex.getLineNumber()));
         d.addArrayDim(parseArrayDimension());
         tbl.append(name, d);
         return d;
@@ -261,13 +261,13 @@ public final class Parser implements TokenId {
             return parseBlock(tbl);
         else if (t == ';') {
             lex.get();
-            return new Stmnt(BLOCK);    // empty statement
+            return new Stmnt(BLOCK, lex.getLineNumber());    // empty statement
         }
         else if (t == Identifier && lex.lookAhead(1) == ':') {
             lex.get();  // Identifier
             String label = lex.getString();
             lex.get();  // ':'
-            return Stmnt.make(LABEL, new Symbol(label), parseStatement(tbl));
+            return Stmnt.make(LABEL, new Symbol(label, lex.getLineNumber()), parseStatement(tbl), lex.getLineNumber());
         }
         else if (t == IF)
             return parseIf(tbl);
@@ -306,12 +306,12 @@ public final class Parser implements TokenId {
         while (lex.lookAhead() != '}') {
             Stmnt s = parseStatement(tbl2);
             if (s != null)
-                body = (Stmnt)ASTList.concat(body, new Stmnt(BLOCK, s));
+                body = (Stmnt)ASTList.concat(body, new Stmnt(BLOCK, s, lex.getLineNumber()));
         }
 
         lex.get();      // '}'
         if (body == null)
-            return new Stmnt(BLOCK);    // empty block
+            return new Stmnt(BLOCK, lex.getLineNumber());    // empty block
         return body;
     }
 
@@ -330,7 +330,7 @@ public final class Parser implements TokenId {
         else
             elsep = null;
 
-        return new Stmnt(t, expr, new ASTList(thenp, new ASTList(elsep)));
+        return new Stmnt(t, expr, new ASTList(thenp, new ASTList(elsep, lex.getLineNumber()), lex.getLineNumber()), lex.getLineNumber());
     }
 
     /* while.statement : WHILE "(" expression ")" statement
@@ -341,7 +341,7 @@ public final class Parser implements TokenId {
         int t = lex.get();      // WHILE
         ASTree expr = parseParExpression(tbl);
         Stmnt body = parseStatement(tbl);
-        return new Stmnt(t, expr, body);
+        return new Stmnt(t, expr, body, lex.getLineNumber());
     }
 
     /* do.statement : DO statement WHILE "(" expression ")" ";"
@@ -356,7 +356,7 @@ public final class Parser implements TokenId {
         if (lex.get() != ')' || lex.get() != ';')
             throw new SyntaxError(lex);
 
-        return new Stmnt(t, expr, body);
+        return new Stmnt(t, expr, body, lex.getLineNumber());
     }
 
     /* for.statement : FOR "(" decl.or.expr expression ";" expression ")"
@@ -397,7 +397,7 @@ public final class Parser implements TokenId {
 
         Stmnt body = parseStatement(tbl2);
         return new Stmnt(t, expr1, new ASTList(expr2,
-                                               new ASTList(expr3, body)));
+                                               new ASTList(expr3, body, lex.getLineNumber()), lex.getLineNumber()), lex.getLineNumber());
     }
 
     /* switch.statement : SWITCH "(" expression ")" "{" switch.block "}"
@@ -411,7 +411,7 @@ public final class Parser implements TokenId {
         int t = lex.get();	// SWITCH
         ASTree expr = parseParExpression(tbl);
         Stmnt body = parseSwitchBlock(tbl);
-        return new Stmnt(t, expr, body);
+        return new Stmnt(t, expr, body, lex.getLineNumber());
     }
 
     private Stmnt parseSwitchBlock(SymbolTable tbl) throws CompileError {
@@ -428,17 +428,17 @@ public final class Parser implements TokenId {
             throw new CompileError("no case or default in a switch block",
                                    lex);
 
-        Stmnt body = new Stmnt(BLOCK, s);
+        Stmnt body = new Stmnt(BLOCK, s, lex.getLineNumber());
         while (lex.lookAhead() != '}') {
             Stmnt s2 = parseStmntOrCase(tbl2);
             if (s2 != null) {
                 int op2 = s2.getOperator();
                 if (op2 == CASE || op2 == DEFAULT) {
-                    body = (Stmnt)ASTList.concat(body, new Stmnt(BLOCK, s2));
+                    body = (Stmnt)ASTList.concat(body, new Stmnt(BLOCK, s2, lex.getLineNumber()));
                     s = s2;
                 }
                 else
-                    s = (Stmnt)ASTList.concat(s, new Stmnt(BLOCK, s2));
+                    s = (Stmnt)ASTList.concat(s, new Stmnt(BLOCK, s2, lex.getLineNumber()));
             }
         }
 
@@ -454,9 +454,9 @@ public final class Parser implements TokenId {
         lex.get();
         Stmnt s;
         if (t == CASE)
-            s = new Stmnt(t, parseExpression(tbl));
+            s = new Stmnt(t, parseExpression(tbl), lex.getLineNumber());
         else
-            s = new Stmnt(DEFAULT);
+            s = new Stmnt(DEFAULT, lex.getLineNumber());
 
         if (lex.get() != ':')
             throw new CompileError(": is missing", lex);
@@ -477,7 +477,7 @@ public final class Parser implements TokenId {
             throw new SyntaxError(lex);
 
         Stmnt body = parseBlock(tbl);
-        return new Stmnt(t, expr, body);
+        return new Stmnt(t, expr, body, lex.getLineNumber());
     }
 
     /* try.statement
@@ -503,7 +503,7 @@ public final class Parser implements TokenId {
                 throw new SyntaxError(lex);
 
             Stmnt b = parseBlock(tbl2);
-            catchList = ASTList.append(catchList, new Pair(d, b));
+            catchList = ASTList.append(catchList, new Pair(d, b), lex.getLineNumber());
         }
 
         Stmnt finallyBlock = null;
@@ -512,14 +512,14 @@ public final class Parser implements TokenId {
             finallyBlock = parseBlock(tbl);
         }
 
-        return Stmnt.make(TRY, block, catchList, finallyBlock);
+        return Stmnt.make(TRY, block, catchList, finallyBlock, lex.getLineNumber());
     }
 
     /* return.statement : RETURN [ expression ] ";"
      */
     private Stmnt parseReturn(SymbolTable tbl) throws CompileError {
         int t = lex.get();      // RETURN
-        Stmnt s = new Stmnt(t);
+        Stmnt s = new Stmnt(t, lex.getLineNumber());
         if (lex.lookAhead() != ';')
             s.setLeft(parseExpression(tbl));
 
@@ -537,7 +537,7 @@ public final class Parser implements TokenId {
         if (lex.get() != ';')
             throw new CompileError("; is missing", lex);
 
-        return new Stmnt(t, expr);
+        return new Stmnt(t, expr, lex.getLineNumber());
     }
 
     /* break.statement : BREAK [ Identifier ] ";"
@@ -554,10 +554,10 @@ public final class Parser implements TokenId {
         throws CompileError
     {
         int t = lex.get();      // CONTINUE
-        Stmnt s = new Stmnt(t);
+        Stmnt s = new Stmnt(t, lex.getLineNumber());
         int t2 = lex.get();
         if (t2 == Identifier) {
-            s.setLeft(new Symbol(lex.getString()));
+            s.setLeft(new Symbol(lex.getString(), lex.getLineNumber()));
             t2 = lex.get();
         }
 
@@ -589,7 +589,7 @@ public final class Parser implements TokenId {
         if (isBuiltinType(t)) {
             t = lex.get();
             int dim = parseArrayDimension();
-            return parseDeclarators(tbl, new Declarator(t, dim));
+            return parseDeclarators(tbl, new Declarator(t, dim, lex.getLineNumber()));
         }
         else if (t == Identifier) {
             int i = nextIsClassType(0);
@@ -597,7 +597,7 @@ public final class Parser implements TokenId {
                 if (lex.lookAhead(i) == Identifier) {
                     ASTList name = parseClassType(tbl);
                     int dim = parseArrayDimension();
-                    return parseDeclarators(tbl, new Declarator(name, dim));
+                    return parseDeclarators(tbl, new Declarator(name, dim, lex.getLineNumber()));
                 }
         }
 
@@ -605,7 +605,7 @@ public final class Parser implements TokenId {
         if (exprList)
             expr = parseExprList(tbl);
         else
-            expr = new Stmnt(EXPR, parseExpression(tbl));
+            expr = new Stmnt(EXPR, parseExpression(tbl), lex.getLineNumber());
 
         if (lex.get() != ';')
             throw new CompileError("; is missing", lex);
@@ -618,8 +618,8 @@ public final class Parser implements TokenId {
     private Stmnt parseExprList(SymbolTable tbl) throws CompileError {
         Stmnt expr = null;
         for (;;) {
-            Stmnt e = new Stmnt(EXPR, parseExpression(tbl));
-            expr = (Stmnt)ASTList.concat(expr, new Stmnt(BLOCK, e));
+            Stmnt e = new Stmnt(EXPR, parseExpression(tbl), lex.getLineNumber());
+            expr = (Stmnt)ASTList.concat(expr, new Stmnt(BLOCK, e, lex.getLineNumber()));
             if (lex.lookAhead() == ',')
                 lex.get();
             else
@@ -635,7 +635,7 @@ public final class Parser implements TokenId {
         Stmnt decl = null;
         for (;;) {
             decl = (Stmnt)ASTList.concat(decl,
-                                new Stmnt(DECL, parseDeclarator(tbl, d)));
+                                new Stmnt(DECL, parseDeclarator(tbl, d), lex.getLineNumber()));
             int t = lex.get();
             if (t == ';')
                 return decl;
@@ -653,7 +653,7 @@ public final class Parser implements TokenId {
             throw new SyntaxError(lex);
 
         String name = lex.getString();
-        Symbol symbol = new Symbol(name);
+        Symbol symbol = new Symbol(name, lex.getLineNumber());
         int dim = parseArrayDimension();
         ASTree init = null;
         if (lex.lookAhead() == '=') {
@@ -661,7 +661,7 @@ public final class Parser implements TokenId {
             init = parseInitializer(tbl);
         }
 
-        Declarator decl = d.make(symbol, dim, init);
+        Declarator decl = d.make(symbol, dim, init, lex.getLineNumber());
         tbl.append(name, decl);
         return decl;
     }
@@ -683,14 +683,14 @@ public final class Parser implements TokenId {
         lex.get();      // '{'
         if(lex.lookAhead() == '}'){
             lex.get();
-            return new ArrayInit(null);
+            return new ArrayInit(null, lex.getLineNumber());
         }
         ASTree expr = parseExpression(tbl);
-        ArrayInit init = new ArrayInit(expr);
+        ArrayInit init = new ArrayInit(expr, lex.getLineNumber());
         while (lex.lookAhead() == ',') {
             lex.get();
             expr = parseExpression(tbl);
-            ASTList.append(init, expr);
+            ASTList.append(init, expr, lex.getLineNumber());
         }
 
         if (lex.get() != '}')
@@ -722,7 +722,7 @@ public final class Parser implements TokenId {
 
         int t = lex.get();
         ASTree right = parseExpression(tbl);
-        return AssignExpr.makeAssign(t, left, right);
+        return AssignExpr.makeAssign(t, left, right, lex.getLineNumber());
     }
 
     private static boolean isAssignOp(int t) {
@@ -744,7 +744,7 @@ public final class Parser implements TokenId {
                 throw new CompileError(": is missing", lex);
 
             ASTree elseExpr = parseExpression(tbl);
-            return new CondExpr(cond, thenExpr, elseExpr);
+            return new CondExpr(cond, thenExpr, elseExpr, lex.getLineNumber());
         }
         return cond;
     }
@@ -808,11 +808,11 @@ public final class Parser implements TokenId {
         if (isBuiltinType(t)) {
             lex.get();  // primitive type
             int dim = parseArrayDimension();
-            return new InstanceOfExpr(t, dim, expr);
+            return new InstanceOfExpr(t, dim, expr, lex.getLineNumber());
         }
         ASTList name = parseClassType(tbl);
         int dim = parseArrayDimension();
-        return new InstanceOfExpr(name, dim, expr);
+        return new InstanceOfExpr(name, dim, expr, lex.getLineNumber());
     }
 
     private ASTree binaryExpr2(SymbolTable tbl, ASTree expr, int prec)
@@ -829,7 +829,7 @@ public final class Parser implements TokenId {
             if (p2 != 0 && prec > p2)
                 expr2 = binaryExpr2(tbl, expr2, p2);
             else
-                return BinExpr.makeBin(t, expr, expr2);
+                return BinExpr.makeBin(t, expr, expr2, lex.getLineNumber());
         }
     }
 
@@ -887,17 +887,17 @@ public final class Parser implements TokenId {
                 case IntConstant :
                 case CharConstant :
                     lex.get();
-                    return new IntConst(-lex.getLong(), t2);
+                    return new IntConst(-lex.getLong(), t2, lex.getLineNumber());
                 case DoubleConstant :
                 case FloatConstant :
                     lex.get();
-                    return new DoubleConst(-lex.getDouble(), t2);
+                    return new DoubleConst(-lex.getDouble(), t2, lex.getLineNumber());
                 default :
                     break;
                 }
             }
 
-            return Expr.make(t, parseUnaryExpr(tbl));
+            return Expr.make(t, parseUnaryExpr(tbl), lex.getLineNumber());
         case '(' :
             return parseCast(tbl);
         default :
@@ -922,7 +922,7 @@ public final class Parser implements TokenId {
             if (lex.get() != ')')
                 throw new CompileError(") is missing", lex);
 
-            return new CastExpr(t, dim, parseUnaryExpr(tbl));
+            return new CastExpr(t, dim, parseUnaryExpr(tbl), lex.getLineNumber());
         }
         else if (t == Identifier && nextIsClassCast()) {
             lex.get();  // '('
@@ -931,7 +931,7 @@ public final class Parser implements TokenId {
             if (lex.get() != ')')
                 throw new CompileError(") is missing", lex);
 
-            return new CastExpr(name, dim, parseUnaryExpr(tbl));
+            return new CastExpr(name, dim, parseUnaryExpr(tbl), lex.getLineNumber());
         }
         else
             return parsePostfix(tbl);
@@ -1001,7 +1001,7 @@ public final class Parser implements TokenId {
             if (lex.get() != Identifier)
                 throw new SyntaxError(lex);
 
-            list = ASTList.append(list, new Symbol(lex.getString()));
+            list = ASTList.append(list, new Symbol(lex.getString(), lex.getLineNumber()), lex.getLineNumber());
             if (lex.lookAhead() == '.')
                 lex.get();
             else
@@ -1035,11 +1035,11 @@ public final class Parser implements TokenId {
         case IntConstant :
         case CharConstant :
             lex.get();
-            return new IntConst(lex.getLong(), token);
+            return new IntConst(lex.getLong(), token, lex.getLineNumber());
         case DoubleConstant :
         case FloatConstant :
             lex.get();
-            return new DoubleConst(lex.getDouble(), token);
+            return new DoubleConst(lex.getDouble(), token, lex.getLineNumber());
         default :
             break;
         }
@@ -1066,13 +1066,13 @@ public final class Parser implements TokenId {
                     if (index == null)
                         throw new SyntaxError(lex);
 
-                    expr = Expr.make(ARRAY, expr, index);
+                    expr = Expr.make(ARRAY, expr, index, lex.getLineNumber());
                 }
                 break;
             case PLUSPLUS :
             case MINUSMINUS :
                 t = lex.get();
-                expr = Expr.make(t, null, expr);
+                expr = Expr.make(t, null, expr, lex.getLineNumber());
                 break;
             case '.' :
                 lex.get();
@@ -1080,10 +1080,10 @@ public final class Parser implements TokenId {
                 if (t == CLASS)
                     expr = parseDotClass(expr, 0);
                 else if (t == SUPER)
-                    expr = Expr.make('.', new Symbol(toClassName(expr)), new Keyword(t));
+                    expr = Expr.make('.', new Symbol(toClassName(expr), lex.getLineNumber()), new Keyword(t, lex.getLineNumber()), lex.getLineNumber());
                 else if (t == Identifier) {
                     str = lex.getString();
-                    expr = Expr.make('.', expr, new Member(str));
+                    expr = Expr.make('.', expr, new Member(str, lex.getLineNumber()), lex.getLineNumber());
                 }
                 else
                     throw new CompileError("missing member name", lex);
@@ -1095,8 +1095,8 @@ public final class Parser implements TokenId {
                     throw new CompileError("missing static member name", lex);
 
                 str = lex.getString();
-                expr = Expr.make(MEMBER, new Symbol(toClassName(expr)),
-                                 new Member(str));
+                expr = Expr.make(MEMBER, new Symbol(toClassName(expr), lex.getLineNumber()),
+                                 new Member(str, lex.getLineNumber()), lex.getLineNumber());
                 break;
             default :
                 return expr;
@@ -1121,7 +1121,7 @@ public final class Parser implements TokenId {
             cname = sbuf.toString();
         }
 
-        return Expr.make('.', new Symbol(cname), new Member("class"));
+        return Expr.make('.', new Symbol(cname, className.getLineNumber()), new Member("class", className.getLineNumber()), lex.getLineNumber());
     }
 
     /* Parses a .class expression on a built-in type.  For example,
@@ -1133,7 +1133,7 @@ public final class Parser implements TokenId {
     {
         if (dim > 0) {
             String cname = CodeGen.toJvmTypeName(builtinType, dim);
-            return Expr.make('.', new Symbol(cname), new Member("class"));
+            return Expr.make('.', new Symbol(cname, lex.getLineNumber()), new Member("class", lex.getLineNumber()), lex.getLineNumber());
         }
         String cname;
         switch(builtinType) {
@@ -1166,10 +1166,10 @@ public final class Parser implements TokenId {
             break;
         default :
             throw new CompileError("invalid builtin type: "
-                                   + builtinType);
+                                   + builtinType, lex);
         }
 
-        return Expr.make(MEMBER, new Symbol(cname), new Member("TYPE"));
+        return Expr.make(MEMBER, new Symbol(cname, lex.getLineNumber()), new Member("TYPE", lex.getLineNumber()), lex.getLineNumber());
     }
 
     /* method.call : method.expr "(" argument.list ")"
@@ -1193,7 +1193,7 @@ public final class Parser implements TokenId {
                 throw new SyntaxError(lex);
         }
 
-        return CallExpr.makeCall(expr, parseArgumentList(tbl));
+        return CallExpr.makeCall(expr, parseArgumentList(tbl), lex.getLineNumber());
     }
 
     private String toClassName(ASTree name)
@@ -1246,15 +1246,15 @@ public final class Parser implements TokenId {
         case TRUE :
         case FALSE :
         case NULL :
-            return new Keyword(t);
+            return new Keyword(t, lex.getLineNumber());
         case Identifier :
             name = lex.getString();
             decl = tbl.lookup(name);
             if (decl == null)
-                return new Member(name);        // this or static member
-            return new Variable(name, decl); // local variable
+                return new Member(name, lex.getLineNumber());        // this or static member
+            return new Variable(name, decl, lex.getLineNumber()); // local variable
         case StringL :
-            return new StringL(lex.getString());
+            return new StringL(lex.getString(), lex.getLineNumber());
         case NEW :
             return parseNew(tbl);
         case '(' :
@@ -1286,21 +1286,21 @@ public final class Parser implements TokenId {
             if (lex.lookAhead() == '{')
                 init = parseArrayInitializer(tbl);
 
-            return new NewExpr(t, size, init);
+            return new NewExpr(t, size, init, lex.getLineNumber());
         }
         else if (t == Identifier) {
             ASTList name = parseClassType(tbl);
             t = lex.lookAhead();
             if (t == '(') {
                 ASTList args = parseArgumentList(tbl);
-                return new NewExpr(name, args);
+                return new NewExpr(name, args, lex.getLineNumber());
             }
             else if (t == '[') {
                 ASTList size = parseArraySize(tbl);
                 if (lex.lookAhead() == '{')
                     init = parseArrayInitializer(tbl);
 
-                return NewExpr.makeObjectArray(name, size, init);
+                return NewExpr.makeObjectArray(name, size, init, lex.getLineNumber());
             }
         }
 
@@ -1312,7 +1312,7 @@ public final class Parser implements TokenId {
     private ASTList parseArraySize(SymbolTable tbl) throws CompileError {
         ASTList list = null;
         while (lex.lookAhead() == '[')
-            list = ASTList.append(list, parseArrayIndex(tbl));
+            list = ASTList.append(list, parseArrayIndex(tbl), lex.getLineNumber());
 
         return list;
     }
@@ -1341,7 +1341,7 @@ public final class Parser implements TokenId {
         ASTList list = null;
         if (lex.lookAhead() != ')')
             for (;;) {
-                list = ASTList.append(list, parseExpression(tbl));
+                list = ASTList.append(list, parseExpression(tbl), lex.getLineNumber());
                 if (lex.lookAhead() == ',')
                     lex.get();
                 else

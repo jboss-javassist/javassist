@@ -163,7 +163,8 @@ public class Lex implements TokenId {
                     ungetc(c);
                     c = '/';
                 }
-            }
+            } else if (c == '\n')
+                ++lineNumber;
         } while(isBlank(c));
         return c;
     }
@@ -528,5 +529,9 @@ public class Lex implements TokenId {
         int c = lastChar;
         lastChar = -1;
         return c;
+    }
+
+    public int getLineNumber() {
+        return lineNumber + 1;
     }
 }

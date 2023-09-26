@@ -33,22 +33,22 @@ public class Expr extends ASTList implements TokenId {
     private static final long serialVersionUID = 1L;
     protected int operatorId;
 
-    Expr(int op, ASTree _head, ASTList _tail) {
-        super(_head, _tail);
+    Expr(int op, ASTree _head, ASTList _tail, int lineNumber) {
+        super(_head, _tail, lineNumber);
         operatorId = op;
     }
 
-    Expr(int op, ASTree _head) {
-        super(_head);
+    Expr(int op, ASTree _head, int lineNumber) {
+        super(_head, lineNumber);
         operatorId = op;
     }
 
-    public static Expr make(int op, ASTree oprand1, ASTree oprand2) {
-        return new Expr(op, oprand1, new ASTList(oprand2));
+    public static Expr make(int op, ASTree oprand1, ASTree oprand2, int lineNumber) {
+        return new Expr(op, oprand1, new ASTList(oprand2, lineNumber), lineNumber);
     }
 
-    public static Expr make(int op, ASTree oprand1) {
-        return new Expr(op, oprand1);
+    public static Expr make(int op, ASTree oprand1, int lineNumber) {
+        return new Expr(op, oprand1, lineNumber);
     }
 
     public int getOperator() { return operatorId; }

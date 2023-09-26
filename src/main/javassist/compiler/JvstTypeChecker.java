@@ -89,7 +89,7 @@ public class JvstTypeChecker extends TypeChecker {
 
             int n = params.length;
             for (int i = 0; i < n; ++i)
-                compileUnwrapValue(params[i]);
+                compileUnwrapValue(params[i], expr.getLineNumber());
         }
         else
             super.atFieldAssign(expr, op, left, right);
@@ -124,7 +124,7 @@ public class JvstTypeChecker extends TypeChecker {
         CtClass returnType = codeGen.returnType;
         expr.getOprand().accept(this);
         if (exprType == VOID || CodeGen.isRefType(exprType) || arrayDim > 0)
-            compileUnwrapValue(returnType);
+            compileUnwrapValue(returnType, expr.getLineNumber());
         else if (returnType instanceof CtPrimitiveType) {
             CtPrimitiveType pt = (CtPrimitiveType)returnType;
             int destType = MemberResolver.descToType(pt.getDescriptor());
@@ -258,7 +258,7 @@ public class JvstTypeChecker extends TypeChecker {
         addNullIfVoid();
     }
 
-    protected void compileUnwrapValue(CtClass type) throws CompileError
+    protected void compileUnwrapValue(CtClass type, int lineNumber) throws CompileError
     {
         if (type == CtClass.voidType)
             addNullIfVoid();

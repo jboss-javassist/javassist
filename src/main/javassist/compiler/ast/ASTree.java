@@ -29,6 +29,12 @@ public abstract class ASTree implements Serializable {
     /** default serialVersionUID */
     private static final long serialVersionUID = 1L;
 
+    private final int lineNumber;
+
+    public ASTree(int lineNumber) {
+        this.lineNumber = lineNumber;
+    }
+
     public ASTree getLeft() { return null; }
 
     public ASTree getRight() { return null; }
@@ -60,5 +66,9 @@ public abstract class ASTree implements Serializable {
     protected String getTag() {
         String name = getClass().getName();
         return name.substring(name.lastIndexOf('.') + 1);
+    }
+
+    public int getLineNumber() {
+        return lineNumber;
     }
 }
