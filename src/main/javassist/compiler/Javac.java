@@ -94,7 +94,8 @@ public class Javac {
      * @see #recordProceed(String,String)
      */
     public CtMember compile(String src) throws CompileError {
-        Parser p = new Parser(new Lex(src));
+        int startLine = gen.thisClass.getLinesCount();
+        Parser p = new Parser(new Lex(src, startLine));
         ASTList mem = p.parseMember1(stable);
         try {
             if (mem instanceof FieldDecl)

@@ -39,6 +39,10 @@ public class Lex implements TokenId {
      * Constructs a lexical analyzer.
      */
     public Lex(String s) {
+        this(s, 0);
+    }
+
+    Lex(String s, int startLineNumber) {
         lastChar = -1;
         textBuffer = new StringBuilder();
         currentToken = new Token();
@@ -47,7 +51,7 @@ public class Lex implements TokenId {
         input = s;
         position = 0;
         maxlen = s.length();
-        lineNumber = 0;
+        lineNumber = startLineNumber;
     }
 
     public int get() {

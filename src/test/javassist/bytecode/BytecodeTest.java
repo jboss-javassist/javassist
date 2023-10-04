@@ -317,6 +317,31 @@ public class BytecodeTest extends TestCase {
         fail("should not happen");
     }
 
+    public void testLineNumberCompiler2() {
+        CtClass testClass = loader.makeClass("javassist.bytecode.LineNumberCompilerClass2");
+        String ctor = String.join("\n",
+                "public LineNumberCompilerClass2() {",
+                "    super();",
+                "}");
+        String run = String.join("\n",
+                "public void run() {",
+                "    return;",
+                "}");
+        String run2 = String.join("\n",
+                "public void run2() {",
+                "    run()",
+                "}");
+        try {
+            testClass.addConstructor(CtNewConstructor.make(ctor, testClass));
+            testClass.addMethod(CtMethod.make(run, testClass));
+            testClass.addMethod(CtMethod.make(run2, testClass));
+        } catch (CannotCompileException e) {
+            assertEquals("line 9: ; is missing", e.getCause().getMessage());
+            return;
+        }
+        fail("should not happen");
+    }
+
     public void testLineNumberException() {
         CtClass testClass = loader.makeClass("javassist.bytecode.LineNumberExceptionClass");
         String run = String.join("\n",

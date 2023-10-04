@@ -77,6 +77,7 @@ public class CtNewMethod {
                 compiler.recordProceed(delegateObj, delegateMethod);
 
             CtMember obj = compiler.compile(src);
+            declaring.addLines(src.split("\n").length);
             if (obj instanceof CtMethod)
                 return (CtMethod)obj;
         }
