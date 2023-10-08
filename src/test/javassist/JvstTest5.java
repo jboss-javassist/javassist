@@ -1,5 +1,8 @@
 package javassist;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.TypeVariable;
 
@@ -9,6 +12,8 @@ import javassist.bytecode.AttributeInfo;
 import javassist.bytecode.ClassFile;
 import javassist.bytecode.ConstPool;
 import javassist.bytecode.InnerClassesAttribute;
+import javassist.bytecode.MethodInfo;
+import javassist.bytecode.MethodParametersAttribute;
 import javassist.bytecode.NestHostAttribute;
 import javassist.bytecode.NestMembersAttribute;
 import javassist.expr.ExprEditor;
@@ -592,5 +597,32 @@ public class JvstTest5 extends JvstTestRoot {
             fail("too many items were accepted");
         }
         catch (CannotCompileException e) {}
+    }
+
+    public void testGithubIssue462Java21WithoutParameters() throws IOException {
+
+        //This is a class file compiled by Java-21
+        //javac Java21InnerClassWithoutParameters.java
+        //public class Java21InnerClassWithoutParameters {
+        //    class InnerClass implements Runnable {
+        //        public void run() {
+        //        }
+        //    }
+        //}
+        String classFileName = "./Java21InnerClassWithoutParameters$InnerClass.class";
+        ClassLoader classLoader = getClass().getClassLoader();
+        File classFile = new File(classLoader.getResource(classFileName).getFile());
+        
+        CtClass cc = sloader.makeClass(new FileInputStream(classFile));
+        cc.getClassFile().compact();
+
+        ClassFile cf = cc.getClassFile2();
+        ConstPool cp = cf.getConstPool();
+        
+        MethodInfo minfo = cf.getMethod("<init>");
+        MethodParametersAttribute attr
+                = (MethodParametersAttribute)minfo.getAttribute(MethodParametersAttribute.tag);
+        assertEquals(1, attr.size());
+        assertNull(attr.parameterName(0));
     }
 }
