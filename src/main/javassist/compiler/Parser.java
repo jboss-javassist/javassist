@@ -298,20 +298,22 @@ public final class Parser implements TokenId {
     /* block.statement : "{" statement* "}"
      */
     private Stmnt parseBlock(SymbolTable tbl) throws CompileError {
+        int blockLineNumber = lex.getLineNumber();
         if (lex.get() != '{')
             throw new SyntaxError(lex);
 
         Stmnt body = null;
         SymbolTable tbl2 = new SymbolTable(tbl);
         while (lex.lookAhead() != '}') {
+            int lineNumber = lex.getLineNumber();
             Stmnt s = parseStatement(tbl2);
             if (s != null)
-                body = (Stmnt)ASTList.concat(body, new Stmnt(BLOCK, s, lex.getLineNumber()));
+                body = (Stmnt)ASTList.concat(body, new Stmnt(BLOCK, s, lineNumber));
         }
 
         lex.get();      // '}'
         if (body == null)
-            return new Stmnt(BLOCK, lex.getLineNumber());    // empty block
+            return new Stmnt(BLOCK, blockLineNumber);    // empty block
         return body;
     }
 
@@ -321,7 +323,9 @@ public final class Parser implements TokenId {
     private Stmnt parseIf(SymbolTable tbl) throws CompileError {
         int t = lex.get();      // IF
         ASTree expr = parseParExpression(tbl);
+        int exprLineNum = lex.getLineNumber();
         Stmnt thenp = parseStatement(tbl);
+        int thenLineNum = lex.getLineNumber();
         Stmnt elsep;
         if (lex.lookAhead() == ELSE) {
             lex.get();
@@ -330,7 +334,7 @@ public final class Parser implements TokenId {
         else
             elsep = null;
 
-        return new Stmnt(t, expr, new ASTList(thenp, new ASTList(elsep, lex.getLineNumber()), lex.getLineNumber()), lex.getLineNumber());
+        return new Stmnt(t, expr, new ASTList(thenp, new ASTList(elsep, lex.getLineNumber()), thenLineNum), exprLineNum);
     }
 
     /* while.statement : WHILE "(" expression ")" statement
@@ -340,8 +344,9 @@ public final class Parser implements TokenId {
     {
         int t = lex.get();      // WHILE
         ASTree expr = parseParExpression(tbl);
+        int lineNumber = lex.getLineNumber();
         Stmnt body = parseStatement(tbl);
-        return new Stmnt(t, expr, body, lex.getLineNumber());
+        return new Stmnt(t, expr, body, lineNumber);
     }
 
     /* do.statement : DO statement WHILE "(" expression ")" ";"
@@ -372,6 +377,7 @@ public final class Parser implements TokenId {
         if (lex.get() != '(')
             throw new SyntaxError(lex);
 
+        int expr1LineNumber = lex.getLineNumber();
         if (lex.lookAhead() == ';') {
             lex.get();
             expr1 = null;
@@ -379,6 +385,7 @@ public final class Parser implements TokenId {
         else
             expr1 = parseDeclarationOrExpression(tbl2, true);
 
+        int expr2LineNumber = lex.getLineNumber();
         if (lex.lookAhead() == ';')
             expr2 = null;
         else
@@ -387,6 +394,7 @@ public final class Parser implements TokenId {
         if (lex.get() != ';')
             throw new CompileError("; is missing", lex);
 
+        int expr3LineNumber = lex.getLineNumber();
         if (lex.lookAhead() == ')')
             expr3 = null;
         else
@@ -397,7 +405,7 @@ public final class Parser implements TokenId {
 
         Stmnt body = parseStatement(tbl2);
         return new Stmnt(t, expr1, new ASTList(expr2,
-                                               new ASTList(expr3, body, lex.getLineNumber()), lex.getLineNumber()), lex.getLineNumber());
+                                               new ASTList(expr3, body, expr3LineNumber), expr2LineNumber), expr1LineNumber);
     }
 
     /* switch.statement : SWITCH "(" expression ")" "{" switch.block "}"
