@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Method;
 import java.lang.reflect.TypeVariable;
 
 import javassist.bytecode.AccessFlag;
@@ -166,7 +167,7 @@ public class JvstTest5 extends JvstTestRoot {
         CtClass cc = sloader.makeClass("test5.JIRA256");
         ClassFile ccFile = cc.getClassFile();
         ConstPool constpool = ccFile.getConstPool();
-         
+
         AnnotationsAttribute attr = new AnnotationsAttribute(constpool, AnnotationsAttribute.visibleTag);
         javassist.bytecode.annotation.Annotation entityAnno
             = new javassist.bytecode.annotation.Annotation("test5.Entity", constpool);
@@ -181,7 +182,7 @@ public class JvstTest5 extends JvstTestRoot {
         assertTrue(o.getClass().getName().equals("test5.JIRA256"));
 
         java.lang.annotation.Annotation[] annotations = o.getClass().getDeclaredAnnotations();
-        assertEquals(1, annotations.length); 
+        assertEquals(1, annotations.length);
     }
 
     public void testJIRA250() throws Exception {
@@ -624,5 +625,25 @@ public class JvstTest5 extends JvstTestRoot {
                 = (MethodParametersAttribute)minfo.getAttribute(MethodParametersAttribute.tag);
         assertEquals(1, attr.size());
         assertNull(attr.parameterName(0));
+    }
+
+    public void testSuperCall() throws Exception {
+        String javacResult = new BearKeeper().javacResult();
+        assertEquals("Man feed(Bear)", javacResult);
+
+        CtClass cc = sloader.get("javassist.BearKeeper");
+        CtMethod cm = CtMethod.make(
+                "public String javassistResult() {return super.feed(new javassist.Bear());}",
+                cc);
+        cc.addMethod(cm);
+        cc.setModifiers(Modifier.PUBLIC);
+        cc.writeFile();
+        Object obj = make(cc.getName());
+        Method m = obj.getClass().getMethod("javassistResult");
+        Object javassistResult = m.invoke(obj);
+
+        //before this fix
+        //expected:<Man feed(Bear)> but was:<Keeper feed(Animal)>
+        assertEquals(javacResult, javassistResult);
     }
 }

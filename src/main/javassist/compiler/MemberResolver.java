@@ -130,9 +130,7 @@ public class MemberResolver implements TokenId {
 
         if (onlyExact)
             maybe = null;
-        else
-            if (maybe != null)
-                return maybe;
+        //else maybe super class has more precise match
 
         int mod = clazz.getModifiers();
         boolean isIntf = Modifier.isInterface(mod);
@@ -143,8 +141,11 @@ public class MemberResolver implements TokenId {
                 if (pclazz != null) {
                     Method r = lookupMethod(pclazz, methodName, argTypes,
                                             argDims, argClassNames, onlyExact);
-                    if (r != null)
-                        return r;
+                    if (r != null) {
+                        if (maybe == null || maybe.notmatch > r.notmatch) {
+                            maybe = r;
+                        }
+                    }
                 }
             }
         }
@@ -156,8 +157,11 @@ public class MemberResolver implements TokenId {
                 Method r = lookupMethod(intf, methodName,
                         argTypes, argDims, argClassNames,
                         onlyExact);
-                if (r != null)
-                    return r;
+                if (r != null) {
+                    if (maybe == null || maybe.notmatch > r.notmatch) {
+                        maybe = r;
+                    }
+                }
             }
 
             if (isIntf) {
@@ -166,8 +170,11 @@ public class MemberResolver implements TokenId {
                 if (pclazz != null) {
                     Method r = lookupMethod(pclazz, methodName, argTypes,
                                             argDims, argClassNames, onlyExact);
-                    if (r != null)
-                        return r;
+                    if (r != null) {
+                        if (maybe == null || maybe.notmatch > r.notmatch) {
+                            maybe = r;
+                        }
+                    }
                 }
             }
         }
