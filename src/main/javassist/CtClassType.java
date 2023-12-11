@@ -1763,8 +1763,7 @@ class CtClassType extends CtClass {
         int pos = it.insertEx(initializer.get());
         it.insert(initializer.getExceptionTable(), pos);
         int maxstack = codeAttr.getMaxStack();
-        if (maxstack < stacksize)
-            codeAttr.setMaxStack(stacksize);
+        codeAttr.setMaxStack(maxstack + stacksize);
     }
 
     private int makeFieldInitializer(Bytecode code, CtClass[] parameters)
