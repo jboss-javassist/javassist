@@ -25,9 +25,6 @@ import junit.framework.Assert;
 
 @SuppressWarnings({"rawtypes","unchecked","unused"})
 public class JvstTest5 extends JvstTestRoot {
-    public JvstTest5(String name) {
-        super(name);
-    }
 
     public void testDollarClassInStaticMethod() throws Exception {
         CtClass cc = sloader.makeClass("test5.DollarClass");

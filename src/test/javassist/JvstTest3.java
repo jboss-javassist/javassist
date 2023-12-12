@@ -7,9 +7,6 @@ import test3.*;
 
 @SuppressWarnings({"rawtypes","unchecked","unused"})
 public class JvstTest3 extends JvstTestRoot {
-    public JvstTest3(String name) {
-         super(name);
-    }
 
     public void testAnnotation() throws Exception {
         CtClass cc = sloader.get("test3.AnnoTest");

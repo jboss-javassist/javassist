@@ -13,10 +13,6 @@ public class JvstTestRoot extends TestCase {
     ClassPool sloader, dloader;
     Loader cloader;
 
-    public JvstTestRoot(String name) {
-        super(name);
-    }
-
     protected void print(String msg) {
         System.out.println(msg);
     }
