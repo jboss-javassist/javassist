@@ -3,7 +3,7 @@
 Java bytecode engineering toolkit
 ### [Javassist version 3](http://www.javassist.org)
 
-Copyright (C) 1999-2022 by Shigeru Chiba, All rights reserved.
+Copyright (C) 1999-2023 by Shigeru Chiba, All rights reserved.
 
 Javassist (JAVA programming ASSISTant) makes Java bytecode manipulation
 simple. It is a class library for editing bytecodes in Java; it enables Java
