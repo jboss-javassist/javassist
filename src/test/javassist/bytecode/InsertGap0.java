@@ -159,9 +159,6 @@ final class Gap0Example2 {
 
 @SuppressWarnings({"rawtypes","unchecked","unused"})
 public final class InsertGap0 extends JvstTestRoot {
-    public InsertGap0(String name) {
-        super(name);
-    }
 
     public void testExample() throws Throwable {
         ClassPool pool = ClassPool.getDefault();

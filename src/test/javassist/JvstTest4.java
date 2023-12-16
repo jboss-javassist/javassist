@@ -16,9 +16,6 @@ import javassist.expr.*;
 @SuppressWarnings({"rawtypes","unchecked","unused"})
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class JvstTest4 extends JvstTestRoot {
-    public JvstTest4(String name) {
-        super(name);
-    }
 
     public void testInsertLocalVars() throws Exception {
         CtClass cc = sloader.get("test4.LocalVars");

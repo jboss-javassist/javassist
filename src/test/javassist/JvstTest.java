@@ -20,9 +20,6 @@ public class JvstTest extends JvstTestRoot {
         java9 = javassist.bytecode.ClassFile.MAJOR_VERSION
                     >= javassist.bytecode.ClassFile.JAVA_9;
     }
-    public JvstTest(String name) {
-         super(name);
-    }
 
     public void testConfig() {
         // is the value of PATH correct?

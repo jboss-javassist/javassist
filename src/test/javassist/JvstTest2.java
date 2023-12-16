@@ -14,9 +14,6 @@ import test2.DefineClassCapability;
 @SuppressWarnings({"rawtypes","unused"})
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class JvstTest2 extends JvstTestRoot {
-    public JvstTest2(String name) {
-         super(name);
-    }
 
     public void testInsertAt() throws Exception {
         CtClass cc = sloader.get("test2.InsertAt");

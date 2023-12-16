@@ -5,9 +5,6 @@ import javassist.expr.*;
 import javassist.compiler.*;
 
 public class Bench extends JvstTestRoot {
-    public Bench(String name) {
-        super(name);
-    }
 
     public void testProceed() throws Exception {
         CtClass cc = sloader.get("test.BenchProceed");
