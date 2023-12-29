@@ -95,7 +95,8 @@ public class Javac {
      */
     public CtMember compile(String src) throws CompileError {
         int startLine = gen.thisClass.getLinesCount();
-        Parser p = new Parser(new Lex(src, startLine));
+        Lex lex = new Lex(src, startLine);
+        Parser p = new Parser(lex);
         ASTList mem = p.parseMember1(stable);
         try {
             if (mem instanceof FieldDecl)
@@ -107,11 +108,8 @@ public class Javac {
                                   decl.getClassFile2());
             return cb;
         }
-        catch (BadBytecode bb) {
-            throw new CompileError(bb.getMessage());
-        }
-        catch (CannotCompileException e) {
-            throw new CompileError(e.getMessage());
+        catch (BadBytecode | CannotCompileException bb) {
+            throw new CompileError(bb.getMessage(), lex.getLineNumber());
         }
     }
 
@@ -186,7 +184,7 @@ public class Javac {
             return method;
         }
         catch (NotFoundException e) {
-            throw new CompileError(e.toString());
+            throw new CompileError(e.toString(), md.getLineNumber());
         }
     }
 
@@ -222,7 +220,7 @@ public class Javac {
                 Stmnt s = p.parseStatement(stb);
                 if (p.hasMore())
                     throw new CompileError(
-                        "the method/constructor body must be surrounded by {}");
+                        "the method/constructor body must be surrounded by {}", s.getLineNumber());
 
                 boolean callSuper = false;
                 if (method instanceof CtConstructor)
@@ -234,7 +232,7 @@ public class Javac {
             return bytecode;
         }
         catch (NotFoundException e) {
-            throw new CompileError(e.toString());
+            throw new CompileError(e.toString(), -1);
         }
     }
 
@@ -446,7 +444,7 @@ public class Javac {
 
         ProceedHandler h = new ProceedHandler() {
                 @Override
-                public void doit(JvstCodeGen gen, Bytecode b, ASTList args)
+                public void doit(JvstCodeGen gen, Bytecode b, ASTList args, int lineNumber)
                     throws CompileError
                 {
                     ASTree expr = new Member(m, texpr.getLineNumber());
@@ -459,7 +457,7 @@ public class Javac {
                 }
 
                 @Override
-                public void setReturnType(JvstTypeChecker check, ASTList args)
+                public void setReturnType(JvstTypeChecker check, ASTList args, int lineNumber)
                     throws CompileError
                 {
                     ASTree expr = new Member(m, texpr.getLineNumber());
@@ -492,7 +490,7 @@ public class Javac {
 
         ProceedHandler h = new ProceedHandler() {
                 @Override
-                public void doit(JvstCodeGen gen, Bytecode b, ASTList args)
+                public void doit(JvstCodeGen gen, Bytecode b, ASTList args, int lineNumber)
                     throws CompileError
                 {
                     Expr expr = Expr.make(TokenId.MEMBER,
@@ -503,7 +501,7 @@ public class Javac {
                 }
 
                 @Override
-                public void setReturnType(JvstTypeChecker check, ASTList args)
+                public void setReturnType(JvstTypeChecker check, ASTList args, int lineNumber)
                     throws CompileError
                 {
                     Expr expr = Expr.make(TokenId.MEMBER,
@@ -538,14 +536,14 @@ public class Javac {
 
         ProceedHandler h = new ProceedHandler() {
                 @Override
-                public void doit(JvstCodeGen gen, Bytecode b, ASTList args)
+                public void doit(JvstCodeGen gen, Bytecode b, ASTList args, int lineNumber)
                     throws CompileError
                 {
                     gen.compileInvokeSpecial(texpr, methodIndex, descriptor, args);
                 }
 
                 @Override
-                public void setReturnType(JvstTypeChecker c, ASTList args)
+                public void setReturnType(JvstTypeChecker c, ASTList args, int lineNumber)
                     throws CompileError
                 {
                     c.compileInvokeSpecial(texpr, classname, methodname, descriptor, args);

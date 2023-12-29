@@ -50,8 +50,8 @@ public class MemberResolver implements TokenId {
 
     public ClassPool getClassPool() { return classPool; }
 
-    private static void fatal() throws CompileError {
-        throw new CompileError("fatal");
+    private static void fatal(int lineNumber) throws CompileError {
+        throw new CompileError("fatal", lineNumber);
     }
 
     public static class Method {
@@ -85,7 +85,7 @@ public class MemberResolver implements TokenId {
         if (current != null && clazz == currentClass)
             if (current.getName().equals(methodName)) {
                 int res = compareSignature(current.getDescriptor(),
-                                           argTypes, argDims, argClassNames);
+                                           argTypes, argDims, argClassNames, currentClass.getLinesCount() - 1);
                 if (res != NO) {
                     Method r = new Method(clazz, current, res);
                     if (res == YES)
@@ -116,7 +116,7 @@ public class MemberResolver implements TokenId {
                 if (minfo.getName().equals(methodName)
                     && (minfo.getAccessFlags() & AccessFlag.BRIDGE) == 0) {
                     int res = compareSignature(minfo.getDescriptor(),
-                                           argTypes, argDims, argClassNames);
+                                           argTypes, argDims, argClassNames, clazz.getLinesCount() - 1);
                     if (res != NO) {
                         Method r = new Method(clazz, minfo, res);
                         if (res == YES)
@@ -192,7 +192,7 @@ public class MemberResolver implements TokenId {
      * of parameter types that do not exactly match.
      */
     private int compareSignature(String desc, int[] argTypes,
-                                 int[] argDims, String[] argClassNames)
+                                 int[] argDims, String[] argClassNames, int lineNumber)
         throws CompileError
     {
         int result = YES;
@@ -240,9 +240,9 @@ public class MemberResolver implements TokenId {
 
                 String cname = desc.substring(i, j);
                 if (!cname.equals(argClassNames[n])) {
-                    CtClass clazz = lookupClassByJvmName(argClassNames[n]);
+                    CtClass clazz = lookupClassByJvmName(argClassNames[n], lineNumber);
                     try {
-                        if (clazz.subtypeOf(lookupClassByJvmName(cname)))
+                        if (clazz.subtypeOf(lookupClassByJvmName(cname, lineNumber)))
                             result++;
                         else
                             return NO;
@@ -255,7 +255,7 @@ public class MemberResolver implements TokenId {
                 i = j + 1;
             }
             else {
-                int t = descToType(c);
+                int t = descToType(c, lineNumber);
                 int at = argTypes[n];
                 if (t != at)
                     if (t == INT
@@ -273,7 +273,7 @@ public class MemberResolver implements TokenId {
      * Only used by fieldAccess() in MemberCodeGen and TypeChecker.
      *
      * @param jvmClassName  a JVM class name.  e.g. java/lang/String
-     * @see #lookupClass(String, boolean)
+     * @see #lookupClass(String, boolean, int)
      */
     public CtField lookupFieldByJvmName2(String jvmClassName, Symbol fieldSym,
                                          ASTree expr) throws NoFieldException
@@ -281,7 +281,7 @@ public class MemberResolver implements TokenId {
         String field = fieldSym.get();
         CtClass cc = null;
         try {
-            cc = lookupClass(jvmToJavaName(jvmClassName), true);
+            cc = lookupClass(jvmToJavaName(jvmClassName), true, expr.getLineNumber());
         }
         catch (CompileError e) {
             // EXPR might be part of a qualified class name.
@@ -313,55 +313,56 @@ public class MemberResolver implements TokenId {
     public CtField lookupField(String className, Symbol fieldName)
         throws CompileError
     {
-        CtClass cc = lookupClass(className, false);
+        CtClass cc = lookupClass(className, false, fieldName.getLineNumber());
         try {
             return cc.getField(fieldName.get());
         }
         catch (NotFoundException e) {}
-        throw new CompileError("no such field: " + fieldName.get());
+        throw new CompileError("no such field: " + fieldName.get(), fieldName.getLineNumber());
     }
 
     public CtClass lookupClassByName(ASTList name) throws CompileError {
-        return lookupClass(Declarator.astToClassName(name, '.'), false);
+        return lookupClass(Declarator.astToClassName(name, '.'), false, name.getLineNumber());
     }
 
-    public CtClass lookupClassByJvmName(String jvmName) throws CompileError {
-        return lookupClass(jvmToJavaName(jvmName), false);
+    public CtClass lookupClassByJvmName(String jvmName, int lineNumber) throws CompileError {
+        return lookupClass(jvmToJavaName(jvmName), false, lineNumber);
     }
 
     public CtClass lookupClass(Declarator decl) throws CompileError {
         return lookupClass(decl.getType(), decl.getArrayDim(),
-                           decl.getClassName());
+                           decl.getClassName(), decl.getLineNumber());
     }
 
     /**
-     * @param classname         jvm class name.
+     * @param classname  jvm class name.
+     * @param lineNumber
      */
-    public CtClass lookupClass(int type, int dim, String classname)
+    public CtClass lookupClass(int type, int dim, String classname, int lineNumber)
         throws CompileError
     {
         String cname = "";
         CtClass clazz;
         if (type == CLASS) {
-            clazz = lookupClassByJvmName(classname);
+            clazz = lookupClassByJvmName(classname, lineNumber);
             if (dim > 0)
                 cname = clazz.getName();
             else
                 return clazz;
         }
         else
-            cname = getTypeName(type);
+            cname = getTypeName(type, lineNumber);
 
         while (dim-- > 0)
             cname += "[]";
 
-        return lookupClass(cname, false);
+        return lookupClass(cname, false, lineNumber);
     }
 
     /*
      * type cannot be CLASS
      */
-    static String getTypeName(int type) throws CompileError {
+    static String getTypeName(int type, int lineNumber) throws CompileError {
         String cname = "";
         switch (type) {
         case BOOLEAN :
@@ -392,22 +393,23 @@ public class MemberResolver implements TokenId {
             cname = "void";
             break;
         default :
-            fatal();
+            fatal(lineNumber);
         }
 
         return cname;
     }
 
     /**
-     * @param name      a qualified class name. e.g. java.lang.String
+     * @param name       a qualified class name. e.g. java.lang.String
+     * @param lineNumber
      */
-    public CtClass lookupClass(String name, boolean notCheckInner)
+    public CtClass lookupClass(String name, boolean notCheckInner, int lineNumber)
         throws CompileError
     {
         Map<String,String> cache = getInvalidNames();
         String found = cache.get(name);
         if (found == INVALID)
-            throw new CompileError("no such class: " + name);
+            throw new CompileError("no such class: " + name, lineNumber);
         else if (found != null)
             try {
                 return classPool.get(found);
@@ -419,7 +421,7 @@ public class MemberResolver implements TokenId {
             cc = lookupClass0(name, notCheckInner);
         }
         catch (NotFoundException e) {
-            cc = searchImports(name);
+            cc = searchImports(name, lineNumber);
         }
 
         cache.put(name, cc.getName());
@@ -454,7 +456,7 @@ public class MemberResolver implements TokenId {
         return ht;
     }
 
-    private CtClass searchImports(String orgName)
+    private CtClass searchImports(String orgName, int lineNumber)
         throws CompileError
     {
         if (orgName.indexOf('.') < 0) {
@@ -476,7 +478,7 @@ public class MemberResolver implements TokenId {
         }
 
         getInvalidNames().put(orgName, INVALID);
-        throw new CompileError("no such class: " + orgName);
+        throw new CompileError("no such class: " + orgName, lineNumber);
     }
 
     private CtClass lookupClass0(String classname, boolean notCheckInner)
@@ -513,10 +515,10 @@ public class MemberResolver implements TokenId {
     /* Expands a simple class name to java.lang.*.
      * For example, this converts Object into java/lang/Object.
      */
-    public String resolveJvmClassName(String jvmName) throws CompileError {
+    public String resolveJvmClassName(String jvmName, int lineNumber) throws CompileError {
         if (jvmName == null)
             return null;
-        return javaToJvmName(lookupClassByJvmName(jvmName).getName());
+        return javaToJvmName(lookupClassByJvmName(jvmName, lineNumber).getName());
     }
 
     public static CtClass getSuperclass(CtClass c) throws CompileError {
@@ -527,7 +529,7 @@ public class MemberResolver implements TokenId {
         }
         catch (NotFoundException e) {}
         throw new CompileError("cannot find the super class of "
-                               + c.getName());
+                               + c.getName(), c.getLinesCount() - 1);
     }
 
     public static CtClass getSuperInterface(CtClass c, String interfaceName)
@@ -540,7 +542,7 @@ public class MemberResolver implements TokenId {
                     return intfs[i];
         } catch (NotFoundException e) {}
         throw new CompileError("cannot find the super interface " + interfaceName
-                               + " of " + c.getName());
+                               + " of " + c.getName(), c.getLinesCount() - 1);
     }
 
     public static String javaToJvmName(String classname) {
@@ -551,7 +553,7 @@ public class MemberResolver implements TokenId {
         return classname.replace('/', '.');
     }
 
-    public static int descToType(char c) throws CompileError {
+    public static int descToType(char c, int lineNumber) throws CompileError {
         switch (c) {
         case 'Z' :
             return BOOLEAN;
@@ -575,7 +577,7 @@ public class MemberResolver implements TokenId {
         case '[' :
             return CLASS;
         default :
-            fatal();
+            fatal(lineNumber);
             return VOID;    // never reach here
         }
     }

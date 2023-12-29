@@ -184,7 +184,7 @@ public abstract class CodeGen extends Visitor implements Opcode, TokenId {
     /* Expands a simple class name to java.lang.*.
      * For example, this converts Object into java/lang/Object.
      */
-    protected abstract String resolveClassName(String jvmClassName)
+    protected abstract String resolveClassName(String jvmClassName, int lineNumber)
         throws CompileError;
 
     /**
@@ -802,7 +802,7 @@ public abstract class CodeGen extends Visitor implements Opcode, TokenId {
     @Override
     public void atDeclarator(Declarator d) throws CompileError {
         d.setLocalVar(getMaxLocals());
-        d.setClassName(resolveClassName(d.getClassName()));
+        d.setClassName(resolveClassName(d.getClassName(), d.getLineNumber()));
 
         int size;
         if (is2word(d.getType(), d.getArrayDim()))
@@ -1656,7 +1656,7 @@ public abstract class CodeGen extends Visitor implements Opcode, TokenId {
             int i = cname.indexOf("[L");
             if (i >= 0) {
                 String name = cname.substring(i + 2, cname.length() - 1);
-                String name2 = resolveClassName(name);
+                String name2 = resolveClassName(name, expr.getLineNumber());
                 if (!name.equals(name2)) {
                     /* For example, to obtain String[].class,
                      * "[Ljava.lang.String;" (not "[Ljava/lang/String"!)
@@ -1673,7 +1673,7 @@ public abstract class CodeGen extends Visitor implements Opcode, TokenId {
             }
         }
         else {
-            cname = resolveClassName(MemberResolver.javaToJvmName(cname));
+            cname = resolveClassName(MemberResolver.javaToJvmName(cname), expr.getLineNumber());
             cname = MemberResolver.jvmToJavaName(cname);
         }
 

@@ -37,7 +37,7 @@ public class CompileError extends Exception {
         reason = String.format("line %d: %s", lineNumber, s);
     }
 
-    public CompileError(String s) {
+    private CompileError(String s) {
         reason = s;
         lex = null;
     }

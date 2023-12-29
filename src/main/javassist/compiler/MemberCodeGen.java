@@ -254,7 +254,7 @@ public class MemberCodeGen extends CodeGen {
 
             decl.setLocalVar(var);
 
-            CtClass type = resolver.lookupClassByJvmName(decl.getClassName());
+            CtClass type = resolver.lookupClassByJvmName(decl.getClassName(), st.getLineNumber());
             decl.setClassName(MemberResolver.javaToJvmName(type.getName()));
             bc.addExceptionHandler(start, end, bc.currentPc(), type);
             bc.growStack(1);
@@ -373,7 +373,7 @@ public class MemberCodeGen extends CodeGen {
 
         String elementClass;
         if (type == CLASS) {
-            elementClass = resolveClassName(jvmClassname);
+            elementClass = resolveClassName(jvmClassname, lineNumber);
             bytecode.addAnewarray(MemberResolver.jvmToJavaName(elementClass));
         }
         else {
@@ -515,7 +515,7 @@ public class MemberCodeGen extends CodeGen {
             int op = e.getOperator();
             if (op == MEMBER) {                 // static method
                 targetClass
-                    = resolver.lookupClass(((Symbol)e.oprand1()).get(), false);
+                    = resolver.lookupClass(((Symbol)e.oprand1()).get(), false, expr.getLineNumber());
                 isStatic = true;
             }
             else if (op == '.') {
@@ -552,15 +552,15 @@ public class MemberCodeGen extends CodeGen {
                     }
 
                     if (arrayDim > 0)
-                        targetClass = resolver.lookupClass(javaLangObject, true);
+                        targetClass = resolver.lookupClass(javaLangObject, true, expr.getLineNumber());
                     else if (exprType == CLASS /* && arrayDim == 0 */)
-                        targetClass = resolver.lookupClassByJvmName(className);
+                        targetClass = resolver.lookupClassByJvmName(className, expr.getLineNumber());
                     else
-                        badMethod();
+                        badMethod(e.getLineNumber());
                 }
             }
             else
-                badMethod();
+                badMethod(expr.getLineNumber());
         }
         else
             fatal(expr.getLineNumber());
@@ -569,8 +569,8 @@ public class MemberCodeGen extends CodeGen {
                          aload0pos, cached);
     }
 
-    private static void badMethod() throws CompileError {
-        throw new CompileError("bad method");
+    private static void badMethod(int lineNumber) throws CompileError {
+        throw new CompileError("bad method", lineNumber);
     }
 
     /*
@@ -645,7 +645,7 @@ public class MemberCodeGen extends CodeGen {
         if (mname.equals(MethodInfo.nameInit)) {
             isSpecial = true;
             if (declClass != targetClass)
-                throw new CompileError("no such constructor: " + targetClass.getName());
+                throw new CompileError("no such constructor: " + targetClass.getName(), targetClass.getLinesCount() - 1);
 
             if (declClass != thisClass && AccessFlag.isPrivate(acc)) {
                 if (declClass.getClassFile().getMajorVersion() < ClassFile.JAVA_8
@@ -701,12 +701,12 @@ public class MemberCodeGen extends CodeGen {
             }
             else
                 if (isStatic)
-                    throw new CompileError(mname + " is not static");
+                    throw new CompileError(mname + " is not static", targetClass.getLinesCount() - 1);
                 else
                     bytecode.addInvokevirtual(declClass, mname, desc);
         }
 
-        setReturnType(desc, isStatic, popTarget);
+        setReturnType(desc, isStatic, popTarget, targetClass.getLinesCount() - 1);
     }
 
     /*
@@ -729,7 +729,7 @@ public class MemberCodeGen extends CodeGen {
         }
 
         throw new CompileError("Method " + methodName
-                               + " is private");
+                               + " is private", declClass.getLinesCount() - 1);
     }
 
     /*
@@ -752,7 +752,7 @@ public class MemberCodeGen extends CodeGen {
         }
 
         throw new CompileError("the called constructor is private in "
-                               + declClass.getName());
+                               + declClass.getName(), declClass.getLinesCount() - 1);
     }
 
     private boolean isEnclosing(CtClass outer, CtClass inner) {
@@ -785,12 +785,12 @@ public class MemberCodeGen extends CodeGen {
         }
     }
 
-    void setReturnType(String desc, boolean isStatic, boolean popTarget)
+    void setReturnType(String desc, boolean isStatic, boolean popTarget, int lineNumber)
         throws CompileError
     {
         int i = desc.indexOf(')');
         if (i < 0)
-            badMethod();
+            badMethod(lineNumber);
 
         char c = desc.charAt(++i);
         int dim = 0;
@@ -803,13 +803,13 @@ public class MemberCodeGen extends CodeGen {
         if (c == 'L') {
             int j = desc.indexOf(';', i + 1);
             if (j < 0)
-                badMethod();
+                badMethod(lineNumber);
 
             exprType = CLASS;
             className = desc.substring(i + 1, j);
         }
         else {
-            exprType = MemberResolver.descToType(c);
+            exprType = MemberResolver.descToType(c, lineNumber);
             className = null;
         }
 
@@ -843,7 +843,7 @@ public class MemberCodeGen extends CodeGen {
         int fi;
         if (op == '=') {
             FieldInfo finfo = f.getFieldInfo2();
-            setFieldType(finfo);
+            setFieldType(finfo, expr.getLineNumber());
             AccessorMaker maker = isAccessibleField(f, finfo, expr.getLineNumber());
             if (maker == null)
                 fi = addFieldrefInfo(f, finfo);
@@ -926,7 +926,7 @@ public class MemberCodeGen extends CodeGen {
             atFieldRead(f, is_static,expr.getLineNumber() );
         else {
             cexpr.accept(this);
-            setFieldType(f.getFieldInfo2());
+            setFieldType(f.getFieldInfo2(), expr.getLineNumber());
         }
     }
 
@@ -946,7 +946,7 @@ public class MemberCodeGen extends CodeGen {
      */
     private int atFieldRead(CtField f, boolean isStatic, int lineNumber) throws CompileError {
         FieldInfo finfo = f.getFieldInfo2();
-        boolean is2byte = setFieldType(finfo);
+        boolean is2byte = setFieldType(finfo, lineNumber);
         AccessorMaker maker = isAccessibleField(f, finfo, lineNumber);
         if (maker != null) {
             MethodInfo minfo = maker.getFieldGetter(finfo, isStatic);
@@ -996,7 +996,7 @@ public class MemberCodeGen extends CodeGen {
      *
      * @return true if the field type is long or double. 
      */
-    private boolean setFieldType(FieldInfo finfo) throws CompileError {
+    private boolean setFieldType(FieldInfo finfo, int lineNumber) throws CompileError {
         String type = finfo.getDescriptor();
 
         int i = 0;
@@ -1008,7 +1008,7 @@ public class MemberCodeGen extends CodeGen {
         }
 
         arrayDim = dim;
-        exprType = MemberResolver.descToType(c);
+        exprType = MemberResolver.descToType(c, lineNumber);
 
         if (c == 'L')
             className = type.substring(i + 1, type.indexOf(';', i + 1));
@@ -1201,7 +1201,7 @@ public class MemberCodeGen extends CodeGen {
      * For example, this converts Object into java/lang/Object.
      */
     @Override
-    protected String resolveClassName(String jvmName) throws CompileError {
-        return resolver.resolveJvmClassName(jvmName);
+    protected String resolveClassName(String jvmName, int lineNumber) throws CompileError {
+        return resolver.resolveJvmClassName(jvmName, lineNumber);
     }
 }

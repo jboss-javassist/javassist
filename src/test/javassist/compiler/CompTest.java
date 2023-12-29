@@ -105,11 +105,11 @@ public class CompTest extends TestCase {
 
     public void testArgTypesToString() {
         String s;
-        s = TypeChecker.argTypesToString(new int[0], new int[0], new String[0]);
+        s = TypeChecker.argTypesToString(new int[0], new int[0], new String[0], 0);
         assertEquals("()", s);
         s = TypeChecker.argTypesToString(new int[] { TokenId.INT, TokenId.CHAR, TokenId.CLASS },
                                          new int[] { 0, 1, 0 },
-                                         new String[] { null, null, "String" });
+                                         new String[] { null, null, "String" }, 0);
         assertEquals("(int,char[],String)", s);
     }
 

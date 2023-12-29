@@ -13,6 +13,20 @@ public class LineNumberTest extends TestCase {
                 "}"), "line 3: syntax error near \"  return\n}\"");
     }
 
+    public void testUndevField() {
+        doTestCompile(String.join("\n",
+                "public void run() {",
+                "    foo = 5;",
+                "}"), "line 2: no such field: foo");
+    }
+
+    public void testUndevMethod() {
+        doTestCompile(String.join("\n",
+                "public void run() {",
+                "    foo();",
+                "}"), "line 2: foo() not found in javassist.LineNumberCompileTest2");
+    }
+
     public void testException() {
         doTestRuntime(String.join("\n",
                 "public void run() {",
