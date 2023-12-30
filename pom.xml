@@ -12,6 +12,7 @@
     simple. It is a class library for editing bytecodes in Java.
   </description>
   <url>https://www.javassist.org/</url>
+  <inceptionYear>1999</inceptionYear>
 
   <licenses>
     <!-- this is the license under which javassist is usually distributed
@@ -224,12 +225,36 @@
           <attach>true</attach>
           <excludePackageNames>javassist.compiler:javassist.convert:javassist.scopedpool:javassist.bytecode.stackmap</excludePackageNames>
           <bottom><![CDATA[<i>Javassist, a Java-bytecode translator toolkit.<br>
-Copyright (C) 1999- Shigeru Chiba. All Rights Reserved.</i>]]></bottom>
+Copyright (C) ${project.inceptionYear}- Shigeru Chiba. All Rights Reserved.</i>]]></bottom>
           <show>public</show>
           <nohelp>true</nohelp>
           <doclint>none</doclint>
           <source>8</source>
         </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-enforcer-plugin</artifactId>
+        <version>3.4.1</version>
+        <executions>
+          <execution>
+            <id>enforces</id>
+            <goals>
+              <goal>enforce</goal>
+            </goals>
+            <configuration>
+              <rules>
+                <!-- official docs: https://maven.apache.org/enforcer/enforcer-rules/index.html -->
+                <requireMavenVersion>
+                  <version>3.2.5</version>
+                </requireMavenVersion>
+                <requireJavaVersion>
+                  <version>11</version>
+                </requireJavaVersion>
+              </rules>
+            </configuration>
+          </execution>
+        </executions>
       </plugin>
       <plugin>
         <groupId>org.apache.felix</groupId>
@@ -281,6 +306,7 @@ Copyright (C) 1999- Shigeru Chiba. All Rights Reserved.</i>]]></bottom>
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-gpg-plugin</artifactId>
+            <version>3.1.0</version>
             <configuration>
               <passphrase>${gpg.passphrase}</passphrase>
               <useAgent>${gpg.useAgent}</useAgent>
@@ -300,7 +326,7 @@ Copyright (C) 1999- Shigeru Chiba. All Rights Reserved.</i>]]></bottom>
     </profile>
     <!-- profiles to add tools jar containing com.sun.jdi code
          needed by sample code
-         -->
+      -->
     <profile>
       <id>default-tools</id>
       <activation>
