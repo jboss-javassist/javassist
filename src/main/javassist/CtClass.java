@@ -551,6 +551,43 @@ public abstract class CtClass {
     }
 
     /**
+     * Returns a collection of the names of all the classes
+     * referenced in this class.
+     * This reference contains a reference to the generic.
+     * If you wish to exclude generics,see this method{@link  CtClass#getRefClasses()}
+     * That collection includes the name of this class.
+     *
+     * <p>This method may return <code>null</code>.
+     *
+     * @return a <code>Collection&lt;String&gt;</code> object.
+     */
+    public synchronized Collection<String> getAllRefClasses() {
+        ClassFile cf = getClassFile2();
+        if (cf != null) {
+            ClassMap cm = new ClassMap() {
+                /** default serialVersionUID */
+                private static final long serialVersionUID = 1L;
+                @Override
+                public String put(String oldname, String newname) {
+                    return put0(oldname, newname);
+                }
+                @Override
+                public String get(Object jvmClassName) {
+                    String n = toJavaName((String)jvmClassName);
+                    put0(n, n);
+                    return null;
+                }
+
+                @Override
+                public void fix(String name) {}
+            };
+            cf.getAllRefClasses(cm);
+            return cm.values();
+        }
+        return null;
+    }
+
+    /**
      * Determines whether this object represents a class or an interface.
      * It returns <code>true</code> if this object represents an interface.
      */
