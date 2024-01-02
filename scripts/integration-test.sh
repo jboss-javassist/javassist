@@ -60,7 +60,10 @@ die() {
 ################################################################################
 
 switch_to_jdk_home() {
-  export JAVA_HOME="$1"
+  local version="$1"
+  local jh_var_name="JAVA${version//./_}_HOME"
+  export JAVA_HOME="${!jh_var_name}"
+
   [ -x "$JAVA_HOME/bin/java" ] ||
     die "JAVA_HOME($JAVA_HOME) is invalid: \$JAVA_HOME/bin/java is not existed or executable!"
 }
@@ -102,86 +105,24 @@ __detect_java_homes_and_set_when_running_on_github_actions() {
 }
 __detect_java_homes_and_set_when_running_on_github_actions
 
-__find_latest_specified_java_version_and_export() {
-  local specified_java_version="$1"
-  local major_version="${specified_java_version%%.*}"
-
-  local reference_jh_var_name="JAVA${major_version}_HOME"
-  local reference_dir=${!reference_jh_var_name}
-  reference_dir="${reference_dir%/}" # remove tailing slash
-
-  local bkp_shopt_null_glob=0
-  shopt -q nullglob && bkp_shopt_null_glob=1
-  shopt -s nullglob
-
-  local found_arr found
-  if [ "${GITHUB_ACTIONS:-}" = true ]; then
-    # the JAVA_HOME env vars introduced by `actions/setup-java@v4`, e.g.
-    #   JAVA_HOME_8_X64: /opt/hostedtoolcache/Java_Zulu_jdk/8.0.392-8/x64
-    #   JAVA_HOME_21_X64: /opt/hostedtoolcache/Java_Zulu_jdk/21.0.1-12/x64
-    local extra_child_dir_name="${reference_dir##*/}" # get basename, e.g. "x64"
-    found_arr=(
-      "$reference_dir/../../$specified_java_version"-*/
-      "$reference_dir/../../$specified_java_version".*/
-    )
-  else
-    found_arr=(
-      "$JAVA11_HOME/../$specified_java_version".*/
-      "$JAVA11_HOME/../$specified_java_version"-*/
-    )
-  fi
-
-  ((${#found_arr[@]} > 0)) || die "Fail to find java home for version $specified_java_version!"
-
-  if ((${#found_arr[@]} > 1)); then
-    # TODO `ls -v` is not robust, but it works for now.
-    # shellcheck disable=SC2012
-    found="$(ls -v -d "${found_arr[@]}" | tail -n 1)"
-  else
-    found="${found_arr[0]}"
-  fi
-  found="$(cd "$found" && pwd)" # normalize path
-
-  if [ "${GITHUB_ACTIONS:-}" = true ]; then
-    found="${found}/$extra_child_dir_name"
-  fi
-
-  ((${#found_arr[@]} == 1)) || echo "Found multiply java homes for the specified java version $specified_java_version: ${found_arr[*]}; use the last one"
-
-  local expr
-  printf -v expr 'JAVA%q_HOME=%q' "${specified_java_version//./_}" "$found"
-  # shellcheck disable=SC2163
-  export "$expr"
-  warn_print "Found the specified java version($specified_java_version): export $expr"
-
-  # restore null glob shopt
-  [ "$bkp_shopt_null_glob" -eq 0 ] && shopt -u nullglob
-}
-
-__find_latest_specified_java_version_and_export 11.0.3
-# correct the latest version of java 11 back;
-# because actions/setup-java set up 2 versions of java 11 and last old version wins in `JAVA11_HOME`.
-__find_latest_specified_java_version_and_export 11
-
 ################################################################################
 # CI build logic
 ################################################################################
 
 # shellcheck disable=SC2153
-readonly default_build_jdk_home="$JAVA21_HOME"
-readonly JDK_HOMES=(
-  "$JAVA8_HOME"
-  "$JAVA11_0_3_HOME"
-  "$JAVA11_HOME"
-  "$JAVA17_HOME"
-  "$default_build_jdk_home"
+readonly default_build_jdk_version=21
+readonly CI_JDK_VERSIONS=(
+  8
+  11
+  17
+  "$default_build_jdk_version"
 )
 
 ##################################################
 # build and test by default version jdk
 ##################################################
 
-switch_to_jdk_home "$default_build_jdk_home"
+switch_to_jdk_home "$default_build_jdk_version"
 
 head_line_print "Build and test with Java: $JAVA_HOME"
 # `-V`: show the java version info (essential info when test multiple java versions)
@@ -192,8 +133,8 @@ log_then_run mvn -V --no-transfer-progress clean package
 # test by multiply java versions
 ##################################################
 
-for jdk_version in "${JDK_HOMES[@]}"; do
-  if [ "$jdk_version" == "$default_build_jdk_home" ]; then
+for jdk_version in "${CI_JDK_VERSIONS[@]}"; do
+  if [ "$jdk_version" == "$default_build_jdk_version" ]; then
     # skip default jdk, already tested above
     continue
   fi
