@@ -16,6 +16,8 @@
 
 package javassist.bytecode;
 
+import javassist.*;
+
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -76,8 +78,7 @@ public class CodeAttribute extends AttributeInfo implements Opcode {
      *                          class names.
      */
     private CodeAttribute(ConstPool cp, CodeAttribute src, Map<String,String> classnames)
-        throws BadBytecode
-    {
+            throws BadBytecode, NotFoundException, CannotCompileException {
         super(cp, tag);
 
         maxStack = src.getMaxStack();
@@ -139,6 +140,10 @@ public class CodeAttribute extends AttributeInfo implements Opcode {
         }
         catch (BadBytecode e) {
             throw new RuntimeCopyException("bad bytecode. fatal?");
+        } catch (NotFoundException e) {
+            throw new RuntimeException(e);
+        } catch (CannotCompileException e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -324,7 +329,7 @@ public class CodeAttribute extends AttributeInfo implements Opcode {
      *
      * @param smt       the stack map table added to this code attribute.
      *                  If it is null, a new stack map is not added.
-     *                  Only the old stack map is removed. 
+     *                  Only the old stack map is removed.
      */
     public void setAttribute(StackMapTable smt) {
         AttributeInfo.remove(attributes, StackMapTable.tag);
@@ -352,11 +357,11 @@ public class CodeAttribute extends AttributeInfo implements Opcode {
      */
     private byte[] copyCode(ConstPool destCp, Map<String,String> classnames,
                             ExceptionTable etable, CodeAttribute destCa)
-        throws BadBytecode
-    {
+            throws BadBytecode, NotFoundException, CannotCompileException {
         int len = getCodeLength();
         byte[] newCode = new byte[len];
         destCa.info = newCode;
+
         LdcEntry ldc = copyCode(this.info, 0, len, this.getConstPool(),
                                 newCode, destCp, classnames);
         return LdcEntry.doit(newCode, ldc, etable, destCa);
@@ -364,9 +369,8 @@ public class CodeAttribute extends AttributeInfo implements Opcode {
 
     private static LdcEntry copyCode(byte[] code, int beginPos, int endPos,
                                      ConstPool srcCp, byte[] newcode,
-                                     ConstPool destCp, Map<String,String> classnameMap)
-        throws BadBytecode
-    {
+                                                 ConstPool destCp, Map<String,String> classnameMap)
+            throws BadBytecode, NotFoundException, CannotCompileException {
         int i2, index;
         LdcEntry ldcEntry = null;
 
@@ -415,6 +419,7 @@ public class CodeAttribute extends AttributeInfo implements Opcode {
             case INVOKEDYNAMIC :
                 copyConstPoolInfo(i + 1, code, srcCp, newcode, destCp,
                         classnameMap);
+                copyBootstrapMethod(srcCp, destCp, i + 1, code, newcode, classnameMap);
                 newcode[i + 3] = 0;
                 newcode[i + 4] = 0;
                 break;
@@ -432,6 +437,134 @@ public class CodeAttribute extends AttributeInfo implements Opcode {
         }
 
         return ldcEntry;
+    }
+
+    /**
+     *  Copy the Bootstrap method of the specified index referenced in the source <code>InvokeDynamic</code> directive
+     *  to the specified index in the destination Boostrap Attribute.<br>
+     *  if the Bootstrap Attribute does not exist in the destination class, create a new Bootstrap Attribute; <br>
+     *  if the destination Bootstrap Method already exists at the specified index method,
+     *      the method at that position will be overwritten, otherwise it will be added
+     *      at the end of the destination Bootstrap method.
+     *
+     * @param srcCp     the constant pool table of source
+     * @param destCp    the constant pool table of destination
+     * @param codeIndex     the index of the invoke dynamic first parameter in code array
+     * @param srcCode       the code array of source
+     * @param newCode       the code array of destination
+     * @param classnameMap  pairs of replaced and substituted class names.
+     *
+     * @throws NotFoundException        this exception thrown when the class
+     *                                      cannot be found in the default <code>ClassPool</code>
+     * @throws CannotCompileException   this exception thrown from the method
+     *                                       {@link #copyInvokeStaticMethod(CtClass, ConstPool,
+     *                                          BootstrapMethodsAttribute.BootstrapMethod, CtClass, Map)}
+     */
+    private static void copyBootstrapMethod(ConstPool srcCp, ConstPool destCp, int codeIndex, byte[] srcCode,
+                                            byte[] newCode, Map<String,String> classnameMap)
+            throws NotFoundException, CannotCompileException {
+        ClassPool classPool = ClassPool.getDefault();
+        CtClass srcCc = classPool.get(srcCp.getClassName());
+        CtClass destCc = classPool.get(destCp.getClassName());
+        ClassFile srcCf = srcCc.getClassFile();
+        ClassFile destCf = destCc.getClassFile();
+        BootstrapMethodsAttribute srcBma = (BootstrapMethodsAttribute)
+                srcCf.getAttribute(BootstrapMethodsAttribute.tag);
+
+        // if source class does not have bootstrap attribute then stop copy
+        if (srcBma == null) {
+            return;
+        }
+
+        BootstrapMethodsAttribute destBma = (BootstrapMethodsAttribute)
+                destCf.getAttribute(BootstrapMethodsAttribute.tag);
+
+        int srcCpIndex = ((srcCode[codeIndex] & 0xff) << 8) | (srcCode[codeIndex + 1] & 0xff);
+        int destCpIndex = ((newCode[codeIndex] & 0xff) << 8) | (newCode[codeIndex + 1] & 0xff);
+        int srcBmIndex = srcCp.getInvokeDynamicBootstrap(srcCpIndex);
+        int destBmIndex = destCp.getInvokeDynamicBootstrap(destCpIndex);
+
+        // if source class does not have bootstrap attribute, then create bootstrap attribute
+        if (destBma == null) {
+            destBma = new BootstrapMethodsAttribute(destCp,
+                    new BootstrapMethodsAttribute.BootstrapMethod[0]);
+            destCf.addAttribute(destBma);
+        }
+
+        BootstrapMethodsAttribute.BootstrapMethod srcBm = srcBma.getMethods()[srcBmIndex];
+        destBma.addMethod(srcCp, srcBm, destBmIndex, classnameMap);
+
+        copyInvokeStaticMethod(srcCc, srcCp, srcBm, destCc, classnameMap);
+    }
+
+    /**
+     *  Copy the static methods referenced by the bootstrap method in this class (such as some lambda methods).<br>
+     *  If the source method exists in the destination class, it will be ignored.
+     *
+     * @param srcCc     source class
+     * @param srcCp     constant pool table of source class
+     * @param srcBm     source method to be copied
+     * @param destCc    destination class
+     * @param classnameMap      irs of replaced and substituted class names.
+     *
+     * @throws CannotCompileException   thrown by {@link CtNewMethod#copy(CtMethod, CtClass, ClassMap)}
+     *                                          or{@link CtClass#addMethod(CtMethod)}
+     */
+    private static void copyInvokeStaticMethod(CtClass srcCc, ConstPool srcCp,
+                                               BootstrapMethodsAttribute.BootstrapMethod srcBm, CtClass destCc,
+                                               Map<String, String> classnameMap) throws CannotCompileException {
+        for (int argument : srcBm.arguments) {
+            ConstInfo constInfo = srcCp.getItem(argument);
+
+            if (!(constInfo instanceof MethodHandleInfo)) continue;
+
+            MethodHandleInfo methodHandleInfo = (MethodHandleInfo) constInfo;
+            if (ConstPool.REF_invokeStatic != methodHandleInfo.refKind) continue;
+
+            String methodRefClassName = srcCp.getMethodrefClassName(methodHandleInfo.refIndex);
+            if (methodRefClassName == null || !methodRefClassName.equals(srcCc.getName())) continue;
+
+            String staticMethodName = srcCp.getMethodrefName(methodHandleInfo.refIndex);
+            String staticMethodSignature = srcCp.getMethodrefType(methodHandleInfo.refIndex);
+            CtMethod srcMethod = getStaticCtMethod(srcCc, staticMethodName, staticMethodSignature);
+
+            if (!checkStaticMethodExisted(destCc, staticMethodName, staticMethodSignature)) {
+                ClassMap classMap = new ClassMap();
+                classMap.putAll(classnameMap);
+
+                CtMethod ctMethod = CtNewMethod.copy(srcMethod, destCc, classMap);
+                destCc.addMethod(ctMethod);
+            }
+        }
+    }
+
+    private static CtMethod getStaticCtMethod(CtClass ctClass, String staticMethodName, String staticMethodSignature) {
+        CtMethod srcMethod = null;
+        for (CtMethod declaredMethod : ctClass.getDeclaredMethods()) {
+            if (Modifier.isStatic(declaredMethod.getModifiers())
+                    && declaredMethod.getName().equals(staticMethodName)
+                    && declaredMethod.getSignature().equals(staticMethodSignature)) {
+                srcMethod = declaredMethod;
+                break;
+            }
+        }
+
+        if (srcMethod == null) {
+            throw new RuntimeException("Can not found static method:" + staticMethodName);
+        }
+        return srcMethod;
+    }
+
+    private static boolean checkStaticMethodExisted(CtClass ctClass, String staticMethodName, String staticMethodSignature) {
+        for (CtMethod declaredMethod : ctClass.getDeclaredMethods()) {
+            if (Modifier.isStatic(declaredMethod.getModifiers())
+                    && declaredMethod.getName().equals(staticMethodName)
+                    && declaredMethod.getSignature().equals(staticMethodSignature)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private static void copyConstPoolInfo(int i, byte[] code, ConstPool srcCp,
