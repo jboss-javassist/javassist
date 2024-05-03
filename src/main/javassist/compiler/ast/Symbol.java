@@ -26,7 +26,8 @@ public class Symbol extends ASTree {
     private static final long serialVersionUID = 1L;
     protected String identifier;
 
-    public Symbol(String sym) {
+    public Symbol(String sym, int lineNumber) {
+        super(lineNumber);
         identifier = sym;
     }
 

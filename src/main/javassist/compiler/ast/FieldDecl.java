@@ -22,8 +22,8 @@ public class FieldDecl extends ASTList {
     /** default serialVersionUID */
     private static final long serialVersionUID = 1L;
 
-    public FieldDecl(ASTree _head, ASTList _tail) {
-        super(_head, _tail);
+    public FieldDecl(ASTree _head, ASTList _tail, int lineNumber) {
+        super(_head, _tail, lineNumber);
     }
 
     public ASTList getModifiers() { return (ASTList)getLeft(); }

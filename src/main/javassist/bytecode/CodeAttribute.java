@@ -353,6 +353,20 @@ public class CodeAttribute extends AttributeInfo implements Opcode {
     }
 
     /**
+     * Adds a line number table.  If another copy of line number table
+     * is already contained, the old one is removed.
+     *
+     * @param lnt       the line number table added to this code attribute.
+     *                  If it is null, a new line number is not added.
+     *                  Only the old line number is removed.
+     */
+    public void setAttribute(LineNumberAttribute lnt) {
+        AttributeInfo.remove(attributes, LineNumberAttribute.tag);
+        if (lnt != null)
+            attributes.add(lnt);
+    }
+
+    /**
      * Copies code.
      */
     private byte[] copyCode(ConstPool destCp, Map<String,String> classnames,

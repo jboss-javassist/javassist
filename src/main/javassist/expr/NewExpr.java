@@ -263,7 +263,7 @@ public class NewExpr extends Expr {
         }
 
         @Override
-        public void doit(JvstCodeGen gen, Bytecode bytecode, ASTList args)
+        public void doit(JvstCodeGen gen, Bytecode bytecode, ASTList args, int lineNumber)
             throws CompileError
         {
             bytecode.addOpcode(NEW);
@@ -271,15 +271,15 @@ public class NewExpr extends Expr {
             bytecode.addOpcode(DUP);
             gen.atMethodCallCore(newType, MethodInfo.nameInit, args,
                                  false, true, -1, null);
-            gen.setType(newType);
+            gen.setType(newType, lineNumber);
         }
 
         @Override
-        public void setReturnType(JvstTypeChecker c, ASTList args)
+        public void setReturnType(JvstTypeChecker c, ASTList args, int lineNumber)
             throws CompileError
         {
-            c.atMethodCallCore(newType, MethodInfo.nameInit, args);
-            c.setType(newType);
+            c.atMethodCallCore(newType, MethodInfo.nameInit, args, lineNumber);
+            c.setType(newType, lineNumber);
         }
     }
 }

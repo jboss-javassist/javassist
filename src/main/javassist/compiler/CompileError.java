@@ -25,12 +25,19 @@ public class CompileError extends Exception {
     private Lex lex;
     private String reason;
 
+    private int lineNumber = -1;
+
     public CompileError(String s, Lex l) {
-        reason = s;
+        this(s, l.getLineNumber());
         lex = l;
     }
 
-    public CompileError(String s) {
+    public CompileError(String s, int lineNumber) {
+        this.lineNumber = lineNumber;
+        reason = String.format("line %d: %s", lineNumber, s);
+    }
+
+    private CompileError(String s) {
         reason = s;
         lex = null;
     }
@@ -44,6 +51,10 @@ public class CompileError extends Exception {
     }
 
     public Lex getLex() { return lex; }
+
+    public int getLineNumber() {
+        return lineNumber;
+    }
 
     @Override
     public String getMessage() {

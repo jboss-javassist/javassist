@@ -23,8 +23,8 @@ public class MethodDecl extends ASTList {
     private static final long serialVersionUID = 1L;
     public static final String initName = "<init>";
 
-    public MethodDecl(ASTree _head, ASTList _tail) {
-        super(_head, _tail);
+    public MethodDecl(ASTree _head, ASTList _tail, int lineNumber) {
+        super(_head, _tail, lineNumber);
     }
 
     public boolean isConstructor() {

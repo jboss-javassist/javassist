@@ -69,6 +69,7 @@ public class CtNewConstructor {
         Javac compiler = new Javac(declaring);
         try {
             CtMember obj = compiler.compile(src);
+            declaring.addLines(src.split("\n").length);
             if (obj instanceof CtConstructor) {
                 // a stack map table has been already created.
                 return (CtConstructor)obj;

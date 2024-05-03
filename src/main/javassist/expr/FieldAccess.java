@@ -259,12 +259,12 @@ public class FieldAccess extends Expr {
         }
 
         @Override
-        public void doit(JvstCodeGen gen, Bytecode bytecode, ASTList args)
+        public void doit(JvstCodeGen gen, Bytecode bytecode, ASTList args, int lineNumber)
             throws CompileError
         {
             if (args != null && !gen.isParamListName(args))
                 throw new CompileError(Javac.proceedName
-                        + "() cannot take a parameter for field reading");
+                        + "() cannot take a parameter for field reading", lineNumber);
 
             int stack;
             if (isStatic(opcode))
@@ -282,14 +282,14 @@ public class FieldAccess extends Expr {
             bytecode.add(opcode);
             bytecode.addIndex(index);
             bytecode.growStack(stack);
-            gen.setType(fieldType);
+            gen.setType(fieldType, lineNumber);
         }
 
         @Override
-        public void setReturnType(JvstTypeChecker c, ASTList args)
+        public void setReturnType(JvstTypeChecker c, ASTList args, int lineNumber)
             throws CompileError
         {
-            c.setType(fieldType);
+            c.setType(fieldType, lineNumber);
         }
     }
 
@@ -309,13 +309,13 @@ public class FieldAccess extends Expr {
         }
 
         @Override
-        public void doit(JvstCodeGen gen, Bytecode bytecode, ASTList args)
+        public void doit(JvstCodeGen gen, Bytecode bytecode, ASTList args, int lineNumber)
             throws CompileError
         {
             if (gen.getMethodArgsLength(args) != 1)
                 throw new CompileError(Javac.proceedName
                         + "() cannot take more than one parameter "
-                        + "for field writing");
+                        + "for field writing", lineNumber);
 
             int stack;
             if (isStatic(opcode))
@@ -335,16 +335,16 @@ public class FieldAccess extends Expr {
             bytecode.add(opcode);
             bytecode.addIndex(index);
             bytecode.growStack(stack);
-            gen.setType(CtClass.voidType);
+            gen.setType(CtClass.voidType, lineNumber);
             gen.addNullIfVoid();
         }
 
         @Override
-        public void setReturnType(JvstTypeChecker c, ASTList args)
+        public void setReturnType(JvstTypeChecker c, ASTList args, int lineNumber)
             throws CompileError
         {
             c.atMethodArgs(args, new int[1], new int[1], new String[1]);
-            c.setType(CtClass.voidType);
+            c.setType(CtClass.voidType, lineNumber);
             c.addNullIfVoid();
         }
     }

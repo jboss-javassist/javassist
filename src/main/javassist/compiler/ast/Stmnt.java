@@ -27,26 +27,26 @@ public class Stmnt extends ASTList implements TokenId {
     private static final long serialVersionUID = 1L;
     protected int operatorId;
 
-    public Stmnt(int op, ASTree _head, ASTList _tail) {
-        super(_head, _tail);
+    public Stmnt(int op, ASTree _head, ASTList _tail, int lineNumber) {
+        super(_head, _tail, lineNumber);
         operatorId = op;
     }
 
-    public Stmnt(int op, ASTree _head) {
-        super(_head);
+    public Stmnt(int op, ASTree _head, int lineNumber) {
+        super(_head, lineNumber);
         operatorId = op;
     }
 
-    public Stmnt(int op) {
-        this(op, null);
+    public Stmnt(int op, int lineNumber) {
+        this(op, null, lineNumber);
     }
 
-    public static Stmnt make(int op, ASTree oprand1, ASTree oprand2) {
-        return new Stmnt(op, oprand1, new ASTList(oprand2));
+    public static Stmnt make(int op, ASTree oprand1, ASTree oprand2, int lineNumber) {
+        return new Stmnt(op, oprand1, new ASTList(oprand2, lineNumber), lineNumber);
     }
 
-    public static Stmnt make(int op, ASTree op1, ASTree op2, ASTree op3) {
-        return new Stmnt(op, op1, new ASTList(op2, new ASTList(op3)));
+    public static Stmnt make(int op, ASTree op1, ASTree op2, ASTree op3, int lineNumber) {
+        return new Stmnt(op, op1, new ASTList(op2, new ASTList(op3, lineNumber), lineNumber), lineNumber);
     }
 
     @Override

@@ -71,6 +71,8 @@ public abstract class CtClass {
      */
     public static final String version = "3.30.2-GA";
 
+    private int linesCount = 0;
+
     /**
      * Prints the version number and the copyright notice.
      *
@@ -1573,6 +1575,14 @@ public abstract class CtClass {
 
         return new DataOutputStream(new BufferedOutputStream(
                                       new DelayedFileOutputStream(filename)));
+    }
+
+    public int getLinesCount() {
+        return linesCount;
+    }
+
+    void addLines(int count) {
+        this.linesCount += count;
     }
 
     /**

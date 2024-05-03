@@ -28,6 +28,7 @@ public class Pair extends ASTree {
     protected ASTree left, right;
 
     public Pair(ASTree _left, ASTree _right) {
+        super(_left.getLineNumber());
         left = _left;
         right = _right;
     }

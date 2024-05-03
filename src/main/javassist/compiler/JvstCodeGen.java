@@ -110,14 +110,14 @@ public class JvstCodeGen extends MemberCodeGen {
         }
         else if (name.equals(dollarTypeName)) {
             if (dollarType == null)
-                throw new CompileError(dollarTypeName + " is not available");
+                throw new CompileError(dollarTypeName + " is not available", mem.getLineNumber());
 
             bytecode.addLdc(Descriptor.of(dollarType));
             callGetType("getType");
         }
         else if (name.equals(clazzName)) {
             if (param0Type == null)
-                throw new CompileError(clazzName + " is not available");
+                throw new CompileError(clazzName + " is not available", mem.getLineNumber());
 
             bytecode.addLdc(param0Type);
             callGetType("getClazz");
@@ -141,13 +141,13 @@ public class JvstCodeGen extends MemberCodeGen {
         if (left instanceof Member
             && ((Member)left).get().equals(paramArrayName)) {
             if (op != '=')
-                throw new CompileError("bad operator for " + paramArrayName);
+                throw new CompileError("bad operator for " + paramArrayName, expr.getLineNumber());
 
             right.accept(this);
             if (arrayDim != 1 || exprType != CLASS)
-                throw new CompileError("invalid type for " + paramArrayName);
+                throw new CompileError("invalid type for " + paramArrayName, expr.getLineNumber());
 
-            atAssignParamList(paramTypeList, bytecode);
+            atAssignParamList(paramTypeList, bytecode, expr.getLineNumber());
             if (!doDup)
                 bytecode.addOpcode(POP);
         }
@@ -155,7 +155,7 @@ public class JvstCodeGen extends MemberCodeGen {
             super.atFieldAssign(expr, op, left, right, doDup);
     }
 
-    protected void atAssignParamList(CtClass[] params, Bytecode code)
+    protected void atAssignParamList(CtClass[] params, Bytecode code, int lineNumber)
         throws CompileError
     {
         if (params == null)
@@ -167,7 +167,7 @@ public class JvstCodeGen extends MemberCodeGen {
             code.addOpcode(DUP);
             code.addIconst(i);
             code.addOpcode(AALOAD);
-            compileUnwrapValue(params[i], code);
+            compileUnwrapValue(params[i], code, lineNumber);
             code.addStore(varNo, params[i]);
             varNo += is2word(exprType, arrayDim) ? 2 : 1;
         }
@@ -201,17 +201,17 @@ public class JvstCodeGen extends MemberCodeGen {
     protected void atCastToRtype(CastExpr expr) throws CompileError {
         expr.getOprand().accept(this);
         if (exprType == VOID || isRefType(exprType) || arrayDim > 0)
-            compileUnwrapValue(returnType, bytecode);
+            compileUnwrapValue(returnType, bytecode, expr.getLineNumber());
         else if (returnType instanceof CtPrimitiveType) {
             CtPrimitiveType pt = (CtPrimitiveType)returnType;
-            int destType = MemberResolver.descToType(pt.getDescriptor());
+            int destType = MemberResolver.descToType(pt.getDescriptor(), expr.getLineNumber());
             atNumCastExpr(exprType, destType);
             exprType = destType;
             arrayDim = 0;
             className = null;
         }
         else
-            throw new CompileError("invalid cast");
+            throw new CompileError("invalid cast", expr.getLineNumber());
     }
 
     protected void atCastToWrapper(CastExpr expr) throws CompileError {
@@ -219,7 +219,7 @@ public class JvstCodeGen extends MemberCodeGen {
         if (isRefType(exprType) || arrayDim > 0)
             return;     // Object type.  do nothing.
 
-        CtClass clazz = resolver.lookupClass(exprType, arrayDim, className);
+        CtClass clazz = resolver.lookupClass(exprType, arrayDim, className, expr.getLineNumber());
         if (clazz instanceof CtPrimitiveType) {
             CtPrimitiveType pt = (CtPrimitiveType)clazz;
             String wrapper = pt.getWrapperName();
@@ -249,11 +249,11 @@ public class JvstCodeGen extends MemberCodeGen {
         if (method instanceof Member) {
             String name = ((Member)method).get();
             if (procHandler != null && name.equals(proceedName)) {
-                procHandler.doit(this, bytecode, (ASTList)expr.oprand2());
+                procHandler.doit(this, bytecode, (ASTList)expr.oprand2(), expr.getLineNumber());
                 return;
             }
             else if (name.equals(cflowName)) {
-                atCflow((ASTList)expr.oprand2());
+                atCflow((ASTList)expr.oprand2(), expr.getLineNumber());
                 return;
             }
         }
@@ -263,16 +263,16 @@ public class JvstCodeGen extends MemberCodeGen {
 
     /* To support $cflow().
      */
-    protected void atCflow(ASTList cname) throws CompileError {
+    protected void atCflow(ASTList cname, int lineNumber) throws CompileError {
         StringBuilder sbuf = new StringBuilder();
         if (cname == null || cname.tail() != null)
-            throw new CompileError("bad " + cflowName);
+            throw new CompileError("bad " + cflowName, lineNumber);
 
         makeCflowName(sbuf, cname.head());
         String name = sbuf.toString();
         Object[] names = resolver.getClassPool().lookupCflow(name);
         if (names == null)
-            throw new CompileError("no such " + cflowName + ": " + name);
+            throw new CompileError("no such " + cflowName + ": " + name, lineNumber);
 
         bytecode.addGetstatic((String)names[0], (String)names[1],
                               "Ljavassist/runtime/Cflow;");
@@ -305,7 +305,7 @@ public class JvstCodeGen extends MemberCodeGen {
             }
         }
 
-        throw new CompileError("bad " + cflowName);
+        throw new CompileError("bad " + cflowName, name.getLineNumber());
     }
 
     /* To support $$.  ($$) is equivalent to ($1, ..., $n).
@@ -364,7 +364,7 @@ public class JvstCodeGen extends MemberCodeGen {
                     for (int k = 0; k < n; ++k) {
                         CtClass p = params[k];
                         regno += bytecode.addLoad(regno, p);
-                        setType(p);
+                        setType(p, a.getLineNumber());
                         types[i] = exprType;
                         dims[i] = arrayDim;
                         cnames[i] = className;
@@ -420,7 +420,7 @@ public class JvstCodeGen extends MemberCodeGen {
         atMethodArgs(args, new int[nargs], new int[nargs],
                      new String[nargs]);
         bytecode.addInvokespecial(methodIndex, descriptor);
-        setReturnType(descriptor, false, false);
+        setReturnType(descriptor, false, false, target.getLineNumber());
         addNullIfVoid();
     }
 
@@ -530,7 +530,7 @@ public class JvstCodeGen extends MemberCodeGen {
             String varName = prefix + "0";
             Declarator decl
                 = new Declarator(CLASS, MemberResolver.javaToJvmName(target),
-                                 0, varNo++, new Symbol(varName));
+                                 0, varNo++, new Symbol(varName, 0), 0);
             tbl.append(varName, decl);
         }
 
@@ -569,11 +569,11 @@ public class JvstCodeGen extends MemberCodeGen {
             className = jvmJavaLangObject;
         }
         else
-            setType(cc);
+            setType(cc, cc.getLinesCount());
 
         Declarator decl
             = new Declarator(exprType, className, arrayDim,
-                             varNo, new Symbol(varName));
+                             varNo, new Symbol(varName, 0), 0);
         tbl.append(varName, decl);
         return is2word(exprType, arrayDim) ? 2 : 1;
     }
@@ -593,7 +593,7 @@ public class JvstCodeGen extends MemberCodeGen {
         while ((c = typeDesc.charAt(dim)) == '[')
             ++dim;
 
-        int type = MemberResolver.descToType(c);
+        int type = MemberResolver.descToType(c, -1);
         String cname = null;
         if (type == CLASS) {
             if (dim == 0)
@@ -603,7 +603,7 @@ public class JvstCodeGen extends MemberCodeGen {
         }
 
         Declarator decl
-            = new Declarator(type, cname, dim, varNo, new Symbol(varName));
+            = new Declarator(type, cname, dim, varNo, new Symbol(varName, 0), 0);
         tbl.append(varName, decl);
     }
 
@@ -653,7 +653,7 @@ public class JvstCodeGen extends MemberCodeGen {
         return 8;
     }
 
-    protected void compileUnwrapValue(CtClass type, Bytecode code)
+    protected void compileUnwrapValue(CtClass type, Bytecode code, int lineNumber)
         throws CompileError
     {
         if (type == CtClass.voidType) {
@@ -662,7 +662,7 @@ public class JvstCodeGen extends MemberCodeGen {
         }
 
         if (exprType == VOID)
-            throw new CompileError("invalid type for " + returnCastName);
+            throw new CompileError("invalid type for " + returnCastName, lineNumber);
 
         if (type instanceof CtPrimitiveType) {
             CtPrimitiveType pt = (CtPrimitiveType)type;
@@ -671,34 +671,34 @@ public class JvstCodeGen extends MemberCodeGen {
             code.addCheckcast(wrapper);
             code.addInvokevirtual(wrapper, pt.getGetMethodName(),
                                   pt.getGetMethodDescriptor());
-            setType(type);
+            setType(type, lineNumber);
         }
         else {
             code.addCheckcast(type);
-            setType(type);
+            setType(type, lineNumber);
         }
     }
 
     /* Sets exprType, arrayDim, and className;
      * If type is void, then this method does nothing.
      */
-    public void setType(CtClass type) throws CompileError {
-        setType(type, 0);
+    public void setType(CtClass type, int lineNumber) throws CompileError {
+        setType(type, 0, lineNumber);
     }
 
-    private void setType(CtClass type, int dim) throws CompileError {
+    private void setType(CtClass type, int dim, int lineNumber) throws CompileError {
         if (type.isPrimitive()) {
             CtPrimitiveType pt = (CtPrimitiveType)type;
-            exprType = MemberResolver.descToType(pt.getDescriptor());
+            exprType = MemberResolver.descToType(pt.getDescriptor(), lineNumber);
             arrayDim = dim;
             className = null;
         }
         else if (type.isArray())
             try {
-                setType(type.getComponentType(), dim + 1);
+                setType(type.getComponentType(), dim + 1, lineNumber);
             }
             catch (NotFoundException e) {
-                throw new CompileError("undefined type: " + type.getName());
+                throw new CompileError("undefined type: " + type.getName(), lineNumber);
             }
         else {
             exprType = CLASS;
@@ -714,9 +714,9 @@ public class JvstCodeGen extends MemberCodeGen {
             if (type instanceof CtPrimitiveType) {
                 CtPrimitiveType pt = (CtPrimitiveType)type;
                 atNumCastExpr(exprType,
-                              MemberResolver.descToType(pt.getDescriptor()));
+                              MemberResolver.descToType(pt.getDescriptor(), type.getLinesCount() - 1));
             }
             else
-                throw new CompileError("type mismatch");
+                throw new CompileError("type mismatch", type.getLinesCount() - 1);
     }
 }

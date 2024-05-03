@@ -28,7 +28,11 @@ public class IntConst extends ASTree {
     protected long value;
     protected int type;
 
-    public IntConst(long v, int tokenId) { value = v; type = tokenId; }
+    public IntConst(long v, int tokenId, int lineNumber) {
+        super(lineNumber);
+        value = v;
+        type = tokenId;
+    }
 
     public long get() { return value; }
 
@@ -111,7 +115,7 @@ public class IntConst extends ASTree {
             return null;
         }
 
-        return new IntConst(newValue, newType);
+        return new IntConst(newValue, newType, right.getLineNumber());
     }
 
     private DoubleConst compute0(int op, DoubleConst right) {
@@ -138,6 +142,6 @@ public class IntConst extends ASTree {
             return null;
         }
 
-        return new DoubleConst(newValue, right.type);
+        return new DoubleConst(newValue, right.type, right.getLineNumber());
     }
 }
