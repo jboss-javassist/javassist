@@ -1,5 +1,8 @@
-# This workflow will build a Java project with Maven
-# For more information see: https://help.github.com/actions/language-and-framework-guides/building-and-testing-java-with-maven
+# Quickstart for GitHub Actions
+# https://docs.github.com/en/actions/quickstart
+#
+# For more information about the workflow to build a Java project with Maven, see:
+# https://help.github.com/actions/language-and-framework-guides/building-and-testing-java-with-maven
 
 name: Java CI with Maven
 
@@ -8,21 +11,34 @@ on:
     branches: [ master ]
   pull_request:
     branches: [ master ]
+  # https://docs.github.com/en/actions/using-workflows/manually-running-a-workflow
+  workflow_dispatch:
 
 jobs:
   build:
 
     runs-on: ubuntu-latest
+    timeout-minutes: 20
+    name: CI with multiply ${{ matrix.java-distribution }} java versions
     strategy:
       matrix:
-        os: [ ubuntu-latest ]
-        java-version: [ 11.0.3, 11 ]
+        java-distribution: [ zulu, temurin ]
+      fail-fast: false
+
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up JDK ${{ matrix.java-version }}
-      uses: actions/setup-java@v2
-      with:
-        java-version: ${{ matrix.java-version }}
-        distribution: 'zulu'
-    - name: Build with Maven
-      run: mvn -B package --file pom.xml
+      - uses: actions/checkout@v4
+
+      - name: Set up multiply java versions
+        uses: actions/setup-java@v4
+        with:
+          # https://github.com/actions/setup-java?tab=readme-ov-file#install-multiple-jdks
+          java-version: |
+            8
+            11
+            17
+            21
+          distribution: ${{ matrix.java-distribution }}
+          cache: maven
+
+      - name: Run integration test with multiply java versions
+        run: scripts/integration-test.sh
