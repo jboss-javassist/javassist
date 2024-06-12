@@ -1,5 +1,7 @@
 package test4;
 
+import java.util.List;
+
 enum GetAllRefEnum { A, B };
 
 @java.lang.annotation.Retention(java.lang.annotation.RetentionPolicy.RUNTIME)
@@ -30,4 +32,12 @@ class GetAllRefC {
              @GetAllRefAnnoC2 @GetAllRefAnnoC4 boolean b) {}
     @GetAllRefAnnoC void foo() {}
     @GetAllRefAnnoC2 int value;
+}
+
+@GetAllRefAnno(getA = GetAllRefEnum.A, getC = String.class)
+interface GetAllRefD {
+    void bar(@GetAllRefAnnoC3 int i, int j,
+             @GetAllRefAnnoC2 @GetAllRefAnnoC4 boolean b);
+    @GetAllRefAnnoC
+    List<GetAllRefC> foo();
 }
