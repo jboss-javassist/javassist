@@ -162,24 +162,27 @@ public class ObjectImporter implements java.io.Serializable {
     public Object lookupObject(String name) throws ObjectNotFoundException
     {
         try {
-            Socket sock = new Socket(servername, port);
-            OutputStream out = sock.getOutputStream();
-            out.write(lookupCommand);
-            out.write(endofline);
-            out.write(endofline);
+            int n;
+            String classname;
+            try (Socket sock = new Socket(servername, port)) {
+                OutputStream out = sock.getOutputStream();
+                out.write(lookupCommand);
+                out.write(endofline);
+                out.write(endofline);
 
-            ObjectOutputStream dout = new ObjectOutputStream(out);
-            dout.writeUTF(name);
-            dout.flush();
+                ObjectOutputStream dout = new ObjectOutputStream(out);
+                dout.writeUTF(name);
+                dout.flush();
 
-            InputStream in = new BufferedInputStream(sock.getInputStream());
-            skipHeader(in);
-            ObjectInputStream din = new ObjectInputStream(in);
-            int n = din.readInt();
-            String classname = din.readUTF();
-            din.close();
-            dout.close();
-            sock.close();
+                InputStream in = new BufferedInputStream(sock.getInputStream());
+                skipHeader(in);
+                ObjectInputStream din = new ObjectInputStream(in);
+                n = din.readInt();
+                classname = din.readUTF();
+
+                din.close();
+                dout.close();
+            }
 
             if (n >= 0)
                 return createProxy(n, classname);
@@ -231,33 +234,32 @@ public class ObjectImporter implements java.io.Serializable {
              *
              * lookupObject() has the same problem.
              */
-            Socket sock = new Socket(servername, port);
-            OutputStream out = new BufferedOutputStream(
-                                                sock.getOutputStream());
-            out.write(rmiCommand);
-            out.write(endofline);
-            out.write(endofline);
+            try (Socket sock = new Socket(servername, port)) {
+                OutputStream out = new BufferedOutputStream(sock.getOutputStream());
+                out.write(rmiCommand);
+                out.write(endofline);
+                out.write(endofline);
 
-            ObjectOutputStream dout = new ObjectOutputStream(out);
-            dout.writeInt(objectid);
-            dout.writeInt(methodid);
-            writeParameters(dout, args);
-            dout.flush();
+                ObjectOutputStream dout = new ObjectOutputStream(out);
+                dout.writeInt(objectid);
+                dout.writeInt(methodid);
+                writeParameters(dout, args);
+                dout.flush();
 
-            InputStream ins = new BufferedInputStream(sock.getInputStream());
-            skipHeader(ins);
-            ObjectInputStream din = new ObjectInputStream(ins);
-            result = din.readBoolean();
-            rvalue = null;
-            errmsg = null;
-            if (result)
-                rvalue = din.readObject();
-            else
-                errmsg = din.readUTF();
-
-            din.close();
-            dout.close();
-            sock.close();
+                InputStream ins = new BufferedInputStream(sock.getInputStream());
+                skipHeader(ins);
+                ObjectInputStream din = new ObjectInputStream(ins);
+                result = din.readBoolean();
+                rvalue = null;
+                errmsg = null;
+                if (result) {
+                    rvalue = din.readObject();
+                } else {
+                    errmsg = din.readUTF();
+                }
+                din.close();
+                dout.close();
+            }
 
             if (rvalue instanceof RemoteRef) {
                 RemoteRef ref = (RemoteRef)rvalue;
