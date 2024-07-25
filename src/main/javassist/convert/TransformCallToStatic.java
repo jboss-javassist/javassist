@@ -23,6 +23,9 @@ public class TransformCallToStatic extends TransformCall {
         }
         iterator.writeByte(Opcode.INVOKESTATIC, pos);
         iterator.write16bit(newIndex, pos + 1);
+        if (c == Opcode.INVOKEINTERFACE || c == Opcode.INVOKEDYNAMIC) {
+            iterator.writeByte(0, pos + 3);
+        }
         return pos;
     }
 }
