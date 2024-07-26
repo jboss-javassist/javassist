@@ -2,7 +2,7 @@
 
 ### version 3.31
 
-* GitHub PR #480, #484.
+* GitHub PR #480, #484, #486.
 
 ### version 3.30.2 on December 25, 2023
 
