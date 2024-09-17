@@ -643,4 +643,28 @@ public class JvstTest5 extends JvstTestRoot {
         //expected:<Man feed(Bear)> but was:<Keeper feed(Animal)>
         assertEquals(javacResult, javassistResult);
     }
+
+    public void testMultipleNestedClasses() throws Exception {
+        CtClass outer = sloader.makeClass("javassist.MultipleNestedClasses");
+        CtClass nested1 = outer.makeNestedClass("Nested1", true);
+        CtClass nested2 = outer.makeNestedClass("Nested2", true);
+
+        InnerClassesAttribute outerICA = (InnerClassesAttribute)
+                outer.getClassFile2().getAttribute(InnerClassesAttribute.tag);
+        assertEquals(2, outerICA.tableLength());
+        assertEquals("javassist.MultipleNestedClasses$Nested1", outerICA.innerClass(0));
+        assertEquals("javassist.MultipleNestedClasses$Nested2", outerICA.innerClass(1));
+
+        InnerClassesAttribute nested1ICA = (InnerClassesAttribute)
+                nested1.getClassFile2().getAttribute(InnerClassesAttribute.tag);
+        assertEquals(1, nested1ICA.tableLength());
+        assertEquals("javassist.MultipleNestedClasses", nested1ICA.outerClass(0));
+        assertEquals("javassist.MultipleNestedClasses$Nested1", nested1ICA.innerClass(0));
+
+        InnerClassesAttribute nested2ICA = (InnerClassesAttribute)
+                nested2.getClassFile2().getAttribute(InnerClassesAttribute.tag);
+        assertEquals(1, nested2ICA.tableLength());
+        assertEquals("javassist.MultipleNestedClasses", nested2ICA.outerClass(0));
+        assertEquals("javassist.MultipleNestedClasses$Nested2", nested2ICA.innerClass(0));
+    }
 }
