@@ -11,15 +11,15 @@ import java.util.Map;
 public class LineNumberAttributeBuilder {
     private final HashMap<Integer, Integer> map = new HashMap<>();
 
-    public void put(int newPc, ASTree tree) {
+    public void put(int pc, ASTree tree) {
         if (tree != null)
-            put(newPc, tree.getLineNumber());
+            put(pc, tree.getLineNumber());
     }
 
-    private void put(int newPc, int lineNum) {
-        Integer pc = map.get(lineNum);
-        if (pc == null || newPc < pc) {
-            map.put(lineNum, newPc);
+    private void put(int pc, int lineNum) {
+        Integer oldLineNum = map.get(pc);
+        if (oldLineNum == null || lineNum > oldLineNum) {
+            map.put(pc, lineNum);
         }
     }
 
@@ -29,8 +29,8 @@ public class LineNumberAttributeBuilder {
              DataOutputStream dos = new DataOutputStream(bos)) {
             dos.writeShort(size);
             for (Map.Entry<Integer, Integer> entry : map.entrySet()) {
-                dos.writeShort(entry.getValue());
                 dos.writeShort(entry.getKey());
+                dos.writeShort(entry.getValue());
             }
             return new LineNumberAttribute(cp, bos.toByteArray());
         } catch (IOException e) {
