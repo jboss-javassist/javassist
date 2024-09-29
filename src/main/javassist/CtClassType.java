@@ -932,14 +932,17 @@ class CtClassType extends CtClass {
         ClassFile cf2 = c.getClassFile2();
         InnerClassesAttribute ica = (InnerClassesAttribute)cf.getAttribute(
                                                 InnerClassesAttribute.tag);
+        InnerClassesAttribute ica2 = new InnerClassesAttribute(cf2.getConstPool());
+        int flags = (cf2.getAccessFlags() & ~AccessFlag.SUPER) | AccessFlag.STATIC;
+
         if (ica == null) {
             ica = new InnerClassesAttribute(cf.getConstPool());
             cf.addAttribute(ica);
         }
 
-        ica.append(c.getName(), this.getName(), name,
-                   (cf2.getAccessFlags() & ~AccessFlag.SUPER) | AccessFlag.STATIC);
-        cf2.addAttribute(ica.copy(cf2.getConstPool(), null));
+        ica.append(c.getName(), this.getName(), name, flags);
+        ica2.append(c.getName(), this.getName(), name, flags);
+        cf2.addAttribute(ica2);
         return c;
     }
 
