@@ -59,6 +59,24 @@ public class LineNumberTest extends TestCase {
                 "}"), 1, 5);
     }
 
+    public void test16Line() {
+        doTestRuntime(String.join("\n",
+                "public void run() {",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "throwException();",
+                "}"), 1, 16);
+    }
+
     private void doTestCompile(String src, String msg) {
         CtClass testClass = loader.makeClass("javassist.LineNumberCompileTest" + classNumber++);
         try {
