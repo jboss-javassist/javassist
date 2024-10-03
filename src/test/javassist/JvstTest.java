@@ -1154,6 +1154,7 @@ public class JvstTest extends JvstTestRoot {
         suite.addTestSuite(JvstTest4.class);
         suite.addTestSuite(JvstTest5.class);
         suite.addTestSuite(LoaderTestByRandall.class);
+        suite.addTestSuite(LineNumberTest.class);
         suite.addTestSuite(javassist.bytecode.BytecodeTest.class);
         suite.addTestSuite(javassist.bytecode.StackMapTest.class);
         suite.addTestSuite(javassist.compiler.CompTest.class);
