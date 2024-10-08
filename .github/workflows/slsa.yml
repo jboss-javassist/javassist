@@ -1,0 +1,24 @@
+# This builds a SLSA provenance statement for the artifacts in 'artifact-list'.
+---
+name: SLSA Provenance
+on:
+  - workflow_dispatch
+
+permissions: read-all
+
+env:
+  GH_TOKEN: ${{ github.token }}
+  ISSUE_REPOSITORY: ${{ github.repository }}
+jobs:
+  usetrw:
+    permissions:
+      contents: write
+      id-token: write
+      actions: read
+      packages: write
+    uses: AdamKorcz/java-slsa-generator/.github/workflows/trw.yml@main
+    with:
+      rekor-log-public: true
+      jdk-version: 11
+      artifact-list: |
+        ./target/javassist-PROJECT_VERSION.jar
