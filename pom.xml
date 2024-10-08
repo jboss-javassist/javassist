@@ -170,8 +170,6 @@
         <configuration>
           <source>1.8</source>
           <target>1.8</target>
-          <testSource>11</testSource>
-          <testTarget>11</testTarget>
           <testCompilerArgument>-parameters</testCompilerArgument>
         </configuration>
       </plugin>
