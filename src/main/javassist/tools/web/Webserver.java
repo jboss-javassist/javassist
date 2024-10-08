@@ -200,24 +200,21 @@ public class Webserver {
     }
 
     final void process(Socket clnt) throws IOException {
-        InputStream in = new BufferedInputStream(clnt.getInputStream());
-        String cmd = readLine(in);
-        logging(clnt.getInetAddress().getHostName(),
-                new Date().toString(), cmd);
-        while (skipLine(in) > 0){
+        try (InputStream in = new BufferedInputStream(clnt.getInputStream())) {
+            String cmd = readLine(in);
+            logging(clnt.getInetAddress().getHostName(),
+                    new Date().toString(), cmd);
+            while (skipLine(in) > 0) {}
+            try (OutputStream out 
+                    = new BufferedOutputStream(clnt.getOutputStream())) {
+                try {
+                    doReply(in, out, cmd);
+                } catch (BadHttpRequest e) {
+                    replyError(out, e);
+                }
+                out.flush();
+            }
         }
-
-        OutputStream out = new BufferedOutputStream(clnt.getOutputStream());
-        try {
-            doReply(in, out, cmd);
-        }
-        catch (BadHttpRequest e) {
-            replyError(out, e);
-        }
-
-        out.flush();
-        in.close();
-        out.close();
         clnt.close();
     }
 
@@ -285,16 +282,16 @@ public class Webserver {
         File file = new File(filename);
         if (file.canRead()) {
             sendHeader(out, file.length(), fileType);
-            FileInputStream fin = new FileInputStream(file);
-            byte[] filebuffer = new byte[4096];
-            for (;;) {
-                len = fin.read(filebuffer);
-                if (len <= 0)
-                    break;
-                out.write(filebuffer, 0, len);
+            try (FileInputStream fin = new FileInputStream(file)) {
+                byte[] filebuffer = new byte[4096];
+                for (;;) {
+                    len = fin.read(filebuffer);
+                    if (len <= 0) {
+                        break;
+                    }
+                    out.write(filebuffer, 0, len);
+                }
             }
-
-            fin.close();
             return;
         }
 
@@ -302,23 +299,24 @@ public class Webserver {
         // then Class.getResourceAsStream() is tried.
 
         if (fileType == typeClass) {
-            InputStream fin
-                = getClass().getResourceAsStream("/" + urlName);
-            if (fin != null) {
-                ByteArrayOutputStream barray = new ByteArrayOutputStream();
-                byte[] filebuffer = new byte[4096];
-                for (;;) {
-                    len = fin.read(filebuffer);
-                    if (len <= 0)
-                        break;
-                    barray.write(filebuffer, 0, len);
-                }
+            try (InputStream fin 
+                    = getClass().getResourceAsStream("/" + urlName)) {
+                if (fin != null) {
+                    ByteArrayOutputStream barray = new ByteArrayOutputStream();
+                    byte[] filebuffer = new byte[4096];
+                    for (;;) {
+                        len = fin.read(filebuffer);
+                        if (len <= 0) {
+                            break;
+                        }
+                        barray.write(filebuffer, 0, len);
+                    }
 
-                byte[] classfile = barray.toByteArray();
-                sendHeader(out, classfile.length, typeClass);
-                out.write(classfile);
-                fin.close();
-                return;
+                    byte[] classfile = barray.toByteArray();
+                    sendHeader(out, classfile.length, typeClass);
+                    out.write(classfile);
+                    return;
+                }
             }
         }
 

@@ -1620,12 +1620,8 @@ class CtClassType extends CtClass {
 
     private void dumpClassFile(ClassFile cf) throws IOException
     {
-        DataOutputStream dump = makeFileOutput(debugDump);
-        try {
+        try (DataOutputStream dump = makeFileOutput(debugDump)) {
             cf.write(dump);
-        }
-        finally {
-            dump.close();
         }
     }
 

@@ -155,46 +155,37 @@ public class AppletServer extends Webserver {
     }
 
     private void processRMI(InputStream ins, OutputStream outs)
-        throws IOException
-    {
-        ObjectInputStream in = new ObjectInputStream(ins);
-
-        int objectId = in.readInt();
-        int methodId = in.readInt();
-        Exception err = null;
-        Object rvalue = null;
-        try {
-            ExportedObject eo = exportedObjects.get(objectId);
-            Object[] args = readParameters(in);
-            rvalue = convertRvalue(eo.methods[methodId].invoke(eo.object,
-                                                               args));
-        }
-        catch(Exception e) {
-            err = e;
-            logging2(e.toString());
-        }
-
-        outs.write(okHeader);
-        ObjectOutputStream out = new ObjectOutputStream(outs);
-        if (err != null) {
-            out.writeBoolean(false);
-            out.writeUTF(err.toString());
-        }
-        else
+            throws IOException {
+        try (ObjectInputStream in = new ObjectInputStream(ins)) {
+            int objectId = in.readInt();
+            int methodId = in.readInt();
+            Exception err = null;
+            Object rvalue = null;
             try {
-                out.writeBoolean(true);
-                out.writeObject(rvalue);
-            }
-            catch (NotSerializableException e) {
+                ExportedObject eo = exportedObjects.get(objectId);
+                Object[] args = readParameters(in);
+                rvalue = convertRvalue(eo.methods[methodId].invoke(eo.object,
+                        args));
+            } catch (Exception e) {
+                err = e;
                 logging2(e.toString());
             }
-            catch (InvalidClassException e) {
-                logging2(e.toString());
+            outs.write(okHeader);
+            try (ObjectOutputStream out = new ObjectOutputStream(outs)) {
+                if (err != null) {
+                    out.writeBoolean(false);
+                    out.writeUTF(err.toString());
+                } else {
+                    try {
+                        out.writeBoolean(true);
+                        out.writeObject(rvalue);
+                    } catch (NotSerializableException | InvalidClassException e) {
+                        logging2(e.toString());
+                    }
+                }
+                out.flush();
             }
-
-        out.flush();
-        out.close();
-        in.close();
+        }
     }
 
     private Object[] readParameters(ObjectInputStream in)
@@ -229,27 +220,25 @@ public class AppletServer extends Webserver {
     }
 
     private void lookupName(String cmd, InputStream ins, OutputStream outs)
-        throws IOException
-    {
-        ObjectInputStream in = new ObjectInputStream(ins);
-        String name = DataInputStream.readUTF(in);
-        ExportedObject found = exportedNames.get(name);
-        outs.write(okHeader);
-        ObjectOutputStream out = new ObjectOutputStream(outs);
-        if (found == null) {
-            logging2(name + "not found.");
-            out.writeInt(-1);           // error code
-            out.writeUTF("error");
-        }
-        else {
-            logging2(name);
-            out.writeInt(found.identifier);
-            out.writeUTF(found.object.getClass().getName());
-        }
+            throws IOException {
+        try (ObjectInputStream in = new ObjectInputStream(ins)) {
+            String name = DataInputStream.readUTF(in);
+            ExportedObject found = exportedNames.get(name);
+            outs.write(okHeader);
+            try (ObjectOutputStream out = new ObjectOutputStream(outs)) {
+                if (found == null) {
+                    logging2(name + "not found.");
+                    out.writeInt(-1);           // error code
+                    out.writeUTF("error");
+                } else {
+                    logging2(name);
+                    out.writeInt(found.identifier);
+                    out.writeUTF(found.object.getClass().getName());
+                }
 
-        out.flush();
-        out.close();
-        in.close();
+                out.flush();
+            }
+        }
     }
 }
 
