@@ -313,7 +313,7 @@ public class BytecodeTest extends TestCase {
 
     public void testDeprecatedAttribute() throws Exception {
         CtClass cc = loader.get("java.lang.Thread");
-        CtMethod m = cc.getDeclaredMethod("suspend");
+        CtMethod m = cc.getDeclaredMethod("stop");
         MethodInfo minfo = m.getMethodInfo();
         DeprecatedAttribute ainfo
             = (DeprecatedAttribute)minfo.getAttribute(DeprecatedAttribute.tag);
