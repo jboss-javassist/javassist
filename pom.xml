@@ -4,7 +4,7 @@
 
   <groupId>org.javassist</groupId>
   <artifactId>javassist</artifactId>
-  <version>3.30.2-GA</version>
+  <version>3.31.0-GA</version>
   <packaging>bundle</packaging>
   <name>Javassist</name>
   <description>
@@ -295,7 +295,7 @@ Copyright (C) ${project.inceptionYear}- Shigeru Chiba. All Rights Reserved.</i>]
       <!-- obviously we need to use the Sonatype staging repo for upload -->
       <distributionManagement>
         <repository>
-          <id>sonatype-releases-repository</id>
+          <id>central</id>
           <name>Sonatype Releases Repository</name>
           <url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>
         </repository>
@@ -303,6 +303,15 @@ Copyright (C) ${project.inceptionYear}- Shigeru Chiba. All Rights Reserved.</i>]
       <!-- we need to be able to sign the jars we install -->
       <build>
         <plugins>
+          <plugin>
+            <groupId>org.sonatype.central</groupId>
+            <artifactId>central-publishing-maven-plugin</artifactId>
+            <version>0.9.0</version>
+            <extensions>true</extensions>
+            <configuration>
+              <publishingServerId>central</publishingServerId>
+            </configuration>
+          </plugin>
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-gpg-plugin</artifactId>
@@ -323,41 +332,6 @@ Copyright (C) ${project.inceptionYear}- Shigeru Chiba. All Rights Reserved.</i>]
           </plugin>
         </plugins>
       </build>
-    </profile>
-    <!-- profiles to add tools jar containing com.sun.jdi code
-         needed by sample code
-      -->
-    <profile>
-      <id>default-tools</id>
-      <activation>
-        <jdk>[,1.8]</jdk>
-      </activation>
-      <dependencies>
-        <dependency>
-          <groupId>com.sun</groupId>
-          <artifactId>tools</artifactId>
-          <version>${java.version}</version>
-          <scope>system</scope>
-          <optional>true</optional>
-          <systemPath>${java.home}/../lib/tools.jar</systemPath>
-        </dependency>
-      </dependencies>
-    </profile>
-    <profile>
-      <id>java9-tools</id>
-      <activation>
-        <jdk>[1.9,]</jdk>
-      </activation>
-      <dependencies>
-        <dependency>
-          <groupId>com.sun</groupId>
-          <artifactId>tools</artifactId>
-          <version>${java.version}</version>
-          <scope>system</scope>
-          <optional>true</optional>
-          <systemPath>${java.home}/lib/jrt-fs.jar</systemPath>
-        </dependency>
-      </dependencies>
     </profile>
   </profiles>
 </project>
