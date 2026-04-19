@@ -1,8 +1,8 @@
 ### Changes
 
-### version 3.31
+### version 3.31.0 on April 20, 2026
 
-* GitHub PR #480, #484, #486, #491, #492
+* GitHub PR #480, #484, #486, #491, #492, #495, #506
 
 ### version 3.30.2 on December 25, 2023
 
