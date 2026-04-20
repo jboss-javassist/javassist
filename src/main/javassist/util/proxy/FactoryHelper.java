@@ -179,14 +179,9 @@ public class FactoryHelper {
 
     private static byte[] toBytecode(ClassFile cf) throws IOException {
         ByteArrayOutputStream barray = new ByteArrayOutputStream();
-        DataOutputStream out = new DataOutputStream(barray);
-        try {
+        try (DataOutputStream out = new DataOutputStream(barray)) {
             cf.write(out);
         }
-        finally {
-            out.close();
-        }
-
         return barray.toByteArray();
     }
 
@@ -215,16 +210,12 @@ public class FactoryHelper {
                 new File(dir).mkdirs();
         }
 
-        DataOutputStream out = new DataOutputStream(new BufferedOutputStream(
-                new FileOutputStream(filename)));
-        try {
+        try (DataOutputStream out = new DataOutputStream(new BufferedOutputStream(
+                new FileOutputStream(filename)))) {
             cf.write(out);
         }
         catch (IOException e) {
             throw e;
-        }
-        finally {
-            out.close();
         }
     }
 }

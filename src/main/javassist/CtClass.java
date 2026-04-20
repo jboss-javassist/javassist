@@ -1516,14 +1516,9 @@ public abstract class CtClass {
      */
     public byte[] toBytecode() throws IOException, CannotCompileException {
         ByteArrayOutputStream barray = new ByteArrayOutputStream();
-        DataOutputStream out = new DataOutputStream(barray);
-        try {
+        try (DataOutputStream out = new DataOutputStream(barray)) {
             toBytecode(out);
         }
-        finally {
-            out.close();
-        }
-
         return barray.toByteArray();
     }
 
@@ -1553,12 +1548,8 @@ public abstract class CtClass {
     public void writeFile(String directoryName)
         throws CannotCompileException, IOException
     {
-        DataOutputStream out = makeFileOutput(directoryName);
-        try {
+        try (DataOutputStream out = makeFileOutput(directoryName)) {
             toBytecode(out);
-        }
-        finally {
-            out.close();
         }
     }
 

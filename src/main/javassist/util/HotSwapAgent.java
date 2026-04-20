@@ -202,20 +202,12 @@ public class HotSwapAgent {
         attrs.put(new Attributes.Name("Can-Retransform-Classes"), "true");
         attrs.put(new Attributes.Name("Can-Redefine-Classes"), "true");
 
-        JarOutputStream jos = null;
-        try {
-            jos = new JarOutputStream(new FileOutputStream(jar), manifest);
+        try (JarOutputStream jos = new JarOutputStream(new FileOutputStream(jar), manifest)) {
             String cname = HotSwapAgent.class.getName();
-            JarEntry e = new JarEntry(cname.replace('.', '/') + ".class");
-            jos.putNextEntry(e);
-            ClassPool pool = ClassPool.getDefault();
-            CtClass clazz = pool.get(cname);
+            jos.putNextEntry(new JarEntry(cname.replace('.', '/') + ".class"));
+            CtClass clazz = ClassPool.getDefault().get(cname);
             jos.write(clazz.toBytecode());
             jos.closeEntry();
-        }
-        finally {
-            if (jos != null)
-                jos.close();
         }
 
         return jar;
