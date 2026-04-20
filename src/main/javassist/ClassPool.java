@@ -27,6 +27,9 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Iterator;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import javassist.bytecode.ClassFile;
 import javassist.bytecode.Descriptor;
@@ -98,7 +101,7 @@ public class ClassPool {
      */
     public static boolean doPruning = false;
 
-    private int compressCount;
+    private final AtomicInteger compressCount = new AtomicInteger(0);
     private static final int COMPRESS_THRESHOLD = 100;
 
     /* releaseUnmodifiedClassFile was introduced for avoiding a bug
@@ -123,7 +126,7 @@ public class ClassPool {
 
     protected ClassPoolTail source;
     protected ClassPool parent;
-    protected Hashtable classes;        // should be synchronous
+    protected final Map<String, CtClass> classes;
 
     /**
      * Table of registered cflow variables.
@@ -164,7 +167,7 @@ public class ClassPool {
      * @see javassist.ClassPool#getDefault()
      */
     public ClassPool(ClassPool parent) {
-        this.classes = new Hashtable(INIT_HASH_SIZE);
+        this.classes = new ConcurrentHashMap<>(INIT_HASH_SIZE);
         this.source = new ClassPoolTail();
         this.parent = parent;
         if (parent == null) {
@@ -174,7 +177,6 @@ public class ClassPool {
         }
 
         this.cflow = null;
-        this.compressCount = 0;
         clearImportedPackages();
     }
 
@@ -259,11 +261,15 @@ public class ClassPool {
      * footprint will be minimized.
      */
     void compress() {
-        if (compressCount++ > COMPRESS_THRESHOLD) {
-            compressCount = 0;
-            Enumeration e = classes.elements();
-            while (e.hasMoreElements())
-                ((CtClass)e.nextElement()).compress();
+        int currentVal = compressCount.incrementAndGet();
+        if (currentVal > COMPRESS_THRESHOLD) {
+            synchronized (classes) {
+                if (compressCount.get() <= COMPRESS_THRESHOLD) {
+                    return;
+                }
+                compressCount.set(0);
+                classes.values().forEach(CtClass::compress);
+            }
         }
     }
 
