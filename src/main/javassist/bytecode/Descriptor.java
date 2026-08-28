@@ -189,6 +189,55 @@ public class Descriptor {
     }
 
     /**
+     * Substitutes class names and generics in the given descriptor string
+     * according to the given <code>map</code>.
+     *
+     * @param map a map between replaced and substituted
+     *            JVM class names.
+     * @see Descriptor#toJvmName(String)
+     */
+    public static String renameIncludeGenerics(String desc, Map<String, String> map) {
+        if (map == null)
+            return desc;
+
+        StringBuilder newdesc = new StringBuilder();
+        int head = 0;
+        int i = 0;
+        for (; ; ) {
+            int j = desc.indexOf('L', i);
+            if (j < 0)
+                break;
+
+            int x = desc.indexOf('<', j);
+            int y = desc.indexOf(';', j);
+            if (x == y)
+                break;
+            int k = x == -1 ? y : 0;
+            if (k == 0)
+                k = Math.min(x,y);
+
+            i = k + 1;
+            String name = desc.substring(j + 1, k);
+            String name2 = map.get(name);
+            if (name2 != null) {
+                newdesc.append(desc.substring(head, j));
+                newdesc.append('L');
+                newdesc.append(name2);
+                newdesc.append(';');
+                head = i;
+            }
+        }
+
+        if (head == 0)
+            return desc;
+        int len = desc.length();
+        if (head < len)
+            newdesc.append(desc.substring(head, len));
+
+        return newdesc.toString();
+    }
+
+    /**
      * Substitutes class names in the given descriptor string
      * according to the given <code>map</code>.
      *
