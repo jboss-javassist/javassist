@@ -12,4 +12,5 @@ tmp/
 .project
 .settings
 TestLog.xml
+.flattened-pom.xml
 *~
