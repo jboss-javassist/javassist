@@ -129,7 +129,7 @@ public class ScopedClassPool extends ClassPool {
      * @param classname
      *            the class to flush
      */
-    public synchronized void flushClass(String classname) {
+    public void flushClass(String classname) {
         classes.remove(classname);
         softcache.remove(classname);
     }
@@ -140,11 +140,11 @@ public class ScopedClassPool extends ClassPool {
      * @param clazz
      *            the class
      */
-    public synchronized void soften(CtClass clazz) {
+    public void soften(CtClass clazz) {
         if (repository.isPrune())
             clazz.prune();
-        classes.remove(clazz.getName());
         softcache.put(clazz.getName(), clazz);
+        classes.remove(clazz.getName());
     }
 
     /**
@@ -250,9 +250,7 @@ public class ScopedClassPool extends ClassPool {
         CtClass cached = (CtClass)classes.get(classname);
         if (cached != null)
             return cached;
-        synchronized (softcache) {
-            return (CtClass)softcache.get(classname);
-        }
+        return softcache.get(classname);
     }
 
     /**
@@ -264,15 +262,13 @@ public class ScopedClassPool extends ClassPool {
      * @throws NotFoundException
      *             when the class is not found
      */
-    public synchronized CtClass getLocally(String classname)
+    public CtClass getLocally(String classname)
             throws NotFoundException {
+        CtClass clazz = getOrCreate(classname, true);
         softcache.remove(classname);
-        CtClass clazz = (CtClass)classes.get(classname);
+
         if (clazz == null) {
-            clazz = createCtClass(classname, true);
-            if (clazz == null)
-                throw new NotFoundException(classname);
-            super.cacheCtClass(classname, clazz, false);
+            throw new NotFoundException(classname);
         }
 
         return clazz;
