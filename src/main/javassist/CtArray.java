@@ -63,9 +63,11 @@ final class CtArray extends CtClass
             Class<?>[] intfs = Object[].class.getInterfaces();
             // java.lang.Cloneable and java.io.Serializable.
             // If the JVM is CLDC, intfs is empty.
-            interfaces = new CtClass[intfs.length];
-            for (int i = 0; i < intfs.length; i++)
-                interfaces[i] = pool.get(intfs[i].getName());
+            CtClass[] tempInterfaces = new CtClass[intfs.length];
+            for (int i = 0; i < intfs.length; i++) {
+                tempInterfaces[i] = pool.get(intfs[i].getName());
+            }
+            interfaces = tempInterfaces;
         }
 
         return interfaces;
