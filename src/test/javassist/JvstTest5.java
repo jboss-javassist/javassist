@@ -26,6 +26,41 @@ import junit.framework.Assert;
 @SuppressWarnings({"rawtypes","unchecked","unused"})
 public class JvstTest5 extends JvstTestRoot {
 
+    public static class ModifierSample {
+        public transient int field;
+        public ModifierSample(String... args) {}
+        public void method(String... args) {}
+    }
+
+    public void testVarargsMethod() throws Exception {
+        CtClass type = ClassPool.getDefault().get(ModifierSample.class.getName());
+        CtMethod method = type.getDeclaredMethod("method");
+        int modifiers = method.getModifiers();
+        assertTrue(Modifier.isVarArgs(modifiers));
+        assertTrue(method.toString().contains("[public method "));
+        assertEquals(modifiers, method.getModifiers());
+    }
+
+    public void testVarargsConstructor() throws Exception {
+        CtClass type = ClassPool.getDefault().get(ModifierSample.class.getName());
+        CtConstructor constructor = type.getDeclaredConstructors()[0];
+        assertTrue(Modifier.isVarArgs(constructor.getModifiers()));
+        assertFalse(constructor.toString().contains("transient"));
+    }
+
+    public void testBridgeMethodModifiers() throws Exception {
+        CtClass type = new ClassPool(true).makeClass("BridgeMethodModifiers");
+        CtMethod method = new CtMethod(CtClass.voidType, "bridge", new CtClass[0], type);
+        method.setModifiers(Modifier.PUBLIC | AccessFlag.BRIDGE);
+        assertTrue(method.toString().contains("[public bridge "));
+        assertEquals(Modifier.PUBLIC | AccessFlag.BRIDGE, method.getModifiers());
+    }
+
+    public void testFieldModifiers() throws Exception {
+        CtClass type = ClassPool.getDefault().get(ModifierSample.class.getName());
+        assertEquals("public transient", Modifier.toString(type.getDeclaredField("field").getModifiers()));
+    }
+
     public void testDollarClassInStaticMethod() throws Exception {
         CtClass cc = sloader.makeClass("test5.DollarClass");
         CtMethod m = CtNewMethod.make("public static int run(){ return $class.getName().length(); }", cc);

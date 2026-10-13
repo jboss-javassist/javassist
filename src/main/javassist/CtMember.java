@@ -159,7 +159,10 @@ public abstract class CtMember {
         buffer.append('@');
         buffer.append(Integer.toHexString(hashCode()));
         buffer.append('[');
-        buffer.append(Modifier.toString(getModifiers()));
+        int modifiers = getModifiers();
+        if (this instanceof CtBehavior)
+            modifiers &= java.lang.reflect.Modifier.methodModifiers();
+        buffer.append(Modifier.toString(modifiers));
         extendToString(buffer);
         buffer.append(']');
         return buffer.toString();
