@@ -22,6 +22,7 @@ import javassist.CtBehavior;
 import javassist.CtClass;
 import javassist.CtMethod;
 import javassist.NotFoundException;
+import javassist.bytecode.AccessFlag;
 import javassist.bytecode.BadBytecode;
 import javassist.bytecode.Bytecode;
 import javassist.bytecode.CodeAttribute;
@@ -31,6 +32,15 @@ import javassist.bytecode.Descriptor;
 import javassist.bytecode.MethodInfo;
 import javassist.compiler.CompileError;
 import javassist.compiler.Javac;
+import javassist.compiler.JvstCodeGen;
+import javassist.compiler.JvstTypeChecker;
+import javassist.compiler.MemberResolver;
+import javassist.compiler.ProceedHandler;
+import javassist.compiler.TokenId;
+import javassist.compiler.ast.ASTList;
+import javassist.compiler.ast.CallExpr;
+import javassist.compiler.ast.Member;
+import javassist.compiler.ast.Symbol;
 
 /**
  * Method invocation (caller-side expression).
@@ -228,7 +238,8 @@ public class MethodCall extends Expr {
                             true, paramVar, withinStatic());
             int retVar = jc.recordReturnType(retType, true);
             if (c == INVOKESTATIC)
-                jc.recordStaticProceed(classname, methodname);
+                jc.recordProceed(new ProceedForStatic(classname, methodname,
+                                                     signature, index, retType));
             else if (c == INVOKESPECIAL)
                 jc.recordSpecialProceed(Javac.param0Name, classname,
                                         methodname, signature, index);
@@ -258,6 +269,65 @@ public class MethodCall extends Expr {
         catch (NotFoundException e) { throw new CannotCompileException(e); }
         catch (BadBytecode e) {
             throw new CannotCompileException("broken method");
+        }
+    }
+
+    private static class ProceedForStatic implements ProceedHandler {
+        private final String classname;
+        private final String methodname;
+        private final String descriptor;
+        private final int index;
+        private final CtClass returnType;
+
+        ProceedForStatic(String owner, String name, String signature,
+                         int methodIndex, CtClass type) {
+            classname = owner;
+            methodname = name;
+            descriptor = signature;
+            index = methodIndex;
+            returnType = type;
+        }
+
+        private CallExpr makeCall(ASTList args, int lineNumber) {
+            javassist.compiler.ast.Expr target = javassist.compiler.ast.Expr.make(
+                    TokenId.MEMBER, new Symbol(classname, lineNumber),
+                    new Member(methodname, lineNumber), lineNumber);
+            return CallExpr.makeCall(target, args, lineNumber);
+        }
+
+        @Override
+        public void doit(JvstCodeGen gen, Bytecode bytecode, ASTList args, int lineNumber)
+            throws CompileError
+        {
+            CallExpr call = makeCall(args, lineNumber);
+            gen.doTypeCheck(call);
+            MemberResolver.Method selected = call.getMethod();
+            if (selected != null
+                    && classname.equals(selected.declaring.getName())
+                    && methodname.equals(selected.info.getName())
+                    && descriptor.equals(selected.info.getDescriptor())
+                    && (selected.info.getAccessFlags() & (AccessFlag.PRIVATE | AccessFlag.STATIC))
+                        == (AccessFlag.PRIVATE | AccessFlag.STATIC)) {
+                // Keep the original reference so private calls need no new accessor.
+                int nargs = gen.getMethodArgsLength(args);
+                gen.atMethodArgs(args, new int[nargs], new int[nargs], new String[nargs]);
+                bytecode.add(INVOKESTATIC);
+                bytecode.addIndex(index);
+                bytecode.growStack(Descriptor.dataSize(descriptor));
+                gen.setType(returnType, lineNumber);
+            }
+            else
+                call.accept(gen);
+
+            gen.addNullIfVoid();
+        }
+
+        @Override
+        public void setReturnType(JvstTypeChecker checker, ASTList args, int lineNumber)
+            throws CompileError
+        {
+            makeCall(args, lineNumber).accept(checker);
+            checker.addNullIfVoid();
         }
     }
 }
