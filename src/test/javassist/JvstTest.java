@@ -1154,6 +1154,7 @@ public class JvstTest extends JvstTestRoot {
 
     public static Test suite() {
         TestSuite suite = new TestSuite("Javassist Tests");
+        suite.addTestSuite(AddCatchLocalVariableTest.class);
         suite.addTestSuite(JvstTest.class);
         suite.addTestSuite(JvstTest2.class);
         suite.addTestSuite(JvstTest3.class);

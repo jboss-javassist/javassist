@@ -552,6 +552,32 @@ catch (java.io.IOException e) {
 <p>Note that the inserted code fragment must end with a
 <code>throw</code> or <code>return</code> statement.
 
+<p>To access an instrumentation local variable from a catch clause, use
+<code>addCatch(src, exceptionType, exceptionName, initializer)</code>.
+The initializer executes before the current method body, including previously
+inserted entry code, and outside the new catch clause.  For example:
+
+<ul><pre>
+m.addLocalVariable("context", pool.get("java.lang.Object"));
+m.insertBefore("context = Tracer.start();");
+m.insertAfter("Tracer.finished(context);");
+m.addCatch("{ Tracer.failed(context, $e); throw $e; }",
+           pool.get("java.lang.Throwable"), "$e", "context = null;");
+</pre></ul>
+
+<p>Even if <code>Tracer.start()</code> throws before assigning its result,
+the catch clause can safely read the initialized <code>context</code>.
+All local variables read by the catch clause must have valid values throughout
+the protected body.  Use <code>addLocalVariable()</code> to declare locals
+shared by the snippets; declarations inside the initializer are not shared.
+If the initializer itself throws, the new catch clause does not handle it.
+In constructors, the initializer runs before <code>this()</code> or
+<code>super()</code> and cannot access the uninitialized receiver; the catch
+clause still starts after constructor delegation returns.
+The existing overloads, and a null initializer, retain their original behavior.
+Like the existing overloads, the new overload modifies the method body in place;
+changes already made are not rolled back if compilation or stack-map rebuilding fails.
+
 <p><br>
 
 <a name="alter">

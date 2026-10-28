@@ -1163,17 +1163,86 @@ public abstract class CtBehavior extends CtMember {
                          String exceptionName)
         throws CannotCompileException
     {
+        addCatch(src, exceptionType, exceptionName, null);
+    }
+
+    /**
+     * Adds a catch clause that can access initialized local variables.
+     * The initializer is prepended to the current method body and runs
+     * outside the new catch clause.  Variables declared with
+     * {@link #addLocalVariable(String, CtClass)} are visible in both snippets.
+     * Every local variable read by the handler must be initialized by the
+     * initializer or otherwise have a valid value throughout the protected
+     * body.  Declaring a variable inside the initializer does not make it
+     * visible in the handler.
+     *
+     * <p>For example, after declaring an Object local named {@code context}
+     * and inserting code that assigns it, this adds an error callback:
+     * <pre>
+     * addCatch("{ onError(context, $e); throw $e; }",
+     *          throwableType, "$e", "context = null;");
+     * </pre>
+     *
+     * <p>The initializer executes before any previously inserted entry code.
+     * If it throws, this handler is not invoked.  In a constructor the
+     * initializer runs before the constructor delegation, so it must obey
+     * the same restrictions as {@link #insertBefore(String)}.  The catch
+     * clause only protects code after {@code super()} or {@code this()}
+     * returns, as with the other addCatch overloads.
+     *
+     * <p>Like the other addCatch overloads, this method modifies the method
+     * body in place.  If compilation or stack-map rebuilding fails, changes
+     * already made are not rolled back.  Passing null as the initializer
+     * retains the behavior of {@link #addCatch(String, CtClass, String)},
+     * including its local variable visibility rules.
+     *
+     * @param src           the catch clause, ending with return or throw.
+     * @param exceptionType the type of exception to catch.
+     * @param exceptionName the handler's exception variable, such as $e.
+     * @param initializer   a statement or block executed before the protected
+     *                      body, or null for the existing addCatch behavior.
+     */
+    public void addCatch(String src, CtClass exceptionType,
+                         String exceptionName, String initializer)
+        throws CannotCompileException
+    {
         CtClass cc = declaringClass;
         cc.checkModify();
         ConstPool cp = methodInfo.getConstPool();
         CodeAttribute ca = methodInfo.getCodeAttribute();
-        CodeIterator iterator = ca.iterator();
-        Bytecode b = new Bytecode(cp, ca.getMaxStack(), ca.getMaxLocals());
-        b.setStackDepth(1);
-        Javac jv = new Javac(b, cc);
+        if (ca == null)
+            throw new CannotCompileException("no method body");
+
         try {
+            int initializedEnd = 0;
+            if (initializer != null) {
+                Javac init = new Javac(cc);
+                int params = init.recordParams(getParameterTypes(),
+                                    Modifier.isStatic(getModifiers()));
+                init.recordParamNames(ca, params);
+                init.recordLocalVariables(ca, 0);
+                init.recordReturnType(getReturnType0(), false);
+                init.setMaxLocals(ca.getMaxLocals());
+                init.compileStmnt(initializer);
+                Bytecode entry = init.getBytecode();
+                CodeIterator insertion = ca.iterator();
+                int pos = insertion.insertEx(entry.get());
+                insertion.insert(entry.getExceptionTable(), pos);
+                initializedEnd = pos + entry.length();
+                ca.setMaxStack(Math.max(ca.getMaxStack(), entry.getMaxStack()));
+                ca.setMaxLocals(Math.max(ca.getMaxLocals(), entry.getMaxLocals()));
+            }
+
+            CodeIterator iterator = ca.iterator();
+            Bytecode b = new Bytecode(cp, ca.getMaxStack(), ca.getMaxLocals());
+            b.setStackDepth(1);
+            Javac jv = new Javac(b, cc);
             jv.recordParams(getParameterTypes(),
                             Modifier.isStatic(getModifiers()));
+            if (initializer != null) {
+                jv.recordLocalVariables(ca, 0);
+                jv.setMaxLocals(ca.getMaxLocals());
+            }
             int var = jv.recordVariable(exceptionType, exceptionName);
             b.addAstore(var);
             jv.compileStmnt(src);
@@ -1189,7 +1258,8 @@ public abstract class CtBehavior extends CtMember {
 
             int len = iterator.getCodeLength();
             int pos = iterator.append(b.get());
-            ca.getExceptionTable().add(getStartPosOfBody(ca), len, len,
+            int start = Math.max(getStartPosOfBody(ca), initializedEnd);
+            ca.getExceptionTable().add(start, len, pos,
                                        cp.addClassInfo(exceptionType));
             iterator.append(b.getExceptionTable(), pos);
             methodInfo.rebuildStackMapIf6(cc.getClassPool(), cc.getClassFile2());
