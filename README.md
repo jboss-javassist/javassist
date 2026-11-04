@@ -29,6 +29,9 @@ This readme file.
   * [Changes.md](Changes.md)
   Release notes.
 
+  * [LICENSE.md](LICENSE.md)
+Overview of the license choices and links to the full plain-text licenses.
+
   * [License.html](License.html)
 License file.
 
