@@ -437,6 +437,45 @@ public class BytecodeTest extends TestCase {
         assertEquals(j, cp.addClassInfo("test1.Bar"));
     }
 
+    public void testPermittedSubclassesRename() throws Exception {
+        ClassFile cf = readBack(makeSealedClassFile());
+        cf.renameClass("test1.Square", "test1.Rect");
+        cf = readBack(cf);
+        PermittedSubclassesAttribute attr = (PermittedSubclassesAttribute)
+            cf.getAttribute(PermittedSubclassesAttribute.tag);
+        assertEquals(java.util.Arrays.asList("test1.Circle", "test1.Rect"),
+                     attr.getPermittedSubclasses());
+    }
+
+    public void testPermittedSubclassesCopy() throws Exception {
+        ClassFile cf = readBack(makeSealedClassFile());
+        ConstPool cp = new ConstPool("test1.Shape2");
+        java.util.Map<String,String> map = new java.util.HashMap<String,String>();
+        map.put("test1/Square", "test1/Rect");
+        PermittedSubclassesAttribute attr = (PermittedSubclassesAttribute)
+            cf.getAttribute(PermittedSubclassesAttribute.tag).copy(cp, map);
+        assertEquals(java.util.Arrays.asList("test1.Circle", "test1.Rect"),
+                     attr.getPermittedSubclasses());
+    }
+
+    private static ClassFile makeSealedClassFile() {
+        ClassFile cf = new ClassFile(true, "test1.Shape", null);
+        PermittedSubclassesAttribute attr
+            = new PermittedSubclassesAttribute(cf.getConstPool());
+        attr.addClass("test1.Circle");
+        attr.addClass("test1.Square");
+        attr.addClass("test1.Square");
+        cf.addAttribute(attr);
+        return cf;
+    }
+
+    private static ClassFile readBack(ClassFile cf) throws IOException {
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        cf.write(new DataOutputStream(bos));
+        return new ClassFile(new DataInputStream(
+                new ByteArrayInputStream(bos.toByteArray())));
+    }
+
     public void testSignature() throws Exception {
         parseMsig("(TT;)TT;", "<> (T) T");
         parseMsig("<S:Ljava/lang/Object;>(TS;[TS;)TT;",
