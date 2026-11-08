@@ -480,6 +480,13 @@ public class CodeAttribute extends AttributeInfo implements Opcode {
     private static void copyBootstrapMethod(ConstPool srcCp, ConstPool destCp, int codeIndex, byte[] srcCode,
                                             byte[] newCode, Map<String,String> classnameMap)
             throws NotFoundException, CannotCompileException {
+        // within the same class (e.g. compact() or copying a method into its
+        // own class) the bootstrap method indexes stay valid, since the
+        // BootstrapMethods attribute is shared or copied in the same order.
+        if (srcCp.getClassName().equals(destCp.getClassName())) {
+            return;
+        }
+
         ClassPool classPool = ClassPool.getDefault();
         CtClass srcCc = classPool.get(srcCp.getClassName());
         CtClass destCc = classPool.get(destCp.getClassName());

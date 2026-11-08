@@ -857,6 +857,23 @@ public class BytecodeTest extends TestCase {
         assertEquals("hello", destObj.getClass().getMethod("getString").invoke(destObj));
     }
 
+    public void testInvokeDynamicCompactNonDefaultPool() throws Exception {
+        ClassPool cp = new ClassPool(true);
+        CtClass cc = cp.getAndRename("test4.InvokeDynCopySrc", "test4.InvokeDynCompact");
+        cc.getClassFile().compact();
+        Object obj = new Loader(cp).loadClass(cc.getName()).getConstructor().newInstance();
+        assertEquals("hello", obj.getClass().getMethod("getString").invoke(obj));
+    }
+
+    public void testInvokeDynamicCopyInSameClassNonDefaultPool() throws Exception {
+        ClassPool cp = new ClassPool(true);
+        CtClass cc = cp.getAndRename("test4.InvokeDynCopySrc", "test4.InvokeDynCopySame");
+        CtMethod m = cc.getDeclaredMethod("getString");
+        cc.addMethod(CtNewMethod.copy(m, "getString2", cc, null));
+        Object obj = new Loader(cp).loadClass(cc.getName()).getConstructor().newInstance();
+        assertEquals("hello", obj.getClass().getMethod("getString2").invoke(obj));
+    }
+
     public void testLargeAttributeInfo() throws Exception {
         int attrLen = 0x7fffffff;
         try {
